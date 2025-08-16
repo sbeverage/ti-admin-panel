@@ -1,0 +1,22 @@
+.App {
+  text-align: left;
+  color: #324E58;
+}
+
+/* Remove default React styling */
+.App-header {
+  display: none;
+}
+
+.App-logo {
+  display: none;
+}
+
+.App-link {
+  display: none;
+}
+
+/* Global color consistency */
+.App * {
+  color: inherit;
+}
