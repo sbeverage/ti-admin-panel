@@ -1,0 +1,410 @@
+/* Discounts Layout */
+.discounts-layout {
+  min-height: 100vh;
+}
+
+.discounts-sider {
+  background: #324E58;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.discounts-menu {
+  background: transparent;
+  border-right: none;
+  margin-top: 20px;
+}
+
+.discounts-menu .ant-menu-item {
+  color: #ffffff;
+  margin: 4px 16px;
+  border-radius: 8px;
+  height: 48px;
+  line-height: 48px;
+}
+
+.discounts-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.discounts-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-item-selected:hover {
+  background: #c6762a !important;
+  color: #ffffff !important;
+}
+
+/* Logo Section */
+.logo-section {
+  padding: 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.logo-image {
+  max-width: 60px;
+  height: auto;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+/* White Logo Styling */
+.white-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.white-logo-image {
+  max-width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.white-logo-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.brand-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+/* User Profile */
+.user-profile {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-info .ant-typography {
+  color: #ffffff;
+  margin: 0;
+  font-size: 12px;
+}
+
+.user-info .ant-typography[type="secondary"] {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 280px;
+  background: #F5F5FA;
+  min-height: 100vh;
+}
+
+/* Header */
+.discounts-header {
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid #f0f0f0;
+  overflow: visible;
+  min-height: auto;
+  height: auto;
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.header-left .ant-typography {
+  color: #324E58;
+  margin: 0;
+}
+
+.discounts-count {
+  color: #666666 !important;
+  font-size: 14px;
+}
+
+/* Content */
+.discounts-content {
+  padding: 24px;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Search and Filter Bar */
+.search-filter-bar {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-section {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.discount-search {
+  width: 100%;
+  max-width: 400px;
+}
+
+.discount-search .ant-input-search-button {
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+}
+
+.discount-search .ant-input-search-button:hover,
+.discount-search .ant-input-search-button:focus,
+.discount-search .ant-input-search-button:active {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-label {
+  color: #324E58;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-dropdown {
+  min-width: 180px;
+}
+
+/* Discounts Grid */
+.discounts-grid-section {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.discounts-grid {
+  margin-bottom: 24px;
+}
+
+.discount-card {
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.discount-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.discount-card-content {
+  padding: 8px;
+}
+
+.company-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.company-logo {
+  flex-shrink: 0;
+}
+
+.company-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.company-name {
+  color: #324E58;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.discount-offer {
+  color: #DB8633;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.discount-conditions,
+.discount-frequency {
+  color: #666666;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Pagination */
+.pagination-section {
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px 0;
+}
+
+.discounts-pagination .ant-pagination-item-active {
+  border-color: #DB8633;
+}
+
+.discounts-pagination .ant-pagination-item-active a {
+  color: #DB8633;
+}
+
+.discounts-pagination .ant-pagination-item:hover {
+  border-color: #DB8633;
+}
+
+.discounts-pagination .ant-pagination-item:hover a {
+  color: #DB8633;
+}
+
+.discounts-pagination .ant-pagination-prev:hover .ant-pagination-item-link,
+.discounts-pagination .ant-pagination-next:hover .ant-pagination-item-link {
+  border-color: #DB8633;
+  color: #DB8633;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .discounts-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .discounts-sider.mobile-visible {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .search-filter-bar {
+    padding: 16px;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filter-dropdowns {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-dropdown {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .discounts-grid .ant-col {
+    margin-bottom: 16px;
+  }
+} 

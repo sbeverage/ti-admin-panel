@@ -5,6 +5,7 @@ import Donors from './components/Donors';
 import Vendor from './components/Vendor';
 import Beneficiaries from './components/Beneficiaries';
 import Tenants from './components/Tenants';
+import Discounts from './components/Discounts';
 import './App.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/beneficiaries" element={<Beneficiaries />} />
           <Route path="/tenants" element={<Tenants />} />
+          <Route path="/discounts" element={<Discounts />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>

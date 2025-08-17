@@ -56,6 +56,8 @@ const Tenants: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'tenants') {
       navigate('/tenants');
+    } else if (key === 'discounts') {
+      navigate('/discounts');
     }
   };
 

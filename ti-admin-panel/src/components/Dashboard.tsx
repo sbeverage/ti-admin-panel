@@ -110,16 +110,19 @@ const Dashboard: React.FC = () => {
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'donors') {
+    if (key === 'dashboard') {
+      navigate('/dashboard');
+    } else if (key === 'donors') {
       navigate('/donors');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
     } else if (key === 'vendor') {
       navigate('/vendor');
+    } else if (key === 'beneficiaries') {
+      navigate('/beneficiaries');
     } else if (key === 'tenants') {
       navigate('/tenants');
+    } else if (key === 'discounts') {
+      navigate('/discounts');
     }
-    // Add other navigation cases as needed
   };
 
   const timeFilterMenu = (

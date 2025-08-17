@@ -61,8 +61,12 @@ const Beneficiaries: React.FC = () => {
       navigate('/donors');
     } else if (key === 'vendor') {
       navigate('/vendor');
+    } else if (key === 'beneficiaries') {
+      navigate('/beneficiaries');
     } else if (key === 'tenants') {
       navigate('/tenants');
+    } else if (key === 'discounts') {
+      navigate('/discounts');
     }
   };
 
