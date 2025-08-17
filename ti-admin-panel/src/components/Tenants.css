@@ -25,46 +25,48 @@
 }
 
 .logo-section {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo-container {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .logo-image {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
 }
 
 .logo-fallback {
-  display: none;
-  width: 60px;
-  height: 60px;
-  background: #DB8633;
-  color: white;
-  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0 auto;
+  background: #DB8633;
+  border-radius: 50%;
+}
+
+.fallback-icon {
+  font-size: 40px;
 }
 
 .brand-name {
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
 .brand-subtitle {
   color: #BEBEBE;
-  font-size: 12px;
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
 .tenants-menu {
@@ -77,8 +79,6 @@
   color: #ffffff !important;
   margin: 4px 16px;
   border-radius: 8px;
-  height: 48px;
-  line-height: 48px;
 }
 
 .tenants-menu .ant-menu-item:hover {
@@ -533,7 +533,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   width: 100%;
 }
 

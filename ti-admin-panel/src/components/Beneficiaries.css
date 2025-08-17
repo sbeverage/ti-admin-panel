@@ -25,14 +25,14 @@
 }
 
 .logo-section {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo-container {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .logo-image {
@@ -58,14 +58,15 @@
 
 .brand-name {
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
 .brand-subtitle {
   color: #BEBEBE;
-  font-size: 12px;
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
 .beneficiaries-menu {
@@ -78,8 +79,6 @@
   color: #ffffff !important;
   margin: 4px 16px;
   border-radius: 8px;
-  height: 48px;
-  line-height: 48px;
 }
 
 .beneficiaries-menu .ant-menu-item:hover {
@@ -596,7 +595,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   width: 100%;
 }
 
