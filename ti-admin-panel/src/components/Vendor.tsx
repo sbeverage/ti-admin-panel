@@ -6,7 +6,7 @@ import {
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined
+  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined
 } from '@ant-design/icons';
 import './Vendor.css';
 
@@ -277,17 +277,17 @@ const Vendor: React.FC = () => {
     },
     {
       key: 'vendor',
-      icon: <ShopOutlined />,
+      icon: <RiseOutlined />,
       label: 'Vendor',
     },
     {
       key: 'discounts',
-      icon: <FileTextOutlined />,
+      icon: <GiftOutlined />,
       label: 'Discounts',
     },
     {
       key: 'tenants',
-      icon: <SettingOutlined />,
+      icon: <BankOutlined />,
       label: 'Tenants',
     },
     {
@@ -306,11 +306,15 @@ const Vendor: React.FC = () => {
       label: 'Feeds',
       children: [
         {
-          key: 'pending-approvals',
-          icon: <ExclamationCircleOutlined />,
-          label: 'Pending Approvals',
+          key: 'sub1',
+          label: 'Sub Menu 1',
         },
       ],
+    },
+    {
+      key: 'pending-approvals',
+      icon: <ExclamationCircleOutlined />,
+      label: 'Pending Approvals',
     },
     {
       key: 'settings',
@@ -443,16 +447,18 @@ const Vendor: React.FC = () => {
           <div className="logo-container">
             <img
               src="/piggy-logo.png"
-              alt="Thrive Initiative Logo"
+              alt="Thrive Initiative Piggy Bank Logo"
               className="logo-image"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
+                if (fallback) fallback.style.display = 'block';
               }}
             />
-            <div className="logo-fallback">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-icon">🐷</div>
+            </div>
           </div>
           <div className="white-logo-container">
             <img

@@ -22,7 +22,13 @@ import {
   EditOutlined,
   CheckCircleFilled,
   BankOutlined,
-  UserAddOutlined
+  UserAddOutlined,
+  RiseOutlined,
+  GiftOutlined,
+  CalendarOutlined,
+  CrownOutlined,
+  FileTextOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Tenants.css';
@@ -302,12 +308,12 @@ const Tenants: React.FC = () => {
     },
     {
       key: 'vendor',
-      icon: <SettingOutlined />,
+      icon: <RiseOutlined />,
       label: 'Vendor',
     },
     {
       key: 'discounts',
-      icon: <SettingOutlined />,
+      icon: <GiftOutlined />,
       label: 'Discounts',
     },
     {
@@ -317,22 +323,28 @@ const Tenants: React.FC = () => {
     },
     {
       key: 'events',
-      icon: <SettingOutlined />,
+      icon: <CalendarOutlined />,
       label: 'Events',
     },
     {
       key: 'leaderboard',
-      icon: <SettingOutlined />,
+      icon: <CrownOutlined />,
       label: 'Leaderboard',
     },
     {
       key: 'feeds',
-      icon: <SettingOutlined />,
+      icon: <FileTextOutlined />,
       label: 'Feeds',
+      children: [
+        {
+          key: 'sub1',
+          label: 'Sub Menu 1',
+        },
+      ],
     },
     {
       key: 'pending-approvals',
-      icon: <SettingOutlined />,
+      icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
     },
     {
@@ -362,16 +374,18 @@ const Tenants: React.FC = () => {
           <div className="logo-container">
             <img
               src="/piggy-logo.png"
-              alt="Thrive Initiative Logo"
+              alt="Thrive Initiative Piggy Bank Logo"
               className="logo-image"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
+                if (fallback) fallback.style.display = 'block';
               }}
             />
-            <div className="logo-fallback">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-icon">🐷</div>
+            </div>
           </div>
           <div className="white-logo-container">
             <img

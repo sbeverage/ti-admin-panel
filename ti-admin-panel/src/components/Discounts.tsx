@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layout,
   Menu,
@@ -23,7 +23,12 @@ import {
   SearchOutlined,
   GiftOutlined,
   BankOutlined,
-  UserAddOutlined
+  UserAddOutlined,
+  RiseOutlined,
+  CalendarOutlined,
+  CrownOutlined,
+  FileTextOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Discounts.css';
@@ -42,7 +47,12 @@ const Discounts: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    console.log('Discounts component mounted');
+  }, []);
+
   const handleMenuClick = ({ key }: { key: string }) => {
+    console.log('Menu clicked:', key); // Debug log
     if (key === 'dashboard') {
       navigate('/dashboard');
     } else if (key === 'donors') {
@@ -54,6 +64,7 @@ const Discounts: React.FC = () => {
     } else if (key === 'tenants') {
       navigate('/tenants');
     } else if (key === 'discounts') {
+      console.log('Navigating to discounts...'); // Debug log
       navigate('/discounts');
     }
   };
@@ -244,7 +255,7 @@ const Discounts: React.FC = () => {
     },
     {
       key: 'vendor',
-      icon: <SettingOutlined />,
+      icon: <RiseOutlined />,
       label: 'Vendor',
     },
     {
@@ -259,22 +270,28 @@ const Discounts: React.FC = () => {
     },
     {
       key: 'events',
-      icon: <SettingOutlined />,
+      icon: <CalendarOutlined />,
       label: 'Events',
     },
     {
       key: 'leaderboard',
-      icon: <SettingOutlined />,
+      icon: <CrownOutlined />,
       label: 'Leaderboard',
     },
     {
       key: 'feeds',
-      icon: <SettingOutlined />,
+      icon: <FileTextOutlined />,
       label: 'Feeds',
+      children: [
+        {
+          key: 'sub1',
+          label: 'Sub Menu 1',
+        },
+      ],
     },
     {
       key: 'pending-approvals',
-      icon: <SettingOutlined />,
+      icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
     },
     {
@@ -304,16 +321,18 @@ const Discounts: React.FC = () => {
           <div className="logo-container">
             <img
               src="/piggy-logo.png"
-              alt="Thrive Initiative Logo"
+              alt="Thrive Initiative Piggy Bank Logo"
               className="logo-image"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
+                if (fallback) fallback.style.display = 'block';
               }}
             />
-            <div className="logo-fallback">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-icon">🐷</div>
+            </div>
           </div>
           <div className="white-logo-container">
             <img
