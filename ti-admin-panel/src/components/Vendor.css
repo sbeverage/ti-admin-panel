@@ -1,0 +1,647 @@
+/* Vendor Layout */
+.vendor-layout {
+  min-height: 100vh;
+}
+
+.vendor-sider {
+  background: #324E58;
+  box-shadow: 2px 0 8px rgba(0, 21, 41, 0.15);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.vendor-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Logo Section */
+.logo-section {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #DB8633;
+  border-radius: 50%;
+}
+
+.fallback-icon {
+  font-size: 40px;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.brand-subtitle {
+  color: #BEBEBE;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Menu */
+.vendor-menu {
+  flex: 1;
+  background: transparent;
+  border: none;
+  margin: 16px 0;
+}
+
+.vendor-menu .ant-menu-item {
+  margin: 4px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.vendor-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vendor-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* User Profile */
+.user-profile {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-info .ant-typography {
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.user-info .ant-typography:last-child {
+  color: #BEBEBE;
+  font-size: 12px;
+}
+
+/* Main Content */
+.main-content {
+  background: #F5F5FA;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px;
+}
+
+/* Header */
+.vendor-header {
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 100;
+  margin: 0;
+  height: auto;
+  min-height: auto;
+  line-height: normal;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.header-left .ant-typography {
+  color: #324E58 !important;
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+.vendors-count {
+  font-size: 16px;
+  color: #8c8c8c !important;
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+
+/* Revenue Summary Styling */
+.revenue-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.revenue-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.revenue-label {
+  color: #6c757d !important;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.time-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #324E58;
+  height: auto;
+}
+
+.time-filter-btn:hover {
+  border-color: #DB8633;
+  color: #DB8633;
+}
+
+.time-filter-btn .anticon {
+  font-size: 12px;
+}
+
+.revenue-amount {
+  font-size: 32px;
+  color: #DB8633 !important;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+}
+
+/* Content */
+.vendor-content {
+  padding: 24px;
+  background: #F5F5FA;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  overflow: visible;
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Search and Filter Bar */
+.search-filter-bar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+  margin-top: 4px;
+}
+
+.vendor-search {
+  width: 100%;
+}
+
+.vendor-search .ant-input {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.vendor-search .ant-input-search-button {
+  border-radius: 0 8px 8px 0;
+  background: #DB8633;
+  border-color: #DB8633;
+}
+
+.vendor-search .ant-input-search-button:hover {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.vendor-search .ant-input-search-button:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.vendor-search .ant-input-search-button:active {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+/* Filter Section Styling */
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  color: #324E58 !important;
+  font-weight: 600;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown {
+  min-width: 150px;
+}
+
+.action-section {
+  display: flex;
+  align-items: center;
+}
+
+.add-vendor-btn, .invite-vendor-btn {
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+  border-radius: 8px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 500;
+}
+
+.add-vendor-btn:hover, .invite-vendor-btn:hover {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.add-vendor-btn:focus, .invite-vendor-btn:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.add-vendor-btn:active, .invite-vendor-btn:active {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+/* Vendors Table Section */
+.vendors-table-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.vendors-table {
+  width: 100%;
+}
+
+.vendors-table .ant-table-thead > tr > th {
+  background: #324E58 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-right: none !important;
+  padding: 16px 20px 16px 24px;
+  font-weight: 600;
+}
+
+.vendors-table .ant-table-tbody > tr > td {
+  padding: 16px 20px 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: none !important;
+}
+
+.vendors-table .ant-table-tbody > tr > td:first-child {
+  padding-left: 40px;
+}
+
+.vendors-table .ant-table-thead > tr > th:first-child {
+  padding-left: 40px;
+}
+
+/* Force remove all borders from header cells */
+.vendors-table .ant-table-thead > tr > th {
+  border: none !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* Remove any remaining table borders */
+.vendors-table .ant-table {
+  border: none !important;
+}
+
+.vendors-table .ant-table-thead > tr {
+  border: none !important;
+}
+
+.vendors-table .ant-table-tbody > tr {
+  border: none !important;
+}
+
+/* Override any Ant Design default borders */
+.vendors-table .ant-table-thead > tr > th::before,
+.vendors-table .ant-table-thead > tr > th::after {
+  display: none !important;
+}
+
+/* Status Pills */
+.status-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+  min-width: 60px;
+}
+
+.status-pill.active {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-pill.inactive {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  display: flex;
+  justify-content: center;
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: #d9d9d9;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle.active {
+  background: #DB8633;
+}
+
+.toggle.inactive {
+  background: #d9d9d9;
+}
+
+.toggle-slider {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle.active .toggle-slider {
+  transform: translateX(20px);
+}
+
+/* Override Ant Design Switch component colors to use brand orange */
+.ant-switch-checked {
+  background-color: #DB8633 !important;
+  border-color: #DB8633 !important;
+}
+
+.ant-switch-checked:hover {
+  background-color: #c6752a !important;
+  border-color: #c6752a !important;
+}
+
+.ant-switch-checked:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Sortable Headers */
+.sortable-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sort-icon {
+  color: #DB8633;
+  font-size: 12px;
+}
+
+/* Pagination */
+.pagination-section {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #f0f0f0;
+}
+
+.vendors-pagination .ant-pagination-item-active {
+  border-color: #DB8633;
+}
+
+.vendors-pagination .ant-pagination-item-active a {
+  color: #DB8633;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vendor-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .vendor-sider.mobile-visible {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .search-filter-bar {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filter-dropdowns {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .filter-dropdown {
+    width: 100%;
+  }
+}
+
+/* Ensure proper layout structure */
+.ant-layout-header.vendor-header {
+  position: relative;
+  z-index: 100;
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0;
+  height: auto;
+  min-height: auto;
+  line-height: normal;
+}
+
+.ant-layout-content.vendor-content {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+  background: #F5F5FA;
+  margin-top: 0;
+  overflow: visible;
+} 
+
+/* Make button text and search icon white */
+.invite-vendor-btn,
+.invite-vendor-btn *,
+.invite-vendor-btn span,
+.invite-vendor-btn div {
+  color: #ffffff !important;
+}
+
+.vendor-search .ant-input-search-button,
+.vendor-search .ant-input-search-button *,
+.vendor-search .ant-input-search-button span,
+.vendor-search .ant-input-search-button div {
+  color: #ffffff !important;
+}
+
+.vendor-search .ant-input-search-button .anticon {
+  color: #ffffff !important;
+}
+
+/* Remove blue hover colors and ensure orange styling */
+.invite-vendor-btn:hover,
+.invite-vendor-btn:focus,
+.invite-vendor-btn:active,
+.invite-vendor-btn:focus-visible {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.25) !important;
+}
+
+.vendor-search .ant-input-search-button:hover,
+.vendor-search .ant-input-search-button:focus,
+.vendor-search .ant-input-search-button:active,
+.vendor-search .ant-input-search-button:focus-visible {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.25) !important;
+} 
+
+/* White Logo Styling */
+.white-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.white-logo-image {
+  max-width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.white-logo-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 18px;
+} 

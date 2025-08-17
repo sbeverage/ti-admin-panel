@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag } from 'antd';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -35,6 +36,8 @@ const Dashboard: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [approvalsData, setApprovalsData] = useState([
     {
       key: '1',
@@ -104,6 +107,19 @@ const Dashboard: React.FC = () => {
     
     // Here you would typically make an API call to update the backend
     console.log(`Toggled ${field} for key ${key}`);
+  };
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === 'donors') {
+      navigate('/donors');
+    } else if (key === 'beneficiaries') {
+      navigate('/beneficiaries');
+    } else if (key === 'vendor') {
+      navigate('/vendor');
+    } else if (key === 'tenants') {
+      navigate('/tenants');
+    }
+    // Add other navigation cases as needed
   };
 
   const timeFilterMenu = (
@@ -449,39 +465,57 @@ const Dashboard: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
+        width={280}
         className={`dashboard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}
-        style={{
-          background: colorBgContainer,
-        }}
       >
-        <div className="sidebar-header">
-          <div className="logo-section">
-            <div className="logo">
-              <img
-                src="/piggy-logo.png"
-                alt="Thrive Initiative Piggy Bank Logo"
-                className="piggy-logo"
-              />
-            </div>
-            <div className="text-logo">
-              <img
-                src="/text-logo.png"
-                alt="THRIVE INITIATIVE"
-                className="text-logo-image"
-              />
+        <div className="logo-section">
+          <div className="logo-container">
+            <img
+              src="/piggy-logo.png"
+              alt="Thrive Initiative Piggy Bank Logo"
+              className="logo-image"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-icon">🐷</div>
             </div>
           </div>
+          <div className="white-logo-container">
+            <img
+              src="/white-logo.png"
+              alt="Thrive Initiative White Logo"
+              className="white-logo-image"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <div className="white-logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-text">TI</div>
+            </div>
+          </div>
+          <div className="brand-name">THRIVE INITIATIVE</div>
+          <div className="brand-subtitle">Change4Good.org</div>
         </div>
 
         <Menu
           mode="inline"
           defaultSelectedKeys={['dashboard']}
+          selectedKeys={[location.pathname === '/dashboard' ? 'dashboard' : '']}
           style={{ borderRight: 0 }}
           items={menuItems}
           className="dashboard-menu"
+          onClick={handleMenuClick}
         />
 
         <div className="user-profile">
@@ -639,7 +673,7 @@ const Dashboard: React.FC = () => {
                     <Statistic
                       title="Active Donors"
                       value={200}
-                      prefix={<UserOutlined style={{ color: '#52c41a' }} />}
+                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
                           <div className="status-pill positive">
@@ -656,7 +690,7 @@ const Dashboard: React.FC = () => {
                     <Statistic
                       title="Pending Approvals"
                       value={12}
-                      prefix={<ExclamationCircleOutlined style={{ color: '#faad14' }} />}
+                      prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
                           <div className="status-pill negative">

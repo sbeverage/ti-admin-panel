@@ -1,0 +1,619 @@
+/* Beneficiaries Layout */
+.beneficiaries-layout {
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  display: none;
+}
+
+/* Sidebar */
+.beneficiaries-sider {
+  background: #324E58;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-section {
+  padding: 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.logo-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  display: none;
+  width: 60px;
+  height: 60px;
+  background: #DB8633;
+  color: white;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 auto;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.brand-subtitle {
+  color: #BEBEBE;
+  font-size: 12px;
+}
+
+.beneficiaries-menu {
+  background: transparent;
+  border: none;
+  margin-top: 24px;
+}
+
+.beneficiaries-menu .ant-menu-item {
+  color: #ffffff !important;
+  margin: 4px 16px;
+  border-radius: 8px;
+  height: 48px;
+  line-height: 48px;
+}
+
+.beneficiaries-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.beneficiaries-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.beneficiaries-menu .ant-menu-item-selected:hover {
+  background: #c6752a !important;
+}
+
+.user-profile {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info .ant-typography {
+  color: #ffffff !important;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.user-info .ant-typography[type="secondary"] {
+  color: #BEBEBE !important;
+  font-size: 12px;
+}
+
+.user-profile .ant-btn {
+  color: #ffffff;
+  border: none;
+  padding: 4px;
+}
+
+.user-profile .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 280px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.beneficiaries-header {
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 10;
+  overflow: visible;
+  min-height: auto;
+  height: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.header-left .ant-typography {
+  color: #324E58 !important;
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+.beneficiaries-count {
+  font-size: 16px;
+  color: #8c8c8c !important;
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.invite-beneficiary-btn {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 500;
+  position: relative !important;
+  z-index: 1 !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+.invite-beneficiary-btn:hover {
+  background: #c6762a;
+  border-color: #c6762a;
+  color: #ffffff !important;
+}
+
+.invite-beneficiary-btn:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.invite-beneficiary-btn:active {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+/* Force override any Ant Design blue hover colors */
+.invite-beneficiary-btn:hover,
+.invite-beneficiary-btn:hover *,
+.invite-beneficiary-btn:hover span,
+.invite-beneficiary-btn:hover div {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+/* Override any focus-visible states */
+.invite-beneficiary-btn:focus-visible {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Content */
+.beneficiaries-content {
+  padding: 24px;
+  background: #F5F5FA;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Search and Filter Bar */
+.search-filter-bar {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.search-section {
+  flex: 1;
+  max-width: 400px;
+}
+
+.beneficiary-search .ant-input-search-button {
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+}
+
+.beneficiary-search .ant-input-search-button:hover {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.beneficiary-search .ant-input-search-button:focus {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.beneficiary-search .anticon {
+  color: #ffffff !important;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-label {
+  color: #324E58 !important;
+  margin: 0 !important;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown {
+  min-width: 160px;
+}
+
+.filter-dropdown .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.filter-dropdown .ant-select-selector:hover {
+  border-color: #DB8633;
+}
+
+.filter-dropdown .ant-select-focused .ant-select-selector {
+  border-color: #DB8633;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
+}
+
+/* Table Section */
+.beneficiaries-table-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.beneficiaries-table {
+  border-radius: 12px;
+}
+
+/* Table Headers - Force brand blue color with high specificity */
+.beneficiaries-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-thead > tr > th * {
+  background: #324E58 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-right: none !important;
+  padding: 16px 20px 16px 24px;
+  font-weight: 600;
+}
+
+.beneficiaries-table .ant-table-thead > tr > th::before,
+.beneficiaries-table .ant-table-thead > tr > th::after {
+  display: none !important;
+}
+
+.beneficiaries-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+  border-right: none !important;
+  padding: 16px 20px 16px 24px;
+  vertical-align: middle;
+}
+
+.beneficiaries-table .ant-table-tbody > tr:hover > td {
+  background: #fafafa;
+}
+
+.beneficiaries-table .ant-table-tbody > tr > td:first-child {
+  padding-left: 40px;
+}
+
+.beneficiaries-table .ant-table-thead > tr > th:first-child {
+  padding-left: 40px;
+}
+
+/* Remove all column borders */
+.beneficiaries-table .ant-table-container {
+  border: none !important;
+}
+
+.beneficiaries-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-tbody > tr > td {
+  border-right: none !important;
+}
+
+.beneficiaries-table .ant-table-tbody > tr {
+  border-right: none !important;
+}
+
+/* Force remove all borders from header cells */
+.beneficiaries-table .ant-table-thead > tr > th {
+  border: none !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* Remove any remaining table borders */
+.beneficiaries-table .ant-table {
+  border: none !important;
+}
+
+.beneficiaries-table .ant-table-thead > tr {
+  border: none !important;
+}
+
+.beneficiaries-table .ant-table-tbody > tr {
+  border: none !important;
+}
+
+/* Toggle Switches */
+.toggle-switch {
+  display: flex;
+  justify-content: center;
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: #d9d9d9;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle.active {
+  background: #DB8633;
+}
+
+.toggle.inactive {
+  background: #d9d9d9;
+}
+
+.toggle-slider {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle.active .toggle-slider {
+  transform: translateX(20px);
+}
+
+/* Override Ant Design Switch component colors to use brand orange */
+.ant-switch-checked {
+  background-color: #DB8633 !important;
+  border-color: #DB8633 !important;
+}
+
+.ant-switch-checked:hover {
+  background-color: #c6752a !important;
+  border-color: #c6752a !important;
+}
+
+.ant-switch-checked:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Edit Action Button */
+.edit-action-btn {
+  color: #8c8c8c;
+  border: none;
+  padding: 4px 8px;
+}
+
+.edit-action-btn:hover {
+  color: #DB8633;
+  background: rgba(219, 134, 51, 0.1);
+}
+
+/* Pagination Section */
+.pagination-section {
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 12px 12px;
+}
+
+.beneficiaries-pagination .ant-pagination-item {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.beneficiaries-pagination .ant-pagination-item-active {
+  background: #DB8633;
+  border-color: #DB8633;
+}
+
+.beneficiaries-pagination .ant-pagination-item-active a {
+  color: #ffffff;
+}
+
+.beneficiaries-pagination .ant-pagination-prev,
+.beneficiaries-pagination .ant-pagination-next {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .search-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-section {
+    justify-content: center;
+  }
+  
+  .search-section {
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .beneficiaries-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .beneficiaries-sider.mobile-visible {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .header-content {
+    padding: 16px 24px;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .beneficiaries-content {
+    padding: 16px 24px;
+  }
+  
+  .search-filter-bar {
+    padding: 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filter-section {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .filter-dropdown {
+    width: 100%;
+  }
+  
+  .beneficiaries-table .ant-table-thead > tr > th,
+  .beneficiaries-table .ant-table-tbody > tr > td {
+    padding: 12px 16px;
+  }
+  
+  .beneficiaries-table .ant-table-tbody > tr > td:first-child,
+  .beneficiaries-table .ant-table-thead > tr > th:first-child {
+    padding-left: 16px;
+  }
+} 
+
+/* White Logo Styling */
+.white-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.white-logo-image {
+  max-width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.white-logo-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 18px;
+} 
