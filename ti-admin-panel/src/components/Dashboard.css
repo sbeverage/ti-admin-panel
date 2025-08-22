@@ -5,6 +5,15 @@
   color: #324E58;
 }
 
+/* Standardize all Typography.Title level={2} elements */
+.dashboard-layout .ant-typography.ant-typography-h2 {
+  font-size: 24px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  color: #324E58 !important;
+  margin: 0 !important;
+}
+
 /* Sidebar - Blue Theme */
 .dashboard-sider {
   background: #324E58;
@@ -250,6 +259,8 @@
   color: #324E58 !important;
   margin: 0 !important;
   font-weight: 600;
+  font-size: 24px !important;
+  line-height: 1.4 !important;
 }
 
 /* Time Filter Button */
@@ -429,16 +440,28 @@
 
 /* Bottom Section */
 .bottom-section {
-  margin-top: 24px;
+  margin-top: 16px;
+}
+
+.bottom-section .ant-row {
+  align-items: stretch;
+}
+
+.bottom-section .ant-col {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Insights Header */
 .insights-header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  width: 100%;
+  margin-left: 16px;
+  padding-left: 0;
 }
 
 .insights-header .ant-typography {
@@ -448,39 +471,49 @@
   font-size: 24px !important;
   line-height: 1.4 !important;
   text-align: left;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 /* Chart Cards */
 .chart-card {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f0f0f0;
   height: 100%;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .chart-card .ant-card-body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 24px;
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .chart-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #324E58;
   margin: 0;
+  line-height: 1.4;
 }
 
 .chart-filter-button {
@@ -514,10 +547,11 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 16px;
+  gap: 20px;
   text-align: center;
   flex: 1;
-  min-height: 300px;
+  min-height: 350px;
+  padding: 16px 0;
 }
 
 /* Donut Chart */
@@ -888,7 +922,7 @@
 
 .tab-header .ant-typography {
   color: #324E58;
-  font-size: 18px !important;
+  font-size: 24px !important;
   line-height: 1.4 !important;
   margin: 0 !important;
   white-space: nowrap !important;
@@ -918,6 +952,7 @@
 
 .approvals-table {
   margin-top: 16px;
+  width: 100%;
 }
 
 /* Prevent text wrapping in approvals table */
@@ -926,18 +961,30 @@
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  max-width: 200px !important;
 }
 
 .approvals-table .ant-table-thead > tr > th {
   font-size: 13px !important;
   font-weight: 600 !important;
-  padding: 8px 12px !important;
+  padding: 12px 16px !important;
 }
 
 .approvals-table .ant-table-tbody > tr > td {
   font-size: 12px !important;
-  padding: 8px 12px !important;
+  padding: 12px 16px !important;
+}
+
+/* Full-width table optimization */
+.approvals-section .approvals-table .ant-table {
+  width: 100%;
+}
+
+.approvals-section .approvals-table .ant-table-container {
+  width: 100%;
+}
+
+.approvals-section .approvals-table .ant-table-content {
+  width: 100%;
 }
 
 /* Newsfeed - Light Theme */
@@ -946,17 +993,69 @@
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f0f0f0;
-  height: fit-content;
+  height: 100%;
+  margin-top: 0;
+  padding-top: 0;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.newsfeed-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.newsfeed-card .ant-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 24px 24px;
+}
+
+.newsfeed-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px 12px 24px;
+}
+
+.newsfeed-card .ant-card-head-title {
+  color: #324E58;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Recent Approvals Section - Full Width */
+.approvals-section {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.approvals-section .approvals-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  width: 100%;
 }
 
 .newsfeed-input {
   margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .newsfeed-input .ant-input {
   background: #ffffff;
   border: 1px solid #d9d9d9;
   color: #324E58;
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 12px 16px;
+}
+
+.newsfeed-input .ant-input:focus {
+  border-color: #DB8633;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
 }
 
 .newsfeed-input .ant-input::placeholder {
@@ -964,13 +1063,24 @@
 }
 
 .newsfeed-list {
-  max-height: 600px;
+  flex: 1;
   overflow-y: auto;
+  max-height: calc(100vh - 400px);
+  min-height: 300px;
 }
 
 .newsfeed-item {
-  padding: 16px 0;
+  padding: 20px 0;
   border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.newsfeed-item:hover {
+  background: rgba(219, 134, 51, 0.02);
+  margin: 0 -16px;
+  padding: 20px 16px;
+  border-radius: 8px;
+  border-bottom: 1px solid transparent;
 }
 
 .newsfeed-item:last-child {
@@ -1174,7 +1284,25 @@
   }
   
   .chart-title {
-    font-size: 14px;
+    font-size: 16px;
+  }
+  
+  .chart-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .newsfeed-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .chart-content {
+    min-height: 280px;
+    gap: 16px;
+    padding: 12px 0;
+  }
+  
+  .newsfeed-list {
+    min-height: 250px;
   }
   
   .donut-chart {
@@ -1248,7 +1376,25 @@
   }
   
   .bottom-section {
-    margin-top: 16px;
+    margin-top: 12px;
+  }
+  
+  .approvals-section {
+    margin-top: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .insights-header {
+    margin-bottom: 12px;
+  }
+  
+  .approvals-section .approvals-card {
+    border-radius: 12px;
+  }
+  
+  .approvals-table .ant-table-thead > tr > th,
+  .approvals-table .ant-table-tbody > tr > td {
+    padding: 8px 12px !important;
   }
   
   .logo {

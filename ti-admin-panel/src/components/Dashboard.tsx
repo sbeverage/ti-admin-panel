@@ -748,9 +748,9 @@ const Dashboard: React.FC = () => {
               </Row>
             </div>
 
-            {/* Bottom Section - 3 Rows with Newsfeed on Right */}
+                        {/* Bottom Section - Charts and Newsfeed */}
             <Row gutter={[24, 24]} className="bottom-section">
-              {/* Left Side - Charts and Tables */}
+              {/* Left Side - Charts Only */}
               <Col xs={24} lg={16}>
                 <Row gutter={[0, 24]}>
                   {/* Charts Row */}
@@ -847,38 +847,6 @@ const Dashboard: React.FC = () => {
                       </Col>
                     </Row>
                   </Col>
-
-                  {/* Recent Approvals */}
-                  <Col span={24}>
-                    <Card className="approvals-card">
-                      <div className="tab-header">
-                        <Typography.Title level={2}>Recent Approvals</Typography.Title>
-                        <Typography.Link href="#" className="view-all-link">
-                          View all Beneficiaries
-                        </Typography.Link>
-                      </div>
-                      <Tabs defaultActiveKey="beneficiaries" className="approvals-tabs">
-                        <TabPane tab="Beneficiaries" key="beneficiaries">
-                          <Table
-                            dataSource={approvalsData}
-                            columns={beneficiaryColumns}
-                            pagination={false}
-                            size="small"
-                            className="approvals-table"
-                          />
-                        </TabPane>
-                        <TabPane tab="Vendors" key="vendors">
-                          <Table
-                            dataSource={approvalsData}
-                            columns={vendorColumns}
-                            pagination={false}
-                            size="small"
-                            className="approvals-table"
-                          />
-                        </TabPane>
-                      </Tabs>
-                    </Card>
-                  </Col>
                 </Row>
               </Col>
 
@@ -941,6 +909,40 @@ const Dashboard: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Recent Approvals - Full Width Section */}
+            <Row className="approvals-section">
+              <Col span={24}>
+                <Card className="approvals-card">
+                  <div className="tab-header">
+                    <Typography.Title level={2}>Recent Approvals</Typography.Title>
+                    <Typography.Link href="#" className="view-all-link">
+                      View all Beneficiaries
+                    </Typography.Link>
+                  </div>
+                  <Tabs defaultActiveKey="beneficiaries" className="approvals-tabs">
+                    <TabPane tab="Beneficiaries" key="beneficiaries">
+                      <Table
+                        dataSource={approvalsData}
+                        columns={beneficiaryColumns}
+                        pagination={false}
+                        size="small"
+                        className="approvals-table"
+                      />
+                    </TabPane>
+                    <TabPane tab="Vendors" key="vendors">
+                      <Table
+                        dataSource={approvalsData}
+                        columns={vendorColumns}
+                        pagination={false}
+                        size="small"
+                        className="approvals-table"
+                      />
+                    </TabPane>
+                  </Tabs>
                 </Card>
               </Col>
             </Row>
