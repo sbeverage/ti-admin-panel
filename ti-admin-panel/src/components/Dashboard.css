@@ -160,20 +160,44 @@
 .main-content {
   background: #F5F5FA;
   margin-left: 280px;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-header {
   background: #ffffff;
-  padding: 0 24px;
+  padding: 24px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   border-bottom: 1px solid #f0f0f0;
+  margin: 0;
+  height: auto;
+  min-height: auto;
+  line-height: normal;
+  overflow: visible;
+  min-height: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dashboard-header .ant-typography {
   color: #324E58 !important;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.header-left .ant-typography {
+  color: #324E58;
+  margin: 0;
 }
 
 .header-actions {
@@ -189,6 +213,10 @@
 .dashboard-content {
   padding: 24px;
   background: #F5F5FA;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  overflow: visible;
 }
 
 .content-wrapper {
@@ -407,12 +435,15 @@
 /* Insights Header */
 .insights-header {
   margin-bottom: 24px;
+  padding: 0;
 }
 
 .insights-title {
   color: #324E58 !important;
   margin: 0 !important;
   font-weight: 600;
+  font-size: 24px !important;
+  line-height: 1.4 !important;
 }
 
 /* Chart Cards */
@@ -499,11 +530,16 @@
 .donut-center {
   position: relative;
   z-index: 1;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: #324E58;
   text-align: center;
   line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  border-radius: 8px;
+  min-width: 80px;
 }
 
 .chart-legend {
@@ -795,6 +831,10 @@
 
 .tab-header .ant-typography {
   color: #324E58;
+  font-size: 18px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
 }
 
 /* Table - Light Theme */
@@ -821,6 +861,26 @@
 
 .approvals-table {
   margin-top: 16px;
+}
+
+/* Prevent text wrapping in approvals table */
+.approvals-table .ant-table-thead > tr > th,
+.approvals-table .ant-table-tbody > tr > td {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 200px !important;
+}
+
+.approvals-table .ant-table-thead > tr > th {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+}
+
+.approvals-table .ant-table-tbody > tr > td {
+  font-size: 12px !important;
+  padding: 8px 12px !important;
 }
 
 /* Newsfeed - Light Theme */
@@ -929,15 +989,39 @@
 }
 
 .mobile-menu-btn {
-  background: #ffffff;
-  border: 1px solid #d9d9d9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  color: #324E58;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: #324E58;
+  border-color: #324E58;
+  color: #ffffff;
+  display: none;
+}
+
+/* Show mobile menu button on small screens */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .dashboard-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .dashboard-sider.mobile-visible {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
 }
 
 /* Mobile Sidebar Overlay */
 .mobile-sidebar-overlay {
-  display: none;
+  display: block;
   position: fixed;
   top: 0;
   left: 0;
@@ -1001,11 +1085,14 @@
 
 @media (max-width: 768px) {
   .dashboard-header {
-    padding: 0 12px;
+    padding: 16px 24px;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
   }
   
   .dashboard-content {
-    padding: 12px;
+    padding: 16px 24px;
   }
   
   .summary-card .ant-statistic-content {
@@ -1120,4 +1207,46 @@
   vertical-align: middle !important;
 } 
 
- 
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  border-color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+/* Override any blue focus rings */
+.ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}

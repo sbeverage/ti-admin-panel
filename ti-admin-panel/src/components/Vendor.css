@@ -348,7 +348,7 @@
   align-items: center;
 }
 
-.add-vendor-btn, .invite-vendor-btn {
+.add-vendor-btn {
   background: #DB8633;
   border-color: #DB8633;
   color: #ffffff;
@@ -358,24 +358,26 @@
   font-weight: 500;
 }
 
-.add-vendor-btn:hover, .invite-vendor-btn:hover {
+.add-vendor-btn:hover {
   background: #c6762a !important;
   border-color: #c6762a !important;
   color: #ffffff !important;
 }
 
-.add-vendor-btn:focus, .invite-vendor-btn:focus {
+.add-vendor-btn:focus {
   background: #DB8633 !important;
   border-color: #DB8633 !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
 
-.add-vendor-btn:active, .invite-vendor-btn:active {
+.add-vendor-btn:active {
   background: #DB8633 !important;
   border-color: #DB8633 !important;
   color: #ffffff !important;
 }
+
+/* Invite Vendor Button Styling - Now standardized globally in App.css */
 
 /* Vendors Table Section */
 .vendors-table-section {
@@ -603,13 +605,6 @@
 } 
 
 /* Make button text and search icon white */
-.invite-vendor-btn,
-.invite-vendor-btn *,
-.invite-vendor-btn span,
-.invite-vendor-btn div {
-  color: #ffffff !important;
-}
-
 .vendor-search .ant-input-search-button,
 .vendor-search .ant-input-search-button *,
 .vendor-search .ant-input-search-button span,
@@ -622,10 +617,10 @@
 }
 
 /* Remove blue hover colors and ensure orange styling */
-.invite-vendor-btn:hover,
-.invite-vendor-btn:focus,
-.invite-vendor-btn:active,
-.invite-vendor-btn:focus-visible {
+.vendor-search .ant-input-search-button:hover,
+.vendor-search .ant-input-search-button:focus,
+.vendor-search .ant-input-search-button:active,
+.vendor-search .ant-input-search-button:focus-visible {
   background: #c6762a !important;
   border-color: #c6762a !important;
   color: #ffffff !important;
@@ -692,3 +687,47 @@
   padding: 4px 16px !important;
   vertical-align: middle !important;
 } 
+
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  border-color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+/* Override any blue focus rings */
+.ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}

@@ -222,57 +222,7 @@
   z-index: 1;
 }
 
-.invite-tenant-btn {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
-  color: #ffffff !important;
-  border-radius: 8px;
-  height: 40px;
-  padding: 0 24px;
-  font-weight: 500;
-  position: relative !important;
-  z-index: 1 !important;
-  display: inline-block !important;
-  white-space: nowrap !important;
-}
-
-.invite-tenant-btn:hover {
-  background: #c6762a;
-  border-color: #c6762a;
-  color: #ffffff !important;
-}
-
-.invite-tenant-btn:focus {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-}
-
-.invite-tenant-btn:active {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
-  color: #ffffff !important;
-}
-
-/* Force override any Ant Design blue hover colors */
-.invite-tenant-btn:hover,
-.invite-tenant-btn:hover *,
-.invite-tenant-btn:hover span,
-.invite-tenant-btn:hover div {
-  background: #c6762a !important;
-  border-color: #c6762a !important;
-  color: #ffffff !important;
-}
-
-/* Override any focus-visible states */
-.invite-tenant-btn:focus-visible {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
-  color: #ffffff !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
+/* Invite Tenant Button Styling - Now standardized globally in App.css */
 
 /* Content */
 .tenants-content {
@@ -606,3 +556,47 @@
   padding: 4px 16px !important;
   vertical-align: middle !important;
 } 
+
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  border-color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+/* Override any blue focus rings */
+.ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}

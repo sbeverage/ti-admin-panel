@@ -476,6 +476,14 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <Sider
         width={280}
@@ -543,13 +551,18 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <Layout className="main-content">
+        <Button 
+          className="mobile-menu-btn"
+          icon={<MenuOutlined />}
+          onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+        />
         <Header className="dashboard-header">
-          <Space>
-            <Title level={3} style={{ margin: 0 }}>Dashboard</Title>
-          </Space>
+          <div className="header-left">
+            <Title level={2} style={{ margin: 0 }}>Dashboard</Title>
+          </div>
           <div className="header-actions">
             <Button type="text" icon={<BellOutlined />} />
-            <Avatar size={32} src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shahryar" />
+            <Avatar size={32} icon={<UserOutlined />} />
           </div>
         </Header>
 
@@ -558,7 +571,7 @@ const Dashboard: React.FC = () => {
             {/* Top Section - 3 Rows of Summary Cards */}
             <div className="summary-section">
               <div className="summary-header">
-                <Typography.Title level={3} className="summary-title">Dashboard Overview</Typography.Title>
+                <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
                 <Dropdown
                   overlay={timeFilterMenu}
                   trigger={['click']}
@@ -743,7 +756,7 @@ const Dashboard: React.FC = () => {
                   {/* Charts Row */}
                   <Col span={24}>
                     <div className="insights-header">
-                      <Typography.Title level={3} className="insights-title">Insights</Typography.Title>
+                      <Typography.Title level={2} className="insights-title">Insights</Typography.Title>
                     </div>
                     <Row gutter={[16, 16]}>
                       <Col xs={24} md={12}>
@@ -823,7 +836,7 @@ const Dashboard: React.FC = () => {
                   <Col span={24}>
                     <Card className="approvals-card">
                       <div className="tab-header">
-                        <Typography.Title level={4}>Recent Approvals</Typography.Title>
+                        <Typography.Title level={2}>Recent Approvals</Typography.Title>
                         <Typography.Link href="#" className="view-all-link">
                           View all Beneficiaries
                         </Typography.Link>

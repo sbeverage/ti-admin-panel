@@ -570,52 +570,50 @@
   vertical-align: middle !important;
 } 
 
-/* Invite Button Styling - Force Orange Color */
-.invite-beneficiary-btn {
-  background: #DB8633 !important;
+/* Invite Button Styling - Now standardized globally in App.css */
+
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
   border-color: #DB8633 !important;
-  color: #ffffff !important;
-  border-radius: 8px;
-  font-weight: 600;
-  height: 48px;
-  padding: 0 24px;
-  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.2);
-  transition: all 0.3s ease;
+  color: #DB8633 !important;
 }
 
-.invite-beneficiary-btn:hover {
-  background: #c6762a !important;
-  border-color: #c6762a !important;
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3);
-  transform: translateY(-1px);
 }
 
-.invite-beneficiary-btn:focus {
-  background: #DB8633 !important;
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
   border-color: #DB8633 !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
 }
 
-.invite-beneficiary-btn:active {
-  background: #b36b25 !important;
-  border-color: #b36b25 !important;
-  color: #ffffff !important;
-  transform: translateY(0);
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
 }
 
-/* Override any Ant Design button type styles */
-.ant-btn-primary.invite-beneficiary-btn {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
-  color: #ffffff !important;
+/* Override any blue focus rings */
+.ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
 }
 
-.ant-btn-primary.invite-beneficiary-btn:hover {
-  background: #c6762a !important;
-  border-color: #c6762a !important;
-  color: #ffffff !important;
+.ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
 }
 
 .ant-btn-primary.invite-beneficiary-btn:focus {

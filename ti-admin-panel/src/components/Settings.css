@@ -383,9 +383,9 @@
 }
 
 .role-admin {
-  background: #e6f7ff;
-  color: #1890ff;
-  border: 1px solid #91d5ff;
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+  border: 1px solid rgba(219, 134, 51, 0.3);
 }
 
 .role-manager {
@@ -452,6 +452,41 @@
   border-color: #324E58;
   color: #ffffff;
   display: none;
+}
+
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  border-color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
 }
 
 /* Responsive Design */

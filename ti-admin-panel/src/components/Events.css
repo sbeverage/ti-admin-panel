@@ -379,3 +379,47 @@
   line-height: 40px !important;
   padding: 4px 16px !important;
 } 
+
+/* Global Button Brand Color Overrides */
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
+}
+
+/* Override any remaining blue hover states */
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  border-color: #DB8633 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+/* Override any blue focus rings */
+.ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
