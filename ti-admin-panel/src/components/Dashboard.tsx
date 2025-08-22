@@ -776,9 +776,11 @@ const Dashboard: React.FC = () => {
                             </Dropdown>
                           </div>
                           <div className="chart-content">
-                            <div className="donut-chart">
-                              <div className="donut-center">1000 Total Donors</div>
+                            <div className="chart-total">
+                              <span className="total-number">1000</span>
+                              <span className="total-label">Total Donors</span>
                             </div>
+                            <div className="donut-chart"></div>
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
