@@ -567,9 +567,8 @@ const Dashboard: React.FC = () => {
         </Header>
 
         <Content className="dashboard-content">
-          <div className="content-wrapper">
-            {/* Top Section - 3 Rows of Summary Cards */}
-            <div className="summary-section">
+          {/* Top Section - 3 Rows of Summary Cards */}
+          <div className="summary-section">
               <div className="summary-header">
                 <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
                 <Dropdown
@@ -946,7 +945,6 @@ const Dashboard: React.FC = () => {
                 </Card>
               </Col>
             </Row>
-          </div>
         </Content>
       </Layout>
 
