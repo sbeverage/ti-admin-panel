@@ -441,7 +441,7 @@
   justify-content: flex-start;
 }
 
-.insights-title {
+.insights-header .ant-typography {
   color: #324E58 !important;
   margin: 0 !important;
   font-weight: 600;
@@ -457,6 +457,14 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f0f0f0;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card .ant-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-header {
@@ -504,10 +512,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   gap: 16px;
   text-align: center;
+  flex: 1;
+  min-height: 300px;
 }
 
 /* Donut Chart */
@@ -619,11 +629,12 @@
 /* Line Chart */
 .line-chart {
   width: 100%;
-  height: 120px;
+  height: 140px;
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin: 16px 0;
 }
 
 .chart-y-axis {
@@ -643,9 +654,11 @@
   left: 40px;
   right: 0;
   top: 50%;
-  height: 2px;
-  background: #DB8633;
+  height: 3px;
+  background: linear-gradient(90deg, #DB8633 0%, #C6762A 100%);
   transform: translateY(-50%);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.3);
 }
 
 .chart-line::before {
@@ -653,10 +666,11 @@
   position: absolute;
   left: 0;
   top: -2px;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: #DB8633;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.4);
 }
 
 .chart-line::after {
@@ -664,10 +678,11 @@
   position: absolute;
   right: 0;
   top: -2px;
-  width: 6px;
-  height: 6px;
+  width: 12px;
+  height: 12px;
   background: #DB8633;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.4);
 }
 
 .chart-x-axis {

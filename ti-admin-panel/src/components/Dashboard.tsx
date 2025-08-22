@@ -756,7 +756,7 @@ const Dashboard: React.FC = () => {
                   {/* Charts Row */}
                   <Col span={24}>
                     <div className="insights-header">
-                      <Typography.Title level={2} className="insights-title">Insights</Typography.Title>
+                      <Typography.Title level={2}>Insights</Typography.Title>
                     </div>
                     <Row gutter={[16, 16]}>
                       <Col xs={24} md={12}>
@@ -811,6 +811,10 @@ const Dashboard: React.FC = () => {
                             </Dropdown>
                           </div>
                           <div className="chart-content">
+                            <div className="chart-total">
+                              <span className="total-number">$2,500</span>
+                              <span className="total-label">Total Donations</span>
+                            </div>
                             <div className="line-chart">
                               <div className="chart-y-axis">
                                 <span>$1000</span>
@@ -826,6 +830,16 @@ const Dashboard: React.FC = () => {
                                 <span>Week 3</span>
                                 <span>Week 4</span>
                                 <span>Week 5</span>
+                              </div>
+                            </div>
+                            <div className="chart-legend">
+                              <div className="legend-item">
+                                <span className="legend-color active"></span>
+                                <span>Average: $500/week</span>
+                              </div>
+                              <div className="legend-item">
+                                <span className="legend-color inactive"></span>
+                                <span>Trend: +12.5% vs last month</span>
                               </div>
                             </div>
                           </div>
