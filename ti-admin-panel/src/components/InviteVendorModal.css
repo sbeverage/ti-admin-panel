@@ -1,0 +1,529 @@
+/* Invite Vendor Modal Styles */
+.invite-vendor-modal .ant-modal {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.invite-vendor-modal .ant-modal-content {
+  border-radius: 16px;
+  padding: 0;
+}
+
+.invite-vendor-modal .ant-modal-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 24px 32px;
+  margin: 0;
+}
+
+.invite-vendor-modal .ant-modal-body {
+  padding: 0;
+  margin: 0;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.back-btn {
+  color: #666;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.modal-title {
+  margin: 0 0 8px 0 !important;
+  color: #324E58;
+  font-weight: 600;
+}
+
+.modal-subtitle {
+  margin: 0 !important;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Modal Content Layout */
+.modal-content {
+  display: flex;
+  min-height: 600px;
+}
+
+/* Steps Sidebar */
+.steps-sidebar {
+  width: 300px;
+  background: #f8f9fa;
+  border-right: 1px solid #e8e8e8;
+  padding: 32px 24px;
+}
+
+.steps-sidebar .ant-steps-vertical > .ant-steps-item {
+  margin-bottom: 32px;
+}
+
+.steps-sidebar .ant-steps-vertical > .ant-steps-item:last-child {
+  margin-bottom: 0;
+}
+
+.steps-sidebar .ant-steps-vertical > .ant-steps-item .ant-steps-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.steps-sidebar .ant-steps-vertical > .ant-steps-item .ant-steps-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 16px;
+  line-height: 1.4;
+}
+
+.steps-sidebar .ant-steps-vertical > .ant-steps-item .ant-steps-item-description {
+  font-size: 14px;
+  margin-left: 16px;
+  margin-top: 4px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* Form Content */
+.form-content {
+  flex: 1;
+  padding: 32px;
+  background: #ffffff;
+}
+
+.step-content {
+  max-width: 100%;
+}
+
+.step-content .ant-typography {
+  margin-bottom: 24px !important;
+  color: #324E58;
+}
+
+/* Form Styling */
+.vendor-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.vendor-form .ant-form-item-label > label {
+  color: #324E58;
+  font-weight: 500;
+}
+
+.vendor-form .ant-input,
+.vendor-form .ant-select-selector,
+.vendor-form .ant-input-affix-wrapper {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.vendor-form .ant-input:hover,
+.vendor-form .ant-select-selector:hover,
+.vendor-form .ant-input-affix-wrapper:hover {
+  border-color: #DB8633;
+}
+
+.vendor-form .ant-input:focus,
+.vendor-form .ant-select-focused .ant-select-selector,
+.vendor-form .ant-input-affix-wrapper-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.vendor-form .ant-textarea:focus {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Upload Sections */
+.upload-logo-section,
+.upload-images-section {
+  background: #f8f9fa;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.upload-logo-section .ant-typography,
+.upload-images-section .ant-typography {
+  margin-bottom: 16px !important;
+  color: #324E58;
+}
+
+.upload-placeholder {
+  background: #ffffff;
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  padding: 32px 24px;
+  margin: 16px 0;
+  transition: all 0.3s ease;
+}
+
+.upload-placeholder:hover {
+  border-color: #DB8633;
+  background: rgba(219, 134, 51, 0.02);
+}
+
+.upload-placeholder.large {
+  padding: 48px 24px;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.upload-placeholder .ant-typography {
+  color: #666;
+  margin: 0 !important;
+}
+
+/* Pricing Tiers */
+.pricing-tiers {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.pricing-tier-btn {
+  flex: 1;
+  height: 48px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #324E58;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pricing-tier-btn:hover {
+  border-color: #DB8633;
+  color: #DB8633;
+}
+
+.pricing-tier-btn.ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+/* Schedule Table */
+.schedule-table {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.schedule-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.schedule-header .schedule-col {
+  padding: 16px;
+  font-weight: 600;
+  color: #324E58;
+  text-align: center;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.schedule-row:last-child {
+  border-bottom: none;
+}
+
+.schedule-row .schedule-col {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.schedule-row .schedule-col:first-child {
+  justify-content: flex-start;
+  font-weight: 500;
+  color: #324E58;
+}
+
+.schedule-row .schedule-col:nth-child(2) {
+  justify-content: center;
+}
+
+.time-picker {
+  width: 100%;
+  max-width: 120px;
+}
+
+/* Upload Button */
+.upload-btn {
+  background: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  height: 40px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.upload-btn:hover {
+  background: #389e0d !important;
+  border-color: #389e0d !important;
+  color: #ffffff !important;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.prev-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  height: 40px;
+  font-weight: 500;
+  color: #666;
+}
+
+.prev-btn:hover {
+  border-color: #DB8633;
+  color: #DB8633;
+}
+
+.next-btn {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  height: 40px;
+  font-weight: 500;
+  padding: 0 24px;
+}
+
+.next-btn:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .invite-vendor-modal .ant-modal {
+    max-width: 95vw;
+    margin: 16px;
+  }
+
+  .modal-content {
+    flex-direction: column;
+  }
+
+  .steps-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 24px;
+  }
+
+  .form-content {
+    padding: 24px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-actions .ant-btn {
+    width: 100%;
+  }
+
+  .pricing-tiers {
+    flex-direction: column;
+  }
+
+  .schedule-header,
+  .schedule-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .schedule-header .schedule-col,
+  .schedule-row .schedule-col {
+    padding: 12px 8px;
+  }
+}
+
+/* Divider Styling */
+.ant-divider {
+  margin: 32px 0;
+  border-color: #e8e8e8;
+}
+
+/* Select Dropdown Styling */
+.ant-select-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: rgba(219, 134, 51, 0.05);
+}
+
+/* Override step colors to use only brand colors: orange, dark blue, and gray */
+.invite-vendor-modal .ant-steps-item-process .ant-steps-item-icon {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-finish .ant-steps-item-icon {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-wait .ant-steps-item-icon {
+  color: #324E58 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-process .ant-steps-item-title {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-finish .ant-steps-item-title {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-wait .ant-steps-item-title {
+  color: #324E58 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-process .ant-steps-item-description {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-finish .ant-steps-item-description {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-wait .ant-steps-item-description {
+  color: #666 !important;
+}
+
+/* Fix step connecting lines positioning and styling */
+.invite-vendor-modal .ant-steps-item-tail {
+  position: absolute !important;
+  left: 16px !important;
+  top: 32px !important;
+  width: 2px !important;
+  height: calc(100% - 32px) !important;
+  border-left: 2px solid #324E58 !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+.invite-vendor-modal .ant-steps-item-process .ant-steps-item-tail {
+  border-left-color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-finish .ant-steps-item-tail {
+  border-left-color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-item-wait .ant-steps-item-tail {
+  border-left-color: #666 !important;
+}
+
+/* Ensure proper line positioning for vertical steps */
+.invite-vendor-modal .ant-steps-vertical > .ant-steps-item > .ant-steps-item-container > .ant-steps-item-tail {
+  position: absolute !important;
+  left: 16px !important;
+  top: 32px !important;
+  width: 2px !important;
+  height: calc(100% - 32px) !important;
+  border-left: 2px solid #324E58 !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+.invite-vendor-modal .ant-steps-vertical > .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-tail {
+  border-left-color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-vertical > .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-tail {
+  border-left-color: #DB8633 !important;
+}
+
+.invite-vendor-modal .ant-steps-vertical > .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-tail {
+  border-left-color: #666 !important;
+}
+
+/* Remove any default line styling that might interfere */
+.invite-vendor-modal .ant-steps-item-tail::before,
+.invite-vendor-modal .ant-steps-item-tail::after {
+  display: none !important;
+}
+
+/* Override any Ant Design default blue focus colors */
+.invite-vendor-modal .ant-input:focus,
+.invite-vendor-modal .ant-select-focused .ant-select-selector,
+.invite-vendor-modal .ant-input-affix-wrapper-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.invite-vendor-modal .ant-textarea:focus {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Override any blue link colors */
+.invite-vendor-modal a,
+.invite-vendor-modal .ant-btn-link {
+  color: #DB8633 !important;
+}
+
+.invite-vendor-modal a:hover,
+.invite-vendor-modal .ant-btn-link:hover {
+  color: #C6762A !important;
+} 

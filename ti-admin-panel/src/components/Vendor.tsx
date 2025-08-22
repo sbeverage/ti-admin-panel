@@ -8,6 +8,7 @@ import {
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined
 } from '@ant-design/icons';
+import InviteVendorModal from './InviteVendorModal';
 import './Vendor.css';
 
 const { Header, Sider, Content } = Layout;
@@ -21,6 +22,7 @@ const Vendor: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
+  const [inviteVendorModalVisible, setInviteVendorModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,6 +44,20 @@ const Vendor: React.FC = () => {
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
     console.log(`Time filter changed to: ${key}`);
+  };
+
+  const handleInviteVendor = () => {
+    setInviteVendorModalVisible(true);
+  };
+
+  const handleInviteVendorModalCancel = () => {
+    setInviteVendorModalVisible(false);
+  };
+
+  const handleInviteVendorModalSubmit = (values: any) => {
+    console.log('Vendor invite submitted:', values);
+    setInviteVendorModalVisible(false);
+    // Here you would typically send the data to your backend
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -523,6 +539,7 @@ const Vendor: React.FC = () => {
               icon={<UserAddOutlined />}
               size="large"
               className="invite-vendor-btn"
+              onClick={handleInviteVendor}
             >
               + Invite A Vendor
             </Button>
@@ -621,6 +638,13 @@ const Vendor: React.FC = () => {
           </div>
         </Content>
       </Layout>
+
+      {/* Invite Vendor Modal */}
+      <InviteVendorModal
+        visible={inviteVendorModalVisible}
+        onCancel={handleInviteVendorModalCancel}
+        onSubmit={handleInviteVendorModalSubmit}
+      />
     </Layout>
   );
 };
