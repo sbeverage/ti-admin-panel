@@ -93,6 +93,32 @@
   display: none;
 }
 
+/* Submenu styling for Feeds */
+.vendor-menu .ant-menu-submenu-title {
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-submenu .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-submenu .ant-menu-item:hover {
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-submenu .ant-menu-item-selected {
+  color: #ffffff !important;
+}
+
+/* Ensure submenu arrow is white */
+.vendor-menu .ant-menu-submenu-arrow {
+  color: #ffffff !important;
+}
+
 /* User Profile */
 .user-profile {
   padding: 16px 24px;
@@ -644,4 +670,25 @@
   color: #ffffff;
   font-weight: bold;
   font-size: 18px;
+} 
+
+/* Table Header Consistency */
+.ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure consistent header styling across all tables */
+.dashboard-table .ant-table-thead > tr > th,
+.donors-table .ant-table-thead > tr > th,
+.vendor-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-thead > tr > th,
+.tenants-table .ant-table-thead > tr > th,
+.discounts-table .ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+  vertical-align: middle !important;
 } 

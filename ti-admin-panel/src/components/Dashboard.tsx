@@ -122,7 +122,13 @@ const Dashboard: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    }
+    } else if (key === 'events') {
+      navigate('/events');
+           } else if (key === 'leaderboard') {
+         navigate('/leaderboard');
+       } else if (key === 'settings') {
+         navigate('/settings');
+       }
   };
 
   const timeFilterMenu = (
@@ -187,8 +193,12 @@ const Dashboard: React.FC = () => {
       label: 'Feeds',
       children: [
         {
-          key: 'sub1',
-          label: 'Sub Menu 1',
+          key: 'newsfeed',
+          label: 'Newsfeed',
+        },
+        {
+          key: 'ads-management',
+          label: 'Ads Management',
         },
       ],
     },
@@ -474,28 +484,31 @@ const Dashboard: React.FC = () => {
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
-        <div className="logo-section">
-          <div className="logo-container">
-            <img
-              src="/piggy-logo.png"
-              alt="Thrive Initiative Piggy Bank Logo"
-              className="logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'block';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-icon">🐷</div>
-            </div>
-          </div>
-          <div className="white-logo-container">
+        <div className="logo-section" style={{ 
+          padding: '20px 16px 12px 16px',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent'
+        }}>
+          {/* Simplified logo section with large centered logo */}
+          <div className="logo-container" style={{
+            position: 'relative',
+            marginBottom: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative White Logo"
-              className="white-logo-image"
+              alt="Thrive Initiative Logo"
+              className="logo-image"
+              style={{ 
+                width: '180px', 
+                height: 'auto', 
+                maxWidth: '100%',
+                display: 'block',
+                margin: '0 auto'
+              }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -503,12 +516,10 @@ const Dashboard: React.FC = () => {
                 if (fallback) fallback.style.display = 'flex';
               }}
             />
-            <div className="white-logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-text">THRIVE</div>
             </div>
           </div>
-          <div className="brand-name">THRIVE INITIATIVE</div>
-          <div className="brand-subtitle">Change4Good.org</div>
         </div>
 
         <Menu
@@ -522,10 +533,9 @@ const Dashboard: React.FC = () => {
         />
 
         <div className="user-profile">
-          <Avatar size={40} src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shahryar" />
+          <Avatar size={40} icon={<UserOutlined />} />
           <div className="user-info">
-            <Text strong>Shahryar Minhas</Text>
-            <Text type="secondary">shahryarminhas@gmail.com</Text>
+            <Text strong>Stephanie Beverage</Text>
           </div>
           <Button type="text" icon={<MoreOutlined />} />
         </div>

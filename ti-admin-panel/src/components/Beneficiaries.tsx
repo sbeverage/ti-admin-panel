@@ -37,9 +37,11 @@ import {
   CalendarOutlined,
   CrownOutlined,
   FileTextOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  SortAscendingOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import InviteBeneficiaryModal from './InviteBeneficiaryModal';
 import './Beneficiaries.css';
 
 const { Header, Sider, Content } = Layout;
@@ -53,12 +55,33 @@ const Beneficiaries: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
+  const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     // This would typically update the backend
     console.log(`Toggling ${field} for beneficiary ${key}`);
+  };
+
+  const handleInviteBeneficiary = () => {
+    setInviteModalVisible(true);
+  };
+
+  const handleInviteModalCancel = () => {
+    setInviteModalVisible(false);
+  };
+
+  const handleInviteModalSubmit = (values: any) => {
+    console.log('Invite beneficiary form submitted:', values);
+    // Here you would typically send the data to your backend
+    setInviteModalVisible(false);
+    // You could also show a success message here
+  };
+
+  const handlePageChange = (page: number, size?: number) => {
+    setCurrentPage(page);
+    if (size) setPageSize(size);
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -74,7 +97,13 @@ const Beneficiaries: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    }
+    } else if (key === 'events') {
+      navigate('/events');
+           } else if (key === 'leaderboard') {
+         navigate('/leaderboard');
+       } else if (key === 'settings') {
+         navigate('/settings');
+       }
   };
 
   const timeFilterMenu = [
@@ -297,68 +326,80 @@ const Beneficiaries: React.FC = () => {
 
   const columns = [
     {
-      title: 'Beneficiary name',
+      title: (
+        <div className="sortable-header">
+          Beneficiary name
+          <SortAscendingOutlined className="sort-icon" />
+        </div>
+      ),
       dataIndex: 'beneficiaryName',
       key: 'beneficiaryName',
-      render: (text: string) => <Text strong>{text}</Text>,
+      render: (text: string, record: any) => (
+        <Space>
+          <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
+            {record.beneficiaryName.charAt(0)}
+          </Avatar>
+          <Text strong>{text}</Text>
+        </Space>
+      ),
       fixed: 'left' as const,
-      width: 200
+      width: 200,
     },
-    {
-      title: 'Contact name',
-      dataIndex: 'contactName',
-      key: 'contactName',
-      render: (text: string) => <Text>{text}</Text>,
-      width: 150
+    { 
+      title: 'Contact name', 
+      dataIndex: 'contactName', 
+      key: 'contactName', 
+      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      width: 150 
     },
-    {
-      title: 'Emails',
-      dataIndex: 'email',
-      key: 'email',
-      render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 200
+    { 
+      title: 'Emails', 
+      dataIndex: 'email', 
+      key: 'email', 
+      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      width: 200 
     },
-    {
-      title: 'Contact number',
-      dataIndex: 'contactNumber',
-      key: 'contactNumber',
-      render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 150
+    { 
+      title: 'Contact number', 
+      dataIndex: 'contactNumber', 
+      key: 'contactNumber', 
+      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      width: 150 
     },
-    {
-      title: 'Bank Account',
-      dataIndex: 'bankAccount',
-      key: 'bankAccount',
-      render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 120
+    { 
+      title: 'Bank Account', 
+      dataIndex: 'bankAccount', 
+      key: 'bankAccount', 
+      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      width: 150 
     },
     {
       title: 'Donation',
       dataIndex: 'donation',
       key: 'donation',
       render: (text: string) => <Text strong style={{ color: '#DB8633' }}>{text}</Text>,
-      width: 120
+      width: 120,
     },
     {
       title: 'Date of join',
       dataIndex: 'dateOfJoin',
       key: 'dateOfJoin',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 130
+      width: 130,
     },
     {
       title: 'City, State',
       dataIndex: 'cityState',
       key: 'cityState',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 130
+      width: 130,
     },
     {
       title: 'Beneficiary cause',
       dataIndex: 'beneficiaryCause',
       key: 'beneficiaryCause',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 200
+      width: 200,
     },
     {
       title: 'Beneficiary Type',
@@ -371,14 +412,14 @@ const Beneficiaries: React.FC = () => {
         else if (text === 'Local') color = 'orange';
         return <Tag color={color}>{text}</Tag>;
       },
-      width: 120
+      width: 150,
     },
     {
       title: 'Donors',
       dataIndex: 'donors',
       key: 'donors',
       render: (text: number) => <Text strong>{text}</Text>,
-      width: 100
+      width: 100,
     },
     {
       title: 'Active/De-active',
@@ -394,14 +435,14 @@ const Beneficiaries: React.FC = () => {
           </div>
         </div>
       ),
-      width: 120
+      width: 160,
     },
     {
       title: 'Enable/Disable',
       dataIndex: 'enabled',
       key: 'enabled',
       render: (enabled: boolean, record: any) => (
-        <div className="toggle-switch">
+        <div className="enable-disable-toggle">
           <div 
             className={`toggle ${enabled ? 'active' : 'inactive'}`}
             onClick={() => handleToggleChange(record.key, 'enabled')}
@@ -410,17 +451,17 @@ const Beneficiaries: React.FC = () => {
           </div>
         </div>
       ),
-      width: 120
+      width: 140,
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: () => (
-        <Button type="text" icon={<EditOutlined />} className="edit-action-btn" />
+      render: (text: string, record: any) => (
+        <Button type="text" icon={<EditOutlined />} size="small" className="edit-action-btn" />
       ),
       width: 100,
-      fixed: 'right' as const
-    }
+      fixed: 'right' as const,
+    },
   ];
 
   const menuItems = [
@@ -470,8 +511,12 @@ const Beneficiaries: React.FC = () => {
       label: 'Feeds',
       children: [
         {
-          key: 'sub1',
-          label: 'Sub Menu 1',
+          key: 'newsfeed',
+          label: 'Newsfeed',
+        },
+        {
+          key: 'ads-management',
+          label: 'Ads Management',
         },
       ],
     },
@@ -486,6 +531,8 @@ const Beneficiaries: React.FC = () => {
       label: 'Settings',
     },
   ];
+
+
 
   return (
     <Layout className="beneficiaries-layout">
@@ -503,28 +550,31 @@ const Beneficiaries: React.FC = () => {
         collapsed={collapsed}
         onCollapse={setCollapsed}
       >
-        <div className="logo-section">
-          <div className="logo-container">
-            <img
-              src="/piggy-logo.png"
-              alt="Thrive Initiative Piggy Bank Logo"
-              className="logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'block';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-icon">🐷</div>
-            </div>
-          </div>
-          <div className="white-logo-container">
+        <div className="logo-section" style={{
+          padding: '20px 16px 12px 16px',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent'
+        }}>
+          {/* Simplified logo section with large centered logo */}
+          <div className="logo-container" style={{
+            position: 'relative',
+            marginBottom: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative White Logo"
-              className="white-logo-image"
+              alt="Thrive Initiative Logo"
+              className="logo-image"
+              style={{
+                width: '180px',
+                height: 'auto',
+                maxWidth: '100%',
+                display: 'block',
+                margin: '0 auto'
+              }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -532,12 +582,10 @@ const Beneficiaries: React.FC = () => {
                 if (fallback) fallback.style.display = 'flex';
               }}
             />
-            <div className="white-logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-text">THRIVE</div>
             </div>
           </div>
-          <div className="brand-name">THRIVE INITIATIVE</div>
-          <div className="brand-subtitle">Change4Good.org</div>
         </div>
 
         <Menu
@@ -551,18 +599,17 @@ const Beneficiaries: React.FC = () => {
         <div className="user-profile">
           <Avatar size={40} icon={<UserOutlined />} />
           <div className="user-info">
-            <Text strong>Shahryar Minhas</Text>
-            <Text type="secondary">shahryarminhas@gmail.com</Text>
+            <Text strong>Stephanie Beverage</Text>
           </div>
           <Button type="text" icon={<MoreOutlined />} />
         </div>
       </Sider>
 
       <Layout className="main-content">
-        <div className="beneficiaries-header">
+        <Header className="beneficiaries-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>
-            <Text type="secondary" className="beneficiaries-count">1000 Beneficiaries Found</Text>
+            <Text type="secondary" className="beneficiaries-count">300 Beneficiaries Found</Text>
           </div>
           <div className="header-right">
             <Button 
@@ -570,11 +617,12 @@ const Beneficiaries: React.FC = () => {
               icon={<UserAddOutlined />}
               size="large"
               className="invite-beneficiary-btn"
+              onClick={handleInviteBeneficiary}
             >
               + Invite A Beneficiary
             </Button>
           </div>
-        </div>
+        </Header>
 
         <Content className="beneficiaries-content">
           <div className="content-wrapper">
@@ -591,8 +639,8 @@ const Beneficiaries: React.FC = () => {
               </div>
               
               <div className="filter-section">
+                <Text strong className="filter-label">Filters</Text>
                 <div className="filter-dropdowns">
-                  <Text strong className="filter-label">Filters</Text>
                   <Select
                     placeholder="Select Cause"
                     className="filter-dropdown"
@@ -602,8 +650,6 @@ const Beneficiaries: React.FC = () => {
                     <Option value="education">Education</Option>
                     <Option value="environment">Environment</Option>
                     <Option value="children">Children and Youth</Option>
-                    <Option value="hunger">Hunger Relief</Option>
-                    <Option value="animal">Animal Welfare</Option>
                   </Select>
                   
                   <Select
@@ -611,10 +657,9 @@ const Beneficiaries: React.FC = () => {
                     className="filter-dropdown"
                     size="large"
                   >
-                    <Option value="1-week">1 Week</Option>
-                    <Option value="1-month">1 Month</Option>
-                    <Option value="3-months">3 Months</Option>
-                    <Option value="6-months">6 Months</Option>
+                    <Option value="short">Short Term</Option>
+                    <Option value="long">Long Term</Option>
+                    <Option value="ongoing">Ongoing</Option>
                   </Select>
                   
                   <Select
@@ -622,7 +667,6 @@ const Beneficiaries: React.FC = () => {
                     className="filter-dropdown"
                     size="large"
                   >
-                    <Option value="all">All Types</Option>
                     <Option value="international">International</Option>
                     <Option value="national">National</Option>
                     <Option value="local">Local</Option>
@@ -633,11 +677,9 @@ const Beneficiaries: React.FC = () => {
                     className="filter-dropdown"
                     size="large"
                   >
-                    <Option value="springfield-il">Springfield, IL</Option>
-                    <Option value="portland-or">Portland, OR</Option>
-                    <Option value="charleston-sc">Charleston, SC</Option>
-                    <Option value="austin-tx">Austin, TX</Option>
-                    <Option value="denver-co">Denver, CO</Option>
+                    <Option value="springfield">Springfield, IL</Option>
+                    <Option value="portland">Portland, OR</Option>
+                    <Option value="charleston">Charleston, SC</Option>
                   </Select>
                 </div>
               </div>
@@ -646,32 +688,39 @@ const Beneficiaries: React.FC = () => {
             {/* Beneficiaries Table */}
             <div className="beneficiaries-table-section">
               <Table
-                columns={columns}
                 dataSource={beneficiariesData}
+                columns={columns}
                 pagination={false}
                 size="middle"
                 className="beneficiaries-table"
                 rowClassName="beneficiary-row"
-                scroll={{ x: 2000 }}
+                scroll={{ x: 1800 }}
                 bordered={false}
               />
-            </div>
-
-            {/* Pagination */}
-            <div className="pagination-section">
-              <Pagination
-                current={currentPage}
-                total={1000}
-                pageSize={pageSize}
-                onChange={(page) => setCurrentPage(page)}
-                showSizeChanger={false}
-                showQuickJumper
-                className="beneficiaries-pagination"
-              />
+              
+              {/* Pagination */}
+              <div className="pagination-section">
+                <Pagination
+                  current={currentPage}
+                  total={300}
+                  pageSize={pageSize}
+                  showSizeChanger={false}
+                  showQuickJumper={false}
+                  onChange={handlePageChange}
+                  className="beneficiaries-pagination"
+                />
+              </div>
             </div>
           </div>
         </Content>
       </Layout>
+
+      {/* Invite Beneficiary Modal */}
+      <InviteBeneficiaryModal
+        visible={inviteModalVisible}
+        onCancel={handleInviteModalCancel}
+        onSubmit={handleInviteModalSubmit}
+      />
     </Layout>
   );
 };

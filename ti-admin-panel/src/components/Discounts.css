@@ -40,6 +40,36 @@
   color: #ffffff !important;
 }
 
+.discounts-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* Submenu styling for Feeds */
+.discounts-menu .ant-menu-submenu-title {
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-submenu .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-submenu .ant-menu-item:hover {
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-submenu .ant-menu-item-selected {
+  color: #ffffff !important;
+}
+
+/* Ensure submenu arrow is white */
+.discounts-menu .ant-menu-submenu-arrow {
+  color: #ffffff !important;
+}
+
 /* Logo Section */
 .logo-section {
   padding: 12px 16px;
@@ -410,4 +440,25 @@
   .discounts-grid .ant-col {
     margin-bottom: 16px;
   }
+} 
+
+/* Table Header Consistency */
+.ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure consistent header styling across all tables */
+.dashboard-table .ant-table-thead > tr > th,
+.donors-table .ant-table-thead > tr > th,
+.vendor-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-thead > tr > th,
+.tenants-table .ant-table-thead > tr > th,
+.discounts-table .ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+  vertical-align: middle !important;
 } 

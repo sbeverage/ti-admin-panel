@@ -58,7 +58,13 @@ const Donors: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    }
+    } else if (key === 'events') {
+      navigate('/events');
+           } else if (key === 'leaderboard') {
+         navigate('/leaderboard');
+       } else if (key === 'settings') {
+         navigate('/settings');
+       }
   };
 
   const timeFilterMenu = [
@@ -319,8 +325,12 @@ const Donors: React.FC = () => {
       label: 'Feeds',
       children: [
         {
-          key: 'sub1',
-          label: 'Sub Menu 1',
+          key: 'newsfeed',
+          label: 'Newsfeed',
+        },
+        {
+          key: 'ads-management',
+          label: 'Ads Management',
         },
       ],
     },
@@ -369,14 +379,14 @@ const Donors: React.FC = () => {
       dataIndex: 'contact',
       key: 'contact',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 150,
+      width: 180,
     },
     {
       title: 'Selected beneficiary name',
       dataIndex: 'beneficiary',
       key: 'beneficiary',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 250,
+      width: 280,
     },
     {
       title: (
@@ -392,7 +402,7 @@ const Donors: React.FC = () => {
           {text}
         </span>
       ),
-      width: 120,
+      width: 150,
     },
     {
       title: (
@@ -404,7 +414,7 @@ const Donors: React.FC = () => {
       dataIndex: 'donation',
       key: 'donation',
       render: (text: string) => <Text strong style={{ color: '#DB8633' }}>{text}</Text>,
-      width: 120,
+      width: 140,
     },
     {
       title: (
@@ -416,7 +426,7 @@ const Donors: React.FC = () => {
       dataIndex: 'oneTime',
       key: 'oneTime',
       render: (text: string) => <Text strong style={{ color: '#DB8633' }}>{text}</Text>,
-      width: 140,
+      width: 160,
     },
     {
       title: (
@@ -428,7 +438,7 @@ const Donors: React.FC = () => {
       dataIndex: 'lastDonated',
       key: 'lastDonated',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 160,
+      width: 180,
     },
     {
       title: (
@@ -440,7 +450,7 @@ const Donors: React.FC = () => {
       dataIndex: 'cityState',
       key: 'cityState',
       render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 150,
+      width: 160,
     },
     {
       title: 'Active/De-active',
@@ -453,7 +463,7 @@ const Donors: React.FC = () => {
           </div>
         </div>
       ),
-      width: 140,
+      width: 160,
     },
     {
       title: 'Enable/Disable',
@@ -466,7 +476,7 @@ const Donors: React.FC = () => {
           </div>
         </div>
       ),
-      width: 140,
+      width: 160,
     },
     {
       title: 'Actions',
@@ -504,28 +514,31 @@ const Donors: React.FC = () => {
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
-        <div className="logo-section">
-          <div className="logo-container">
-            <img
-              src="/piggy-logo.png"
-              alt="Thrive Initiative Piggy Bank Logo"
-              className="logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'block';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-icon">🐷</div>
-            </div>
-          </div>
-          <div className="white-logo-container">
+        <div className="logo-section" style={{
+          padding: '20px 16px 12px 16px',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent'
+        }}>
+          {/* Simplified logo section with large centered logo */}
+          <div className="logo-container" style={{
+            position: 'relative',
+            marginBottom: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative White Logo"
-              className="white-logo-image"
+              alt="Thrive Initiative Logo"
+              className="logo-image"
+              style={{
+                width: '180px',
+                height: 'auto',
+                maxWidth: '100%',
+                display: 'block',
+                margin: '0 auto'
+              }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -533,12 +546,10 @@ const Donors: React.FC = () => {
                 if (fallback) fallback.style.display = 'flex';
               }}
             />
-            <div className="white-logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">TI</div>
+            <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="fallback-text">THRIVE</div>
             </div>
           </div>
-          <div className="brand-name">THRIVE INITIATIVE</div>
-          <div className="brand-subtitle">Change4Good.org</div>
         </div>
 
         <Menu
@@ -552,10 +563,9 @@ const Donors: React.FC = () => {
         />
 
         <div className="user-profile">
-          <Avatar size={40} src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shahryar" />
+          <Avatar size={40} icon={<UserOutlined />} />
           <div className="user-info">
-            <Text strong>Shahryar Minhas</Text>
-            <Text type="secondary">shahryarminhas@gmail.com</Text>
+            <Text strong>Stephanie Beverage</Text>
           </div>
           <Button type="text" icon={<MoreOutlined />} />
         </div>

@@ -1,0 +1,519 @@
+/* Settings Layout */
+.settings-layout {
+  min-height: 100vh;
+}
+
+.settings-sider {
+  background: #324E58;
+  box-shadow: 2px 0 8px rgba(0, 21, 41, 0.15);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.settings-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Logo Section */
+.logo-section {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #DB8633;
+  border-radius: 50%;
+}
+
+.fallback-icon {
+  font-size: 40px;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+
+.brand-subtitle {
+  color: #BEBEBE;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* Menu */
+.settings-menu {
+  flex: 1;
+  background: transparent;
+  border: none;
+  margin: 8px 0;
+}
+
+.settings-menu .ant-menu-item {
+  margin: 4px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.settings-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.settings-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* Submenu styling for Feeds */
+.settings-menu .ant-menu-submenu-title {
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-submenu .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-submenu .ant-menu-item:hover {
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-submenu .ant-menu-item-selected {
+  color: #ffffff !important;
+}
+
+/* Ensure submenu arrow is white */
+.settings-menu .ant-menu-submenu-arrow {
+  color: #ffffff !important;
+}
+
+/* User Profile */
+.user-profile {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+  color: #ffffff;
+}
+
+.user-info .ant-typography {
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 280px;
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+/* Header */
+.settings-header {
+  background: #ffffff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 80px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-subtitle {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Content */
+.settings-content {
+  padding: 24px;
+}
+
+.content-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Settings Tabs */
+.settings-tabs {
+  padding: 24px;
+}
+
+.settings-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.settings-tabs .ant-tabs-tab {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.settings-tabs .ant-tabs-tab-active {
+  color: #DB8633;
+}
+
+.settings-tabs .ant-tabs-ink-bar {
+  background: #DB8633;
+}
+
+.settings-tabs .ant-tabs-tab .anticon {
+  margin-right: 8px;
+}
+
+/* Tab Content */
+.tab-content {
+  min-height: 400px;
+}
+
+/* Settings Cards */
+.settings-card {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.settings-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.settings-card .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #324E58;
+}
+
+.settings-card .ant-card-body {
+  padding: 24px;
+}
+
+/* Form Styling */
+.settings-card .ant-form-item-label > label {
+  font-weight: 500;
+  color: #324E58;
+}
+
+.settings-card .ant-input,
+.settings-card .ant-select-selector {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.settings-card .ant-input:focus,
+.settings-card .ant-select-focused .ant-select-selector {
+  border-color: #DB8633;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
+}
+
+/* Buttons */
+.update-profile-btn,
+.change-password-btn,
+.add-team-member-btn {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.update-profile-btn:hover,
+.change-password-btn:hover,
+.add-team-member-btn:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+/* Modal Buttons */
+.ant-modal-footer .ant-btn-primary,
+.ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-modal-footer .ant-btn-primary:hover,
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.edit-user-btn,
+.more-actions-btn {
+  color: #666;
+  border: none;
+  padding: 4px 8px;
+}
+
+.edit-user-btn:hover,
+.more-actions-btn:hover {
+  color: #DB8633;
+  background: rgba(219, 134, 51, 0.1);
+}
+
+/* Notification Settings */
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item .ant-typography {
+  font-weight: 500;
+  color: #324E58;
+}
+
+/* Team Management */
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 24px;
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-info .ant-typography {
+  margin: 0;
+}
+
+/* Team Table */
+.team-table {
+  margin: 0 24px 24px 24px;
+}
+
+.team-table .ant-table-thead > tr > th {
+  background: #fafafa !important;
+  color: #324E58 !important;
+  border: none !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 16px 20px;
+  font-weight: 600;
+}
+
+.team-table .ant-table-tbody > tr > td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: none !important;
+}
+
+.team-table .ant-table-tbody > tr:hover > td {
+  background: #fafafa;
+}
+
+/* Role and Status Badges */
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-super-admin {
+  background: #fff2e8;
+  color: #d46b08;
+  border: 1px solid #ffd591;
+}
+
+.role-admin {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.role-manager {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.role-user {
+  background: #f9f0ff;
+  color: #722ed1;
+  border: 1px solid #d3adf7;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-active {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-inactive {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+
+/* Modal Styling */
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #324E58;
+}
+
+.ant-modal-body {
+  padding: 24px;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: #324E58;
+  border-color: #324E58;
+  color: #ffffff;
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .settings-sider.mobile-visible {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .team-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .settings-tabs {
+    padding: 16px;
+  }
+
+  .settings-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .team-table {
+    margin: 0 16px 16px 16px;
+  }
+
+  .team-table .ant-table-thead > tr > th,
+  .team-table .ant-table-tbody > tr > td {
+    padding: 12px 16px;
+  }
+}
+
+/* Global table header consistency */
+.ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+}
+
+.team-table .ant-table-thead > tr > th,
+.dashboard-table .ant-table-thead > tr > th,
+.donors-table .ant-table-thead > tr > th,
+.vendor-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-thead > tr > th,
+.tenants-table .ant-table-thead > tr > th,
+.discounts-table .ant-table-thead > tr > th,
+.leaderboard-table .ant-table-thead > tr > th,
+.events-table .ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+} 

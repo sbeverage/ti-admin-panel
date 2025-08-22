@@ -1,0 +1,381 @@
+/* Events Layout */
+.events-layout {
+  min-height: 100vh;
+}
+
+.events-sider {
+  background: #324E58;
+  box-shadow: 2px 0 8px rgba(0, 21, 41, 0.15);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.events-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Logo Section */
+.logo-section {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #DB8633;
+  border-radius: 50%;
+}
+
+.fallback-icon {
+  font-size: 40px;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+
+.brand-subtitle {
+  color: #BEBEBE;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* Menu */
+.events-menu {
+  flex: 1;
+  background: transparent;
+  border: none;
+  margin: 8px 0;
+}
+
+.events-menu .ant-menu-item {
+  margin: 4px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.events-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.events-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* Submenu styling for Feeds */
+.events-menu .ant-menu-submenu-title {
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-submenu .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-submenu .ant-menu-item:hover {
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-submenu .ant-menu-item-selected {
+  color: #ffffff !important;
+}
+
+/* Ensure submenu arrow is white */
+.events-menu .ant-menu-submenu-arrow {
+  color: #ffffff !important;
+}
+
+/* User Profile */
+.user-profile {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+  color: #ffffff;
+}
+
+.user-info .ant-typography {
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 280px;
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+/* Header */
+.events-header {
+  background: #ffffff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 80px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.events-count {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Content */
+.events-content {
+  padding: 24px;
+}
+
+.content-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Search and Filter Section */
+.search-filter-section {
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-search {
+  width: 400px;
+}
+
+.event-search .ant-input-search-button {
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+}
+
+.event-search .ant-input-search-button:hover {
+  background: #C6762A;
+  border-color: #C6762A;
+  color: #ffffff;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-label {
+  color: #324E58;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Events Table Section */
+.events-table-section {
+  padding: 0;
+}
+
+/* Table Styling */
+.events-table {
+  width: 100%;
+}
+
+.events-table .ant-table-thead > tr > th {
+  background: #324E58 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-right: none !important;
+  padding: 16px 20px 16px 24px;
+  font-weight: 600;
+  height: 40px !important;
+  line-height: 40px !important;
+}
+
+/* Remove vertical lines between columns in table header */
+.events-table .ant-table-thead > tr > th::before,
+.events-table .ant-table-thead > tr > th::after {
+  display: none !important;
+}
+
+.events-table .ant-table-thead > tr > th {
+  border-right: none !important;
+  border-left: none !important;
+}
+
+.events-table .ant-table-tbody > tr > td {
+  padding: 16px 20px 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: none !important;
+}
+
+.events-table .ant-table-tbody > tr > td:first-child {
+  padding-left: 40px;
+}
+
+.events-table .ant-table-thead > tr > th:first-child {
+  padding-left: 40px;
+}
+
+/* Sortable Headers */
+.sortable-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sort-icon {
+  color: #DB8633;
+  font-size: 12px;
+}
+
+/* Pagination */
+.events-table .ant-pagination {
+  margin: 24px;
+  text-align: center;
+}
+
+.events-table .ant-pagination-item-active {
+  border-color: #DB8633;
+}
+
+.events-table .ant-pagination-item-active a {
+  color: #DB8633;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: #324E58;
+  border-color: #324E58;
+  color: #ffffff;
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .events-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .events-sider.mobile-visible {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .search-filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-search {
+    width: 100%;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-dropdowns {
+    flex-direction: column;
+  }
+
+  .events-table {
+    font-size: 12px;
+  }
+
+  .events-table .ant-table-thead > tr > th,
+  .events-table .ant-table-tbody > tr > td {
+    padding: 8px 12px;
+  }
+}
+
+/* Global table header consistency */
+.ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+}
+
+.events-table .ant-table-thead > tr > th,
+.dashboard-table .ant-table-thead > tr > th,
+.donors-table .ant-table-thead > tr > th,
+.vendor-table .ant-table-thead > tr > th,
+.beneficiaries-table .ant-table-thead > tr > th,
+.tenants-table .ant-table-thead > tr > th,
+.discounts-table .ant-table-thead > tr > th,
+.leaderboard-table .ant-table-thead > tr > th {
+  height: 40px !important;
+  line-height: 40px !important;
+  padding: 4px 16px !important;
+} 
