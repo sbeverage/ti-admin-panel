@@ -30,12 +30,13 @@ import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
 
 const Dashboard: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
   const navigate = useNavigate();
   const location = useLocation();
   const [approvalsData, setApprovalsData] = useState([
@@ -109,6 +110,10 @@ const Dashboard: React.FC = () => {
     console.log(`Toggled ${field} for key ${key}`);
   };
 
+  const handleViewAllBeneficiaries = () => {
+    setActiveApprovalTab('beneficiaries');
+  };
+
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {
       navigate('/dashboard');
@@ -124,11 +129,11 @@ const Dashboard: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'events') {
       navigate('/events');
-           } else if (key === 'leaderboard') {
-         navigate('/leaderboard');
-       } else if (key === 'settings') {
-         navigate('/settings');
-       }
+    } else if (key === 'leaderboard') {
+      navigate('/leaderboard');
+    } else if (key === 'settings') {
+      navigate('/settings');
+    }
   };
 
   const timeFilterMenu = (
@@ -169,7 +174,7 @@ const Dashboard: React.FC = () => {
     },
     {
       key: 'discounts',
-      icon: <SettingOutlined />,
+      icon: <GiftOutlined />,
       label: 'Discounts',
     },
     {
@@ -186,21 +191,6 @@ const Dashboard: React.FC = () => {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
-    },
-    {
-      key: 'feeds',
-      icon: <FileTextOutlined />,
-      label: 'Feeds',
-      children: [
-        {
-          key: 'newsfeed',
-          label: 'Newsfeed',
-        },
-        {
-          key: 'ads-management',
-          label: 'Ads Management',
-        },
-      ],
     },
     {
       key: 'pending-approvals',
@@ -465,7 +455,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Layout className="dashboard-layout">
+    <Layout className="donors-layout">
       {/* Mobile Menu Button */}
       <div className="mobile-menu-button">
         <Button
@@ -487,7 +477,7 @@ const Dashboard: React.FC = () => {
       {/* Sidebar */}
       <Sider
         width={280}
-        className={`dashboard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        className={`donors-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}
@@ -536,7 +526,7 @@ const Dashboard: React.FC = () => {
           selectedKeys={[location.pathname === '/dashboard' ? 'dashboard' : '']}
           style={{ borderRight: 0 }}
           items={menuItems}
-          className="dashboard-menu"
+          className="donors-menu"
           onClick={handleMenuClick}
         />
 
@@ -918,30 +908,43 @@ const Dashboard: React.FC = () => {
                 <Card className="approvals-card">
                   <div className="tab-header">
                     <Typography.Title level={2}>Recent Approvals</Typography.Title>
-                    <Typography.Link href="#" className="view-all-link">
+                    <Typography.Link onClick={handleViewAllBeneficiaries} className="view-all-link">
                       View all Beneficiaries
                     </Typography.Link>
                   </div>
-                  <Tabs defaultActiveKey="beneficiaries" className="approvals-tabs">
-                    <TabPane tab="Beneficiaries" key="beneficiaries">
-                      <Table
-                        dataSource={approvalsData}
-                        columns={beneficiaryColumns}
-                        pagination={false}
-                        size="small"
-                        className="approvals-table"
-                      />
-                    </TabPane>
-                    <TabPane tab="Vendors" key="vendors">
-                      <Table
-                        dataSource={approvalsData}
-                        columns={vendorColumns}
-                        pagination={false}
-                        size="small"
-                        className="approvals-table"
-                      />
-                    </TabPane>
-                  </Tabs>
+                  <Tabs 
+                    activeKey={activeApprovalTab} 
+                    onChange={setActiveApprovalTab} 
+                    className="approvals-tabs"
+                    items={[
+                      {
+                        key: 'beneficiaries',
+                        label: 'Beneficiaries',
+                        children: (
+                          <Table
+                            dataSource={approvalsData}
+                            columns={beneficiaryColumns}
+                            pagination={false}
+                            size="small"
+                            className="approvals-table"
+                          />
+                        )
+                      },
+                      {
+                        key: 'vendors', 
+                        label: 'Vendors',
+                        children: (
+                          <Table
+                            dataSource={approvalsData}
+                            columns={vendorColumns}
+                            pagination={false}
+                            size="small"
+                            className="approvals-table"
+                          />
+                        )
+                      }
+                    ]}
+                  />
                 </Card>
               </Col>
             </Row>

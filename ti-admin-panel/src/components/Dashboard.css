@@ -1,3 +1,22 @@
+/* Dashboard tabs - Clean and consistent styling matching Settings page */
+.approvals-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.approvals-tabs .ant-tabs-tab {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.approvals-tabs .ant-tabs-tab-active {
+  color: #DB8633;
+}
+
+.approvals-tabs .ant-tabs-ink-bar {
+  background: #DB8633;
+}
+
 /* Dashboard Layout - Light Theme */
 .dashboard-layout {
   min-height: 100vh;
@@ -577,7 +596,7 @@
   padding: 16px 20px;
   background: linear-gradient(135deg, #DB8633 0%, #C6762A 100%);
   border-radius: 16px;
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: 700;
   font-size: 16px;
   box-shadow: 0 6px 20px rgba(219, 134, 51, 0.4);
@@ -597,6 +616,7 @@
   display: block;
   margin-bottom: 6px;
   line-height: 1.2;
+  color: #ffffff !important;
 }
 
 .chart-total .total-label {
@@ -605,6 +625,7 @@
   opacity: 0.95;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: #ffffff !important;
 }
 
 .chart-legend {
@@ -754,9 +775,29 @@
   margin-top: 16px;
 }
 
+/* Removed complex tab styling - now using simple Settings-like approach */
+
 .view-all-link {
   color: #DB8633 !important;
-  font-size: 14px;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  line-height: 1.2 !important;
+}
+
+/* More specific selector to override Ant Design */
+.dashboard-layout .view-all-link,
+.dashboard-layout .ant-typography.view-all-link,
+.dashboard-layout .ant-typography.ant-typography-link.view-all-link {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  color: #DB8633 !important;
+}
+
+.view-all-link:hover {
+  color: #C6762A !important;
 }
 
 /* Toggle Switches */
@@ -820,43 +861,7 @@
   transform: scale(0.95);
 }
 
-/* Tabs - Light Theme */
-.ant-tabs .ant-tabs-tab {
-  color: #8c8c8c !important;
-  background: transparent !important;
-  border: 2px solid #e8e8e8 !important;
-  border-radius: 8px !important;
-  padding: 8px 32px !important;
-  margin: 0 8px 0 0 !important;
-  transition: all 0.3s ease !important;
-  font-weight: 500 !important;
-}
-
-.ant-tabs .ant-tabs-tab:hover {
-  color: #DB8633 !important;
-  border-color: #DB8633 !important;
-  background: rgba(219, 134, 51, 0.05) !important;
-}
-
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active {
-  color: #DB8633 !important;
-  background: rgba(219, 134, 51, 0.1) !important;
-  border-color: #DB8633 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.2) !important;
-}
-
-/* Force override any blue text colors */
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active span,
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active div,
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active * {
-  color: #DB8633 !important;
-}
-
-/* Override any Ant Design default colors */
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #DB8633 !important;
-}
+/* Removed complex global tab styling - now using simple approach */
 
 /* Override Ant Design Switch component colors to use brand orange */
 .ant-switch-checked {
@@ -884,17 +889,7 @@
   border-color: #c6752a !important;
 }
 
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn span {
-  color: #DB8633 !important;
-}
-
-.ant-tabs .ant-tabs-ink-bar {
-  display: none !important;
-}
-
-.ant-tabs .ant-tabs-nav {
-  margin-bottom: 16px !important;
-}
+/* Removed all conflicting tab spacing overrides */
 
 .ant-tabs .ant-tabs-nav::before {
   border-bottom: none !important;
@@ -1282,6 +1277,48 @@
     padding: 16px;
   }
   
+  /* Newsfeed Management Tabs */
+  .newsfeed-card .ant-tabs-tab {
+    padding: 8px 12px;
+    margin: 0 4px 0 0;
+    font-size: 13px;
+  }
+  
+  .newsfeed-card .ant-tabs-tab-active {
+    background: #DB8633;
+    border-color: #DB8633;
+  }
+  
+  .newsfeed-card .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #ffffff !important;
+  }
+  
+  .newsfeed-card .ant-tabs-content-holder {
+    padding-top: 12px;
+  }
+  
+  .newsfeed-card .stat-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+  }
+  
+  .newsfeed-card .stat-card .ant-card-body {
+    padding: 12px;
+  }
+  
+  .newsfeed-card .ant-table {
+    font-size: 12px;
+  }
+  
+  .newsfeed-card .ant-table-thead > tr > th {
+    padding: 8px;
+    font-size: 11px;
+  }
+  
+  .newsfeed-card .ant-table-tbody > tr > td {
+    padding: 6px 8px;
+  }
+  
   .chart-content {
     min-height: 280px;
     gap: 16px;
@@ -1460,5 +1497,171 @@
 }
 
 .ant-btn-primary:focus {
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Newsfeed Management Section Styles */
+.newsfeed-management-section {
+  margin-top: 24px;
+}
+
+.newsfeed-management-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.newsfeed-management-card .page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.newsfeed-management-card .page-header .ant-typography {
+  margin-bottom: 8px !important;
+}
+
+.newsfeed-management-card .page-header .ant-typography.ant-typography-h2 {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: #324E58 !important;
+  margin: 0 !important;
+}
+
+.newsfeed-management-card .page-header .ant-typography.ant-typography-text {
+  font-size: 16px !important;
+  color: #666 !important;
+}
+
+.newsfeed-management-card .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management-card .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.newsfeed-management-card .ant-statistic-title {
+  font-size: 14px !important;
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+.newsfeed-management-card .ant-statistic-content {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+}
+
+.newsfeed-management-card .ant-tabs-tab {
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  border-radius: 8px 8px 0 0 !important;
+  margin-right: 8px !important;
+  transition: all 0.3s ease !important;
+  color: #666 !important;
+  background: #f8f9fa !important;
+  border: 1px solid #e8e8e8 !important;
+}
+
+.newsfeed-management-card .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: #ffffff !important;
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management-card .ant-tabs-tab.ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+  border-color: #DB8633 !important;
+  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.3);
+}
+
+.newsfeed-management-card .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.newsfeed-management-card .ant-tabs-ink-bar {
+  background: #DB8633 !important;
+  height: 3px !important;
+}
+
+.newsfeed-management-card .ant-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.newsfeed-management-card .ant-table-thead > tr > th {
+  background: #fafafa !important;
+  border-bottom: 2px solid #e8e8e8 !important;
+  font-weight: 600 !important;
+  color: #324E58 !important;
+  padding: 16px !important;
+}
+
+.newsfeed-management-card .ant-table-tbody > tr > td {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.newsfeed-management-card .ant-table-tbody > tr:hover > td {
+  background: rgba(219, 134, 51, 0.05) !important;
+}
+
+.newsfeed-management-card .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border: none;
+}
+
+.newsfeed-management-card .ant-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management-card .ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.3);
+}
+
+.newsfeed-management-card .ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  box-shadow: 0 4px 16px rgba(219, 134, 51, 0.4);
+  transform: translateY(-1px);
+}
+
+.newsfeed-management-card .ant-input-affix-wrapper {
+  border-radius: 8px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management-card .ant-input-affix-wrapper:hover,
+.newsfeed-management-card .ant-input-affix-wrapper:focus,
+.newsfeed-management-card .ant-input-affix-wrapper-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.newsfeed-management-card .ant-select {
+  border-radius: 8px;
+}
+
+.newsfeed-management-card .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management-card .ant-select-focused .ant-select-selector {
+  border-color: #DB8633 !important;
   box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
 }

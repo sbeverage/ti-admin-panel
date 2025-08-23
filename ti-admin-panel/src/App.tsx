@@ -9,6 +9,8 @@ import Discounts from './components/Discounts';
 import Leaderboard from './components/Leaderboard';
 import Events from './components/Events';
 import Settings from './components/Settings';
+import NewsfeedManagement from './components/NewsfeedManagement';
+
 import './App.css';
 
 function App() {
@@ -19,13 +21,14 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/donors" element={<Donors />} />
           <Route path="/vendor" element={<Vendor />} />
-                         <Route path="/beneficiaries" element={<Beneficiaries />} />
-               <Route path="/tenants" element={<Tenants />} />
-               <Route path="/discounts" element={<Discounts />} />
-               <Route path="/leaderboard" element={<Leaderboard />} />
-                              <Route path="/events" element={<Events />} />
-               <Route path="/settings" element={<Settings />} />
-               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/beneficiaries" element={<Beneficiaries />} />
+          <Route path="/tenants" element={<Tenants />} />
+          <Route path="/discounts" element={<Discounts />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </div>

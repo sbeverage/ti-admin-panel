@@ -95,21 +95,6 @@ const Leaderboard: React.FC = () => {
       label: 'Leaderboard',
     },
     {
-      key: 'feeds',
-      icon: <FileTextOutlined />,
-      label: 'Feeds',
-      children: [
-        {
-          key: 'newsfeed',
-          label: 'Newsfeed',
-        },
-        {
-          key: 'ads-management',
-          label: 'Ads Management',
-        },
-      ],
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',

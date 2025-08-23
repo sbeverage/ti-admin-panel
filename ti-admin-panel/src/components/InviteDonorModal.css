@@ -1,0 +1,303 @@
+/* Invite Donor Modal Styles */
+.invite-donor-modal .ant-modal {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.invite-donor-modal .ant-modal-content {
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.invite-donor-modal .ant-modal-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 24px 32px;
+  margin: 0;
+}
+
+.invite-donor-modal .ant-modal-body {
+  padding: 0;
+  margin: 0;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.back-btn {
+  color: #666;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.modal-title {
+  margin: 0 0 8px 0 !important;
+  color: #324E58;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+}
+
+.modal-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Form Sections */
+.form-sections {
+  padding: 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  color: #262626 !important;
+  margin-bottom: 20px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #DB8633;
+  padding-bottom: 8px;
+}
+
+/* Form Rows */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-item {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-item.full-width {
+  flex: none;
+  width: 100%;
+}
+
+/* Form Labels */
+.invite-donor-form .ant-form-item-label > label {
+  color: #262626 !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+/* Input Fields */
+.invite-donor-form .ant-input,
+.invite-donor-form .ant-select-selector,
+.invite-donor-form .ant-picker {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.invite-donor-form .ant-input:hover,
+.invite-donor-form .ant-select:hover .ant-select-selector,
+.invite-donor-form .ant-picker:hover {
+  border-color: #DB8633 !important;
+}
+
+.invite-donor-form .ant-input:focus,
+.invite-donor-form .ant-select-focused .ant-select-selector,
+.invite-donor-form .ant-picker-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.invite-donor-form .ant-input-prefix {
+  color: #8c8c8c;
+  margin-right: 8px;
+}
+
+/* Select Dropdowns */
+.invite-donor-form .ant-select {
+  width: 100%;
+}
+
+.invite-donor-form .ant-select-selector {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+/* Date Picker */
+.invite-donor-form .ant-picker {
+  width: 100%;
+}
+
+.invite-donor-form .ant-picker-input > input {
+  height: 38px;
+}
+
+/* Text Area */
+.invite-donor-form .ant-input-textarea {
+  border-radius: 6px;
+}
+
+.invite-donor-form .ant-input-textarea:hover {
+  border-color: #DB8633 !important;
+}
+
+.invite-donor-form .ant-input-textarea:focus {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px 32px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 0;
+}
+
+/* Buttons */
+.cancel-btn {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.submit-btn {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 6px;
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.2);
+}
+
+.submit-btn:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3);
+  transform: translateY(-1px);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.submit-btn:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Loading State */
+.submit-btn.ant-btn-loading {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .invite-donor-modal {
+    width: 95% !important;
+    margin: 20px auto;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .form-item {
+    flex: none;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-actions .ant-space {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .form-actions .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Error States */
+.invite-donor-form .ant-form-item-has-error .ant-input,
+.invite-donor-form .ant-form-item-has-error .ant-select-selector,
+.invite-donor-form .ant-form-item-has-error .ant-picker {
+  border-color: #ff4d4f !important;
+}
+
+.invite-donor-form .ant-form-item-has-error .ant-input:focus,
+.invite-donor-form .ant-form-item-has-error .ant-select-focused .ant-select-selector,
+.invite-donor-form .ant-form-item-has-error .ant-picker-focused {
+  border-color: #ff4d4f !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+}
+
+/* Success States */
+.invite-donor-form .ant-form-item-has-success .ant-input,
+.invite-donor-form .ant-form-item-has-success .ant-select-selector,
+.invite-donor-form .ant-form-item-has-success .ant-picker {
+  border-color: #52c41a !important;
+}
+
+/* Animation */
+.invite-donor-modal .ant-modal-content {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

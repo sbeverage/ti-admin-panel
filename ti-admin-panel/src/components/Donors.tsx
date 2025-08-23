@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
@@ -8,6 +8,7 @@ import {
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, GiftOutlined, BankOutlined
 } from '@ant-design/icons';
+import InviteDonorModal from './InviteDonorModal';
 import './Donors.css';
 
 const { Header, Sider, Content } = Layout;
@@ -21,6 +22,7 @@ const Donors: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
+  const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,11 +62,11 @@ const Donors: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'events') {
       navigate('/events');
-           } else if (key === 'leaderboard') {
-         navigate('/leaderboard');
-       } else if (key === 'settings') {
-         navigate('/settings');
-       }
+    } else if (key === 'leaderboard') {
+      navigate('/leaderboard');
+    } else if (key === 'settings') {
+      navigate('/settings');
+    }
   };
 
   const timeFilterMenu = [
@@ -320,21 +322,6 @@ const Donors: React.FC = () => {
       label: 'Leaderboard',
     },
     {
-      key: 'feeds',
-      icon: <FileTextOutlined />,
-      label: 'Feeds',
-      children: [
-        {
-          key: 'newsfeed',
-          label: 'Newsfeed',
-        },
-        {
-          key: 'ads-management',
-          label: 'Ads Management',
-        },
-      ],
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
@@ -494,6 +481,33 @@ const Donors: React.FC = () => {
     if (size) setPageSize(size);
   };
 
+  const handleInviteDonor = (values: any) => {
+    // Here you would typically send the data to your backend
+    console.log('Inviting donor with values:', values);
+    
+    // Add the new donor to the local state
+    const newDonor = {
+      key: (donorsData.length + 1).toString(),
+      name: values.name,
+      email: values.email,
+      contact: values.contact,
+      beneficiary: values.beneficiary,
+      coworking: values.coworking,
+      donation: values.donation,
+      oneTime: values.oneTime,
+      lastDonated: values.lastDonated || 'Never',
+      cityState: values.cityState,
+      active: false,
+      enabled: false,
+      avatar: values.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    };
+    
+    setDonorsData(prevData => [...prevData, newDonor]);
+    
+    message.success('Donor invited successfully!');
+    setIsInviteModalVisible(false);
+  };
+
   return (
     <Layout className="donors-layout">
       {/* Mobile Menu Button */}
@@ -584,6 +598,7 @@ const Donors: React.FC = () => {
               icon={<UserAddOutlined />}
               size="large"
               className="invite-donor-btn"
+              onClick={() => setIsInviteModalVisible(true)}
             >
               + Invite A Donor
             </Button>
@@ -682,6 +697,13 @@ const Donors: React.FC = () => {
           </div>
         </Content>
       </Layout>
+      
+      {/* Invite Donor Modal */}
+      <InviteDonorModal
+        visible={isInviteModalVisible}
+        onCancel={() => setIsInviteModalVisible(false)}
+        onSubmit={handleInviteDonor}
+      />
     </Layout>
   );
 };

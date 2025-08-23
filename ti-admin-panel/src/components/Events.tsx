@@ -248,21 +248,6 @@ const Events: React.FC = () => {
       label: 'Leaderboard',
     },
     {
-      key: 'feeds',
-      icon: <FileTextOutlined />,
-      label: 'Feeds',
-      children: [
-        {
-          key: 'newsfeed',
-          label: 'Newsfeed',
-        },
-        {
-          key: 'ads-management',
-          label: 'Ads Management',
-        },
-      ],
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
@@ -366,12 +351,31 @@ const Events: React.FC = () => {
         collapsed={collapsed}
         onCollapse={setCollapsed}
       >
-        <div className="logo-section">
-          <div className="logo-container">
+        <div className="logo-section" style={{ 
+          padding: '20px 16px 12px 16px',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent'
+        }}>
+          {/* Simplified logo section with large centered logo */}
+          <div className="logo-container" style={{
+            position: 'relative',
+            marginBottom: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
             <img
               src="/white-logo.png"
               alt="Thrive Initiative Logo"
               className="logo-image"
+              style={{ 
+                width: '180px', 
+                height: 'auto', 
+                maxWidth: '100%',
+                display: 'block',
+                margin: '0 auto'
+              }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -380,10 +384,9 @@ const Events: React.FC = () => {
               }}
             />
             <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-icon">🐷</div>
+              <div className="fallback-text">THRIVE</div>
             </div>
           </div>
-          <div className="brand-name">THRIVE INITIATIVE</div>
         </div>
 
         <Menu

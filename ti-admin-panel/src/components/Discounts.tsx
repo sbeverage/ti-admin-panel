@@ -68,10 +68,10 @@ const Discounts: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'events') {
       navigate('/events');
-           } else if (key === 'leaderboard') {
-         navigate('/leaderboard');
-       } else if (key === 'settings') {
-         navigate('/settings');
+    } else if (key === 'leaderboard') {
+      navigate('/leaderboard');
+    } else if (key === 'settings') {
+      navigate('/settings');
        }
   };
 
@@ -283,21 +283,6 @@ const Discounts: React.FC = () => {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
-    },
-    {
-      key: 'feeds',
-      icon: <FileTextOutlined />,
-      label: 'Feeds',
-      children: [
-        {
-          key: 'newsfeed',
-          label: 'Newsfeed',
-        },
-        {
-          key: 'ads-management',
-          label: 'Ads Management',
-        },
-      ],
     },
     {
       key: 'pending-approvals',

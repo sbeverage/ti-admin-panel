@@ -1,0 +1,556 @@
+/* Layout Styles for Standalone Page */
+.sidebar {
+  background: #324E58 !important;
+  border-right: none !important;
+}
+
+.logo-section {
+  padding: 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.fallback-text {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.dashboard-menu {
+  background: transparent !important;
+  border-right: none !important;
+  margin-top: 16px;
+}
+
+.dashboard-menu .ant-menu-item {
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin: 4px 16px !important;
+  border-radius: 8px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+}
+
+.dashboard-menu .ant-menu-item:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dashboard-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-menu .ant-menu-submenu-title {
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin: 4px 16px !important;
+  border-radius: 8px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+}
+
+.dashboard-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dashboard-menu .ant-menu-submenu-open > .ant-menu-submenu-title {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.user-profile {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-info .ant-typography {
+  color: #ffffff !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+}
+
+.main-content {
+  background: #f5f5fa;
+}
+
+.dashboard-header {
+  background: #324E58 !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 80px !important;
+  line-height: 80px !important;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-left .ant-typography {
+  margin: 0 !important;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dashboard-content {
+  padding: 24px;
+  background: #f5f5fa;
+  min-height: calc(100vh - 80px);
+}
+
+/* Newsfeed Management Styles */
+.newsfeed-management {
+  padding: 24px;
+  background-color: #F5F5FA;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.page-header .ant-typography {
+  margin-bottom: 8px !important;
+}
+
+.page-header .ant-typography.ant-typography-h2 {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: #324E58 !important;
+  margin: 0 !important;
+}
+
+.page-header .ant-typography.ant-typography-text {
+  font-size: 16px !important;
+  color: #666 !important;
+}
+
+/* Statistics Cards */
+.newsfeed-management .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.newsfeed-management .ant-statistic-title {
+  font-size: 14px !important;
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+.newsfeed-management .ant-statistic-content {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+}
+
+/* Main Content Card */
+.newsfeed-management .ant-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+/* Tabs Styling */
+.newsfeed-management .ant-tabs-tab {
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  border-radius: 8px 8px 0 0 !important;
+  margin-right: 8px !important;
+  transition: all 0.3s ease !important;
+  color: #666 !important;
+  background: #f8f9fa !important;
+  border: 1px solid #e8e8e8 !important;
+}
+
+.newsfeed-management .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: #ffffff !important;
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-tabs-tab.ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+  border-color: #DB8633 !important;
+  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.3);
+}
+
+.newsfeed-management .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.newsfeed-management .ant-tabs-ink-bar {
+  background: #DB8633 !important;
+  height: 3px !important;
+}
+
+/* Search and Filter Section */
+.newsfeed-management .ant-input-affix-wrapper {
+  border-radius: 8px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-input-affix-wrapper:hover,
+.newsfeed-management .ant-input-affix-wrapper:focus,
+.newsfeed-management .ant-input-affix-wrapper-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.newsfeed-management .ant-select {
+  border-radius: 8px;
+}
+
+.newsfeed-management .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-select-focused .ant-select-selector {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Table Styling */
+.newsfeed-management .ant-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.newsfeed-management .ant-table-thead > tr > th {
+  background: #fafafa !important;
+  border-bottom: 2px solid #e8e8e8 !important;
+  font-weight: 600 !important;
+  color: #324E58 !important;
+  padding: 16px !important;
+}
+
+.newsfeed-management .ant-table-tbody > tr > td {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.newsfeed-management .ant-table-tbody > tr:hover > td {
+  background: rgba(219, 134, 51, 0.05) !important;
+}
+
+/* Tag Styling */
+.newsfeed-management .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border: none;
+}
+
+/* Button Styling */
+.newsfeed-management .ant-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.3);
+}
+
+.newsfeed-management .ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  box-shadow: 0 4px 16px rgba(219, 134, 51, 0.4);
+  transform: translateY(-1px);
+}
+
+.newsfeed-management .ant-btn-text {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.newsfeed-management .ant-btn-text:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.1);
+}
+
+/* Avatar Styling */
+.newsfeed-management .ant-avatar {
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Badge Styling */
+.newsfeed-management .ant-badge-count {
+  background: #DB8633 !important;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.3);
+}
+
+/* Engagement Column Alignment */
+.newsfeed-management .ant-table-tbody > tr > td .ant-space {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+}
+
+.newsfeed-management .ant-table-tbody > tr > td .ant-badge {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 40px !important;
+}
+
+.newsfeed-management .ant-table-tbody > tr > td .ant-badge .ant-badge-count {
+  position: static !important;
+  transform: none !important;
+  margin-left: 4px !important;
+}
+
+.newsfeed-management .ant-table-tbody > tr > td .anticon {
+  font-size: 16px !important;
+  margin-right: 4px !important;
+}
+
+/* Modal Styling */
+.newsfeed-management .ant-modal {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.newsfeed-management .ant-modal-header {
+  background: linear-gradient(135deg, #DB8633 0%, #C6762A 100%);
+  border-bottom: none;
+  padding: 24px 24px 16px 24px;
+}
+
+.newsfeed-management .ant-modal-title {
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+.newsfeed-management .ant-modal-close {
+  color: #ffffff !important;
+}
+
+.newsfeed-management .ant-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 6px;
+}
+
+.newsfeed-management .ant-modal-body {
+  padding: 24px;
+}
+
+.newsfeed-management .ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px 24px 24px;
+}
+
+/* Form Styling */
+.newsfeed-management .ant-form-item-label > label {
+  font-weight: 600 !important;
+  color: #324E58 !important;
+  font-size: 14px !important;
+}
+
+.newsfeed-management .ant-input,
+.newsfeed-management .ant-input-affix-wrapper {
+  border-radius: 8px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+  height: 40px;
+}
+
+.newsfeed-management .ant-input:hover,
+.newsfeed-management .ant-input-affix-wrapper:hover {
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-input:focus,
+.newsfeed-management .ant-input-affix-wrapper-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.newsfeed-management .ant-input-textarea {
+  border-radius: 8px;
+}
+
+.newsfeed-management .ant-textarea {
+  border-radius: 8px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-textarea:hover {
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-textarea:focus,
+.newsfeed-management .ant-textarea-focused {
+  border-color: #DB8633 !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Upload Styling */
+.newsfeed-management .ant-upload.ant-upload-select-picture-card {
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-upload.ant-upload-select-picture-card:hover {
+  border-color: #DB8633 !important;
+}
+
+/* Pagination Styling */
+.newsfeed-management .ant-pagination-item {
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.newsfeed-management .ant-pagination-item:hover {
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-pagination-item-active {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+}
+
+.newsfeed-management .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .newsfeed-management {
+    padding: 16px;
+  }
+  
+  .page-header .ant-typography.ant-typography-h2 {
+    font-size: 24px !important;
+  }
+  
+  .newsfeed-management .ant-tabs-tab {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .newsfeed-management .ant-table-thead > tr > th,
+  .newsfeed-management .ant-table-tbody > tr > td {
+    padding: 12px 8px !important;
+  }
+  
+  .newsfeed-management .ant-modal {
+    margin: 16px;
+    width: calc(100% - 32px) !important;
+  }
+}
+
+/* Custom Scrollbar */
+.newsfeed-management ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.newsfeed-management ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.newsfeed-management ::-webkit-scrollbar-thumb {
+  background: #DB8633;
+  border-radius: 4px;
+}
+
+.newsfeed-management ::-webkit-scrollbar-thumb:hover {
+  background: #C6762A;
+}
+
+/* Animation for new posts */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.newsfeed-management .ant-table-tbody > tr {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Priority indicators */
+.priority-high {
+  border-left: 4px solid #ff4d4f !important;
+}
+
+.priority-medium {
+  border-left: 4px solid #faad14 !important;
+}
+
+.priority-low {
+  border-left: 4px solid #52c41a !important;
+}
+
+/* Status-specific styling */
+.status-pending {
+  background: rgba(250, 173, 20, 0.05) !important;
+}
+
+.status-approved {
+  background: rgba(82, 196, 26, 0.05) !important;
+}
+
+.status-rejected {
+  background: rgba(255, 77, 79, 0.05) !important;
+}
+
+.status-admin {
+  background: rgba(114, 46, 209, 0.05) !important;
+} 
