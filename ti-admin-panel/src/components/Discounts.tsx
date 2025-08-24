@@ -63,6 +63,8 @@ const Discounts: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'tenants') {
       navigate('/tenants');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
     } else if (key === 'discounts') {
       console.log('Navigating to discounts...'); // Debug log
       navigate('/discounts');

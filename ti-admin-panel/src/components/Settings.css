@@ -186,21 +186,36 @@
 }
 
 .settings-tabs .ant-tabs-tab {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 12px 24px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.settings-tabs .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
 }
 
 .settings-tabs .ant-tabs-tab-active {
-  color: #DB8633;
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.settings-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
 }
 
 .settings-tabs .ant-tabs-ink-bar {
-  background: #DB8633;
+  display: none !important;
 }
 
 .settings-tabs .ant-tabs-tab .anticon {
-  margin-right: 8px;
+  margin-right: 8px !important;
 }
 
 /* Tab Content */
@@ -548,4 +563,36 @@
   height: 40px !important;
   line-height: 40px !important;
   padding: 4px 16px !important;
+} 
+
+/* FORCE MODERN TAB DESIGN - Ultra High Specificity */
+.settings-layout .ant-layout-content .settings-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab {
+  padding: 12px 24px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.settings-layout .ant-layout-content .settings-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
+}
+
+.settings-layout .ant-layout-content .settings-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab.ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.settings-layout .ant-layout-content .settings-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.settings-layout .ant-layout-content .settings-tabs.ant-tabs .ant-tabs-nav .ant-tabs-ink-bar {
+  display: none !important;
+  opacity: 0 !important;
+  height: 0 !important;
 } 

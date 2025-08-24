@@ -10,6 +10,7 @@ import Leaderboard from './components/Leaderboard';
 import Events from './components/Events';
 import Settings from './components/Settings';
 import NewsfeedManagement from './components/NewsfeedManagement';
+import PendingApprovals from './components/PendingApprovals';
 
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/events" element={<Events />} />
           <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
+          <Route path="/pending-approvals" element={<PendingApprovals />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

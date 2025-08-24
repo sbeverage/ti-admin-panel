@@ -42,6 +42,8 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
+import '../styles/sidebar-standard.css';
+import '../styles/menu-hover-overrides.css';
 import './Beneficiaries.css';
 
 const { Header, Sider, Content } = Layout;
@@ -101,6 +103,8 @@ const Beneficiaries: React.FC = () => {
       navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
     } else if (key === 'settings') {
       navigate('/settings');
        }
@@ -520,7 +524,7 @@ const Beneficiaries: React.FC = () => {
 
 
   return (
-    <Layout className="beneficiaries-layout">
+    <Layout className="standard-layout">
       {/* Mobile Menu Button */}
       <Button
         className="mobile-menu-btn"
@@ -530,36 +534,18 @@ const Beneficiaries: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="beneficiaries-sider"
+        className="standard-sider"
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}
       >
-        <div className="logo-section" style={{
-          padding: '20px 16px 12px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          backgroundColor: 'transparent'
-        }}>
+        <div className="standard-logo-section">
           {/* Simplified logo section with large centered logo */}
-          <div className="logo-container" style={{
-            position: 'relative',
-            marginBottom: '12px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
+          <div className="standard-logo-container">
             <img
               src="/white-logo.png"
               alt="Thrive Initiative Logo"
-              className="logo-image"
-              style={{
-                width: '180px',
-                height: 'auto',
-                maxWidth: '100%',
-                display: 'block',
-                margin: '0 auto'
-              }}
+              className="standard-logo-image"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -567,30 +553,31 @@ const Beneficiaries: React.FC = () => {
                 if (fallback) fallback.style.display = 'flex';
               }}
             />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
+            <div className="standard-logo-fallback">
+              <div className="standard-fallback-icon">THRIVE</div>
             </div>
           </div>
         </div>
 
         <Menu
-          className="beneficiaries-menu"
+          className="standard-menu"
           mode="inline"
           selectedKeys={[location.pathname.split('/')[1] || 'dashboard']}
           items={menuItems}
           onClick={handleMenuClick}
         />
 
-        <div className="user-profile">
+        <div className="standard-user-profile">
           <Avatar size={40} icon={<UserOutlined />} />
-          <div className="user-info">
+          <div className="standard-user-info">
             <Text strong>Stephanie Beverage</Text>
+            <Text type="secondary">Admin</Text>
           </div>
           <Button type="text" icon={<MoreOutlined />} />
         </div>
       </Sider>
 
-      <Layout className="main-content">
+      <Layout className="standard-main-content">
         <Header className="beneficiaries-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>

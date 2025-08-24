@@ -42,6 +42,8 @@ const Settings: React.FC = () => {
       navigate('/beneficiaries');
     } else if (key === 'tenants') {
       navigate('/tenants');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'events') {

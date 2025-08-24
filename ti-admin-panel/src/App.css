@@ -91,144 +91,8 @@
   color: #DB8633 !important;
 }
 
-/* Override any blue text colors and links - Force brand orange */
-.ant-typography a,
-a,
-.ant-btn-link,
-.ant-anchor-link,
-.ant-typography-link {
-  color: #DB8633 !important;
-}
-
-.ant-typography a:hover,
-a:hover,
-.ant-btn-link:hover,
-.ant-anchor-link:hover,
-.ant-typography-link:hover {
-  color: #C6762A !important;
-}
-
-.ant-typography a:active,
-a:active,
-.ant-btn-link:active,
-.ant-anchor-link:active,
-.ant-typography-link:active {
-  color: #B36B25 !important;
-}
-
-.ant-typography a:focus,
-a:focus,
-.ant-btn-link:focus,
-.ant-anchor-link:focus,
-.ant-typography-link:focus {
-  color: #DB8633 !important;
-  outline-color: #DB8633 !important;
-}
-
-/* Override Ant Design specific link components */
-.ant-table a,
-.ant-menu a,
-.ant-dropdown a,
-.ant-list a,
-.ant-card a,
-.ant-tabs a,
-.ant-breadcrumb a {
-  color: #DB8633 !important;
-}
-
-.ant-table a:hover,
-.ant-menu a:hover,
-.ant-dropdown a:hover,
-.ant-list a:hover,
-.ant-card a:hover,
-.ant-tabs a:hover,
-.ant-breadcrumb a:hover {
-  color: #C6762A !important;
-}
-
-/* Override any blue text in buttons */
-.ant-btn-text,
-.ant-btn-ghost {
-  color: #DB8633 !important;
-}
-
-.ant-btn-text:hover,
-.ant-btn-ghost:hover {
-  color: #C6762A !important;
-  border-color: #C6762A !important;
-}
-
-/* Override pagination link colors */
-.ant-pagination a {
-  color: #DB8633 !important;
-}
-
-.ant-pagination a:hover {
-  color: #C6762A !important;
-}
-
-
-
-/* Override any blue text in buttons */
-.ant-btn-text,
-.ant-btn-ghost {
-  color: #DB8633 !important;
-}
-
-.ant-btn-text:hover,
-.ant-btn-ghost:hover {
-  color: #C6762A !important;
-  border-color: #C6762A !important;
-}
-
-/* Override pagination link colors */
-.ant-pagination a {
-  color: #DB8633 !important;
-}
-
-.ant-pagination a:hover {
-  color: #C6762A !important;
-}
-
-/* Override Ant Design specific link components */
-.ant-table a,
-.ant-menu a,
-.ant-dropdown a,
-.ant-list a,
-.ant-card a,
-.ant-tabs a,
-.ant-breadcrumb a {
-  color: #DB8633 !important;
-}
-
-.ant-table a:hover,
-.ant-menu a:hover,
-.ant-dropdown a:hover,
-.ant-list a:hover,
-.ant-card a:hover,
-.ant-tabs a:hover,
-.ant-breadcrumb a:hover {
-  color: #C6762A !important;
-}
-
-/* Override any blue text in buttons */
-.ant-btn-text,
-.ant-btn-ghost {
-  color: #DB8633 !important;
-}
-
-.ant-btn-text:hover,
-.ant-btn-ghost:hover {
-  color: #C6762A !important;
-  border-color: #C6762A !important;
-}
-
-/* Override pagination link colors */
-.ant-pagination a {
-  color: #DB8633 !important;
-}
-
-.ant-pagination a:hover {
+/* Override any blue text colors */
+.ant-typography a:hover {
   color: #C6762A !important;
 }
 
@@ -244,6 +108,60 @@ a:focus,
 .ant-input-affix-wrapper-focused {
   border-color: #DB8633 !important;
   box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* Standardized Invite Button Styles - Applied Across Entire Platform */
+.invite-beneficiary-btn,
+.invite-vendor-btn,
+.invite-tenant-btn,
+.invite-donor-btn {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  height: 48px !important;
+  padding: 0 24px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  box-shadow: 0 2px 4px rgba(219, 134, 51, 0.2) !important;
+  transition: all 0.3s ease !important;
+  min-width: 160px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.invite-beneficiary-btn:hover,
+.invite-vendor-btn:hover,
+.invite-tenant-btn:hover,
+.invite-donor-btn:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+.invite-beneficiary-btn:focus,
+.invite-vendor-btn:focus,
+.invite-tenant-btn:focus,
+.invite-donor-btn:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+.invite-beneficiary-btn:active,
+.invite-vendor-btn:active,
+.invite-tenant-btn:active,
+.invite-donor-btn:active {
+  background: #B36B25 !important;
+  border-color: #B36B25 !important;
+  color: #ffffff !important;
+  transform: translateY(0) !important;
 }
 
 /* Standardized Invite Button Styles - Applied Across Entire Platform */
@@ -355,229 +273,6 @@ a:focus,
   min-width: 100px !important;
   max-width: 120px !important;
   text-align: center !important;
-}
-
-/* Specific table column width overrides for consistency */
-/* Dashboard tables */
-.dashboard-table .ant-table-thead > tr > th:nth-child(1),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.dashboard-table .ant-table-thead > tr > th:nth-child(2),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 180px !important;
-}
-
-.dashboard-table .ant-table-thead > tr > th:nth-child(3),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 150px !important;
-}
-
-.dashboard-table .ant-table-thead > tr > th:nth-child(4),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 140px !important;
-}
-
-.dashboard-table .ant-table-thead > tr > th:nth-child(5),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 120px !important;
-}
-
-.dashboard-table .ant-table-thead > tr > th:nth-child(6),
-.dashboard-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 100px !important;
-}
-
-/* Vendor tables */
-.vendor-table .ant-table-thead > tr > th:nth-child(1),
-.vendor-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(2),
-.vendor-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 150px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(3),
-.vendor-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 180px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(4),
-.vendor-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 120px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(5),
-.vendor-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 140px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(6),
-.vendor-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 80px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(7),
-.vendor-table .ant-table-tbody > tr > td:nth-child(7) {
-  width: 120px !important;
-}
-
-.vendor-table .ant-table-thead > tr > th:nth-child(8),
-.vendor-table .ant-table-tbody > tr > td:nth-child(8) {
-  width: 100px !important;
-}
-
-/* Beneficiaries tables */
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(1),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(2),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 150px !important;
-}
-
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(3),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 180px !important;
-}
-
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(4),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 140px !important;
-}
-
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(5),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 120px !important;
-}
-
-.beneficiaries-table .ant-table-thead > tr > th:nth-child(6),
-.beneficiaries-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 100px !important;
-}
-
-/* Donors tables */
-.donors-table .ant-table-thead > tr > th:nth-child(1),
-.donors-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.donors-table .ant-table-thead > tr > th:nth-child(2),
-.donors-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 180px !important;
-}
-
-.donors-table .ant-table-thead > tr > th:nth-child(3),
-.donors-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 150px !important;
-}
-
-.donors-table .ant-table-thead > tr > th:nth-child(4),
-.donors-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 140px !important;
-}
-
-.donors-table .ant-table-thead > tr > th:nth-child(5),
-.donors-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 120px !important;
-}
-
-.donors-table .ant-table-thead > tr > th:nth-child(6),
-.donors-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 100px !important;
-}
-
-/* Tenants tables */
-.tenants-table .ant-table-thead > tr > th:nth-child(1),
-.tenants-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.tenants-table .ant-table-thead > tr > th:nth-child(2),
-.tenants-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 180px !important;
-}
-
-.tenants-table .ant-table-thead > tr > th:nth-child(3),
-.tenants-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 150px !important;
-}
-
-.tenants-table .ant-table-thead > tr > th:nth-child(4),
-.tenants-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 140px !important;
-}
-
-.tenants-table .ant-table-thead > tr > th:nth-child(5),
-.tenants-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 120px !important;
-}
-
-.tenants-table .ant-table-thead > tr > th:nth-child(6),
-.tenants-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 100px !important;
-}
-
-/* Events tables */
-.events-table .ant-table-thead > tr > th:nth-child(1),
-.events-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 200px !important;
-}
-
-.events-table .ant-table-thead > tr > th:nth-child(2),
-.events-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 180px !important;
-}
-
-.events-table .ant-table-thead > tr > th:nth-child(3),
-.events-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 120px !important;
-}
-
-.events-table .ant-table-thead > tr > th:nth-child(4),
-.events-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 100px !important;
-}
-
-.events-table .ant-table-thead > tr > th:nth-child(5),
-.events-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 100px !important;
-}
-
-.events-table .ant-table-thead > tr > th:nth-child(6),
-.events-table .ant-table-tbody > tr > td:nth-child(6) {
-  width: 100px !important;
-}
-
-/* Leaderboard tables */
-.leaderboard-table .ant-table-thead > tr > th:nth-child(1),
-.leaderboard-table .ant-table-tbody > tr > td:nth-child(1) {
-  width: 100px !important;
-}
-
-.leaderboard-table .ant-table-thead > tr > th:nth-child(2),
-.leaderboard-table .ant-table-tbody > tr > td:nth-child(2) {
-  width: 200px !important;
-}
-
-.leaderboard-table .ant-table-thead > tr > th:nth-child(3),
-.leaderboard-table .ant-table-tbody > tr > td:nth-child(3) {
-  width: 150px !important;
-}
-
-.leaderboard-table .ant-table-thead > tr > th:nth-child(4),
-.leaderboard-table .ant-table-tbody > tr > td:nth-child(4) {
-  width: 120px !important;
-}
-
-.leaderboard-table .ant-table-thead > tr > th:nth-child(5),
-.leaderboard-table .ant-table-tbody > tr > td:nth-child(5) {
-  width: 100px !important;
 }
 
 /* Specific table column width overrides for consistency */

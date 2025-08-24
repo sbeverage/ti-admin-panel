@@ -64,6 +64,8 @@ const Donors: React.FC = () => {
       navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
     } else if (key === 'settings') {
       navigate('/settings');
     }

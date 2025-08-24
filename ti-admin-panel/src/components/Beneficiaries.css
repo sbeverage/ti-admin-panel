@@ -1,149 +1,24 @@
-/* Beneficiaries Layout */
-.beneficiaries-layout {
-  min-height: 100vh;
-}
+/* Beneficiaries Page Specific Styles */
 
-.beneficiaries-sider {
-  background: #324E58;
-  box-shadow: 2px 0 8px rgba(0, 21, 41, 0.15);
-  position: fixed;
-  height: 100vh;
-  left: 0;
-  top: 0;
-  z-index: 1000;
-}
-
-.beneficiaries-sider .ant-layout-sider-children {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Logo Section */
-.logo-section {
-  padding: 12px 16px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo-container {
-  position: relative;
-  margin-bottom: 8px;
-}
-
-.logo-image {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-}
-
-.logo-fallback {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #DB8633;
-  border-radius: 50%;
-}
-
-.fallback-icon {
-  font-size: 40px;
-}
-
-.brand-name {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 1px;
-}
-
-.brand-subtitle {
-  color: #BEBEBE;
-  font-size: 14px;
-  margin-bottom: 2px;
-}
-
-/* Menu */
-.beneficiaries-menu {
-  flex: 1;
-  background: transparent;
-  border: none;
-  margin: 8px 0;
-}
-
-.beneficiaries-menu .ant-menu-item {
-  margin: 4px 16px;
-  border-radius: 8px;
-  color: #ffffff;
-}
-
-.beneficiaries-menu .ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-}
-
-.beneficiaries-menu .ant-menu-item-selected {
-  background: #DB8633 !important;
-  color: #ffffff !important;
-}
-
-.beneficiaries-menu .ant-menu-item-selected::after {
+/* Mobile Menu Button */
+.mobile-menu-btn {
   display: none;
-}
-
-/* Submenu styling for Feeds */
-.beneficiaries-menu .ant-menu-submenu-title {
-  color: #ffffff !important;
-}
-
-.beneficiaries-menu .ant-menu-submenu-title:hover {
-  color: #ffffff !important;
-}
-
-.beneficiaries-menu .ant-menu-submenu .ant-menu-item {
-  color: #ffffff !important;
-}
-
-.beneficiaries-menu .ant-menu-submenu .ant-menu-item:hover {
-  color: #ffffff !important;
-}
-
-.beneficiaries-menu .ant-menu-submenu .ant-menu-item-selected {
-  color: #ffffff !important;
-}
-
-/* Ensure submenu arrow is white */
-.beneficiaries-menu .ant-menu-submenu-arrow {
-  color: #ffffff !important;
-}
-
-/* User Profile */
-.user-profile {
-  padding: 16px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-info .ant-typography {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: #DB8633;
+  border-color: #DB8633;
   color: #ffffff;
-  margin: 0;
-  line-height: 1.2;
+  border-radius: 8px;
+  padding: 8px 12px;
+  height: 40px;
 }
 
-.user-info .ant-typography:last-child {
-  color: #BEBEBE;
-  font-size: 12px;
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
 }
 
 /* Main Content */
@@ -453,15 +328,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .beneficiaries-sider {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .beneficiaries-sider.mobile-visible {
-    transform: translateX(0);
-  }
-  
   .main-content {
     margin-left: 0;
   }

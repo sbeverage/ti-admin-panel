@@ -1,0 +1,295 @@
+/* 
+ * STANDARDIZED SIDEBAR DESIGN RULES
+ * All admin panel pages MUST follow this exact design
+ * Based on the Tenant page design (perfect reference)
+ */
+
+/* ========================================
+   SIDEBAR LAYOUT STANDARDS
+   ======================================== */
+
+/* Main Sidebar Container */
+.standard-sider {
+  background: #324E58 !important;
+  box-shadow: 2px 0 8px rgba(0, 21, 41, 0.15) !important;
+  position: fixed !important;
+  height: 100vh !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  width: 280px !important;
+}
+
+.standard-sider .ant-layout-sider-children {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* ========================================
+   LOGO SECTION STANDARDS
+   ======================================== */
+
+.standard-logo-section {
+  padding: 12px 16px !important;
+  text-align: center !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.standard-logo-container {
+  position: relative !important;
+  margin-bottom: 8px !important;
+}
+
+.standard-logo-image {
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: contain !important;
+}
+
+.standard-logo-fallback {
+  width: 80px !important;
+  height: 80px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #DB8633 !important;
+  border-radius: 50% !important;
+}
+
+.standard-fallback-icon {
+  font-size: 40px !important;
+}
+
+.standard-brand-name {
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 1px !important;
+}
+
+.standard-brand-subtitle {
+  color: #BEBEBE !important;
+  font-size: 14px !important;
+  margin-bottom: 2px !important;
+}
+
+/* ========================================
+   MENU STANDARDS - CRITICAL RULES
+   ======================================== */
+
+.standard-menu {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 8px 0 !important;
+}
+
+.standard-menu .ant-menu-item {
+  color: #ffffff !important;
+  margin: 4px 16px !important;
+  border-radius: 8px !important;
+}
+
+.standard-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-item-selected:hover {
+  background: #c6752a !important;
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-item-selected::after {
+  display: none !important;
+}
+
+/* Submenu styling */
+.standard-menu .ant-menu-submenu-title {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu .ant-menu-item:hover {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu .ant-menu-item-selected {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu-arrow {
+  color: #ffffff !important;
+}
+
+/* CRITICAL: Override any Ant Design default hover colors */
+.standard-menu .ant-menu-item:hover,
+.standard-menu .ant-menu-item:hover *,
+.standard-menu .ant-menu-item:hover span,
+.standard-menu .ant-menu-item:hover div,
+.standard-menu .ant-menu-item:hover .anticon {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu-title:hover,
+.standard-menu .ant-menu-submenu-title:hover *,
+.standard-menu .ant-menu-submenu-title:hover span,
+.standard-menu .ant-menu-submenu-title:hover div,
+.standard-menu .ant-menu-submenu-title:hover .anticon {
+  color: #ffffff !important;
+}
+
+.standard-menu .ant-menu-submenu .ant-menu-item:hover,
+.standard-menu .ant-menu-submenu .ant-menu-item:hover *,
+.standard-menu .ant-menu-submenu .ant-menu-item:hover span,
+.standard-menu .ant-menu-submenu .ant-menu-item:hover div,
+.standard-menu .ant-menu-submenu .ant-menu-item:hover .anticon {
+  color: #ffffff !important;
+}
+
+/* Force override any Ant Design theme colors */
+.standard-menu .ant-menu-item:hover .ant-menu-title-content,
+.standard-menu .ant-menu-submenu-title:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+/* Ensure icons stay white on hover */
+.standard-menu .ant-menu-item .anticon,
+.standard-menu .ant-menu-item:hover .anticon,
+.standard-menu .ant-menu-submenu-title .anticon,
+.standard-menu .ant-menu-submenu-title:hover .anticon {
+  color: #ffffff !important;
+}
+
+/* ========================================
+   USER PROFILE STANDARDS
+   ======================================== */
+
+.standard-user-profile {
+  position: absolute !important;
+  bottom: 24px !important;
+  left: 16px !important;
+  right: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+.standard-user-profile .ant-avatar {
+  background: #ffffff !important;
+  color: #DB8633 !important;
+}
+
+.standard-user-info {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.standard-user-info .ant-typography {
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.standard-user-info .ant-typography[type="secondary"] {
+  color: #BEBEBE !important;
+  font-size: 12px !important;
+}
+
+.standard-user-profile .ant-btn {
+  color: #ffffff !important;
+  border: none !important;
+  padding: 4px !important;
+}
+
+.standard-user-profile .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* ========================================
+   MAIN CONTENT STANDARDS
+   ======================================== */
+
+.standard-main-content {
+  background: #F5F5FA !important;
+  margin-left: 280px !important;
+  min-height: 100vh !important;
+  transition: margin-left 0.3s ease !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .standard-main-content {
+    margin-left: 0 !important;
+  }
+  
+  .standard-sider {
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  .standard-sider.mobile-visible {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ========================================
+   LAYOUT STANDARDS
+   ======================================== */
+
+.standard-layout {
+  min-height: 100vh !important;
+  background: #F5F5FA !important;
+}
+
+/* ========================================
+   USAGE INSTRUCTIONS FOR DEVELOPERS
+   ======================================== */
+
+/*
+  HOW TO USE THESE STANDARDS:
+  
+  1. Import this CSS file in your component
+  2. Use these exact class names:
+     - .standard-sider (instead of .page-sider)
+     - .standard-menu (instead of .page-menu)
+     - .standard-logo-section (instead of .logo-section)
+     - .standard-user-profile (instead of .user-profile)
+     - .standard-main-content (instead of .main-content)
+  
+  3. Your JSX structure should be:
+     <Layout className="standard-layout">
+       <Sider className="standard-sider">
+         <div className="standard-logo-section">...</div>
+         <Menu className="standard-menu">...</Menu>
+         <div className="standard-user-profile">...</div>
+       </Sider>
+       <Layout className="standard-main-content">
+         <!-- Your page content -->
+       </Layout>
+     </Layout>
+  
+  4. DO NOT add custom CSS that overrides these standards
+  5. DO NOT use page-specific menu styling
+  6. All pages MUST look identical in sidebar design
+*/ 

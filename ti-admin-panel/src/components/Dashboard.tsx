@@ -131,6 +131,8 @@ const Dashboard: React.FC = () => {
       navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -916,6 +918,12 @@ const Dashboard: React.FC = () => {
                     activeKey={activeApprovalTab} 
                     onChange={setActiveApprovalTab} 
                     className="approvals-tabs"
+                    style={{
+                      '--ant-tabs-ink-bar-color': 'transparent',
+                    } as React.CSSProperties}
+                    tabBarStyle={{
+                      marginBottom: '24px',
+                    }}
                     items={[
                       {
                         key: 'beneficiaries',

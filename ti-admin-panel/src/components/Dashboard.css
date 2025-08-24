@@ -1,20 +1,40 @@
-/* Dashboard tabs - Clean and consistent styling matching Settings page */
-.approvals-tabs .ant-tabs-nav {
-  margin-bottom: 24px;
+/* Dashboard tabs - Modern design with high specificity */
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-nav {
+  margin-bottom: 24px !important;
 }
 
-.approvals-tabs .ant-tabs-tab {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-tab {
+  padding: 12px 24px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
 }
 
-.approvals-tabs .ant-tabs-tab-active {
-  color: #DB8633;
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
 }
 
-.approvals-tabs .ant-tabs-ink-bar {
-  background: #DB8633;
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.dashboard-layout .approvals-tabs.ant-tabs .ant-tabs-tab .anticon {
+  margin-right: 8px !important;
+  font-size: 16px !important;
 }
 
 /* Dashboard Layout - Light Theme */
@@ -51,59 +71,48 @@
 }
 
 .logo-section {
-  padding: 20px 16px 12px 16px;
+  padding: 12px 16px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo-container {
   position: relative;
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin-bottom: 8px;
 }
 
 .logo-image {
-  width: 300px;
-  height: auto;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
-  max-width: 100%;
 }
 
 .logo-fallback {
-  width: 200px;
+  width: 80px;
   height: 80px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 24px;
+  background: #DB8633;
+  border-radius: 50%;
 }
 
-.fallback-text {
-  font-size: 24px;
-  font-weight: 700;
-  color: #ffffff;
+.fallback-icon {
+  font-size: 40px;
 }
 
 .brand-name {
   color: #ffffff;
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 4px;
-  text-align: center;
+  margin-bottom: 1px;
 }
 
 .brand-subtitle {
   color: #BEBEBE;
   font-size: 14px;
-  margin-bottom: 0;
-  text-align: center;
+  margin-bottom: 2px;
 }
 
 .dashboard-menu {
@@ -114,19 +123,23 @@
 }
 
 .dashboard-menu .ant-menu-item {
+  color: #ffffff !important;
   margin: 4px 16px;
   border-radius: 8px;
-  color: #ffffff;
 }
 
 .dashboard-menu .ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .dashboard-menu .ant-menu-item-selected {
   background: #DB8633 !important;
   color: #ffffff !important;
+}
+
+.dashboard-menu .ant-menu-item-selected:hover {
+  background: #c6752a !important;
 }
 
 .dashboard-menu .ant-menu-item-selected::after {
@@ -160,27 +173,33 @@
 }
 
 .user-profile {
-  padding: 16px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  right: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
 
 .user-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .user-info .ant-typography {
-  color: #ffffff;
+  color: #ffffff !important;
   margin: 0;
   line-height: 1.2;
 }
 
-.user-info .ant-typography:last-child {
-  color: #BEBEBE;
+.user-info .ant-typography[type="secondary"] {
+  color: #BEBEBE !important;
   font-size: 12px;
 }
 
@@ -1278,23 +1297,33 @@
   }
   
   /* Newsfeed Management Tabs */
-  .newsfeed-card .ant-tabs-tab {
-    padding: 8px 12px;
-    margin: 0 4px 0 0;
-    font-size: 13px;
+  .dashboard-layout .newsfeed-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-tab {
+    padding: 8px 12px !important;
+    margin: 0 4px 0 0 !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    background: transparent !important;
   }
   
-  .newsfeed-card .ant-tabs-tab-active {
-    background: #DB8633;
-    border-color: #DB8633;
+  .dashboard-layout .newsfeed-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-tab:hover {
+    color: #DB8633 !important;
+    background: rgba(219, 134, 51, 0.1) !important;
   }
   
-  .newsfeed-card .ant-tabs-tab-active .ant-tabs-tab-btn {
+  .dashboard-layout .newsfeed-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-tab-active {
+    background: #DB8633 !important;
+    border-color: transparent !important;
     color: #ffffff !important;
   }
   
-  .newsfeed-card .ant-tabs-content-holder {
-    padding-top: 12px;
+  .dashboard-layout .newsfeed-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #ffffff !important;
+  }
+  
+  .dashboard-layout .newsfeed-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-ink-bar {
+    display: none !important;
   }
   
   .newsfeed-card .stat-card {
@@ -1557,28 +1586,27 @@
   font-weight: 700 !important;
 }
 
-.newsfeed-management-card .ant-tabs-tab {
+.dashboard-layout .newsfeed-management-card.ant-card .ant-tabs.ant-tabs-top .ant-tabs-tab {
   padding: 12px 24px !important;
   font-weight: 600 !important;
   font-size: 16px !important;
-  border-radius: 8px 8px 0 0 !important;
-  margin-right: 8px !important;
+  border-radius: 8px !important;
+  margin: 0 8px 0 0 !important;
   transition: all 0.3s ease !important;
   color: #666 !important;
-  background: #f8f9fa !important;
-  border: 1px solid #e8e8e8 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 .newsfeed-management-card .ant-tabs-tab:hover {
   color: #DB8633 !important;
-  background: #ffffff !important;
-  border-color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
 }
 
 .newsfeed-management-card .ant-tabs-tab.ant-tabs-tab-active {
   background: #DB8633 !important;
   color: #ffffff !important;
-  border-color: #DB8633 !important;
+  border-color: transparent !important;
   box-shadow: 0 2px 8px rgba(219, 134, 51, 0.3);
 }
 
@@ -1587,8 +1615,7 @@
 }
 
 .newsfeed-management-card .ant-tabs-ink-bar {
-  background: #DB8633 !important;
-  height: 3px !important;
+  display: none !important;
 }
 
 .newsfeed-management-card .ant-table {
@@ -1664,4 +1691,36 @@
 .newsfeed-management-card .ant-select-focused .ant-select-selector {
   border-color: #DB8633 !important;
   box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
+}
+
+/* FORCE MODERN TAB DESIGN - Ultra High Specificity */
+.dashboard-layout .ant-layout-content .approvals-card.ant-card .approvals-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab {
+  padding: 12px 24px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.dashboard-layout .ant-layout-content .approvals-card.ant-card .approvals-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
+}
+
+.dashboard-layout .ant-layout-content .approvals-card.ant-card .approvals-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab.ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-layout .ant-layout-content .approvals-card.ant-card .approvals-tabs.ant-tabs .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.dashboard-layout .ant-layout-content .approvals-card.ant-card .approvals-tabs.ant-tabs .ant-tabs-nav .ant-tabs-ink-bar {
+  display: none !important;
+  opacity: 0 !important;
+  height: 0 !important;
 }

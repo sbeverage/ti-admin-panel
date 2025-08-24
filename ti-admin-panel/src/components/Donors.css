@@ -91,19 +91,23 @@
 }
 
 .donors-menu .ant-menu-item {
+  color: #ffffff !important;
   margin: 4px 16px;
   border-radius: 8px;
-  color: #ffffff;
 }
 
 .donors-menu .ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .donors-menu .ant-menu-item-selected {
   background: #DB8633 !important;
   color: #ffffff !important;
+}
+
+.donors-menu .ant-menu-item-selected:hover {
+  background: #c6752a !important;
 }
 
 .donors-menu .ant-menu-item-selected::after {
@@ -137,27 +141,33 @@
 }
 
 .user-profile {
-  padding: 16px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  right: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
 
 .user-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .user-info .ant-typography {
-  color: #ffffff;
+  color: #ffffff !important;
   margin: 0;
   line-height: 1.2;
 }
 
-.user-info .ant-typography:last-child {
-  color: #BEBEBE;
+.user-info .ant-typography[type="secondary"] {
+  color: #BEBEBE !important;
   font-size: 12px;
 }
 

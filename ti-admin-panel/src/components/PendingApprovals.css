@@ -1,0 +1,702 @@
+/* Pending Approvals Layout - Use same classes as other pages */
+.donors-layout {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.donors-layout .ant-layout-sider {
+  background: #324E58 !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  position: fixed !important;
+  height: 100vh !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+}
+
+.donors-layout .ant-layout-sider-collapsed {
+  background: #324E58 !important;
+}
+
+.donors-layout .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Logo Section */
+.logo-section {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #DB8633;
+  border-radius: 50%;
+}
+
+.fallback-icon {
+  font-size: 40px;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+
+.brand-subtitle {
+  color: #BEBEBE;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* Menu Styling - Match exact colors from other pages */
+.donors-menu {
+  flex: 1;
+  background: transparent;
+  border: none;
+  margin: 8px 0;
+}
+
+.donors-menu .ant-menu-item {
+  color: #ffffff !important;
+  margin: 4px 16px;
+  border-radius: 8px;
+}
+
+.donors-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.donors-menu .ant-menu-item-selected {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.donors-menu .ant-menu-item-selected:hover {
+  background: #c6752a !important;
+}
+
+.donors-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* User Profile */
+.user-profile {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.user-profile .ant-avatar {
+  background: #ffffff;
+  color: #DB8633;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info .ant-typography {
+  color: #ffffff !important;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.user-info .ant-typography[type="secondary"] {
+  color: #BEBEBE !important;
+  font-size: 12px;
+}
+
+.user-profile .ant-btn {
+  color: #ffffff;
+  border: none;
+  padding: 4px;
+}
+
+.user-profile .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 280px !important;
+  transition: margin-left 0.3s ease;
+  background: #F5F5FA;
+  display: flex;
+  flex-direction: column;
+}
+
+.donors-header {
+  background: #ffffff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 80px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-left .ant-typography {
+  margin: 0 !important;
+  color: #262626 !important;
+}
+
+.approvals-count {
+  font-size: 14px !important;
+  color: #8c8c8c !important;
+}
+
+.header-right {
+  display: flex;
+  gap: 16px;
+}
+
+.approval-stats-btn {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  padding: 0 20px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.approval-stats-btn:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.3) !important;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+/* Approval Tabs Section - Match exact design from other pages */
+.approval-tabs-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.approval-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.approval-tabs .ant-tabs-tab {
+  padding: 12px 24px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.approval-tabs .ant-tabs-tab:hover {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
+}
+
+.approval-tabs .ant-tabs-tab-active {
+  background: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.approval-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.approval-tabs .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.approval-tabs .ant-tabs-tab .anticon {
+  margin-right: 8px !important;
+  font-size: 16px !important;
+}
+
+/* Approvals Table Section */
+.approvals-table-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.approvals-table {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.approvals-table .ant-table-thead > tr > th {
+  background: #fafafa !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  color: #262626 !important;
+  font-weight: 600 !important;
+  padding: 16px !important;
+}
+
+.approvals-table .ant-table-tbody > tr > td {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.approvals-table .ant-table-tbody > tr:hover > td {
+  background: #fafafa !important;
+}
+
+.approval-row:hover {
+  background: #fafafa !important;
+}
+
+/* Sortable Headers */
+.sortable-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sort-icon {
+  color: #8c8c8c;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.sortable-header:hover .sort-icon {
+  color: #DB8633;
+}
+
+/* Toggle Switches */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #d9d9d9;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.toggle.active {
+  background: #DB8633;
+}
+
+.toggle.inactive {
+  background: #d9d9d9;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle.active .toggle-slider {
+  transform: translateX(20px);
+}
+
+/* Action Buttons */
+.view-action-btn {
+  color: #1890ff !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.view-action-btn:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+}
+
+.approve-action-btn {
+  color: #52c41a !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.approve-action-btn:hover {
+  background: rgba(82, 196, 26, 0.1) !important;
+  color: #52c41a !important;
+}
+
+.reject-action-btn {
+  color: #ff4d4f !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.reject-action-btn:hover {
+  background: rgba(255, 77, 79, 0.1) !important;
+  color: #ff4d4f !important;
+}
+
+/* Pagination */
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.approvals-pagination .ant-pagination-item {
+  border-radius: 6px !important;
+  border: 1px solid #d9d9d9 !important;
+}
+
+.approvals-pagination .ant-pagination-item:hover {
+  border-color: #DB8633 !important;
+}
+
+.approvals-pagination .ant-pagination-item:hover a {
+  color: #DB8633 !important;
+}
+
+.approvals-pagination .ant-pagination-item-active {
+  border-color: #DB8633 !important;
+  background: #DB8633 !important;
+}
+
+.approvals-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+.approvals-pagination .ant-pagination-prev,
+.approvals-pagination .ant-pagination-next {
+  border-radius: 6px !important;
+  border: 1px solid #d9d9d9 !important;
+}
+
+.approvals-pagination .ant-pagination-prev:hover,
+.approvals-pagination .ant-pagination-next:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+/* Approval Details Modal */
+.approval-details-modal .ant-modal-content {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.approval-details-modal .ant-modal-header {
+  background: linear-gradient(135deg, #DB8633 0%, #C6762A 100%);
+  border-bottom: none !important;
+  padding: 24px 24px 20px 24px !important;
+}
+
+.approval-details-modal .ant-modal-title {
+  color: #ffffff !important;
+}
+
+.approval-details-modal .ant-modal-close {
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+
+.approval-details-modal .ant-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-icon {
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.approval-details {
+  padding: 0;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section .ant-typography {
+  margin-bottom: 16px !important;
+  color: #262626 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #DB8633;
+  padding-bottom: 8px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.detail-item .ant-typography:first-child {
+  color: #8c8c8c !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.detail-item .ant-typography:last-child {
+  color: #262626 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.status-item .ant-typography {
+  color: #8c8c8c !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  .detail-grid,
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .approval-tabs .ant-tabs-tab {
+    padding: 8px 16px !important;
+    margin: 0 4px 0 0 !important;
+  }
+  
+  .approval-tabs .ant-tabs-tab .anticon {
+    margin-right: 4px !important;
+  }
+}
+
+/* Mobile Menu Button */
+.mobile-menu-button {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.mobile-menu-trigger {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  width: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mobile-menu-trigger:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-button {
+    display: block;
+  }
+  
+  .donors-sider {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 999 !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .donors-sider.mobile-visible {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+} 
+
+/* ===== SEARCH & FILTER STYLING (EXACT COPY FROM VENDOR PAGE) ===== */
+
+/* Search and Filter Bar Container */
+.search-filter-bar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+  margin-top: 4px;
+}
+
+/* Search Input Styling - Exact Copy from Vendor */
+.approval-search {
+  width: 100%;
+}
+
+.approval-search .ant-input {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.approval-search .ant-input-search-button {
+  border-radius: 0 8px 8px 0;
+  background: #DB8633;
+  border-color: #DB8633;
+}
+
+.approval-search .ant-input-search-button:hover {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.approval-search .ant-input-search-button:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.approval-search .ant-input-search-button:active {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+/* Filter Section Styling - Exact Copy from Vendor */
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  color: #324E58 !important;
+  font-weight: 600;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown {
+  min-width: 150px;
+} 

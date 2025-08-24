@@ -1,0 +1,129 @@
+/* 
+ * GLOBAL MENU HOVER COLOR OVERRIDES
+ * This file ensures ALL menu items across the entire app maintain white text on hover
+ * Prevents Ant Design from changing font color to black on hover
+ */
+
+/* Override any Ant Design default hover colors for menu items */
+.ant-menu-item:hover,
+.ant-menu-item:hover *,
+.ant-menu-item:hover span,
+.ant-menu-item:hover div,
+.ant-menu-item:hover .anticon,
+.ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.ant-menu-submenu-title:hover,
+.ant-menu-submenu-title:hover *,
+.ant-menu-submenu-title:hover span,
+.ant-menu-submenu-title:hover div,
+.ant-menu-submenu-title:hover .anticon,
+.ant-menu-submenu-title:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.ant-menu-submenu .ant-menu-item:hover,
+.ant-menu-submenu .ant-menu-item:hover *,
+.ant-menu-submenu .ant-menu-item:hover span,
+.ant-menu-submenu .ant-menu-item:hover div,
+.ant-menu-submenu .ant-menu-item:hover .anticon,
+.ant-menu-submenu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+/* Override any page-specific menu hover colors */
+.dashboard-menu .ant-menu-item:hover,
+.dashboard-menu .ant-menu-item:hover *,
+.dashboard-menu .ant-menu-item:hover span,
+.dashboard-menu .ant-menu-item:hover div,
+.dashboard-menu .ant-menu-item:hover .anticon,
+.dashboard-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.donors-menu .ant-menu-item:hover,
+.donors-menu .ant-menu-item:hover *,
+.donors-menu .ant-menu-item:hover span,
+.donors-menu .ant-menu-item:hover div,
+.donors-menu .ant-menu-item:hover .anticon,
+.donors-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.vendor-menu .ant-menu-item:hover,
+.vendor-menu .ant-menu-item:hover *,
+.vendor-menu .ant-menu-item:hover span,
+.vendor-menu .ant-menu-item:hover div,
+.vendor-menu .ant-menu-item:hover .anticon,
+.vendor-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.tenants-menu .ant-menu-item:hover,
+.tenants-menu .ant-menu-item:hover *,
+.tenants-menu .ant-menu-item:hover span,
+.tenants-menu .ant-menu-item:hover div,
+.tenants-menu .ant-menu-item:hover .anticon,
+.tenants-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.beneficiaries-menu .ant-menu-item:hover,
+.beneficiaries-menu .ant-menu-item:hover *,
+.beneficiaries-menu .ant-menu-item:hover span,
+.beneficiaries-menu .ant-menu-item:hover div,
+.beneficiaries-menu .ant-menu-item:hover .anticon,
+.beneficiaries-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.events-menu .ant-menu-item:hover,
+.events-menu .ant-menu-item:hover *,
+.events-menu .ant-menu-item:hover span,
+.events-menu .ant-menu-item:hover div,
+.events-menu .ant-menu-item:hover .anticon,
+.events-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.leaderboard-menu .ant-menu-item:hover,
+.leaderboard-menu .ant-menu-item:hover *,
+.leaderboard-menu .ant-menu-item:hover span,
+.leaderboard-menu .ant-menu-item:hover div,
+.leaderboard-menu .ant-menu-item:hover .anticon,
+.leaderboard-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.settings-menu .ant-menu-item:hover,
+.settings-menu .ant-menu-item:hover *,
+.settings-menu .ant-menu-item:hover span,
+.settings-menu .ant-menu-item:hover div,
+.settings-menu .ant-menu-item:hover .anticon,
+.settings-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+.discounts-menu .ant-menu-item:hover,
+.discounts-menu .ant-menu-item:hover *,
+.discounts-menu .ant-menu-item:hover span,
+.discounts-menu .ant-menu-item:hover div,
+.discounts-menu .ant-menu-item:hover .anticon,
+.discounts-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+/* Override any Ant Design theme colors that might interfere */
+.ant-menu-item:hover .ant-menu-title-content,
+.ant-menu-submenu-title:hover .ant-menu-title-content {
+  color: #ffffff !important;
+}
+
+/* Ensure icons stay white on hover */
+.ant-menu-item .anticon,
+.ant-menu-item:hover .anticon,
+.ant-menu-submenu-title .anticon,
+.ant-menu-submenu-title:hover .anticon {
+  color: #ffffff !important;
+} 
