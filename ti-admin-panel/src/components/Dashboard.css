@@ -87,20 +87,7 @@
   object-fit: contain;
 }
 
-.logo-fallback {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #DB8633;
-  border-radius: 50%;
-}
 
-.fallback-icon {
-  font-size: 40px;
-}
 
 .brand-name {
   color: #ffffff;
@@ -204,7 +191,7 @@
 }
 
 /* Main Content - Light Theme */
-.main-content {
+.standard-main-content {
   background: #F5F5FA;
   margin-left: 280px;
   min-height: 100vh;
@@ -1188,7 +1175,7 @@
     transform: translateX(0);
   }
   
-  .main-content {
+  .standard-main-content {
     margin-left: 0;
   }
 }
@@ -1404,7 +1391,7 @@
     transform: translateX(0);
   }
   
-  .main-content {
+  .standard-main-content {
     margin-left: 0;
   }
 }

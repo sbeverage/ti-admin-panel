@@ -47,19 +47,13 @@
   object-fit: contain !important;
 }
 
-.standard-logo-fallback {
-  width: 80px !important;
-  height: 80px !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #DB8633 !important;
-  border-radius: 50% !important;
-}
-
-.standard-fallback-icon {
-  font-size: 40px !important;
+/* FORCE HIDE ALL FALLBACK LOGOS */
+.logo-fallback,
+.standard-logo-fallback,
+.white-logo-fallback,
+.fallback-icon,
+.fallback-text {
+  display: none !important;
 }
 
 .standard-brand-name {

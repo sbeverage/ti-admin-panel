@@ -9,6 +9,8 @@ import {
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
+import '../styles/sidebar-standard.css';
+import '../styles/menu-hover-overrides.css';
 import './Vendor.css';
 
 const { Header, Sider, Content } = Layout;
@@ -451,70 +453,45 @@ const Vendor: React.FC = () => {
     <Layout className="vendor-layout">
       {/* Sidebar */}
       <Sider
+        className="standard-sider"
         width={280}
-        className="vendor-sider"
         collapsed={collapsed}
         onCollapse={setCollapsed}
       >
-        <div className="logo-section" style={{
-          padding: '20px 16px 12px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          backgroundColor: 'transparent'
-        }}>
+        <div className="standard-logo-section">
           {/* Simplified logo section with large centered logo */}
-          <div className="logo-container" style={{
-            position: 'relative',
-            marginBottom: '12px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
+          <div className="standard-logo-container">
             <img
               src="/white-logo.png"
               alt="Thrive Initiative Logo"
-              className="logo-image"
-              style={{
-                width: '180px',
-                height: 'auto',
-                maxWidth: '100%',
-                display: 'block',
-                margin: '0 auto'
-              }}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
+              className="standard-logo-image"
             />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
           </div>
+          <div className="standard-brand-name">THRIVE</div>
+          <div className="standard-brand-subtitle">Initiative</div>
         </div>
 
         <Menu
+          className="standard-menu"
           mode="inline"
           defaultSelectedKeys={['vendor']}
           selectedKeys={[location.pathname === '/vendor' ? 'vendor' : '']}
-          style={{ borderRight: 0 }}
           items={menuItems}
-          className="vendor-menu"
           onClick={handleMenuClick}
         />
 
-        <div className="user-profile">
+        <div className="standard-user-profile">
           <Avatar size={40} icon={<UserOutlined />} />
-          <div className="user-info">
+          <div className="standard-user-info">
             <Text strong>Stephanie Beverage</Text>
+            <Text type="secondary">Admin</Text>
           </div>
           <Button type="text" icon={<MoreOutlined />} />
         </div>
       </Sider>
 
       {/* Main Content */}
-      <Layout className="main-content">
+      <Layout className="standard-main-content">
         <Header className="vendor-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Vendors</Title>

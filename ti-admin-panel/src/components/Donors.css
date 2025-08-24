@@ -54,20 +54,7 @@
   object-fit: contain;
 }
 
-.logo-fallback {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #DB8633;
-  border-radius: 50%;
-}
 
-.fallback-icon {
-  font-size: 40px;
-}
 
 
 .brand-name {
@@ -174,7 +161,7 @@
 
 
 /* Main Content - Light Theme */
-.main-content {
+.standard-main-content {
   background: #F5F5FA;
   display: flex;
   flex-direction: column;
@@ -784,7 +771,7 @@
     transform: translateX(0);
   }
   
-  .main-content {
+  .standard-main-content {
     margin-left: 0;
   }
 }
@@ -853,19 +840,6 @@
   height: auto;
   object-fit: contain;
 }
-
-.white-logo-fallback {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 120px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 18px;
-} 
 
 /* Table Header Consistency */
 .ant-table-thead > tr > th {

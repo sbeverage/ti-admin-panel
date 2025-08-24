@@ -546,17 +546,10 @@ const Beneficiaries: React.FC = () => {
               src="/white-logo.png"
               alt="Thrive Initiative Logo"
               className="standard-logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
             />
-            <div className="standard-logo-fallback">
-              <div className="standard-fallback-icon">THRIVE</div>
-            </div>
           </div>
+          <div className="standard-brand-name">THRIVE</div>
+          <div className="standard-brand-subtitle">Initiative</div>
         </div>
 
         <Menu

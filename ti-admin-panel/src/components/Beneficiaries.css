@@ -22,7 +22,7 @@
 }
 
 /* Main Content */
-.main-content {
+.standard-main-content {
   background: #F5F5FA;
   display: flex;
   flex-direction: column;
@@ -328,7 +328,7 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .main-content {
+  .standard-main-content {
     margin-left: 0;
   }
   
