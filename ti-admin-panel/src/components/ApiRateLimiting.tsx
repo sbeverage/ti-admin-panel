@@ -177,12 +177,12 @@ const ApiRateLimiting: React.FC = () => {
 
   // Rate Limiting Statistics
   const rateLimitStats = [
-    { title: 'Active Rules', value: 5, icon: <SecurityScanOutlined />, color: '#52c41a' },
-    { title: 'Blocked Requests', value: 127, icon: <CloseCircleOutlined />, color: '#f5222d' },
-    { title: 'Average Response Time', value: '203ms', icon: <ClockCircleOutlined />, color: '#1890ff' },
-    { title: 'Total API Calls', value: '12.4K', icon: <ApiOutlined />, color: '#722ed1' },
-    { title: 'Rate Limit Hits', value: 23, icon: <WarningOutlined />, color: '#faad14' },
-    { title: 'Success Rate', value: '98.2%', icon: <CheckCircleOutlined />, color: '#13c2c2' }
+    { title: 'Active Rules', value: 5, icon: <SecurityScanOutlined />, color: '#DB8633' },
+    { title: 'Blocked Requests', value: 127, icon: <CloseCircleOutlined />, color: '#324E58' },
+    { title: 'Average Response Time', value: '203ms', icon: <ClockCircleOutlined />, color: '#324E58' },
+    { title: 'Total API Calls', value: '12.4K', icon: <ApiOutlined />, color: '#324E58' },
+    { title: 'Rate Limit Hits', value: 23, icon: <WarningOutlined />, color: '#DB8633' },
+    { title: 'Success Rate', value: '98.2%', icon: <CheckCircleOutlined />, color: '#DB8633' }
   ];
 
   const ruleColumns = [

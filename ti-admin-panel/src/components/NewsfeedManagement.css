@@ -464,6 +464,54 @@
   color: #ffffff !important;
 }
 
+/* Global Button Brand Color Overrides */
+.ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link {
+  color: #DB8633 !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+/* Override any blue hyperlink colors */
+a {
+  color: #DB8633 !important;
+}
+
+a:hover {
+  color: #C6762A !important;
+}
+
+/* Ensure all orange background elements have white text */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"] {
+  color: #ffffff !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .newsfeed-management {
@@ -527,15 +575,15 @@
 
 /* Priority indicators */
 .priority-high {
-  border-left: 4px solid #ff4d4f !important;
+  border-left: 4px solid #324E58 !important;
 }
 
 .priority-medium {
-  border-left: 4px solid #faad14 !important;
+  border-left: 4px solid #DB8633 !important;
 }
 
 .priority-low {
-  border-left: 4px solid #52c41a !important;
+  border-left: 4px solid #DB8633 !important;
 }
 
 /* Status-specific styling */

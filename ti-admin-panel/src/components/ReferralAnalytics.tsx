@@ -170,12 +170,12 @@ const ReferralAnalytics: React.FC = () => {
 
   // Referral Overview Data
   const referralOverviewData = [
-    { title: 'Total Referrals', value: 1, icon: <TeamOutlined />, growth: '+15.3%', color: '#52c41a' },
-    { title: 'Successful Referrals', value: 856, icon: <CheckCircleFilled />, growth: '+8.7%', color: '#1890ff' },
-    { title: 'Pending Referrals', value: 144, icon: <ExclamationCircleOutlined />, growth: '-2.1%', color: '#faad14' },
-    { title: 'Referral Conversion Rate', value: '85.6%', icon: <BarChartOutlined />, growth: '+3.2%', color: '#722ed1' },
-    { title: 'Total Points Awarded', value: '12,450', icon: <TrophyOutlined />, growth: '+12.4%', color: '#f5222d' },
-    { title: 'Average Referral Value', value: '$45.20', icon: <DollarOutlined />, growth: '+5.8%', color: '#13c2c2' },
+    { title: 'Total Referrals', value: 1, icon: <TeamOutlined />, growth: '+15.3%', color: '#DB8633' },
+    { title: 'Successful Referrals', value: 856, icon: <CheckCircleFilled />, growth: '+8.7%', color: '#324E58' },
+    { title: 'Pending Referrals', value: 144, icon: <ExclamationCircleOutlined />, growth: '-2.1%', color: '#DB8633' },
+    { title: 'Referral Conversion Rate', value: '85.6%', icon: <BarChartOutlined />, growth: '+3.2%', color: '#324E58' },
+    { title: 'Total Points Awarded', value: '12,450', icon: <TrophyOutlined />, growth: '+12.4%', color: '#324E58' },
+    { title: 'Average Referral Value', value: '$45.20', icon: <DollarOutlined />, growth: '+5.8%', color: '#DB8633' },
   ];
 
   // Top Referrers Data
@@ -249,12 +249,12 @@ const ReferralAnalytics: React.FC = () => {
 
   // Referral Channels Data
   const referralChannelsData = [
-    { channel: 'Email Invitations', referrals: 456, conversion: 78.2, color: '#1890ff' },
-    { channel: 'Social Media', referrals: 234, conversion: 65.4, color: '#52c41a' },
-    { channel: 'Direct Links', referrals: 189, conversion: 82.1, color: '#722ed1' },
-    { channel: 'QR Codes', referrals: 156, conversion: 71.8, color: '#faad14' },
-    { channel: 'Word of Mouth', referrals: 98, conversion: 89.3, color: '#f5222d' },
-    { channel: 'Business Cards', referrals: 67, conversion: 58.2, color: '#13c2c2' }
+    { channel: 'Email Invitations', referrals: 456, conversion: 78.2, color: '#324E58' },
+    { channel: 'Social Media', referrals: 234, conversion: 65.4, color: '#DB8633' },
+    { channel: 'Direct Links', referrals: 189, conversion: 82.1, color: '#324E58' },
+    { channel: 'QR Codes', referrals: 156, conversion: 71.8, color: '#DB8633' },
+    { channel: 'Word of Mouth', referrals: 98, conversion: 89.3, color: '#324E58' },
+    { channel: 'Business Cards', referrals: 67, conversion: 58.2, color: '#DB8633' }
   ];
 
   // Referral Performance by Month
@@ -281,9 +281,9 @@ const ReferralAnalytics: React.FC = () => {
       width: 80,
       render: (rank: number) => (
         <div className="rank-badge">
-          {rank === 1 && <CrownOutlined style={{ color: '#FFD700' }} />}
-          {rank === 2 && <TrophyOutlined style={{ color: '#C0C0C0' }} />}
-          {rank === 3 && <TrophyOutlined style={{ color: '#CD7F32' }} />}
+                  {rank === 1 && <CrownOutlined style={{ color: '#DB8633' }} />}
+        {rank === 2 && <TrophyOutlined style={{ color: '#8c8c8c' }} />}
+        {rank === 3 && <TrophyOutlined style={{ color: '#DB8633' }} />}
           <span className="rank-number">{rank}</span>
         </div>
       ),
@@ -328,7 +328,7 @@ const ReferralAnalytics: React.FC = () => {
       key: 'pointsEarned',
       render: (points: number) => (
         <div className="points-display">
-          <TrophyOutlined style={{ color: '#FFD700', marginRight: 8 }} />
+          <TrophyOutlined style={{ color: '#DB8633', marginRight: 8 }} />
           <Text strong>{points.toLocaleString()}</Text>
         </div>
       ),
@@ -337,7 +337,7 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Total Value',
       dataIndex: 'totalValue',
       key: 'totalValue',
-      render: (value: string) => <Text strong style={{ color: '#52c41a' }}>{value}</Text>,
+      render: (value: string) => <Text strong style={{ color: '#DB8633' }}>{value}</Text>,
     },
     {
       title: 'Status',
@@ -488,7 +488,7 @@ const ReferralAnalytics: React.FC = () => {
                                     <Progress 
                                       percent={item.conversion} 
                                       size="small"
-                                      strokeColor="#1890ff"
+                                      strokeColor="#324E58"
                                       showInfo={false}
                                     />
                                     <Text type="secondary">{item.successful} successful</Text>
@@ -556,21 +556,21 @@ const ReferralAnalytics: React.FC = () => {
                                 <Statistic 
                                   title="Pending Invitations" 
                                   value={144} 
-                                  valueStyle={{ color: '#faad14' }}
+                                  valueStyle={{ color: '#DB8633' }}
                                 />
                               </Col>
                               <Col span={8}>
                                 <Statistic 
                                   title="Accepted Today" 
                                   value={23} 
-                                  valueStyle={{ color: '#52c41a' }}
+                                  valueStyle={{ color: '#DB8633' }}
                                 />
                               </Col>
                               <Col span={8}>
                                 <Statistic 
                                   title="Expired This Week" 
                                   value={7} 
-                                  valueStyle={{ color: '#f5222d' }}
+                                  valueStyle={{ color: '#324E58' }}
                                 />
                               </Col>
                             </Row>

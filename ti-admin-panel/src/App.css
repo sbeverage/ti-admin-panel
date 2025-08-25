@@ -22,15 +22,37 @@
 }
 
 /* Global Button Brand Color Overrides - Applied Across Entire Application */
-.ant-btn:hover {
+.ant-btn-primary {
+  background: #DB8633 !important;
   border-color: #DB8633 !important;
-  color: #DB8633 !important;
+  color: #ffffff !important;
 }
 
 .ant-btn-primary:hover {
   background: #C6762A !important;
   border-color: #C6762A !important;
   color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-link {
+  color: #DB8633 !important;
 }
 
 .ant-btn-link:hover {
@@ -40,6 +62,68 @@
 .ant-btn-text:hover {
   background: rgba(219, 134, 51, 0.1) !important;
   color: #DB8633 !important;
+}
+
+/* Override any blue hyperlink colors */
+a {
+  color: #DB8633 !important;
+}
+
+a:hover {
+  color: #C6762A !important;
+}
+
+/* Ensure all orange background elements have white text */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"] {
+  color: #ffffff !important;
+}
+
+/* Override all button text colors to prevent blue */
+.ant-btn {
+  color: inherit !important;
+}
+
+.ant-btn-primary {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  color: #ffffff !important;
+}
+
+/* Override any remaining blue colors in buttons */
+.ant-btn[style*="color: #1890ff"],
+.ant-btn[style*="color: #1890ff"]:hover,
+.ant-btn[style*="color: #1890ff"]:focus,
+.ant-btn[style*="color: #1890ff"]:active {
+  color: #DB8633 !important;
+}
+
+/* Ensure all links use brand colors */
+a, .ant-btn-link {
+  color: #DB8633 !important;
+}
+
+a:hover, .ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+/* Override any inline styles that might be causing blue colors */
+[style*="color: #1890ff"] {
+  color: #DB8633 !important;
+}
+
+[style*="color: #1890ff"]:hover {
+  color: #C6762A !important;
 }
 
 /* Override any remaining blue hover states */

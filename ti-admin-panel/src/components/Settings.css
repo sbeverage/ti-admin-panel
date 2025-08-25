@@ -401,15 +401,15 @@
 }
 
 .role-manager {
-  background: #f6ffed;
-  color: #52c41a;
-  border: 1px solid #b7eb8f;
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+  border: 1px solid rgba(219, 134, 51, 0.3);
 }
 
 .role-user {
-  background: #f9f0ff;
-  color: #722ed1;
-  border: 1px solid #d3adf7;
+  background: rgba(50, 78, 88, 0.1);
+  color: #324E58;
+  border: 1px solid rgba(50, 78, 88, 0.3);
 }
 
 .status-badge {
@@ -422,15 +422,15 @@
 }
 
 .status-active {
-  background: #f6ffed;
-  color: #52c41a;
-  border: 1px solid #b7eb8f;
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+  border: 1px solid rgba(219, 134, 51, 0.3);
 }
 
 .status-inactive {
-  background: #fff2f0;
-  color: #ff4d4f;
-  border: 1px solid #ffccc7;
+  background: rgba(50, 78, 88, 0.1);
+  color: #324E58;
+  border: 1px solid rgba(50, 78, 88, 0.3);
 }
 
 /* Modal Styling */
@@ -467,15 +467,37 @@
 }
 
 /* Global Button Brand Color Overrides */
-.ant-btn:hover {
+.ant-btn-primary {
+  background: #DB8633 !important;
   border-color: #DB8633 !important;
-  color: #DB8633 !important;
+  color: #ffffff !important;
 }
 
 .ant-btn-primary:hover {
   background: #C6762A !important;
   border-color: #C6762A !important;
   color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn:hover {
+  border-color: #DB8633 !important;
+  color: #DB8633 !important;
+}
+
+.ant-btn-link {
+  color: #DB8633 !important;
 }
 
 .ant-btn-link:hover {
@@ -485,6 +507,21 @@
 .ant-btn-text:hover {
   background: rgba(219, 134, 51, 0.1) !important;
   color: #DB8633 !important;
+}
+
+/* Override any blue hyperlink colors */
+a {
+  color: #DB8633 !important;
+}
+
+a:hover {
+  color: #C6762A !important;
+}
+
+/* Ensure all orange background elements have white text */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"] {
+  color: #ffffff !important;
 }
 
 /* Override any remaining blue hover states */

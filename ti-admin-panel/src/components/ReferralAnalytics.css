@@ -22,6 +22,19 @@
   box-sizing: border-box;
 }
 
+.standard-header .header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.standard-header .header-left .ant-typography {
+  color: #324E58;
+  margin: 0;
+}
+
 .standard-header .ant-typography {
   color: #324E58 !important;
 }
@@ -460,13 +473,92 @@
 
 .invitations-content .invitation-actions .ant-btn-primary {
   background: #DB8633;
-  color: #ffffff;
+  color: #ffffff !important;
   border-color: #DB8633;
 }
 
 .invitations-content .invitation-actions .ant-btn-primary:hover {
   background: #c6762a;
   border-color: #c6762a;
+  color: #ffffff !important;
+}
+
+/* Button Branding - Ensure white text on orange backgrounds */
+.ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+/* Override any blue link colors */
+.ant-btn-link {
+  color: #DB8633 !important;
+}
+
+.ant-btn-link:hover {
+  color: #c6762a !important;
+}
+
+/* Override all button text colors to prevent blue */
+.ant-btn {
+  color: inherit !important;
+}
+
+.ant-btn-primary {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  color: #ffffff !important;
+}
+
+/* Override any remaining blue colors in buttons */
+.ant-btn[style*="color: #1890ff"],
+.ant-btn[style*="color: #1890ff"]:hover,
+.ant-btn[style*="color: #1890ff"]:focus,
+.ant-btn[style*="color: #1890ff"]:active {
+  color: #DB8633 !important;
+}
+
+/* Ensure all links use brand colors */
+a, .ant-btn-link {
+  color: #DB8633 !important;
+}
+
+a:hover, .ant-btn-link:hover {
+  color: #c6762a !important;
+}
+
+/* Ensure all orange background buttons have white text */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"] {
+  color: #ffffff !important;
 }
 
 /* Responsive Design */

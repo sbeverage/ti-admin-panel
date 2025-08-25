@@ -580,7 +580,7 @@ const Settings: React.FC = () => {
                                 <Col span={8}>
                                   <div className="overview-item">
                                     <div className="overview-icon">
-                                      <ApiOutlined style={{ color: '#1890ff' }} />
+                                      <ApiOutlined style={{ color: '#324E58' }} />
                                     </div>
                                     <div className="overview-content">
                                       <Text strong>Active Rules</Text>
@@ -591,7 +591,7 @@ const Settings: React.FC = () => {
                                 <Col span={8}>
                                   <div className="overview-item">
                                     <div className="overview-icon">
-                                      <SecurityScanOutlined style={{ color: '#52c41a' }} />
+                                      <SecurityScanOutlined style={{ color: '#DB8633' }} />
                                     </div>
                                     <div className="overview-content">
                                       <Text strong>System Status</Text>
@@ -602,7 +602,7 @@ const Settings: React.FC = () => {
                                 <Col span={8}>
                                   <div className="overview-item">
                                     <div className="overview-icon">
-                                      <BellOutlined style={{ color: '#faad14' }} />
+                                      <BellOutlined style={{ color: '#DB8633' }} />
                                     </div>
                                     <div className="overview-content">
                                       <Text strong>Recent Alerts</Text>

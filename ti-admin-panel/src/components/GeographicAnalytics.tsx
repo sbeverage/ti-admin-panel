@@ -174,12 +174,12 @@ const GeographicAnalytics: React.FC = () => {
 
   // Geographic Overview Data
   const geographicOverviewData = [
-    { title: 'Active Regions', value: 24, icon: <GlobalOutlined />, growth: '+2.1%', color: '#52c41a' },
-    { title: 'Total Cities', value: 156, icon: <HomeOutlined />, growth: '+8.7%', color: '#1890ff' },
-    { title: 'Coverage Area', value: '2.4M km²', icon: <GlobalOutlined />, growth: '+15.3%', color: '#722ed1' },
-    { title: 'Population Reach', value: '45.2M', icon: <UserOutlined />, growth: '+12.4%', color: '#f5222d' },
-    { title: 'Regional Donations', value: '$8.2M', icon: <DollarOutlined />, growth: '+18.7%', color: '#13c2c2' },
-    { title: 'Local Events', value: 89, icon: <CalendarOutlined />, growth: '+25.1%', color: '#faad14' },
+    { title: 'Active Regions', value: 24, icon: <GlobalOutlined />, growth: '+2.1%', color: '#DB8633' },
+    { title: 'Total Cities', value: 156, icon: <HomeOutlined />, growth: '+8.7%', color: '#324E58' },
+    { title: 'Coverage Area', value: '2.4M km²', icon: <GlobalOutlined />, growth: '+15.3%', color: '#324E58' },
+    { title: 'Population Reach', value: '45.2M', icon: <UserOutlined />, growth: '+12.4%', color: '#324E58' },
+    { title: 'Regional Donations', value: '$8.2M', icon: <DollarOutlined />, growth: '+18.7%', color: '#DB8633' },
+    { title: 'Local Events', value: 89, icon: <CalendarOutlined />, growth: '+25.1%', color: '#DB8633' },
   ];
 
   // Top Performing Regions
@@ -287,9 +287,9 @@ const GeographicAnalytics: React.FC = () => {
       width: 80,
       render: (rank: number) => (
         <div className="rank-badge">
-          {rank === 1 && <CrownOutlined style={{ color: '#FFD700' }} />}
-          {rank === 2 && <TrophyOutlined style={{ color: '#C0C0C0' }} />}
-          {rank === 3 && <TrophyOutlined style={{ color: '#CD7F32' }} />}
+                  {rank === 1 && <CrownOutlined style={{ color: '#DB8633' }} />}
+        {rank === 2 && <TrophyOutlined style={{ color: '#8c8c8c' }} />}
+        {rank === 3 && <TrophyOutlined style={{ color: '#DB8633' }} />}
           <span className="rank-number">{rank}</span>
         </div>
       ),
@@ -343,7 +343,7 @@ const GeographicAnalytics: React.FC = () => {
       title: 'Total Donations',
       dataIndex: 'totalDonations',
       key: 'totalDonations',
-      render: (donations: string) => <Text strong style={{ color: '#52c41a' }}>{donations}</Text>,
+      render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
     {
       title: 'Growth',
@@ -402,7 +402,7 @@ const GeographicAnalytics: React.FC = () => {
       title: 'Donations',
       dataIndex: 'donations',
       key: 'donations',
-      render: (donations: string) => <Text strong style={{ color: '#52c41a' }}>{donations}</Text>,
+      render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
     {
       title: 'Growth',
@@ -563,19 +563,19 @@ const GeographicAnalytics: React.FC = () => {
                                     <div className="quarterly-progress">
                                       <div className="quarter">
                                         <Text type="secondary">Q1: {region.q1}%</Text>
-                                        <Progress percent={region.q1} size="small" strokeColor="#1890ff" showInfo={false} />
+                                        <Progress percent={region.q1} size="small" strokeColor="#324E58" showInfo={false} />
                                       </div>
                                       <div className="quarter">
                                         <Text type="secondary">Q2: {region.q2}%</Text>
-                                        <Progress percent={region.q2} size="small" strokeColor="#52c41a" showInfo={false} />
+                                        <Progress percent={region.q2} size="small" strokeColor="#DB8633" showInfo={false} />
                                       </div>
                                       <div className="quarter">
                                         <Text type="secondary">Q3: {region.q3}%</Text>
-                                        <Progress percent={region.q3} size="small" strokeColor="#722ed1" showInfo={false} />
+                                        <Progress percent={region.q3} size="small" strokeColor="#324E58" showInfo={false} />
                                       </div>
                                       <div className="quarter">
                                         <Text type="secondary">Q4: {region.q4}%</Text>
-                                        <Progress percent={region.q4} size="small" strokeColor="#f5222d" showInfo={false} />
+                                        <Progress percent={region.q4} size="small" strokeColor="#DB8633" showInfo={false} />
                                       </div>
                                     </div>
                                   </div>
@@ -588,7 +588,7 @@ const GeographicAnalytics: React.FC = () => {
                               <div className="geographic-stats">
                                 <div className="stat-item">
                                   <div className="stat-icon">
-                                    <EnvironmentOutlined style={{ color: '#1890ff' }} />
+                                    <EnvironmentOutlined style={{ color: '#324E58' }} />
                                   </div>
                                   <div className="stat-content">
                                     <Text strong>Coverage</Text>
@@ -598,7 +598,7 @@ const GeographicAnalytics: React.FC = () => {
                                 <Divider />
                                 <div className="stat-item">
                                   <div className="stat-icon">
-                                    <UserOutlined style={{ color: '#52c41a' }} />
+                                    <UserOutlined style={{ color: '#DB8633' }} />
                                   </div>
                                   <div className="stat-content">
                                     <Text strong>Population</Text>
@@ -608,7 +608,7 @@ const GeographicAnalytics: React.FC = () => {
                                 <Divider />
                                 <div className="stat-item">
                                   <div className="stat-icon">
-                                    <HomeOutlined style={{ color: '#722ed1' }} />
+                                    <HomeOutlined style={{ color: '#324E58' }} />
                                   </div>
                                   <div className="stat-content">
                                     <Text strong>Cities</Text>
@@ -618,7 +618,7 @@ const GeographicAnalytics: React.FC = () => {
                                 <Divider />
                                 <div className="stat-item">
                                   <div className="stat-icon">
-                                    <DollarOutlined style={{ color: '#f5222d' }} />
+                                    <DollarOutlined style={{ color: '#DB8633' }} />
                                   </div>
                                   <div className="stat-content">
                                     <Text strong>Total Value</Text>

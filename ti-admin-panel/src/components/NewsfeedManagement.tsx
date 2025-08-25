@@ -459,7 +459,7 @@ const NewsfeedManagement: React.FC = () => {
                   type="text"
                   icon={<CheckCircleOutlined />}
                   onClick={() => handleApprove(record.id)}
-                  style={{ color: '#52c41a' }}
+                  style={{ color: '#DB8633' }}
                 />
               </Tooltip>
               <Tooltip title="Reject">
@@ -467,7 +467,7 @@ const NewsfeedManagement: React.FC = () => {
                   type="text"
                   icon={<CloseCircleOutlined />}
                   onClick={() => handleReject(record.id, 'Content not appropriate')}
-                  style={{ color: '#ff4d4f' }}
+                  style={{ color: '#324E58' }}
                 />
               </Tooltip>
             </>
@@ -482,7 +482,7 @@ const NewsfeedManagement: React.FC = () => {
               <Button
                 type="text"
                 icon={<DeleteOutlined />}
-                style={{ color: '#ff4d4f' }}
+                style={{ color: '#324E58' }}
               />
             </Tooltip>
           </Popconfirm>
@@ -647,7 +647,7 @@ const NewsfeedManagement: React.FC = () => {
                   <Statistic
                     title="Pending Review"
                     value={posts.filter(p => p.status === 'pending').length}
-                    valueStyle={{ color: '#faad14' }}
+                    valueStyle={{ color: '#DB8633' }}
                     prefix={<WarningOutlined />}
                   />
                 </Card>
@@ -657,7 +657,7 @@ const NewsfeedManagement: React.FC = () => {
                   <Statistic
                     title="Approved Posts"
                     value={posts.filter(p => p.status === 'approved').length}
-                    valueStyle={{ color: '#52c41a' }}
+                    valueStyle={{ color: '#DB8633' }}
                     prefix={<CheckCircleOutlined />}
                   />
                 </Card>
@@ -667,7 +667,7 @@ const NewsfeedManagement: React.FC = () => {
                   <Statistic
                     title="Admin Posts"
                     value={adminPosts.length}
-                    valueStyle={{ color: '#722ed1' }}
+                    valueStyle={{ color: '#324E58' }}
                     prefix={<SafetyCertificateOutlined />}
                   />
                 </Card>
@@ -718,7 +718,7 @@ const NewsfeedManagement: React.FC = () => {
                           icon={<CheckCircleOutlined />}
                           onClick={() => handleBulkAction('approve', selectedRowKeys.map(key => key.toString()))}
                           disabled={selectedRowKeys.length === 0}
-                          style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                          style={{ background: '#DB8633', borderColor: '#DB8633' }}
                         >
                           Approve Selected ({selectedRowKeys.length})
                         </Button>
@@ -730,7 +730,7 @@ const NewsfeedManagement: React.FC = () => {
                           icon={<CloseCircleOutlined />}
                           onClick={() => handleBulkAction('reject', selectedRowKeys.map(key => key.toString()))}
                           disabled={selectedRowKeys.length === 0}
-                          style={{ background: '#faad14', borderColor: '#faad14' }}
+                          style={{ background: '#DB8633', borderColor: '#DB8633' }}
                         >
                           Reject Selected ({selectedRowKeys.length})
                         </Button>
@@ -742,7 +742,7 @@ const NewsfeedManagement: React.FC = () => {
                           icon={<DeleteOutlined />}
                           onClick={() => handleBulkAction('delete', selectedRowKeys.map(key => key.toString()))}
                           disabled={selectedRowKeys.length === 0}
-                          style={{ background: '#ff4d4f', borderColor: '#ff4d4f' }}
+                          style={{ background: '#324E58', borderColor: '#324E58' }}
                         >
                           Delete Selected ({selectedRowKeys.length})
                         </Button>

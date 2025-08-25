@@ -357,7 +357,7 @@
 
 /* Action Buttons */
 .view-action-btn {
-  color: #1890ff !important;
+  color: #324E58 !important;
   border: none !important;
   padding: 4px 8px !important;
   border-radius: 4px !important;
@@ -365,12 +365,12 @@
 }
 
 .view-action-btn:hover {
-  background: rgba(24, 144, 255, 0.1) !important;
-  color: #1890ff !important;
+  background: rgba(50, 78, 88, 0.1) !important;
+  color: #324E58 !important;
 }
 
 .approve-action-btn {
-  color: #52c41a !important;
+  color: #DB8633 !important;
   border: none !important;
   padding: 4px 8px !important;
   border-radius: 4px !important;
@@ -378,12 +378,12 @@
 }
 
 .approve-action-btn:hover {
-  background: rgba(82, 196, 26, 0.1) !important;
-  color: #52c41a !important;
+  background: rgba(219, 134, 51, 0.1) !important;
+  color: #DB8633 !important;
 }
 
 .reject-action-btn {
-  color: #ff4d4f !important;
+  color: #324E58 !important;
   border: none !important;
   padding: 4px 8px !important;
   border-radius: 4px !important;
@@ -391,8 +391,8 @@
 }
 
 .reject-action-btn:hover {
-  background: rgba(255, 77, 79, 0.1) !important;
-  color: #ff4d4f !important;
+  background: rgba(50, 78, 88, 0.1) !important;
+  color: #324E58 !important;
 }
 
 /* Pagination */
@@ -434,6 +434,54 @@
 .approvals-pagination .ant-pagination-next:hover {
   border-color: #DB8633 !important;
   color: #DB8633 !important;
+}
+
+/* Global Button Brand Color Overrides */
+.ant-btn-primary {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:focus {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:active {
+  background: #C6762A !important;
+  border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-link {
+  color: #DB8633 !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+/* Override any blue hyperlink colors */
+a {
+  color: #DB8633 !important;
+}
+
+a:hover {
+  color: #C6762A !important;
+}
+
+/* Ensure all orange background elements have white text */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"] {
+  color: #ffffff !important;
 }
 
 /* Approval Details Modal */
