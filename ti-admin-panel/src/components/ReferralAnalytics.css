@@ -35,6 +35,17 @@
   margin: 0;
 }
 
+/* Ensure page title and subtitle are left-aligned */
+.standard-header .page-title {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+.standard-header .page-subtitle {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
 .standard-header .ant-typography {
   color: #324E58 !important;
 }
