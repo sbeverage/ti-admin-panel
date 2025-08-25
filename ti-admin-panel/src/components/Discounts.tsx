@@ -325,7 +325,7 @@ const Discounts: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="discounts-sider"
+        className={`discounts-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

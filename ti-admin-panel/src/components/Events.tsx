@@ -362,7 +362,7 @@ const Events: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="events-sider"
+        className={`events-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

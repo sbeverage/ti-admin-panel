@@ -532,7 +532,7 @@ const PendingApprovals: React.FC = () => {
       {/* Sidebar */}
       <Sider
         width={280}
-        className={`donors-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}

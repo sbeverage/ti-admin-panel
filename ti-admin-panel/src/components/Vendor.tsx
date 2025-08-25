@@ -465,9 +465,24 @@ const Vendor: React.FC = () => {
 
   return (
     <Layout className="vendor-layout">
+      {/* Mobile Menu Button */}
+      <Button
+        className="mobile-menu-btn"
+        icon={<MenuOutlined />}
+        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <Sider
-        className="standard-sider"
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

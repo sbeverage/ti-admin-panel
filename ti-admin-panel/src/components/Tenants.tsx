@@ -378,7 +378,7 @@ const Tenants: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="tenants-sider"
+        className={`tenants-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

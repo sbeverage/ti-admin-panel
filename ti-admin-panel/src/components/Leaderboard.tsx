@@ -331,7 +331,7 @@ const Leaderboard: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="leaderboard-sider"
+        className={`leaderboard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

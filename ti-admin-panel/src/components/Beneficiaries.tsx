@@ -550,7 +550,7 @@ const Beneficiaries: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="standard-sider"
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}

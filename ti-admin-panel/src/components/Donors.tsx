@@ -541,7 +541,7 @@ const Donors: React.FC = () => {
       {/* Sidebar */}
       <Sider
         width={280}
-        className="standard-sider"
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}

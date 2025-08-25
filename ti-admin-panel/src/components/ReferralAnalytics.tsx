@@ -354,11 +354,26 @@ const ReferralAnalytics: React.FC = () => {
 
   return (
     <Layout className="standard-layout">
+      {/* Mobile Menu Button */}
+      <Button
+        className="mobile-menu-btn"
+        icon={<MenuOutlined />}
+        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+
       <Sider 
         trigger={null} 
-        collapsible 
+        collapsible
         collapsed={collapsed}
-        className="standard-sider"
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         breakpoint="lg"
         onBreakpoint={(broken) => {

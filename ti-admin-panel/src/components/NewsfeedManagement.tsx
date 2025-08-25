@@ -74,6 +74,7 @@ interface AdminPost {
 const NewsfeedManagement: React.FC = () => {
   const [posts, setPosts] = useState<NewsfeedPost[]>([]);
   const [adminPosts, setAdminPosts] = useState<AdminPost[]>([]);
+  const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<NewsfeedPost | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -572,8 +573,26 @@ const NewsfeedManagement: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {/* Mobile Menu Button */}
+      <Button
+        className="mobile-menu-btn"
+        icon={<MenuOutlined />}
+        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <Sider width={250} className="sidebar">
+      <Sider 
+        width={250} 
+        className={`sidebar ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+      >
         <div className="logo-section">
           <div className="logo-container">
             <img src="/white-logo.png" alt="THRIVE Initiative" className="logo" />

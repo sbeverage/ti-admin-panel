@@ -497,7 +497,7 @@ const Dashboard: React.FC = () => {
       {/* Sidebar */}
       <Sider
         width={280}
-        className="standard-sider"
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
         collapsedWidth="0"
         onCollapse={(collapsed) => setCollapsed(collapsed)}
@@ -533,11 +533,6 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <Layout className="standard-main-content">
-        <Button 
-          className="mobile-menu-btn"
-          icon={<MenuOutlined />}
-          onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
-        />
         <Header className="dashboard-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Dashboard</Title>

@@ -290,7 +290,7 @@ const Settings: React.FC = () => {
 
       {/* Sidebar */}
       <Sider
-        className="settings-sider"
+        className={`settings-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
         collapsed={collapsed}
         onCollapse={setCollapsed}
