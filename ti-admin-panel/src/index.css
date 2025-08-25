@@ -9,6 +9,64 @@ body {
   color: #324E58;
 }
 
+/* Global override to eliminate all blue colors */
+* {
+  color: inherit !important;
+}
+
+/* Override all blue colors with brand colors */
+.ant-btn,
+.ant-btn *,
+.ant-btn-link,
+.ant-btn-link *,
+a,
+a *,
+.ant-typography a,
+.ant-typography a * {
+  color: #DB8633 !important;
+}
+
+.ant-btn:hover,
+.ant-btn *:hover,
+.ant-btn-link:hover,
+.ant-btn-link *:hover,
+a:hover,
+a *:hover,
+.ant-typography a:hover,
+.ant-typography a *:hover {
+  color: #C6762A !important;
+}
+
+/* Ensure primary buttons always have white text */
+.ant-btn-primary,
+.ant-btn-primary *,
+.ant-btn-primary:hover,
+.ant-btn-primary *:hover,
+.ant-btn-primary:focus,
+.ant-btn-primary *:focus,
+.ant-btn-primary:active,
+.ant-btn-primary *:active {
+  color: #ffffff !important;
+}
+
+/* Override any remaining blue colors with maximum specificity */
+.ant-btn[style*="color: #1890ff"],
+.ant-btn[style*="color: #1890ff"] *,
+.ant-btn-link[style*="color: #1890ff"],
+.ant-btn-link[style*="color: #1890ff"] *,
+a[style*="color: #1890ff"],
+a[style*="color: #1890ff"] * {
+  color: #DB8633 !important;
+}
+
+/* Override any blue colors in the entire application */
+[style*="color: #1890ff"],
+[style*="color: #1890ff"] *,
+[style*="color: #1890ff"]:hover,
+[style*="color: #1890ff"] *:hover {
+  color: #DB8633 !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
