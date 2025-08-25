@@ -29,7 +29,9 @@ import {
   SearchOutlined,
   FlagOutlined,
   SafetyCertificateOutlined,
-  MoreOutlined
+  MoreOutlined,
+  TeamOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import './NewsfeedManagement.css';
@@ -111,6 +113,10 @@ const NewsfeedManagement: React.FC = () => {
       console.log('Ads Management clicked');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -176,6 +182,16 @@ const NewsfeedManagement: React.FC = () => {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+    },
+    {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
     },
     {
       key: 'settings',

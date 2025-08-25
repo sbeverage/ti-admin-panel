@@ -180,7 +180,7 @@
 
 .header-left .ant-typography {
   margin: 0 !important;
-  color: #262626 !important;
+  color: #324E58 !important;
 }
 
 .approvals-count {
@@ -280,7 +280,7 @@
 .approvals-table .ant-table-thead > tr > th {
   background: #fafafa !important;
   border-bottom: 1px solid #f0f0f0 !important;
-  color: #262626 !important;
+  color: #324E58 !important;
   font-weight: 600 !important;
   padding: 16px !important;
 }
@@ -490,7 +490,7 @@
 
 .detail-section .ant-typography {
   margin-bottom: 16px !important;
-  color: #262626 !important;
+  color: #324E58 !important;
   font-size: 16px !important;
   font-weight: 600 !important;
   border-bottom: 2px solid #DB8633;
@@ -519,7 +519,7 @@
 }
 
 .detail-item .ant-typography:last-child {
-  color: #262626 !important;
+  color: #324E58 !important;
   font-weight: 500 !important;
   margin: 0 !important;
   border: none !important;

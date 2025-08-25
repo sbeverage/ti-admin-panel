@@ -526,4 +526,105 @@
 .invite-vendor-modal a:hover,
 .invite-vendor-modal .ant-btn-link:hover {
   color: #C6762A !important;
+}
+
+/* Discount Configuration Specific Styles */
+.discount-config-section {
+  margin-bottom: 24px;
+}
+
+.discount-field-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.discount-field-group .ant-form-item-label > label {
+  font-weight: 600;
+  color: #324E58;
+}
+
+.discount-type-selector .ant-select-selector {
+  border-radius: 8px;
+}
+
+.discount-value-input .ant-input-suffix {
+  color: #DB8633;
+  font-weight: 600;
+}
+
+.frequency-selector .ant-select-selector {
+  border-radius: 8px;
+}
+
+.promo-code-input .ant-input {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.additional-terms-textarea .ant-input {
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.approval-section {
+  background: #f0f8ff;
+  border: 1px solid #d6e4ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.approval-section .ant-form-item-label > label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.approval-date-picker .ant-picker {
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Enhanced form styling for discount fields */
+.discount-config-section .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.discount-config-section .ant-form-item-label > label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #324E58;
+}
+
+.discount-config-section .ant-input,
+.discount-config-section .ant-select-selector,
+.discount-config-section .ant-picker {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.discount-config-section .ant-input:hover,
+.discount-config-section .ant-select-selector:hover,
+.discount-config-section .ant-picker:hover {
+  border-color: #DB8633;
+}
+
+.discount-config-section .ant-input:focus,
+.discount-config-section .ant-select-focused .ant-select-selector,
+.discount-config-section .ant-picker-focused {
+  border-color: #DB8633;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
 } 
+/* Save + Add New Button Styling */
+.save-add-new-btn {
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.save-add-new-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}

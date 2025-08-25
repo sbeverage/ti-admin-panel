@@ -28,7 +28,9 @@ import {
   CalendarOutlined,
   CrownOutlined,
   FileTextOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  TeamOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Tenants.css';
@@ -64,6 +66,10 @@ const Tenants: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'events') {
@@ -343,6 +349,16 @@ const Tenants: React.FC = () => {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+    },
+    {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
     },
     {
       key: 'settings',

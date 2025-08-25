@@ -1,0 +1,443 @@
+/* Referral Analytics Layout */
+.standard-layout {
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+
+
+.referral-analytics-header .time-filter-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.referral-analytics-header .time-filter-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.referral-analytics-header .date-range-picker {
+  border-radius: 6px;
+  height: 36px;
+}
+
+
+
+/* Overview Cards */
+.overview-cards {
+  margin-bottom: 24px;
+}
+
+.overview-cards .overview-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.overview-cards .overview-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.overview-cards .overview-card .card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.overview-cards .overview-card .card-icon {
+  font-size: 32px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(24, 144, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 64px;
+}
+
+.overview-cards .overview-card .card-stats {
+  flex: 1;
+}
+
+.overview-cards .overview-card .ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.overview-cards .overview-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.overview-cards .overview-card .growth-indicator {
+  font-size: 12px;
+  color: #52c41a;
+}
+
+/* Main Content Card */
+.main-content-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+}
+
+.main-content-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+.main-content-card .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.main-content-card .ant-card-body {
+  padding: 24px;
+}
+
+/* Tabs Styles */
+.referral-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.referral-tabs .ant-tabs-tab {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s;
+}
+
+.referral-tabs .ant-tabs-tab:hover {
+  color: #1890ff;
+}
+
+.referral-tabs .ant-tabs-tab-active {
+  background: #f6ffed;
+  border-color: #52c41a;
+}
+
+.referral-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #52c41a;
+}
+
+.referral-tabs .ant-tabs-content-holder {
+  padding: 0;
+}
+
+/* Overview Content */
+.overview-content .chart-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.overview-content .chart-card .ant-card-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.overview-content .chart-card .ant-card-head-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.overview-content .chart-card .ant-card-body {
+  padding: 20px;
+}
+
+/* Monthly Performance */
+.monthly-performance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 16px;
+}
+
+.monthly-performance .month-item {
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+
+.monthly-performance .month-item:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.monthly-performance .month-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.monthly-performance .month-header .ant-typography {
+  margin: 0;
+  font-size: 12px;
+}
+
+.monthly-performance .ant-progress {
+  margin: 8px 0;
+}
+
+.monthly-performance .ant-progress .ant-progress-bg {
+  border-radius: 4px;
+}
+
+/* Channels List */
+.channels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.channels-list .channel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+
+.channels-list .channel-item:hover {
+  background: #f0f0f0;
+}
+
+.channels-list .channel-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.channels-list .channel-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.channels-list .channel-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.channels-list .channel-stats .ant-typography {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* Top Referrers Table */
+.top-referrers-content .referrers-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.top-referrers-content .referrers-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #262626;
+  padding: 16px;
+}
+
+.top-referrers-content .referrers-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.top-referrers-content .referrers-table .referrer-row:hover {
+  background: #f6ffed;
+}
+
+/* Rank Badge */
+.rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.rank-badge .anticon {
+  font-size: 20px;
+}
+
+.rank-badge .rank-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Referrer Info */
+.referrer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.referrer-avatar {
+  background: #1890ff;
+  color: white;
+  font-weight: 600;
+}
+
+.referrer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.referrer-email {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Conversion Tag */
+.conversion-tag {
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-weight: 500;
+}
+
+/* Points Display */
+.points-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.points-display .anticon {
+  font-size: 16px;
+}
+
+/* Invitations Content */
+.invitations-content .invitations-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.invitations-content .invitation-stats {
+  margin-bottom: 24px;
+}
+
+.invitations-content .invitation-stats .ant-statistic {
+  text-align: center;
+}
+
+.invitations-content .invitation-stats .ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.invitations-content .invitation-stats .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.invitations-content .invitation-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.invitations-content .invitation-actions .ant-btn {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .monthly-performance {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 12px;
+  }
+  
+  .monthly-performance .month-item {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .referral-analytics-content {
+    padding: 16px;
+  }
+  
+  .overview-cards .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .overview-cards .overview-card .card-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .overview-cards .overview-card .card-icon {
+    min-width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+  
+  .monthly-performance {
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  
+  .invitations-content .invitation-actions {
+    flex-direction: column;
+  }
+  
+  .invitations-content .invitation-actions .ant-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .referral-analytics-header {
+    padding: 0 16px;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    padding: 16px;
+  }
+  
+  .referral-analytics-header .header-left,
+  .referral-analytics-header .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .overview-cards .ant-col {
+    width: 100%;
+  }
+  
+  .monthly-performance {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}

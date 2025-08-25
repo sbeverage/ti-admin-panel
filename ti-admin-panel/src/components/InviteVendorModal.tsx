@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Steps, Form, Input, Select, Upload, Button, Row, Col, Typography, Divider, Checkbox, TimePicker } from 'antd';
+import { Modal, Steps, Form, Input, Select, Upload, Button, Row, Col, Typography, Divider, Checkbox, TimePicker, message } from 'antd';
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -33,7 +33,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   const [basicDetails, setBasicDetails] = useState<any>({});
   const [priceDiscounts, setPriceDiscounts] = useState<any>({});
   const [workSchedule, setWorkSchedule] = useState<any>({});
-
+  const [discounts, setDiscounts] = useState<any[]>([]);
+  const [currentDiscount, setCurrentDiscount] = useState<any>({});
   const steps = [
     {
       title: 'Basic Details',
@@ -72,7 +73,49 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     }
   };
 
-  const handlePrev = () => {
+
+  const handleSaveAndAddNew = async () => {
+    try {
+      const values = await form.validateFields();
+      
+      // Create a new discount object from the current form values
+      const newDiscount = {
+        id: Date.now(), // Simple unique ID
+        discountName: values.discountName,
+        discountType: values.discountType,
+        discountValue: values.discountValue,
+        discountOn: values.discountOn,
+        frequency: values.frequency,
+        promoCode: values.promoCode,
+        additionalTerms: values.additionalTerms,
+        approvedBy: values.approvedBy,
+        approvalDate: values.approvalDate,
+        pricingTier: values.pricingTier
+      };
+      
+      // Add the new discount to the discounts array
+      setDiscounts([...discounts, newDiscount]);
+      
+      // Clear only the discount form fields, keep vendor details
+      form.setFieldsValue({
+        discountName: "",
+        discountType: undefined,
+        discountValue: "",
+        discountOn: "",
+        frequency: undefined,
+        promoCode: "",
+        additionalTerms: "",
+        approvedBy: "",
+        approvalDate: null,
+        pricingTier: undefined
+      });
+      
+      // Show success message
+      message.success("Discount added successfully! You can now add another discount for this vendor.");
+    } catch (error) {
+      console.log("Validation failed:", error);
+    }
+  };  const handlePrev = () => {
     setCurrentStep(currentStep - 1);
   };
 
@@ -222,12 +265,137 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       case 1:
         return (
           <div className="step-content">
-            <Title level={4}>Register Vendor</Title>
+            <Title level={4}>Discount Configuration</Title>
+            
+            {/* Discount Basic Information */}
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="discountName"
+                  label="Discount Name *"
+                  rules={[{ required: true, message: 'Please enter discount name' }]}
+                >
+                  <Input placeholder="e.g., Summer Special, Happy Hour" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="discountType"
+                  label="Discount Type *"
+                  rules={[{ required: true, message: 'Please select discount type' }]}
+                >
+                  <Select placeholder="Select discount type">
+                    <Option value="free">Free</Option>
+                    <Option value="percentage">% Off</Option>
+                    <Option value="dollar">$ Off</Option>
+                    <Option value="bogo">BOGO</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Discount Value and Target */}
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="discountValue"
+                  label="Discount Value *"
+                  rules={[{ required: true, message: 'Please enter discount value' }]}
+                >
+                  <Input 
+                    placeholder={form.getFieldValue('discountType') === 'percentage' ? 'e.g., 20' : 
+                               form.getFieldValue('discountType') === 'dollar' ? 'e.g., 5.00' : 
+                               form.getFieldValue('discountType') === 'bogo' ? 'e.g., Buy 1 Get 1' : 'e.g., Free item'}
+                    suffix={form.getFieldValue('discountType') === 'percentage' ? '%' : 
+                           form.getFieldValue('discountType') === 'dollar' ? '$' : ''}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="discountOn"
+                  label="Discount On *"
+                  rules={[{ required: true, message: 'Please specify what the discount applies to' }]}
+                >
+                  <Input placeholder="e.g., appetizers, desserts, clothing items, services" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Frequency and Promo Code */}
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="frequency"
+                  label="Monthly Frequency *"
+                  rules={[{ required: true, message: 'Please select monthly frequency' }]}
+                >
+                  <Select placeholder="How many times per month can users get this discount?">
+                    <Option value="1">1 time per month</Option>
+                    <Option value="2">2 times per month</Option>
+                    <Option value="3">3 times per month</Option>
+                    <Option value="4">4 times per month</Option>
+                    <Option value="5">5 times per month</Option>
+                    <Option value="unlimited">Unlimited</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="promoCode"
+                  label="Promo Code *"
+                  rules={[{ required: true, message: 'Please enter promo code' }]}
+                >
+                  <Input placeholder="e.g., SUMMER20, HAPPYHOUR" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Additional Terms */}
+            <Row gutter={[24, 16]}>
+              <Col span={24}>
+                <Form.Item
+                  name="additionalTerms"
+                  label="Additional Terms"
+                  rules={[{ required: false }]}
+                >
+                  <TextArea 
+                    rows={3} 
+                    placeholder="Any additional terms, conditions, or restrictions for this discount..."
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Approval Information */}
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="approvedBy"
+                  label="Approved By *"
+                  rules={[{ required: true, message: 'Please enter who approved this discount' }]}
+                >
+                  <Input placeholder="e.g., John Smith, Marketing Manager" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="approvalDate"
+                  label="Approval Date *"
+                  rules={[{ required: true, message: 'Please select approval date' }]}
+                >
+                  <Input type="date" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Minimum Discount Requirement */}
+            <Divider />
             <Row gutter={[24, 16]}>
               <Col span={24}>
                 <Form.Item
                   name="minDiscount"
-                  label="Discount Requirement *"
+                  label="Minimum Discount Requirement *"
                   rules={[{ required: true, message: 'Please select minimum discount' }]}
                 >
                   <Select placeholder="You must offer a minimum of 10% discounts to apply">
@@ -240,6 +408,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 </Form.Item>
               </Col>
             </Row>
+
+            {/* Pricing Tier */}
             <Row gutter={[24, 16]}>
               <Col span={24}>
                 <Title level={5}>Select the tier that best describes your location pricing</Title>

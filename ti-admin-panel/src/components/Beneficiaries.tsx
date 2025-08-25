@@ -38,7 +38,9 @@ import {
   CrownOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
-  SortAscendingOutlined
+  SortAscendingOutlined,
+  TeamOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
@@ -105,6 +107,10 @@ const Beneficiaries: React.FC = () => {
       navigate('/leaderboard');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'settings') {
       navigate('/settings');
        }
@@ -515,6 +521,16 @@ const Beneficiaries: React.FC = () => {
       label: 'Pending Approvals',
     },
     {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
+    },
+    {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
@@ -540,16 +556,13 @@ const Beneficiaries: React.FC = () => {
         onCollapse={setCollapsed}
       >
         <div className="standard-logo-section">
-          {/* Simplified logo section with large centered logo */}
           <div className="standard-logo-container">
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative Logo"
+              alt="THRIVE Logo"
               className="standard-logo-image"
             />
           </div>
-          <div className="standard-brand-name">THRIVE</div>
-          <div className="standard-brand-subtitle">Initiative</div>
         </div>
 
         <Menu

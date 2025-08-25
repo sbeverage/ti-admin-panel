@@ -6,7 +6,7 @@ import {
   CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  EyeOutlined, ShopOutlined, HeartOutlined
+  EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import './PendingApprovals.css';
 
@@ -108,6 +108,10 @@ const PendingApprovals: React.FC = () => {
       navigate('/leaderboard');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -288,6 +292,16 @@ const PendingApprovals: React.FC = () => {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+    },
+    {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
     },
     {
       key: 'settings',

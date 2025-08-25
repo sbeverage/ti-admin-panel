@@ -501,6 +501,107 @@
   border-color: #C6762A !important;
 }
 
+/* API Rate Limiting Section */
+.api-rate-limiting-section {
+  margin-bottom: 24px;
+}
+
+.api-rate-limiting-header {
+  margin-bottom: 24px;
+}
+
+.api-rate-limiting-header .ant-typography {
+  margin: 0;
+}
+
+.api-rate-limiting-header .ant-typography:first-child {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.api-rate-limiting-header .ant-typography:last-child {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.api-rate-limiting-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.api-rate-limiting-overview {
+  margin-bottom: 24px;
+}
+
+.overview-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+
+.overview-item:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.overview-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(24, 144, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.overview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overview-content .ant-typography {
+  margin: 0;
+}
+
+.overview-content .ant-typography:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.overview-content .ant-typography:last-child {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.api-rate-limiting-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.api-rate-limiting-actions .ant-btn {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-rate-limiting-modal .ant-modal-body {
+  padding: 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .settings-sider {
@@ -541,6 +642,23 @@
   .team-table .ant-table-thead > tr > th,
   .team-table .ant-table-tbody > tr > td {
     padding: 12px 16px;
+  }
+  
+  .api-rate-limiting-overview .ant-row {
+    margin: 0;
+  }
+  
+  .api-rate-limiting-overview .ant-col {
+    padding: 0;
+    margin-bottom: 16px;
+  }
+  
+  .api-rate-limiting-actions {
+    flex-direction: column;
+  }
+  
+  .api-rate-limiting-actions .ant-btn {
+    width: 100%;
   }
 }
 

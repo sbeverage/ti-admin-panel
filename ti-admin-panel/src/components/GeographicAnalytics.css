@@ -1,0 +1,506 @@
+/* Geographic Analytics Layout */
+.standard-layout {
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+
+
+.geographic-analytics-header .region-selector {
+  min-width: 140px;
+  border-radius: 6px;
+}
+
+.geographic-analytics-header .time-filter-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.geographic-analytics-header .time-filter-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.geographic-analytics-header .date-range-picker {
+  border-radius: 6px;
+  height: 36px;
+}
+
+
+
+/* Overview Cards */
+.overview-cards {
+  margin-bottom: 24px;
+}
+
+.overview-cards .overview-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.overview-cards .overview-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.overview-cards .overview-card .card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.overview-cards .overview-card .card-icon {
+  font-size: 32px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(24, 144, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 64px;
+}
+
+.overview-cards .overview-card .card-stats {
+  flex: 1;
+}
+
+.overview-cards .overview-card .ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.overview-cards .overview-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.overview-cards .overview-card .growth-indicator {
+  font-size: 12px;
+  color: #52c41a;
+}
+
+/* Main Content Card */
+.main-content-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+}
+
+.main-content-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+.main-content-card .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.main-content-card .ant-card-body {
+  padding: 24px;
+}
+
+/* Tabs Styles */
+.geographic-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.geographic-tabs .ant-tabs-tab {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s;
+}
+
+.geographic-tabs .ant-tabs-tab:hover {
+  color: #1890ff;
+}
+
+.geographic-tabs .ant-tabs-tab-active {
+  background: #f6ffed;
+  border-color: #52c41a;
+}
+
+.geographic-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #52c41a;
+}
+
+.geographic-tabs .ant-tabs-content-holder {
+  padding: 0;
+}
+
+/* Overview Content */
+.overview-content .chart-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.overview-content .chart-card .ant-card-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.overview-content .chart-card .ant-card-head-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.overview-content .chart-card .ant-card-body {
+  padding: 20px;
+}
+
+/* Regional Growth */
+.regional-growth {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.regional-growth .region-growth-item {
+  padding: 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+
+.regional-growth .region-growth-item:hover {
+  background: #f0f0f0;
+  transform: translateX(4px);
+}
+
+.regional-growth .region-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.regional-growth .region-header .ant-typography {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.regional-growth .growth-tag {
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-weight: 500;
+}
+
+.regional-growth .quarterly-progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.regional-growth .quarter {
+  text-align: center;
+}
+
+.regional-growth .quarter .ant-typography {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.regional-growth .quarter .ant-progress {
+  margin: 0;
+}
+
+.regional-growth .quarter .ant-progress .ant-progress-bg {
+  border-radius: 4px;
+}
+
+/* Geographic Stats */
+.geographic-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.geographic-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.geographic-stats .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(24, 144, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.geographic-stats .stat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.geographic-stats .stat-content .ant-typography {
+  margin: 0;
+}
+
+.geographic-stats .stat-content .ant-typography:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.geographic-stats .stat-content .ant-typography:last-child {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+/* Regions Table */
+.regions-content .regions-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.regions-content .regions-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #262626;
+  padding: 16px;
+}
+
+.regions-content .regions-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.regions-content .regions-table .region-row:hover {
+  background: #f6ffed;
+}
+
+/* Cities Table */
+.cities-content .cities-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cities-content .cities-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #262626;
+  padding: 16px;
+}
+
+.cities-content .cities-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cities-content .cities-table .city-row:hover {
+  background: #f6ffed;
+}
+
+/* Rank Badge */
+.rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.rank-badge .anticon {
+  font-size: 20px;
+}
+
+.rank-badge .rank-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Region Info */
+.region-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.region-avatar {
+  background: #1890ff;
+  color: white;
+  font-weight: 600;
+}
+
+.region-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.region-details .ant-typography {
+  margin: 0;
+}
+
+.region-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.state-tag {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  background: #f0f0f0;
+  border: none;
+  color: #666;
+}
+
+.more-states {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  background: #d9d9d9;
+  border: none;
+  color: #8c8c8c;
+}
+
+/* City Info */
+.city-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.city-info .ant-typography {
+  margin: 0;
+}
+
+.city-state {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Region Tag */
+.region-tag {
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-weight: 500;
+}
+
+/* Growth Tag */
+.growth-tag {
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .regional-growth .quarterly-progress {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .regional-growth .region-growth-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .geographic-analytics-content {
+    padding: 16px;
+  }
+  
+  .overview-cards .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .overview-cards .overview-card .card-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .overview-cards .overview-card .card-icon {
+    min-width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+  
+  .regional-growth .quarterly-progress {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .geographic-analytics-header .header-right {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .geographic-analytics-header .region-selector,
+  .geographic-analytics-header .time-filter-btn,
+  .geographic-analytics-header .date-range-picker {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .geographic-analytics-header {
+    padding: 0 16px;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    padding: 16px;
+  }
+  
+  .geographic-analytics-header .header-left,
+  .geographic-analytics-header .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .overview-cards .ant-col {
+    width: 100%;
+  }
+  
+  .regional-growth .region-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .geographic-stats .stat-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .geographic-stats .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}

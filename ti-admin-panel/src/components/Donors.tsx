@@ -6,7 +6,7 @@ import {
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, GiftOutlined, BankOutlined
+  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import '../styles/sidebar-standard.css';
@@ -68,6 +68,10 @@ const Donors: React.FC = () => {
       navigate('/leaderboard');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -331,6 +335,16 @@ const Donors: React.FC = () => {
       label: 'Pending Approvals',
     },
     {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
+    },
+    {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
@@ -533,16 +547,13 @@ const Donors: React.FC = () => {
         onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
         <div className="standard-logo-section">
-          {/* Simplified logo section with large centered logo */}
           <div className="standard-logo-container">
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative Logo"
+              alt="THRIVE Logo"
               className="standard-logo-image"
             />
           </div>
-          <div className="standard-brand-name">THRIVE</div>
-          <div className="standard-brand-subtitle">Initiative</div>
         </div>
 
         <Menu

@@ -7,9 +7,11 @@ import {
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, LockOutlined,
-  TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined
+  TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
+  ApiOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import './Settings.css';
+import ApiRateLimiting from './ApiRateLimiting';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -21,6 +23,7 @@ const Settings: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [showApiRateLimiting, setShowApiRateLimiting] = useState(false);
   const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
   const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -44,6 +47,10 @@ const Settings: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'events') {
@@ -151,6 +158,16 @@ const Settings: React.FC = () => {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+    },
+    {
+      key: 'referral-analytics',
+      icon: <TeamOutlined />,
+      label: 'Referral Analytics',
+    },
+    {
+      key: 'geographic-analytics',
+      icon: <GlobalOutlined />,
+      label: 'Geographic Analytics',
     },
     {
       key: 'settings',
@@ -540,6 +557,81 @@ const Settings: React.FC = () => {
                       />
                     </div>
                   )
+                },
+                {
+                  key: 'api-rate-limiting',
+                  label: (
+                    <span>
+                      <ApiOutlined />
+                      API Rate Limiting
+                    </span>
+                  ),
+                  children: (
+                    <div className="tab-content">
+                      <div className="api-rate-limiting-section">
+                        <div className="api-rate-limiting-header">
+                          <Title level={4} style={{ margin: 0 }}>API Rate Limiting Configuration</Title>
+                          <Text type="secondary">Configure and monitor API rate limiting rules to protect your system</Text>
+                        </div>
+                        <div className="api-rate-limiting-content">
+                          <Card className="api-rate-limiting-card">
+                            <div className="api-rate-limiting-overview">
+                              <Row gutter={[24, 24]}>
+                                <Col span={8}>
+                                  <div className="overview-item">
+                                    <div className="overview-icon">
+                                      <ApiOutlined style={{ color: '#1890ff' }} />
+                                    </div>
+                                    <div className="overview-content">
+                                      <Text strong>Active Rules</Text>
+                                      <Text type="secondary">5 rules configured</Text>
+                                    </div>
+                                  </div>
+                                </Col>
+                                <Col span={8}>
+                                  <div className="overview-item">
+                                    <div className="overview-icon">
+                                      <SecurityScanOutlined style={{ color: '#52c41a' }} />
+                                    </div>
+                                    <div className="overview-content">
+                                      <Text strong>System Status</Text>
+                                      <Text type="secondary">Rate limiting enabled</Text>
+                                    </div>
+                                  </div>
+                                </Col>
+                                <Col span={8}>
+                                  <div className="overview-item">
+                                    <div className="overview-icon">
+                                      <BellOutlined style={{ color: '#faad14' }} />
+                                    </div>
+                                    <div className="overview-content">
+                                      <Text strong>Recent Alerts</Text>
+                                      <Text type="secondary">2 warnings today</Text>
+                                    </div>
+                                  </div>
+                                </Col>
+                              </Row>
+                            </div>
+                            <div className="api-rate-limiting-actions">
+                              <Button 
+                                type="primary" 
+                                icon={<ApiOutlined />}
+                                onClick={() => setShowApiRateLimiting(true)}
+                              >
+                                Configure Rate Limiting
+                              </Button>
+                              <Button icon={<SecurityScanOutlined />}>
+                                View System Status
+                              </Button>
+                              <Button icon={<BellOutlined />}>
+                                Alert History
+                              </Button>
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 }
               ]}
             />
@@ -693,6 +785,18 @@ const Settings: React.FC = () => {
             </Form.Item>
           </Form>
         )}
+      </Modal>
+
+      {/* API Rate Limiting Modal */}
+      <Modal
+        title="API Rate Limiting Configuration"
+        open={showApiRateLimiting}
+        onCancel={() => setShowApiRateLimiting(false)}
+        footer={null}
+        width={1200}
+        className="api-rate-limiting-modal"
+      >
+        <ApiRateLimiting />
       </Modal>
     </Layout>
   );

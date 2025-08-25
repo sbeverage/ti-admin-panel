@@ -200,7 +200,7 @@
 }
 
 .dashboard-header {
-  background: #ffffff;
+  background: #ffffff !important;
   padding: 24px;
   display: flex;
   align-items: flex-start;
@@ -217,7 +217,30 @@
   box-sizing: border-box;
 }
 
+/* Override Ant Design Header defaults */
+.dashboard-header.ant-layout-header {
+  background: #ffffff !important;
+  color: #324E58 !important;
+}
+
+/* Ensure header background is white */
+.dashboard-header,
+.dashboard-header.ant-layout-header,
+.dashboard-header.ant-layout-header.ant-layout-header {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
 .dashboard-header .ant-typography {
+  color: #324E58 !important;
+}
+
+/* Ensure all header text uses brand color */
+.dashboard-header .ant-typography.ant-typography-h2,
+.dashboard-header .ant-typography.ant-typography-h1,
+.dashboard-header .ant-typography.ant-typography-h3,
+.dashboard-header .ant-typography.ant-typography-h4,
+.dashboard-header .ant-typography.ant-typography-h5 {
   color: #324E58 !important;
 }
 
