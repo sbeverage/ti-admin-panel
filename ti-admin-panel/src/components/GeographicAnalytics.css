@@ -506,6 +506,51 @@ a:hover, .ant-btn-link:hover {
   color: #ffffff !important;
 }
 
+/* Override blue colors in tabs specifically */
+.geographic-tabs .ant-tabs-tab,
+.geographic-tabs .ant-tabs-tab-btn,
+.geographic-tabs .ant-tabs-tab-active,
+.geographic-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #324E58 !important;
+}
+
+.geographic-tabs .ant-tabs-tab:hover,
+.geographic-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #DB8633 !important;
+}
+
+.geographic-tabs .ant-tabs-tab-active,
+.geographic-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+/* Override any blue colors in tab content */
+.geographic-tabs .ant-tabs-content,
+.geographic-tabs .ant-tabs-tabpane,
+.geographic-tabs .ant-tabs-tabpane * {
+  color: inherit !important;
+}
+
+/* Override any remaining blue colors in the entire geographic analytics component */
+.geographic-analytics *,
+.geographic-analytics *:hover,
+.geographic-analytics *:focus,
+.geographic-analytics *:active {
+  color: inherit !important;
+}
+
+/* Specific override for any blue colors */
+.geographic-analytics [style*="color: #1890ff"],
+.geographic-analytics [style*="color: #1890ff"]:hover,
+.geographic-analytics [style*="color: #1890ff"]:focus,
+.geographic-analytics [style*="color: #1890ff"]:active {
+  color: #DB8633 !important;
+}
+
+.geographic-analytics [style*="color: #1890ff"]:hover {
+  color: #C6762A !important;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .regional-performance {

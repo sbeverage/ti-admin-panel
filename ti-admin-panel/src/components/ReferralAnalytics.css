@@ -561,6 +561,51 @@ a:hover, .ant-btn-link:hover {
   color: #ffffff !important;
 }
 
+/* Override blue colors in tabs specifically */
+.referral-tabs .ant-tabs-tab,
+.referral-tabs .ant-tabs-tab-btn,
+.referral-tabs .ant-tabs-tab-active,
+.referral-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #324E58 !important;
+}
+
+.referral-tabs .ant-tabs-tab:hover,
+.referral-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #DB8633 !important;
+}
+
+.referral-tabs .ant-tabs-tab-active,
+.referral-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+/* Override any blue colors in tab content */
+.referral-tabs .ant-tabs-content,
+.referral-tabs .ant-tabs-tabpane,
+.referral-tabs .ant-tabs-tabpane * {
+  color: inherit !important;
+}
+
+/* Override any remaining blue colors in the entire referral analytics component */
+.referral-analytics *,
+.referral-analytics *:hover,
+.referral-analytics *:focus,
+.referral-analytics *:active {
+  color: inherit !important;
+}
+
+/* Specific override for any blue colors */
+.referral-analytics [style*="color: #1890ff"],
+.referral-analytics [style*="color: #1890ff"]:hover,
+.referral-analytics [style*="color: #1890ff"]:focus,
+.referral-analytics [style*="color: #1890ff"]:active {
+  color: #DB8633 !important;
+}
+
+.referral-analytics [style*="color: #1890ff"]:hover {
+  color: #C6762A !important;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .monthly-performance {
