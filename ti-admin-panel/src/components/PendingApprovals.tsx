@@ -252,61 +252,73 @@ const PendingApprovals: React.FC = () => {
       key: 'dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
+      title: 'Dashboard Overview'
     },
     {
       key: 'donors',
       icon: <UserOutlined />,
       label: 'Donors',
+      title: 'Donor Management'
     },
     {
       key: 'vendor',
       icon: <ShopOutlined />,
       label: 'Vendor',
+      title: 'Vendor Management'
     },
     {
       key: 'beneficiaries',
       icon: <HeartOutlined />,
       label: 'Beneficiaries',
+      title: 'Beneficiary Management'
     },
     {
       key: 'tenants',
       icon: <UserOutlined />,
       label: 'Tenants',
+      title: 'Tenant Management'
     },
     {
       key: 'discounts',
       icon: <CrownOutlined />,
       label: 'Discounts',
+      title: 'Discount Management'
     },
     {
       key: 'events',
       icon: <CalendarOutlined />,
       label: 'Events',
+      title: 'Event Management'
     },
     {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
+      title: 'Leaderboard & Rankings'
     },
     {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+      title: 'Pending Approvals'
     },
     {
       key: 'referral-analytics',
       icon: <TeamOutlined />,
       label: 'Referral Analytics',
+      title: 'Referral Analytics & Tracking'
     },
     {
       key: 'geographic-analytics',
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
+      title: 'Geographic Analytics & Insights'
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+      title: 'System Settings & Configuration'
     },
   ];
 
@@ -519,15 +531,12 @@ const PendingApprovals: React.FC = () => {
 
   return (
     <Layout className="donors-layout">
-      {/* Mobile Menu Button */}
-      <div className="mobile-menu-button">
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
-          className="mobile-menu-trigger"
-        />
-      </div>
+      {/* Mobile Menu Button - Right Side */}
+      <Button
+        className="mobile-menu-btn-right"
+        icon={<MenuOutlined />}
+        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      />
 
       {/* Sidebar */}
       <Sider

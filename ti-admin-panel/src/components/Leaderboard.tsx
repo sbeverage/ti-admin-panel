@@ -66,61 +66,73 @@ const Leaderboard: React.FC = () => {
       key: 'dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
+      title: 'Dashboard Overview'
     },
     {
       key: 'donors',
       icon: <UserOutlined />,
       label: 'Donors',
+      title: 'Donor Management'
     },
     {
       key: 'beneficiaries',
       icon: <StarOutlined />,
       label: 'Beneficiaries',
+      title: 'Beneficiary Management'
     },
     {
       key: 'vendor',
       icon: <RiseOutlined />,
       label: 'Vendor',
+      title: 'Vendor Management'
     },
     {
       key: 'discounts',
       icon: <GiftOutlined />,
       label: 'Discounts',
+      title: 'Discount Management'
     },
     {
       key: 'tenants',
       icon: <BankOutlined />,
       label: 'Tenants',
+      title: 'Tenant Management'
     },
     {
       key: 'events',
       icon: <CalendarOutlined />,
       label: 'Events',
+      title: 'Event Management'
     },
     {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
+      title: 'Leaderboard & Rankings'
     },
     {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+      title: 'Pending Approvals'
     },
     {
       key: 'referral-analytics',
       icon: <TeamOutlined />,
       label: 'Referral Analytics',
+      title: 'Referral Analytics & Tracking'
     },
     {
       key: 'geographic-analytics',
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
+      title: 'Geographic Analytics & Insights'
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+      title: 'System Settings & Configuration'
     },
   ];
 
@@ -322,9 +334,9 @@ const Leaderboard: React.FC = () => {
 
   return (
     <Layout className="leaderboard-layout">
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Right Side */}
       <Button
-        className="mobile-menu-btn"
+        className="mobile-menu-btn-right"
         icon={<MenuOutlined />}
         onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />

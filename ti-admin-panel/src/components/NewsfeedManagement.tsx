@@ -129,54 +129,65 @@ const NewsfeedManagement: React.FC = () => {
       key: 'dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
+      title: 'Dashboard Overview'
     },
     {
       key: 'donors',
       icon: <UserOutlined />,
       label: 'Donors',
+      title: 'Donor Management'
     },
     {
       key: 'beneficiaries',
       icon: <StarOutlined />,
       label: 'Beneficiaries',
+      title: 'Beneficiary Management'
     },
     {
       key: 'vendor',
       icon: <RiseOutlined />,
       label: 'Vendor',
+      title: 'Vendor Management'
     },
     {
       key: 'discounts',
       icon: <GiftOutlined />,
       label: 'Discounts',
+      title: 'Discount Management'
     },
     {
       key: 'tenants',
       icon: <BankOutlined />,
       label: 'Tenants',
+      title: 'Tenant Management'
     },
     {
       key: 'events',
       icon: <CalendarOutlined />,
       label: 'Events',
+      title: 'Event Management'
     },
     {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
+      title: 'Leaderboard & Rankings'
     },
     {
       key: 'feeds',
       icon: <FileTextOutlined />,
       label: 'Feeds',
+      title: 'Content Management',
       children: [
         {
           key: 'newsfeed-management',
           label: 'Newsfeed Management',
+          title: 'Newsfeed Management'
         },
         {
           key: 'ads-management',
           label: 'Ads Management',
+          title: 'Ads Management'
         },
       ],
     },
@@ -184,21 +195,25 @@ const NewsfeedManagement: React.FC = () => {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
+      title: 'Pending Approvals'
     },
     {
       key: 'referral-analytics',
       icon: <TeamOutlined />,
       label: 'Referral Analytics',
+      title: 'Referral Analytics & Tracking'
     },
     {
       key: 'geographic-analytics',
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
+      title: 'Geographic Analytics & Insights'
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+      title: 'System Settings & Configuration'
     },
   ];
 
@@ -574,9 +589,9 @@ const NewsfeedManagement: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Right Side */}
       <Button
-        className="mobile-menu-btn"
+        className="mobile-menu-btn-right"
         icon={<MenuOutlined />}
         onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
