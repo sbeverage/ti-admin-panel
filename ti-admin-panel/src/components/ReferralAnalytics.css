@@ -4,49 +4,91 @@
   background: #F5F5FA;
 }
 
+/* Header Styling - Match Dashboard branding */
+.standard-header {
+  background: #ffffff !important;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0;
+  height: auto;
+  min-height: auto;
+  line-height: normal;
+  overflow: visible;
+  width: 100%;
+  box-sizing: border-box;
+}
 
+.standard-header .ant-typography {
+  color: #324E58 !important;
+}
 
-.referral-analytics-header .time-filter-btn {
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
+.standard-header .ant-typography.ant-typography-h2,
+.standard-header .ant-typography.ant-typography-h1,
+.standard-header .ant-typography.ant-typography-h3,
+.standard-header .ant-typography.ant-typography-h4,
+.standard-header .ant-typography.ant-typography-h5 {
+  color: #324E58 !important;
+}
+
+.standard-header .time-filter-btn {
+  background: #ffffff;
+  border: 2px solid #DB8633;
+  border-radius: 8px;
   height: 36px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: white;
-  color: #666;
-  transition: all 0.3s;
+  color: #DB8633;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(219, 134, 51, 0.15);
+  transition: all 0.2s ease;
 }
 
-.referral-analytics-header .time-filter-btn:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+.standard-header .time-filter-btn:hover {
+  background: #DB8633;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.25);
 }
 
-.referral-analytics-header .date-range-picker {
-  border-radius: 6px;
+.standard-header .date-range-picker {
+  border-radius: 8px;
   height: 36px;
+  border: 2px solid #DB8633;
 }
 
+/* Content Styling */
+.standard-content {
+  padding: 24px;
+  background: #F5F5FA;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  overflow: visible;
+}
 
-
-/* Overview Cards */
+/* Overview Cards - Match Dashboard branding */
 .overview-cards {
   margin-bottom: 24px;
 }
 
 .overview-cards .overview-card {
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: none;
-  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #f8f9fa;
+  transition: all 0.3s ease;
   height: 100%;
 }
 
 .overview-cards .overview-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  border-color: #DB8633;
 }
 
 .overview-cards .overview-card .card-content {
@@ -59,12 +101,13 @@
   font-size: 32px;
   padding: 16px;
   border-radius: 12px;
-  background: rgba(24, 144, 255, 0.1);
+  background: rgba(219, 134, 51, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 64px;
   height: 64px;
+  color: #DB8633;
 }
 
 .overview-cards .overview-card .card-stats {
@@ -72,15 +115,17 @@
 }
 
 .overview-cards .overview-card .ant-statistic-title {
-  color: #8c8c8c;
+  color: #324E58;
   font-size: 14px;
   margin-bottom: 4px;
+  font-weight: 500;
 }
 
 .overview-cards .overview-card .ant-statistic-content {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 4px;
+  color: #324E58;
 }
 
 .overview-cards .overview-card .growth-indicator {
@@ -88,29 +133,32 @@
   color: #52c41a;
 }
 
-/* Main Content Card */
+/* Main Content Card - Match Dashboard branding */
 .main-content-card {
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #f8f9fa;
 }
 
 .main-content-card .ant-card-head {
   border-bottom: 1px solid #f0f0f0;
   padding: 0 24px;
+  background: #ffffff;
 }
 
 .main-content-card .ant-card-head-title {
   font-size: 18px;
   font-weight: 600;
-  color: #262626;
+  color: #324E58;
 }
 
 .main-content-card .ant-card-body {
   padding: 24px;
+  background: #ffffff;
 }
 
-/* Tabs Styles */
+/* Tabs Styles - Match Dashboard branding */
 .referral-tabs .ant-tabs-nav {
   margin-bottom: 24px;
 }
@@ -119,21 +167,29 @@
   padding: 12px 24px;
   font-size: 16px;
   font-weight: 500;
-  border-radius: 8px 8px 0 0;
-  transition: all 0.3s;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  margin: 0 8px 0 0;
 }
 
 .referral-tabs .ant-tabs-tab:hover {
-  color: #1890ff;
+  color: #DB8633;
+  background: rgba(219, 134, 51, 0.1);
 }
 
 .referral-tabs .ant-tabs-tab-active {
-  background: #f6ffed;
-  border-color: #52c41a;
+  background: #DB8633;
+  border-color: #DB8633;
 }
 
 .referral-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #52c41a;
+  color: #ffffff;
+}
+
+.referral-tabs .ant-tabs-ink-bar {
+  display: none;
 }
 
 .referral-tabs .ant-tabs-content-holder {
@@ -142,23 +198,27 @@
 
 /* Overview Content */
 .overview-content .chart-card {
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #f8f9fa;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .overview-content .chart-card .ant-card-head {
   padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
 }
 
 .overview-content .chart-card .ant-card-head-title {
   font-size: 16px;
   font-weight: 600;
+  color: #324E58;
 }
 
 .overview-content .chart-card .ant-card-body {
   padding: 20px;
+  background: #ffffff;
 }
 
 /* Monthly Performance */
@@ -174,11 +234,13 @@
   border-radius: 8px;
   background: #fafafa;
   transition: all 0.3s;
+  border: 2px solid transparent;
 }
 
 .monthly-performance .month-item:hover {
   background: #f0f0f0;
   transform: translateY(-2px);
+  border-color: #DB8633;
 }
 
 .monthly-performance .month-header {
@@ -191,6 +253,7 @@
 .monthly-performance .month-header .ant-typography {
   margin: 0;
   font-size: 12px;
+  color: #324E58;
 }
 
 .monthly-performance .ant-progress {
@@ -199,6 +262,7 @@
 
 .monthly-performance .ant-progress .ant-progress-bg {
   border-radius: 4px;
+  background: #DB8633;
 }
 
 /* Channels List */
@@ -216,10 +280,12 @@
   border-radius: 8px;
   background: #fafafa;
   transition: all 0.3s;
+  border: 2px solid transparent;
 }
 
 .channels-list .channel-item:hover {
   background: #f0f0f0;
+  border-color: #DB8633;
 }
 
 .channels-list .channel-info {
@@ -244,29 +310,33 @@
 .channels-list .channel-stats .ant-typography {
   margin: 0;
   font-size: 12px;
+  color: #324E58;
 }
 
 /* Top Referrers Table */
 .top-referrers-content .referrers-table {
   border-radius: 8px;
   overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .top-referrers-content .referrers-table .ant-table-thead > tr > th {
   background: #fafafa;
   border-bottom: 1px solid #f0f0f0;
   font-weight: 600;
-  color: #262626;
+  color: #324E58;
   padding: 16px;
 }
 
 .top-referrers-content .referrers-table .ant-table-tbody > tr > td {
   padding: 16px;
   border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
 }
 
 .top-referrers-content .referrers-table .referrer-row:hover {
-  background: #f6ffed;
+  background: rgba(219, 134, 51, 0.05);
 }
 
 /* Rank Badge */
@@ -285,7 +355,7 @@
 .rank-badge .rank-number {
   font-size: 16px;
   font-weight: 600;
-  color: #262626;
+  color: #324E58;
 }
 
 /* Referrer Info */
@@ -296,7 +366,7 @@
 }
 
 .referrer-avatar {
-  background: #1890ff;
+  background: #DB8633;
   color: white;
   font-weight: 600;
 }
@@ -317,6 +387,9 @@
   border-radius: 12px;
   padding: 4px 12px;
   font-weight: 500;
+  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633;
+  border: 1px solid rgba(219, 134, 51, 0.2);
 }
 
 /* Points Display */
@@ -328,12 +401,15 @@
 
 .points-display .anticon {
   font-size: 16px;
+  color: #DB8633;
 }
 
 /* Invitations Content */
 .invitations-content .invitations-card {
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #f8f9fa;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .invitations-content .invitation-stats {
@@ -345,14 +421,16 @@
 }
 
 .invitations-content .invitation-stats .ant-statistic-title {
-  color: #8c8c8c;
+  color: #324E58;
   font-size: 14px;
   margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .invitations-content .invitation-stats .ant-statistic-content {
   font-size: 28px;
   font-weight: 600;
+  color: #324E58;
 }
 
 .invitations-content .invitation-actions {
@@ -368,6 +446,27 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  border: 2px solid #DB8633;
+  color: #DB8633;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.invitations-content .invitation-actions .ant-btn:hover {
+  background: #DB8633;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.25);
+}
+
+.invitations-content .invitation-actions .ant-btn-primary {
+  background: #DB8633;
+  color: #ffffff;
+  border-color: #DB8633;
+}
+
+.invitations-content .invitation-actions .ant-btn-primary:hover {
+  background: #c6762a;
+  border-color: #c6762a;
 }
 
 /* Responsive Design */
@@ -383,7 +482,7 @@
 }
 
 @media (max-width: 768px) {
-  .referral-analytics-content {
+  .standard-content {
     padding: 16px;
   }
   
@@ -418,7 +517,7 @@
 }
 
 @media (max-width: 576px) {
-  .referral-analytics-header {
+  .standard-header {
     padding: 0 16px;
     flex-direction: column;
     gap: 16px;
@@ -426,8 +525,8 @@
     padding: 16px;
   }
   
-  .referral-analytics-header .header-left,
-  .referral-analytics-header .header-right {
+  .standard-header .header-left,
+  .standard-header .header-right {
     width: 100%;
     justify-content: center;
   }
