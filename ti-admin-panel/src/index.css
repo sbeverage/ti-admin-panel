@@ -54,6 +54,51 @@ a:hover {
   color: #C6762A !important;
 }
 
+/* Additional overrides for any remaining blue colors */
+.ant-btn-link,
+.ant-btn-link:hover,
+.ant-btn-link:focus,
+.ant-btn-link:active {
+  color: #DB8633 !important;
+}
+
+.ant-btn-link:hover {
+  color: #C6762A !important;
+}
+
+/* Override any blue colors in Ant Design components */
+.ant-typography a,
+.ant-typography a:hover,
+.ant-typography a:focus,
+.ant-typography a:active {
+  color: #DB8633 !important;
+}
+
+.ant-typography a:hover {
+  color: #C6762A !important;
+}
+
+/* Override any remaining blue colors with broader selectors */
+[class*="ant-btn"][style*="color: #1890ff"],
+[class*="ant-btn"][style*="color: #1890ff"]:hover,
+[class*="ant-btn"][style*="color: #1890ff"]:focus,
+[class*="ant-btn"][style*="color: #1890ff"]:active {
+  color: #DB8633 !important;
+}
+
+[class*="ant-btn"][style*="color: #1890ff"]:hover {
+  color: #C6762A !important;
+}
+
+/* Override any blue colors in the entire application */
+[style*="color: #1890ff"] {
+  color: #DB8633 !important;
+}
+
+[style*="color: #1890ff"]:hover {
+  color: #C6762A !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
