@@ -1,3 +1,12 @@
+/* ========================================
+   GLOBAL STYLES FOR TI ADMIN PANEL
+   ======================================== */
+
+/* Force fresh deployment - Hamburger menu positioning and sidebar titles update */
+
+/* ========================================
+   BRAND COLOR OVERRIDES
+   ======================================== */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
