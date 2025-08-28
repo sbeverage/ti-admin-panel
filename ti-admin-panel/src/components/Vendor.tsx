@@ -9,6 +9,7 @@ import {
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
+import VendorProfile from './VendorProfile';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Vendor.css';
@@ -25,6 +26,8 @@ const Vendor: React.FC = () => {
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [inviteVendorModalVisible, setInviteVendorModalVisible] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  const [profileVisible, setProfileVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,6 +63,24 @@ const Vendor: React.FC = () => {
     console.log('Vendor invite submitted:', values);
     setInviteVendorModalVisible(false);
     // Here you would typically send the data to your backend
+  };
+
+  const handleVendorClick = (vendorId: string) => {
+    setSelectedVendorId(vendorId);
+    setProfileVisible(true);
+  };
+
+  const handleProfileClose = () => {
+    setProfileVisible(false);
+    setSelectedVendorId(null);
+  };
+
+  const handleVendorUpdate = (updatedData: any) => {
+    console.log('Vendor updated:', updatedData);
+    // Here you would typically update the local state or refresh the data
+    // For now, we'll just close the profile
+    setProfileVisible(false);
+    setSelectedVendorId(null);
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -379,7 +400,14 @@ const Vendor: React.FC = () => {
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.avatar}
           </Avatar>
-          <Text strong>{text}</Text>
+          <Text 
+            strong 
+            className="clickable-vendor-name"
+            onClick={() => handleVendorClick(record.key)}
+            style={{ cursor: 'pointer', color: '#DB8633' }}
+          >
+            {text}
+          </Text>
         </Space>
       ),
       fixed: 'left' as const,
@@ -647,6 +675,15 @@ const Vendor: React.FC = () => {
         onCancel={handleInviteVendorModalCancel}
         onSubmit={handleInviteVendorModalSubmit}
       />
+
+      {/* Vendor Profile Modal */}
+      {profileVisible && selectedVendorId && (
+        <VendorProfile
+          vendorId={selectedVendorId}
+          onClose={handleProfileClose}
+          onUpdate={handleVendorUpdate}
+        />
+      )}
     </Layout>
   );
 };

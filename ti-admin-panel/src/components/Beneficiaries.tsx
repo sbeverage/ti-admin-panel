@@ -44,6 +44,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
+import BeneficiaryProfile from './BeneficiaryProfile';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Beneficiaries.css';
@@ -60,6 +61,8 @@ const Beneficiaries: React.FC = () => {
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
+  const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null);
+  const [profileVisible, setProfileVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -81,6 +84,24 @@ const Beneficiaries: React.FC = () => {
     // Here you would typically send the data to your backend
     setInviteModalVisible(false);
     // You could also show a success message here
+  };
+
+  const handleBeneficiaryClick = (beneficiaryId: string) => {
+    setSelectedBeneficiaryId(beneficiaryId);
+    setProfileVisible(true);
+  };
+
+  const handleProfileClose = () => {
+    setProfileVisible(false);
+    setSelectedBeneficiaryId(null);
+  };
+
+  const handleBeneficiaryUpdate = (updatedData: any) => {
+    console.log('Beneficiary updated:', updatedData);
+    // Here you would typically update the local state or refresh the data
+    // For now, we'll just close the profile
+    setProfileVisible(false);
+    setSelectedBeneficiaryId(null);
   };
 
   const handlePageChange = (page: number, size?: number) => {
@@ -349,7 +370,14 @@ const Beneficiaries: React.FC = () => {
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.beneficiaryName.charAt(0)}
           </Avatar>
-          <Text strong>{text}</Text>
+          <Text 
+            strong 
+            className="clickable-beneficiary-name"
+            onClick={() => handleBeneficiaryClick(record.key)}
+            style={{ cursor: 'pointer', color: '#DB8633' }}
+          >
+            {text}
+          </Text>
         </Space>
       ),
       fixed: 'left' as const,
@@ -711,6 +739,15 @@ const Beneficiaries: React.FC = () => {
         onCancel={handleInviteModalCancel}
         onSubmit={handleInviteModalSubmit}
       />
+
+      {/* Beneficiary Profile Modal */}
+      {profileVisible && selectedBeneficiaryId && (
+        <BeneficiaryProfile
+          beneficiaryId={selectedBeneficiaryId}
+          onClose={handleProfileClose}
+          onUpdate={handleBeneficiaryUpdate}
+        />
+      )}
     </Layout>
   );
 };

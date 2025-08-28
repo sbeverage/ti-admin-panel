@@ -44,7 +44,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     {
       title: 'Price and Discounts',
       icon: <TagOutlined style={{ color: '#324E58' }} />,
-      description: priceDiscounts.minDiscount || 'Minimum discount here'
+      description: 'Configure discounts'
     },
     {
       title: 'Work Schedule',
@@ -389,25 +389,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               </Col>
             </Row>
 
-            {/* Minimum Discount Requirement */}
-            <Divider />
-            <Row gutter={[24, 16]}>
-              <Col span={24}>
-                <Form.Item
-                  name="minDiscount"
-                  label="Minimum Discount Requirement *"
-                  rules={[{ required: true, message: 'Please select minimum discount' }]}
-                >
-                  <Select placeholder="You must offer a minimum of 10% discounts to apply">
-                    <Option value="10">10%</Option>
-                    <Option value="15">15%</Option>
-                    <Option value="20">20%</Option>
-                    <Option value="25">25%</Option>
-                    <Option value="30">30%</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
+
 
             {/* Pricing Tier */}
             <Row gutter={[24, 16]}>

@@ -326,6 +326,16 @@
   color: #DB8633;
 }
 
+/* Clickable Beneficiary Names */
+.clickable-beneficiary-name {
+  transition: all 0.3s ease;
+}
+
+.clickable-beneficiary-name:hover {
+  color: #C6762A !important;
+  text-decoration: underline;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .standard-main-content {

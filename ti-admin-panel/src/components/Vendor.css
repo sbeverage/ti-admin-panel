@@ -535,6 +535,16 @@
   color: #DB8633;
 }
 
+/* Clickable Vendor Names */
+.clickable-vendor-name {
+  transition: all 0.3s ease;
+}
+
+.clickable-vendor-name:hover {
+  color: #C6762A !important;
+  text-decoration: underline;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .vendor-sider {
