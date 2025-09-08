@@ -41,6 +41,7 @@ import {
   RiseOutlined,
   TagOutlined
 } from '@ant-design/icons';
+import { vendorAPI, discountAPI, Vendor as VendorType, Discount as DiscountType } from '../services/api';
 import './VendorProfile.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -106,79 +107,164 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // Mock data - replace with actual API call
+  // Load vendor data from API
   useEffect(() => {
-    const mockData: VendorData = {
-      id: vendorId,
-      vendorName: 'Tech Solutions Pro',
-      contactName: 'Michael Chen',
-      email: 'michael.chen@techsolutionspro.com',
-      contactNumber: '+1 (555) 234-5678',
-      bankAccount: '****5678',
-      revenue: '$125,000',
-      dateOfJoin: 'March 15, 2023',
-      cityState: 'San Francisco, CA',
-      vendorType: 'Technology Services',
-      customers: 45,
-      active: true,
-      enabled: true,
-      // Basic vendor information (from invite form)
-      companyName: 'Tech Solutions Pro',
-      primaryContact: 'Michael Chen',
-      primaryEmail: 'michael.chen@techsolutionspro.com',
-      websiteLink: 'https://techsolutionspro.com',
-      address: '123 Tech Street, San Francisco, CA 94105',
-      phoneNumber: '+1 (555) 234-5678',
-      category: 'Technology Services',
-      // Discount information (core of the app)
-      pricingTier: '$$$',
-      discounts: [
-        {
-          id: 1,
-          discountName: 'Summer Special',
-          discountType: 'percentage',
-          discountValue: '25',
-          discountOn: 'All software development services',
-          frequency: '3',
-          promoCode: 'SUMMER25',
-          additionalTerms: 'Valid for new clients only. Cannot be combined with other offers.',
-          approvedBy: 'Sarah Johnson',
-          approvalDate: '2024-06-01',
-          pricingTier: '$$$'
-        },
-        {
-          id: 2,
-          discountName: 'First Time Client',
-          discountType: 'dollar',
-          discountValue: '500',
-          discountOn: 'Initial consultation and project setup',
-          frequency: '1',
-          promoCode: 'FIRST500',
-          additionalTerms: 'One-time use for new clients. Applies to projects over $5,000.',
-          approvedBy: 'Sarah Johnson',
-          approvalDate: '2024-05-15',
-          pricingTier: '$$$'
-        },
-        {
-          id: 3,
-          discountName: 'Referral Bonus',
-          discountType: 'percentage',
-          discountValue: '15',
-          discountOn: 'Next project for referring new clients',
-          frequency: 'unlimited',
-          promoCode: 'REFERRAL15',
-          additionalTerms: 'Valid when referred client completes a project. No expiration.',
-          approvedBy: 'Sarah Johnson',
-          approvalDate: '2024-04-01',
-          pricingTier: '$$$'
-        }
-      ]
-    };
-
-    setVendorData(mockData);
-    setFormData(mockData);
-    setLoading(false);
+    loadVendorData();
   }, [vendorId]);
+
+  const loadVendorData = async () => {
+    setLoading(true);
+    try {
+      const vendorIdNum = parseInt(vendorId);
+      
+      // Load vendor data
+      const vendorResponse = await vendorAPI.getVendor(vendorIdNum);
+      if (vendorResponse.success) {
+        const vendor = vendorResponse.data;
+        
+        // Load discounts for this vendor
+        const discountsResponse = await discountAPI.getDiscountsByVendor(vendorIdNum);
+        const discounts = discountsResponse.success ? discountsResponse.data : [];
+        
+        // Transform API data to match our interface
+        const transformedData: VendorData = {
+          id: vendor.id.toString(),
+          vendorName: vendor.name,
+          contactName: vendor.email, // Using email as contact name for now
+          email: vendor.email,
+          contactNumber: vendor.phone,
+          bankAccount: '****5678', // This would come from a separate API
+          revenue: '$125,000', // This would come from analytics API
+          dateOfJoin: new Date(vendor.created_at).toLocaleDateString(),
+          cityState: `${vendor.address.city}, ${vendor.address.state}`,
+          vendorType: vendor.category,
+          customers: 45, // This would come from analytics API
+          active: true, // This would come from vendor status
+          enabled: true, // This would come from vendor status
+          // Basic vendor information (from API)
+          companyName: vendor.name,
+          primaryContact: vendor.email, // This would be a separate field in the API
+          primaryEmail: vendor.email,
+          websiteLink: vendor.website,
+          address: `${vendor.address.street}, ${vendor.address.city}, ${vendor.address.state} ${vendor.address.zipCode}`,
+          phoneNumber: vendor.phone,
+          category: vendor.category,
+          // Discount information (from discounts API)
+          pricingTier: '$$$', // This would be calculated or come from vendor data
+          discounts: discounts.map((discount: DiscountType) => ({
+            id: discount.id,
+            discountName: discount.name,
+            discountType: discount.discount_type as 'free' | 'percentage' | 'dollar' | 'bogo',
+            discountValue: discount.discount_value.toString(),
+            discountOn: discount.description,
+            frequency: 'unlimited', // This would come from discount data
+            promoCode: `PROMO${discount.id}`, // This would come from discount data
+            additionalTerms: discount.description,
+            approvedBy: 'Admin', // This would come from discount data
+            approvalDate: new Date(discount.created_at).toLocaleDateString(),
+            pricingTier: '$$$'
+          })),
+          // Work schedule (from vendor data)
+          workSchedule: vendor.hours
+        };
+
+        setVendorData(transformedData);
+        setFormData(transformedData);
+      } else {
+        message.error('Failed to load vendor data');
+        // Fallback to mock data
+        const mockData = getMockVendorData();
+        setVendorData(mockData);
+        setFormData(mockData);
+      }
+    } catch (error) {
+      console.error('Error loading vendor data:', error);
+      message.error('Failed to load vendor data. Using mock data.');
+      // Fallback to mock data
+      const mockData = getMockVendorData();
+      setVendorData(mockData);
+      setFormData(mockData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getMockVendorData = (): VendorData => ({
+    id: vendorId,
+    vendorName: 'Tech Solutions Pro',
+    contactName: 'Michael Chen',
+    email: 'michael.chen@techsolutionspro.com',
+    contactNumber: '+1 (555) 234-5678',
+    bankAccount: '****5678',
+    revenue: '$125,000',
+    dateOfJoin: 'March 15, 2023',
+    cityState: 'San Francisco, CA',
+    vendorType: 'Technology Services',
+    customers: 45,
+    active: true,
+    enabled: true,
+    // Basic vendor information (from invite form)
+    companyName: 'Tech Solutions Pro',
+    primaryContact: 'Michael Chen',
+    primaryEmail: 'michael.chen@techsolutionspro.com',
+    websiteLink: 'https://techsolutionspro.com',
+    address: '123 Tech Street, San Francisco, CA 94105',
+    phoneNumber: '+1 (555) 234-5678',
+    category: 'Technology Services',
+    // Discount information (core of the app)
+    pricingTier: '$$$',
+    discounts: [
+      {
+        id: 1,
+        discountName: 'Summer Special',
+        discountType: 'percentage',
+        discountValue: '25',
+        discountOn: 'All software development services',
+        frequency: '3',
+        promoCode: 'SUMMER25',
+        additionalTerms: 'Valid for new clients only. Cannot be combined with other offers.',
+        approvedBy: 'Sarah Johnson',
+        approvalDate: '2024-06-01',
+        pricingTier: '$$$'
+      },
+      {
+        id: 2,
+        discountName: 'First Time Client',
+        discountType: 'dollar',
+        discountValue: '500',
+        discountOn: 'Initial consultation and project setup',
+        frequency: '1',
+        promoCode: 'FIRST500',
+        additionalTerms: 'One-time use for new clients. Applies to projects over $5,000.',
+        approvedBy: 'Sarah Johnson',
+        approvalDate: '2024-05-15',
+        pricingTier: '$$$'
+      },
+      {
+        id: 3,
+        discountName: 'Referral Bonus',
+        discountType: 'percentage',
+        discountValue: '15',
+        discountOn: 'Next project for referring new clients',
+        frequency: 'unlimited',
+        promoCode: 'REFERRAL15',
+        additionalTerms: 'Valid when referred client completes a project. No expiration.',
+        approvedBy: 'Sarah Johnson',
+        approvalDate: '2024-04-01',
+        pricingTier: '$$$'
+      }
+    ],
+    // Work schedule
+    workSchedule: {
+      monday: '9:00 AM - 6:00 PM',
+      tuesday: '9:00 AM - 6:00 PM',
+      wednesday: '9:00 AM - 6:00 PM',
+      thursday: '9:00 AM - 6:00 PM',
+      friday: '9:00 AM - 5:00 PM',
+      saturday: '10:00 AM - 2:00 PM',
+      sunday: 'Closed'
+    }
+  });
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -193,14 +279,36 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Here you would make an API call to update the vendor
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const vendorIdNum = parseInt(vendorId);
       
-      setVendorData(formData);
-      setIsEditing(false);
-      onUpdate(formData);
-      message.success('Vendor updated successfully!');
+      // Transform form data back to API format
+      const apiData = {
+        name: formData.companyName || formData.vendorName,
+        email: formData.primaryEmail || formData.email,
+        phone: formData.phoneNumber || formData.contactNumber,
+        website: formData.websiteLink,
+        category: formData.category,
+        address: {
+          street: formData.address?.split(',')[0] || '',
+          city: formData.cityState?.split(',')[0] || '',
+          state: formData.cityState?.split(',')[1]?.trim() || '',
+          zipCode: formData.address?.split(' ').pop() || '',
+          latitude: 0, // These would need to be geocoded
+          longitude: 0
+        }
+      };
+      
+      const result = await vendorAPI.updateVendor(vendorIdNum, apiData);
+      if (result.success) {
+        setVendorData(formData);
+        setIsEditing(false);
+        onUpdate(formData);
+        message.success('Vendor updated successfully!');
+      } else {
+        message.error('Failed to update vendor. Please try again.');
+      }
     } catch (error) {
+      console.error('Error updating vendor:', error);
       message.error('Failed to update vendor. Please try again.');
     } finally {
       setSaving(false);

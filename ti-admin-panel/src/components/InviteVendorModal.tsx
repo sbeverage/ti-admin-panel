@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Steps, Form, Input, Select, Upload, Button, Row, Col, Typography, Divider, Checkbox, TimePicker, message } from 'antd';
+import { Modal, Steps, Form, Input, Select, Upload, Button, Row, Col, Typography, Divider, Checkbox, TimePicker, message, Spin } from 'antd';
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -11,6 +11,7 @@ import {
   CheckCircleFilled,
   DollarOutlined
 } from '@ant-design/icons';
+import { vendorAPI, discountAPI } from '../services/api';
 import './InviteVendorModal.css';
 
 const { Title, Text } = Typography;
@@ -35,6 +36,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   const [workSchedule, setWorkSchedule] = useState<any>({});
   const [discounts, setDiscounts] = useState<any[]>([]);
   const [currentDiscount, setCurrentDiscount] = useState<any>({});
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const steps = [
     {
       title: 'Basic Details',
@@ -66,10 +69,83 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       } else {
         const values = await form.validateFields();
         setWorkSchedule(values);
-        onSubmit({ ...basicDetails, ...priceDiscounts, ...values });
+        await handleSubmit({ ...basicDetails, ...priceDiscounts, ...values });
       }
     } catch (error) {
       console.log('Validation failed:', error);
+    }
+  };
+
+  const handleSubmit = async (allData: any) => {
+    setSaving(true);
+    try {
+      // Transform data to API format
+      const vendorData = {
+        name: allData.companyName,
+        email: allData.primaryEmail,
+        phone: allData.phoneNumber,
+        website: allData.websiteLink,
+        category: allData.category,
+        address: {
+          street: allData.address || '',
+          city: allData.city || '',
+          state: allData.state || '',
+          zipCode: allData.zipCode || '',
+          latitude: 0, // These would need to be geocoded
+          longitude: 0
+        },
+        hours: {
+          monday: allData.monday || '9:00 AM - 5:00 PM',
+          tuesday: allData.tuesday || '9:00 AM - 5:00 PM',
+          wednesday: allData.wednesday || '9:00 AM - 5:00 PM',
+          thursday: allData.thursday || '9:00 AM - 5:00 PM',
+          friday: allData.friday || '9:00 AM - 5:00 PM',
+          saturday: allData.saturday || 'Closed',
+          sunday: allData.sunday || 'Closed'
+        },
+        social_links: {
+          facebook: allData.facebook || '',
+          instagram: allData.instagram || '',
+          twitter: allData.twitter || ''
+        }
+      };
+
+      // Create vendor
+      const vendorResponse = await vendorAPI.createVendor(vendorData);
+      if (vendorResponse.success) {
+        const vendorId = vendorResponse.data.id;
+        
+        // Create discounts for this vendor
+        if (discounts.length > 0) {
+          for (const discount of discounts) {
+            const discountData = {
+              vendor_id: vendorId,
+              name: discount.discountName,
+              description: discount.discountOn,
+              discount_type: discount.discountType,
+              discount_value: parseFloat(discount.discountValue),
+              min_purchase: discount.minPurchase ? parseFloat(discount.minPurchase) : undefined,
+              max_discount: discount.maxDiscount ? parseFloat(discount.maxDiscount) : undefined,
+              start_date: new Date().toISOString(),
+              end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              is_active: true
+            };
+            
+            await discountAPI.createDiscount(discountData);
+          }
+        }
+        
+        message.success('Vendor created successfully!');
+        onSubmit(allData);
+        handleCancel();
+      } else {
+        message.error('Failed to create vendor. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating vendor:', error);
+      message.error('Failed to create vendor. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -503,7 +579,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             {renderStepContent()}
             <div className="form-actions">
               {currentStep > 0 && (
-                <Button onClick={handlePrev} className="prev-btn">
+                <Button 
+                  onClick={handlePrev} 
+                  className="prev-btn"
+                  disabled={saving}
+                >
                   <ArrowLeftOutlined /> Previous
                 </Button>
               )}
@@ -511,9 +591,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 type="primary" 
                 onClick={handleNext}
                 className="next-btn"
+                loading={saving}
+                disabled={saving}
               >
                 {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
-                <ArrowRightOutlined />
+                {!saving && <ArrowRightOutlined />}
               </Button>
             </div>
           </Form>

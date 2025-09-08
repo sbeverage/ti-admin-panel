@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
+import { vendorAPI, Vendor as VendorType } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Vendor.css';
@@ -28,6 +29,10 @@ const Vendor: React.FC = () => {
   const [inviteVendorModalVisible, setInviteVendorModalVisible] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [totalVendors, setTotalVendors] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,111 +40,49 @@ const Vendor: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setVendorsData(prevData =>
-      prevData.map(item =>
-        item.key === key
-          ? { ...item, [field]: !item[field] }
-          : item
-      )
-    );
-    console.log(`Toggled ${field} for key ${key}`);
-  };
+  // Load vendors from API
+  useEffect(() => {
+    loadVendors();
+  }, [currentPage, pageSize]);
 
-  const handleTimeFilterChange = (key: string) => {
-    setSelectedTimeFilter(key);
-    console.log(`Time filter changed to: ${key}`);
-  };
-
-  const handleInviteVendor = () => {
-    setInviteVendorModalVisible(true);
-  };
-
-  const handleInviteVendorModalCancel = () => {
-    setInviteVendorModalVisible(false);
-  };
-
-  const handleInviteVendorModalSubmit = (values: any) => {
-    console.log('Vendor invite submitted:', values);
-    setInviteVendorModalVisible(false);
-    // Here you would typically send the data to your backend
-  };
-
-  const handleVendorClick = (vendorId: string) => {
-    setSelectedVendorId(vendorId);
-    setProfileVisible(true);
-  };
-
-  const handleProfileClose = () => {
-    setProfileVisible(false);
-    setSelectedVendorId(null);
-  };
-
-  const handleVendorUpdate = (updatedData: any) => {
-    console.log('Vendor updated:', updatedData);
-    // Here you would typically update the local state or refresh the data
-    // For now, we'll just close the profile
-    setProfileVisible(false);
-    setSelectedVendorId(null);
-  };
-
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'events') {
-      navigate('/events');
-    } else if (key === 'leaderboard') {
-      navigate('/leaderboard');
-    } else if (key === 'settings') {
-      navigate('/settings');
-       }
-  };
-
-  const timeFilterMenu = [
-    {
-      key: '7-days',
-      label: 'Last 7 Days',
-      onClick: () => handleTimeFilterChange('7-days')
-    },
-    {
-      key: '30-days',
-      label: 'Last 30 Days',
-      onClick: () => handleTimeFilterChange('30-days')
-    },
-    {
-      key: '90-days',
-      label: 'Last 90 Days',
-      onClick: () => handleTimeFilterChange('90-days')
-    },
-    {
-      key: '1-year',
-      label: 'Last 1 Year',
-      onClick: () => handleTimeFilterChange('1-year')
-    },
-    {
-      key: 'all-time',
-      label: 'All Time',
-      onClick: () => handleTimeFilterChange('all-time')
+  const loadVendors = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await vendorAPI.getVendors(currentPage, pageSize);
+      if (response.success) {
+        // Transform API data to match our table structure
+        const transformedData = response.data.map((vendor: VendorType) => ({
+          key: vendor.id.toString(),
+          name: vendor.name,
+          contactName: vendor.email, // Using email as contact name for now
+          email: vendor.email,
+          contact: vendor.phone,
+          category: vendor.category,
+          cityState: `${vendor.address.city}, ${vendor.address.state}`,
+          tier: '$$', // Default tier, could be calculated based on data
+          discount: 10, // Default discount, should come from discounts API
+          active: true, // Default active status
+          enabled: true, // Default enabled status
+          avatar: vendor.name.charAt(0).toUpperCase()
+        }));
+        setVendorsData(transformedData);
+        setTotalVendors(response.pagination.total);
+      } else {
+        setError('Failed to load vendors');
+      }
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+      setError('Failed to load vendors. Please try again.');
+      // Fallback to mock data if API fails
+      setVendorsData(getMockVendorData());
+      setTotalVendors(12);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const [vendorsData, setVendorsData] = useState([
+  const getMockVendorData = () => [
     {
       key: '1',
       name: 'Apple',
@@ -308,7 +251,153 @@ const Vendor: React.FC = () => {
       enabled: true,
       avatar: 'P'
     }
-  ]);
+  ];
+
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    try {
+      const vendorId = parseInt(key);
+      const currentVendor = vendorsData.find(v => v.key === key);
+      if (currentVendor) {
+        const updatedData = { [field]: !currentVendor[field] };
+        await vendorAPI.updateVendor(vendorId, updatedData);
+        
+        // Update local state
+        setVendorsData(prevData =>
+          prevData.map(item =>
+            item.key === key
+              ? { ...item, [field]: !item[field] }
+              : item
+          )
+        );
+        message.success(`Vendor ${field} status updated successfully`);
+      }
+    } catch (error) {
+      console.error(`Error updating vendor ${field}:`, error);
+      message.error(`Failed to update vendor ${field} status`);
+    }
+  };
+
+  const handleTimeFilterChange = (key: string) => {
+    setSelectedTimeFilter(key);
+    console.log(`Time filter changed to: ${key}`);
+  };
+
+  const handleInviteVendor = () => {
+    setInviteVendorModalVisible(true);
+  };
+
+  const handleInviteVendorModalCancel = () => {
+    setInviteVendorModalVisible(false);
+  };
+
+  const handleInviteVendorModalSubmit = async (values: any) => {
+    try {
+      setLoading(true);
+      const result = await vendorAPI.createVendor(values);
+      if (result.success) {
+        message.success('Vendor created successfully!');
+        setInviteVendorModalVisible(false);
+        // Refresh the vendor list
+        loadVendors();
+      } else {
+        message.error('Failed to create vendor. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating vendor:', error);
+      message.error('Failed to create vendor. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVendorClick = (vendorId: string) => {
+    setSelectedVendorId(vendorId);
+    setProfileVisible(true);
+  };
+
+  const handleProfileClose = () => {
+    setProfileVisible(false);
+    setSelectedVendorId(null);
+  };
+
+  const handleVendorUpdate = async (updatedData: any) => {
+    try {
+      if (selectedVendorId) {
+        const vendorId = parseInt(selectedVendorId);
+        const result = await vendorAPI.updateVendor(vendorId, updatedData);
+        if (result.success) {
+          message.success('Vendor updated successfully!');
+          // Refresh the vendor list
+          loadVendors();
+        } else {
+          message.error('Failed to update vendor. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error updating vendor:', error);
+      message.error('Failed to update vendor. Please try again.');
+    } finally {
+      setProfileVisible(false);
+      setSelectedVendorId(null);
+    }
+  };
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === 'dashboard') {
+      navigate('/dashboard');
+    } else if (key === 'donors') {
+      navigate('/donors');
+    } else if (key === 'vendor') {
+      navigate('/vendor');
+    } else if (key === 'beneficiaries') {
+      navigate('/beneficiaries');
+    } else if (key === 'tenants') {
+      navigate('/tenants');
+    } else if (key === 'pending-approvals') {
+      navigate('/pending-approvals');
+    } else if (key === 'referral-analytics') {
+      navigate('/referral-analytics');
+    } else if (key === 'geographic-analytics') {
+      navigate('/geographic-analytics');
+    } else if (key === 'discounts') {
+      navigate('/discounts');
+    } else if (key === 'events') {
+      navigate('/events');
+    } else if (key === 'leaderboard') {
+      navigate('/leaderboard');
+    } else if (key === 'settings') {
+      navigate('/settings');
+       }
+  };
+
+  const timeFilterMenu = [
+    {
+      key: '7-days',
+      label: 'Last 7 Days',
+      onClick: () => handleTimeFilterChange('7-days')
+    },
+    {
+      key: '30-days',
+      label: 'Last 30 Days',
+      onClick: () => handleTimeFilterChange('30-days')
+    },
+    {
+      key: '90-days',
+      label: 'Last 90 Days',
+      onClick: () => handleTimeFilterChange('90-days')
+    },
+    {
+      key: '1-year',
+      label: 'Last 1 Year',
+      onClick: () => handleTimeFilterChange('1-year')
+    },
+    {
+      key: 'all-time',
+      label: 'All Time',
+      onClick: () => handleTimeFilterChange('all-time')
+    }
+  ];
+
 
   const menuItems = [
     {
@@ -561,7 +650,7 @@ const Vendor: React.FC = () => {
         <Header className="vendor-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Vendors</Title>
-            <Text type="secondary" className="vendors-count">300 Vendors Found</Text>
+            <Text type="secondary" className="vendors-count">{totalVendors} Vendors Found</Text>
           </div>
           <div className="header-right">
             <Button 
@@ -641,22 +730,27 @@ const Vendor: React.FC = () => {
 
             {/* Vendors Table */}
             <div className="vendors-table-section">
-              <Table
-                dataSource={vendorsData}
-                columns={columns}
-                pagination={false}
-                size="middle"
-                className="vendors-table"
-                rowClassName="vendor-row"
-                scroll={{ x: 1800 }}
-                bordered={false}
-              />
+              <Spin spinning={loading}>
+                <Table
+                  dataSource={vendorsData}
+                  columns={columns}
+                  pagination={false}
+                  size="middle"
+                  className="vendors-table"
+                  rowClassName="vendor-row"
+                  scroll={{ x: 1800 }}
+                  bordered={false}
+                  locale={{
+                    emptyText: error ? `Error: ${error}` : 'No vendors found'
+                  }}
+                />
+              </Spin>
               
               {/* Pagination */}
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={300}
+                  total={totalVendors}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
