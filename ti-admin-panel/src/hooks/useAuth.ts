@@ -40,12 +40,9 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    console.log('useAuth logout function called');
-    
     // Clear localStorage
     localStorage.removeItem('admin_authenticated');
     localStorage.removeItem('admin_username');
-    console.log('localStorage cleared');
     
     // Update state
     setAuthState({
@@ -53,10 +50,8 @@ export const useAuth = () => {
       username: null,
       loading: false
     });
-    console.log('Auth state updated to logged out');
     
     // Force redirect to login page
-    console.log('Redirecting to login page...');
     window.location.href = '/';
   };
 
