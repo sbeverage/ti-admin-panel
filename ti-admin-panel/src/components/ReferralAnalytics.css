@@ -10,7 +10,7 @@
 .standard-header .header-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   align-items: flex-start;
   flex: 1;
 }
