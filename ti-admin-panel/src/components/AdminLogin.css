@@ -18,7 +18,7 @@
 
 .login-content {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
 }
 
 .login-card {
@@ -32,18 +32,18 @@
 
 .login-header {
   text-align: center;
-  padding: 40px 40px 30px;
+  padding: 30px 40px 20px;
   background: #FFFFFF;
   color: #333333;
   margin: 0;
 }
 
 .logo-container {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .login-logo {
-  height: 80px;
+  height: 100px;
   width: auto;
 }
 
@@ -58,19 +58,19 @@
 .login-subtitle {
   color: #DB8633 !important;
   font-size: 16px;
-  margin: 0 0 20px 0;
+  margin: 0 0 15px 0;
   font-weight: 500;
 }
 
 .login-heading {
   color: #333333 !important;
-  margin: 0 0 20px 0 !important;
+  margin: 0 0 15px 0 !important;
   font-weight: 600;
   font-size: 20px;
 }
 
 .login-form {
-  padding: 0 40px 30px;
+  padding: 0 50px 25px;
 }
 
 .login-form .ant-form-item-label > label {
@@ -146,7 +146,7 @@
 
 .login-footer {
   text-align: center;
-  padding: 20px 40px 40px;
+  padding: 15px 50px 30px;
   margin: 0;
 }
 
@@ -156,14 +156,31 @@
 }
 
 /* Responsive Design */
+@media (max-width: 768px) {
+  .login-content {
+    max-width: 400px;
+  }
+  
+  .login-form {
+    padding: 0 30px 20px;
+  }
+  
+  .login-footer {
+    padding: 15px 30px 25px;
+  }
+}
+
 @media (max-width: 480px) {
   .admin-login-container {
     padding: 10px;
   }
   
+  .login-content {
+    max-width: 350px;
+  }
+  
   .login-header {
-    padding: 30px 20px 15px;
-    margin: -16px -16px 20px;
+    padding: 25px 20px 15px;
   }
   
   .login-form {
@@ -171,16 +188,11 @@
   }
   
   .login-footer {
-    padding: 15px 20px 30px;
-    margin: 0 -16px -16px;
+    padding: 15px 20px 25px;
   }
   
   .login-logo {
-    height: 50px;
-  }
-  
-  .login-title {
-    font-size: 24px !important;
+    height: 80px;
   }
 }
 
