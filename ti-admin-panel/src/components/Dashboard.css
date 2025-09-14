@@ -199,23 +199,7 @@
   z-index: 1;
 }
 
-.dashboard-header {
-  background: #ffffff !important;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  border-bottom: 1px solid #f0f0f0;
-  margin: 0;
-  height: auto;
-  min-height: auto;
-  line-height: normal;
-  overflow: visible;
-  min-height: auto;
-  width: 100%;
-  box-sizing: border-box;
-}
+/* Dashboard header styling - now handled by global sidebar standards */
 
 /* Override Ant Design Header defaults */
 .dashboard-header.ant-layout-header {
@@ -1242,9 +1226,7 @@
     display: block;
   }
   
-  .dashboard-header {
-    padding: 0 16px;
-  }
+  /* Dashboard header padding now handled by global standards */
   
   .dashboard-content {
     padding: 16px;
@@ -1262,12 +1244,7 @@
 }
 
 @media (max-width: 768px) {
-  .dashboard-header {
-    padding: 16px 24px;
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
-  }
+  /* Dashboard header styling now handled by global standards */
   
   .dashboard-content {
     padding: 16px 24px;
@@ -1420,9 +1397,7 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard-header {
-    padding: 0 8px;
-  }
+  /* Dashboard header styling now handled by global standards */
   
   .dashboard-content {
     padding: 8px;

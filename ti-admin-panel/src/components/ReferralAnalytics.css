@@ -5,22 +5,7 @@
 }
 
 /* Header Styling - Match Dashboard branding */
-.standard-header {
-  background: #ffffff !important;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  border-bottom: 1px solid #f0f0f0;
-  margin: 0;
-  height: auto;
-  min-height: auto;
-  line-height: normal;
-  overflow: visible;
-  width: 100%;
-  box-sizing: border-box;
-}
+/* Standard header styling now handled by global sidebar standards */
 
 .standard-header .header-left {
   display: flex;
@@ -665,13 +650,7 @@ a:hover, .ant-btn-link:hover {
 }
 
 @media (max-width: 576px) {
-  .standard-header {
-    padding: 0 16px;
-    flex-direction: column;
-    gap: 16px;
-    height: auto;
-    padding: 16px;
-  }
+  /* Standard header styling now handled by global sidebar standards */
   
   .standard-header .header-left,
   .standard-header .header-right {
