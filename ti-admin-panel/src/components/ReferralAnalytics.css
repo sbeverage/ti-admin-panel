@@ -10,7 +10,7 @@
 .standard-header .header-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   align-items: flex-start;
   flex: 1;
 }
@@ -18,6 +18,7 @@
 .standard-header .header-left .ant-typography {
   color: #324E58;
   margin: 0;
+  line-height: 1.2;
 }
 
 /* Ensure page title and subtitle are left-aligned */
