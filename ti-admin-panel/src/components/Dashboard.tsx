@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import UserProfile from './UserProfile';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -530,14 +531,7 @@ const Dashboard: React.FC = () => {
           onClick={handleMenuClick}
         />
 
-        <div className="standard-user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="standard-user-info">
-            <Text strong>Stephanie Beverage</Text>
-            <Text type="secondary">Admin</Text>
-          </div>
-          <Button type="text" icon={<MoreOutlined />} />
-        </div>
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       {/* Main Content */}

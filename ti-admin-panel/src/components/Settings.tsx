@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Dropdown } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, LockOutlined,
+  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined,   LockOutlined,
   TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
-  ApiOutlined, GlobalOutlined
+  ApiOutlined, GlobalOutlined, LogoutOutlined
 } from '@ant-design/icons';
 import './Settings.css';
 import ApiRateLimiting from './ApiRateLimiting';
@@ -30,8 +31,6 @@ const Settings: React.FC = () => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, username } = useAuth();
-
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -357,28 +356,7 @@ const Settings: React.FC = () => {
           onClick={handleMenuClick}
         />
 
-        <div className="user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="user-info">
-            <Text strong>{username || 'Admin'}</Text>
-          </div>
-          <Button 
-            type="text" 
-            icon={<MoreOutlined />} 
-            onClick={() => {
-              Modal.confirm({
-                title: 'Sign Out',
-                content: 'Are you sure you want to sign out?',
-                okText: 'Sign Out',
-                cancelText: 'Cancel',
-                onOk: () => {
-                  logout();
-                  message.success('Signed out successfully');
-                }
-              });
-            }}
-          />
-        </div>
+        <UserProfile className="user-profile" />
       </Sider>
 
       {/* Main Content */}
