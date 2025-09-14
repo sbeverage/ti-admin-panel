@@ -37,6 +37,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
     if (key === 'test') {
       console.log('Test clicked - this should work!');
       alert('Test click worked! The menu is functioning.');
+    } else if (key === 'test-logout') {
+      console.log('Test logout function clicked');
+      alert('Testing logout function directly...');
+      handleLogout();
     } else if (key === 'logout') {
       console.log('Logout clicked, showing confirmation modal');
       handleLogout();
@@ -48,6 +52,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       key: 'test',
       label: 'Test Click',
       icon: <UserOutlined />,
+    },
+    {
+      key: 'test-logout',
+      label: 'Test Logout Function',
+      icon: <LogoutOutlined />,
     },
     {
       key: 'logout',
