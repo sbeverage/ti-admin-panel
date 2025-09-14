@@ -22,7 +22,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check credentials (in production, this would be server-side)
-      if (values.username === 'admin' && values.password === 'ThriveAdmin2024!') {
+      if (values.username === 'admin' && values.password === 'Thr1v3@dm1n!') {
         message.success('Login successful!');
         localStorage.setItem('admin_authenticated', 'true');
         localStorage.setItem('admin_username', values.username);
