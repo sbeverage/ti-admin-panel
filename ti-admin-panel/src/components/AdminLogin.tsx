@@ -45,17 +45,20 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
             <div className="login-header">
               <div className="logo-container">
                 <img 
-                  src="/white-logo.png" 
+                  src="/piggy-logo.png" 
                   alt="Thrive Initiative" 
                   className="login-logo"
                 />
               </div>
               <Title level={2} className="login-title">
-                Admin Panel
+                THRIVE INITIATIVE
               </Title>
-              <Text type="secondary" className="login-subtitle">
-                Sign in to manage your platform
+              <Text className="login-subtitle">
+                Change4Good.org
               </Text>
+              <Title level={3} className="login-heading">
+                Admin Login
+              </Title>
             </div>
 
             <Form
@@ -68,34 +71,34 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
             >
               <Form.Item
                 name="username"
-                label="Username"
                 rules={[
                   { required: true, message: 'Please enter your username' },
                   { min: 3, message: 'Username must be at least 3 characters' }
                 ]}
               >
                 <Input
-                  prefix={<UserOutlined className="input-icon" />}
-                  placeholder="Enter your username"
+                  placeholder="Enter Username"
                   className="login-input"
                 />
               </Form.Item>
 
               <Form.Item
                 name="password"
-                label="Password"
                 rules={[
                   { required: true, message: 'Please enter your password' },
                   { min: 8, message: 'Password must be at least 8 characters' }
                 ]}
               >
                 <Input.Password
-                  prefix={<LockOutlined className="input-icon" />}
-                  placeholder="Enter your password"
+                  placeholder="Enter Password"
                   iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
                   className="login-input"
                 />
               </Form.Item>
+
+              <div className="forgot-password">
+                <a href="#" className="forgot-link">Forgot your password?</a>
+              </div>
 
               <Form.Item className="login-button-container">
                 <Button
@@ -105,7 +108,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
                   className="login-button"
                   block
                 >
-                  {loading ? 'Signing In...' : 'Sign In'}
+                  {loading ? 'Signing In...' : 'Login'}
                 </Button>
               </Form.Item>
             </Form>
