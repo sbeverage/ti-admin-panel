@@ -279,15 +279,18 @@
 
 .standard-header {
   background: white !important;
-  padding: 0 24px !important;
+  padding: 24px !important;
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: space-between !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 1000 !important;
-  height: 80px !important;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08) !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  position: relative !important;
+  z-index: 100 !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  line-height: normal !important;
 }
 
 .standard-header .header-left {
@@ -325,7 +328,79 @@
 
 .standard-header .header-right {
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+}
+
+/* ========================================
+   STANDARDIZE ALL HEADER HEIGHTS
+   ======================================== */
+
+/* Force all headers to match Vendors header height and styling */
+.dashboard-header,
+.donors-header,
+.beneficiaries-header,
+.vendor-header,
+.tenants-header,
+.discounts-header,
+.events-header,
+.leaderboard-header,
+.settings-header,
+.pending-approvals-header,
+.newsfeed-header,
+.referral-analytics-header,
+.geographic-analytics-header {
+  background: #ffffff !important;
+  padding: 24px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08) !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  position: relative !important;
+  z-index: 100 !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  line-height: normal !important;
+}
+
+/* Ensure all header left sections are consistent */
+.dashboard-header .header-left,
+.donors-header .header-left,
+.beneficiaries-header .header-left,
+.vendor-header .header-left,
+.tenants-header .header-left,
+.discounts-header .header-left,
+.events-header .header-left,
+.leaderboard-header .header-left,
+.settings-header .header-left,
+.pending-approvals-header .header-left,
+.newsfeed-header .header-left,
+.referral-analytics-header .header-left,
+.geographic-analytics-header .header-left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  align-items: flex-start !important;
+}
+
+/* Ensure all header right sections are consistent */
+.dashboard-header .header-right,
+.donors-header .header-right,
+.beneficiaries-header .header-right,
+.vendor-header .header-right,
+.tenants-header .header-right,
+.discounts-header .header-right,
+.events-header .header-right,
+.leaderboard-header .header-right,
+.settings-header .header-right,
+.pending-approvals-header .header-right,
+.newsfeed-header .header-right,
+.referral-analytics-header .header-right,
+.geographic-analytics-header .header-right {
+  display: flex !important;
+  align-items: flex-start !important;
   gap: 16px !important;
 }
 
@@ -517,7 +592,17 @@
   .standard-header,
   .dashboard-header,
   .donors-header,
-  .beneficiaries-header {
+  .beneficiaries-header,
+  .vendor-header,
+  .tenants-header,
+  .discounts-header,
+  .events-header,
+  .leaderboard-header,
+  .settings-header,
+  .pending-approvals-header,
+  .newsfeed-header,
+  .referral-analytics-header,
+  .geographic-analytics-header {
     padding: 16px !important;
     flex-direction: column !important;
     gap: 16px !important;
@@ -587,7 +672,17 @@
   .standard-header,
   .dashboard-header,
   .donors-header,
-  .beneficiaries-header {
+  .beneficiaries-header,
+  .vendor-header,
+  .tenants-header,
+  .discounts-header,
+  .events-header,
+  .leaderboard-header,
+  .settings-header,
+  .pending-approvals-header,
+  .newsfeed-header,
+  .referral-analytics-header,
+  .geographic-analytics-header {
     padding: 12px !important;
   }
   
@@ -623,7 +718,17 @@
   .standard-header,
   .dashboard-header,
   .donors-header,
-  .beneficiaries-header {
+  .beneficiaries-header,
+  .vendor-header,
+  .tenants-header,
+  .discounts-header,
+  .events-header,
+  .leaderboard-header,
+  .settings-header,
+  .pending-approvals-header,
+  .newsfeed-header,
+  .referral-analytics-header,
+  .geographic-analytics-header {
     flex-direction: row !important;
     align-items: center !important;
     padding: 12px 16px !important;
@@ -675,7 +780,17 @@
   .standard-header,
   .dashboard-header,
   .donors-header,
-  .beneficiaries-header {
+  .beneficiaries-header,
+  .vendor-header,
+  .tenants-header,
+  .discounts-header,
+  .events-header,
+  .leaderboard-header,
+  .settings-header,
+  .pending-approvals-header,
+  .newsfeed-header,
+  .referral-analytics-header,
+  .geographic-analytics-header {
     padding: 20px !important;
   }
   
