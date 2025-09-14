@@ -65,19 +65,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
         <Text strong>{username || 'Admin'}</Text>
         {showRole && <Text type="secondary">Admin</Text>}
       </div>
-      <Dropdown
-        menu={{ items: userMenuItems, onClick: handleMenuClick }}
-        trigger={['click']}
-        placement="topRight"
-        arrow
-      >
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <Button 
           type="text" 
-          icon={<MoreOutlined />}
-          className="user-menu-button"
-          style={{ color: '#ffffff', border: 'none', background: 'transparent' }}
-        />
-      </Dropdown>
+          onClick={handleLogout}
+          style={{ 
+            color: '#ffffff', 
+            border: 'none', 
+            background: 'transparent',
+            padding: '4px 8px',
+            fontSize: '12px'
+          }}
+        >
+          Sign Out
+        </Button>
+        <Dropdown
+          menu={{ items: userMenuItems, onClick: handleMenuClick }}
+          trigger={['click']}
+          placement="topRight"
+          arrow
+        >
+          <Button 
+            type="text" 
+            icon={<MoreOutlined />}
+            className="user-menu-button"
+            style={{ color: '#ffffff', border: 'none', background: 'transparent' }}
+          />
+        </Dropdown>
+      </div>
     </div>
   );
 };
