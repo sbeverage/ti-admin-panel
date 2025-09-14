@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+import AdminLogin from './components/AdminLogin';
 import Dashboard from './components/Dashboard';
 import Donors from './components/Donors';
 import Vendor from './components/Vendor';
@@ -18,6 +20,42 @@ import ApiRateLimiting from './components/ApiRateLimiting';
 import './App.css';
 
 function App() {
+  const { isAuthenticated, loading, login } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="App">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}>
+          <div style={{ 
+            color: 'white', 
+            fontSize: '18px',
+            textAlign: 'center'
+          }}>
+            <div style={{ marginBottom: '20px' }}>🔐</div>
+            <div>Loading Admin Panel...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="App">
+        <AdminLogin onLogin={login} />
+      </div>
+    );
+  }
+
+  // Show main app if authenticated
   return (
     <div className="App">
       <Router>

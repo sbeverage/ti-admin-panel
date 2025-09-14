@@ -1,6 +1,18 @@
-# Getting Started with Create React App
+# Thrive Initiative Admin Panel
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive admin panel for managing beneficiaries, vendors, discounts, and more for the Thrive Initiative platform.
+
+## 🚀 Live Application
+
+**Production URL:** https://admin.forpurposetechnologies.com
+
+## 🛠️ Built With
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and uses:
+- **React 18** with TypeScript
+- **Ant Design** for UI components
+- **Vercel** for deployment
+- **AWS S3** for file uploads
 
 ## Available Scripts
 

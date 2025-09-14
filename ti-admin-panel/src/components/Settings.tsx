@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
@@ -29,6 +30,7 @@ const Settings: React.FC = () => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout, username } = useAuth();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -358,9 +360,24 @@ const Settings: React.FC = () => {
         <div className="user-profile">
           <Avatar size={40} icon={<UserOutlined />} />
           <div className="user-info">
-            <Text strong>Stephanie Beverage</Text>
+            <Text strong>{username || 'Admin'}</Text>
           </div>
-          <Button type="text" icon={<MoreOutlined />} />
+          <Button 
+            type="text" 
+            icon={<MoreOutlined />} 
+            onClick={() => {
+              Modal.confirm({
+                title: 'Sign Out',
+                content: 'Are you sure you want to sign out?',
+                okText: 'Sign Out',
+                cancelText: 'Cancel',
+                onOk: () => {
+                  logout();
+                  message.success('Signed out successfully');
+                }
+              });
+            }}
+          />
         </div>
       </Sider>
 
