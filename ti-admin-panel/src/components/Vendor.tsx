@@ -73,15 +73,15 @@ const Vendor: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading vendors:', error);
-      setError('Failed to load vendors. Please try again.');
-      // Fallback to mock data if API fails
-      setVendorsData(getMockVendorData());
-      setTotalVendors(12);
+      setError('Failed to load vendors from API. Please check your connection.');
+      setVendorsData([]);
+      setTotalVendors(0);
     } finally {
       setLoading(false);
     }
   };
 
+  // Mock data removed - now using real API data only
   const getMockVendorData = () => [
     {
       key: '1',

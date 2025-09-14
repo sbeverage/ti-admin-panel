@@ -75,6 +75,7 @@ interface VendorData {
   address?: string;
   phoneNumber?: string;
   category?: string;
+  tags?: string[];
   // Discount information (core of the app)
   discounts?: Discount[];
   pricingTier?: string;
@@ -106,6 +107,89 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const [saving, setSaving] = useState(false);
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Predefined tags for each category (same as InviteVendorModal)
+  const getTagsForCategory = (category: string) => {
+    const tagMap: { [key: string]: string[] } = {
+      restaurant: [
+        'Fine Dining', 'Casual Dining', 'Fast Food', 'Cafe', 'Coffee Shop',
+        'Pizza', 'Italian', 'Mexican', 'Asian', 'American', 'Seafood',
+        'Vegetarian', 'Vegan', 'Gluten-Free', 'Family-Friendly', 'Date Night'
+      ],
+      retail: [
+        'Clothing', 'Shoes', 'Accessories', 'Electronics', 'Home & Garden',
+        'Books', 'Toys', 'Jewelry', 'Beauty Products', 'Sports Equipment',
+        'Furniture', 'Art & Crafts', 'Pet Supplies', 'Gift Shop', 'Outlet'
+      ],
+      service: [
+        'Cleaning', 'Laundry', 'Dry Cleaning', 'Pet Grooming', 'Hair Salon',
+        'Nail Salon', 'Massage', 'Spa', 'Photography', 'Event Planning',
+        'Moving', 'Storage', 'Repair', 'Consulting', 'Legal Services'
+      ],
+      entertainment: [
+        'Movie Theater', 'Bowling', 'Arcade', 'Escape Room', 'Mini Golf',
+        'Concert Venue', 'Comedy Club', 'Nightclub', 'Bar', 'Pub',
+        'Live Music', 'Dance Club', 'Karaoke', 'Gaming', 'Theater'
+      ],
+      healthcare: [
+        'Primary Care', 'Dentist', 'Optometrist', 'Dermatologist', 'Chiropractor',
+        'Physical Therapy', 'Mental Health', 'Pediatric', 'Geriatric', 'Urgent Care',
+        'Specialist', 'Pharmacy', 'Medical Equipment', 'Wellness', 'Preventive Care'
+      ],
+      education: [
+        'Tutoring', 'Language Learning', 'Music Lessons', 'Art Classes', 'Dance Classes',
+        'Cooking Classes', 'Computer Training', 'Test Prep', 'Early Childhood', 'Adult Education',
+        'Online Learning', 'Vocational Training', 'Certification', 'Workshops', 'Summer Camps'
+      ],
+      technology: [
+        'Software Development', 'IT Support', 'Web Design', 'Digital Marketing', 'Cybersecurity',
+        'Cloud Services', 'Mobile Apps', 'E-commerce', 'Data Analytics', 'AI & Machine Learning',
+        'Tech Consulting', 'Hardware Repair', 'Network Services', 'Tech Training', 'Startup'
+      ],
+      automotive: [
+        'Auto Repair', 'Oil Change', 'Tire Service', 'Car Wash', 'Auto Detailing',
+        'Body Shop', 'Mechanic', 'Auto Parts', 'Car Rental', 'Auto Insurance',
+        'Vehicle Inspection', 'Transmission', 'Brake Service', 'Engine Repair', 'Auto Sales'
+      ],
+      beauty: [
+        'Hair Styling', 'Hair Color', 'Hair Extensions', 'Facial', 'Skincare',
+        'Makeup', 'Eyebrows', 'Eyelashes', 'Nail Art', 'Manicure',
+        'Pedicure', 'Massage', 'Spa Treatment', 'Anti-Aging', 'Bridal Beauty'
+      ],
+      fitness: [
+        'Personal Training', 'Group Fitness', 'Yoga', 'Pilates', 'CrossFit',
+        'Swimming', 'Tennis', 'Golf', 'Martial Arts', 'Dance Fitness',
+        'Cycling', 'Running', 'Weight Training', 'Cardio', 'Sports Coaching'
+      ],
+      travel: [
+        'Hotels', 'Vacation Rentals', 'Travel Agency', 'Tour Guide', 'Airport Shuttle',
+        'Car Rental', 'Travel Insurance', 'Cruise', 'Adventure Tours', 'City Tours',
+        'Restaurant Tours', 'Wine Tours', 'Photography Tours', 'Cultural Tours', 'Eco Tours'
+      ],
+      finance: [
+        'Banking', 'Investment', 'Insurance', 'Tax Services', 'Financial Planning',
+        'Credit Repair', 'Loan Services', 'Mortgage', 'Real Estate', 'Accounting',
+        'Bookkeeping', 'Payroll Services', 'Business Consulting', 'Retirement Planning', 'Estate Planning'
+      ],
+      'real-estate': [
+        'Residential Sales', 'Commercial Sales', 'Property Management', 'Real Estate Investment', 'Home Staging',
+        'Property Appraisal', 'Real Estate Law', 'Mortgage Broker', 'Home Inspection', 'Property Development',
+        'Rental Properties', 'Luxury Homes', 'First-Time Buyers', 'Relocation Services', 'Property Marketing'
+      ],
+      'energy': [
+        'Solar Installation', 'Energy Efficiency', 'HVAC Services', 'Electrical Services', 'Plumbing',
+        'Home Insulation', 'Smart Home Technology', 'Energy Audits', 'Renewable Energy', 'Utility Services',
+        'Generator Installation', 'Energy Storage', 'Green Building', 'Energy Consulting', 'Maintenance'
+      ],
+      other: [
+        'Custom Services', 'Specialized', 'Unique', 'Boutique', 'Artisan',
+        'Handmade', 'Local', 'Family-Owned', 'Eco-Friendly', 'Sustainable',
+        'Innovative', 'Traditional', 'Modern', 'Vintage', 'Professional'
+      ]
+    };
+    return tagMap[category] || [];
+  };
 
   // Load vendor data from API
   useEffect(() => {
@@ -170,12 +254,14 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
 
         setVendorData(transformedData);
         setFormData(transformedData);
+        setSelectedCategory(transformedData.category || '');
       } else {
         message.error('Failed to load vendor data');
         // Fallback to mock data
         const mockData = getMockVendorData();
         setVendorData(mockData);
         setFormData(mockData);
+        setSelectedCategory(mockData.category || '');
       }
     } catch (error) {
       console.error('Error loading vendor data:', error);
@@ -184,6 +270,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       const mockData = getMockVendorData();
       setVendorData(mockData);
       setFormData(mockData);
+      setSelectedCategory(mockData.category || '');
     } finally {
       setLoading(false);
     }
@@ -210,7 +297,8 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     websiteLink: 'https://techsolutionspro.com',
     address: '123 Tech Street, San Francisco, CA 94105',
     phoneNumber: '+1 (555) 234-5678',
-    category: 'Technology Services',
+    category: 'technology',
+    tags: ['Software Development', 'IT Support', 'Web Design', 'Tech Consulting'],
     // Discount information (core of the app)
     pricingTier: '$$$',
     discounts: [
@@ -363,21 +451,82 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             {isEditing ? (
               <Select
                 value={formData.category}
-                onChange={(value) => handleInputChange('category', value)}
-                placeholder="Select category"
+                onChange={(value) => {
+                  handleInputChange('category', value);
+                  setSelectedCategory(value);
+                }}
+                placeholder="Select or search category"
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
                 style={{ width: '100%' }}
-              >
-                <Option value="technology">Technology Services</Option>
-                <Option value="marketing">Marketing & Advertising</Option>
-                <Option value="consulting">Consulting</Option>
-                <Option value="manufacturing">Manufacturing</Option>
-                <Option value="retail">Retail</Option>
-                <Option value="healthcare">Healthcare</Option>
-                <Option value="education">Education</Option>
-                <Option value="other">Other</Option>
-              </Select>
+                options={[
+                  { value: 'restaurant', label: 'Restaurant' },
+                  { value: 'retail', label: 'Retail' },
+                  { value: 'service', label: 'Service' },
+                  { value: 'entertainment', label: 'Entertainment' },
+                  { value: 'healthcare', label: 'Healthcare' },
+                  { value: 'education', label: 'Education' },
+                  { value: 'technology', label: 'Technology' },
+                  { value: 'automotive', label: 'Automotive' },
+                  { value: 'beauty', label: 'Beauty & Wellness' },
+                  { value: 'fitness', label: 'Fitness & Sports' },
+                  { value: 'travel', label: 'Travel & Tourism' },
+                  { value: 'finance', label: 'Finance & Insurance' },
+                  { value: 'real-estate', label: 'Real Estate' },
+                  { value: 'legal', label: 'Legal Services' },
+                  { value: 'consulting', label: 'Consulting' },
+                  { value: 'manufacturing', label: 'Manufacturing' },
+                  { value: 'construction', label: 'Construction' },
+                  { value: 'agriculture', label: 'Agriculture' },
+                  { value: 'energy', label: 'Energy & Utilities' },
+                  { value: 'other', label: 'Other' }
+                ]}
+              />
             ) : (
               <Tag color="blue">{vendorData.category}</Tag>
+            )}
+          </div>
+        </Col>
+      </Row>
+      
+      <Row gutter={[24, 16]}>
+        <Col span={24}>
+          <div className="form-field">
+            <label>Tags</label>
+            {isEditing ? (
+              <Select
+                mode="multiple"
+                value={formData.tags || []}
+                onChange={(value) => handleInputChange('tags', value)}
+                placeholder="Select relevant tags"
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                options={getTagsForCategory(selectedCategory).map(tag => ({
+                  value: tag,
+                  label: tag
+                }))}
+                disabled={!selectedCategory}
+                notFoundContent={selectedCategory ? "No tags found" : "Please select a category first"}
+                style={{ width: '100%' }}
+              />
+            ) : (
+              <div>
+                {vendorData.tags && vendorData.tags.length > 0 ? (
+                  vendorData.tags.map((tag: string, index: number) => (
+                    <Tag key={index} color="orange" style={{ marginBottom: '4px' }}>
+                      {tag}
+                    </Tag>
+                  ))
+                ) : (
+                  <Text type="secondary">No tags selected</Text>
+                )}
+              </div>
             )}
           </div>
         </Col>

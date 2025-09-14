@@ -9,7 +9,8 @@ import {
   TagOutlined,
   CalendarOutlined,
   CheckCircleFilled,
-  DollarOutlined
+  DollarOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI } from '../services/api';
 import './InviteVendorModal.css';
@@ -17,6 +18,7 @@ import './InviteVendorModal.css';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
+const { Dragger } = Upload;
 
 interface InviteVendorModalProps {
   visible: boolean;
@@ -38,6 +40,116 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   const [currentDiscount, setCurrentDiscount] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoFileList, setLogoFileList] = useState<any[]>([]);
+  const [productImagesFileList, setProductImagesFileList] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Predefined categories for consistency
+  const categoryOptions = [
+    { value: 'restaurant', label: 'Restaurant' },
+    { value: 'retail', label: 'Retail' },
+    { value: 'service', label: 'Service' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'healthcare', label: 'Healthcare' },
+    { value: 'education', label: 'Education' },
+    { value: 'technology', label: 'Technology' },
+    { value: 'automotive', label: 'Automotive' },
+    { value: 'beauty', label: 'Beauty & Wellness' },
+    { value: 'fitness', label: 'Fitness & Sports' },
+    { value: 'travel', label: 'Travel & Tourism' },
+    { value: 'finance', label: 'Finance & Insurance' },
+    { value: 'real-estate', label: 'Real Estate' },
+    { value: 'legal', label: 'Legal Services' },
+    { value: 'consulting', label: 'Consulting' },
+    { value: 'manufacturing', label: 'Manufacturing' },
+    { value: 'construction', label: 'Construction' },
+    { value: 'agriculture', label: 'Agriculture' },
+    { value: 'energy', label: 'Energy & Utilities' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  // Predefined tags for each category
+  const getTagsForCategory = (category: string) => {
+    const tagMap: { [key: string]: string[] } = {
+      restaurant: [
+        'Fine Dining', 'Casual Dining', 'Fast Food', 'Cafe', 'Coffee Shop',
+        'Pizza', 'Italian', 'Mexican', 'Asian', 'American', 'Seafood',
+        'Vegetarian', 'Vegan', 'Gluten-Free', 'Family-Friendly', 'Date Night'
+      ],
+      retail: [
+        'Clothing', 'Shoes', 'Accessories', 'Electronics', 'Home & Garden',
+        'Books', 'Toys', 'Jewelry', 'Beauty Products', 'Sports Equipment',
+        'Furniture', 'Art & Crafts', 'Pet Supplies', 'Gift Shop', 'Outlet'
+      ],
+      service: [
+        'Cleaning', 'Laundry', 'Dry Cleaning', 'Pet Grooming', 'Hair Salon',
+        'Nail Salon', 'Massage', 'Spa', 'Photography', 'Event Planning',
+        'Moving', 'Storage', 'Repair', 'Consulting', 'Legal Services'
+      ],
+      entertainment: [
+        'Movie Theater', 'Bowling', 'Arcade', 'Escape Room', 'Mini Golf',
+        'Concert Venue', 'Comedy Club', 'Nightclub', 'Bar', 'Pub',
+        'Live Music', 'Dance Club', 'Karaoke', 'Gaming', 'Theater'
+      ],
+      healthcare: [
+        'Primary Care', 'Dentist', 'Optometrist', 'Dermatologist', 'Chiropractor',
+        'Physical Therapy', 'Mental Health', 'Pediatric', 'Geriatric', 'Urgent Care',
+        'Specialist', 'Pharmacy', 'Medical Equipment', 'Wellness', 'Preventive Care'
+      ],
+      education: [
+        'Tutoring', 'Language Learning', 'Music Lessons', 'Art Classes', 'Dance Classes',
+        'Cooking Classes', 'Computer Training', 'Test Prep', 'Early Childhood', 'Adult Education',
+        'Online Learning', 'Vocational Training', 'Certification', 'Workshops', 'Summer Camps'
+      ],
+      technology: [
+        'Software Development', 'IT Support', 'Web Design', 'Digital Marketing', 'Cybersecurity',
+        'Cloud Services', 'Mobile Apps', 'E-commerce', 'Data Analytics', 'AI & Machine Learning',
+        'Tech Consulting', 'Hardware Repair', 'Network Services', 'Tech Training', 'Startup'
+      ],
+      automotive: [
+        'Auto Repair', 'Oil Change', 'Tire Service', 'Car Wash', 'Auto Detailing',
+        'Body Shop', 'Mechanic', 'Auto Parts', 'Car Rental', 'Auto Insurance',
+        'Vehicle Inspection', 'Transmission', 'Brake Service', 'Engine Repair', 'Auto Sales'
+      ],
+      beauty: [
+        'Hair Styling', 'Hair Color', 'Hair Extensions', 'Facial', 'Skincare',
+        'Makeup', 'Eyebrows', 'Eyelashes', 'Nail Art', 'Manicure',
+        'Pedicure', 'Massage', 'Spa Treatment', 'Anti-Aging', 'Bridal Beauty'
+      ],
+      fitness: [
+        'Personal Training', 'Group Fitness', 'Yoga', 'Pilates', 'CrossFit',
+        'Swimming', 'Tennis', 'Golf', 'Martial Arts', 'Dance Fitness',
+        'Cycling', 'Running', 'Weight Training', 'Cardio', 'Sports Coaching'
+      ],
+      travel: [
+        'Hotels', 'Vacation Rentals', 'Travel Agency', 'Tour Guide', 'Airport Shuttle',
+        'Car Rental', 'Travel Insurance', 'Cruise', 'Adventure Tours', 'City Tours',
+        'Restaurant Tours', 'Wine Tours', 'Photography Tours', 'Cultural Tours', 'Eco Tours'
+      ],
+      finance: [
+        'Banking', 'Investment', 'Insurance', 'Tax Services', 'Financial Planning',
+        'Credit Repair', 'Loan Services', 'Mortgage', 'Real Estate', 'Accounting',
+        'Bookkeeping', 'Payroll Services', 'Business Consulting', 'Retirement Planning', 'Estate Planning'
+      ],
+      'real-estate': [
+        'Residential Sales', 'Commercial Sales', 'Property Management', 'Real Estate Investment', 'Home Staging',
+        'Property Appraisal', 'Real Estate Law', 'Mortgage Broker', 'Home Inspection', 'Property Development',
+        'Rental Properties', 'Luxury Homes', 'First-Time Buyers', 'Relocation Services', 'Property Marketing'
+      ],
+      'energy': [
+        'Solar Installation', 'Energy Efficiency', 'HVAC Services', 'Electrical Services', 'Plumbing',
+        'Home Insulation', 'Smart Home Technology', 'Energy Audits', 'Renewable Energy', 'Utility Services',
+        'Generator Installation', 'Energy Storage', 'Green Building', 'Energy Consulting', 'Maintenance'
+      ],
+      other: [
+        'Custom Services', 'Specialized', 'Unique', 'Boutique', 'Artisan',
+        'Handmade', 'Local', 'Family-Owned', 'Eco-Friendly', 'Sustainable',
+        'Innovative', 'Traditional', 'Modern', 'Vintage', 'Professional'
+      ]
+    };
+    return tagMap[category] || [];
+  };
+
   const steps = [
     {
       title: 'Basic Details',
@@ -58,27 +170,47 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
 
   const handleNext = async () => {
     try {
+      console.log('Current step:', currentStep);
+      console.log('Form values before validation:', form.getFieldsValue());
+      
       if (currentStep === 0) {
         const values = await form.validateFields();
+        console.log('Step 0 validation passed, values:', values);
         setBasicDetails(values);
         setCurrentStep(1);
       } else if (currentStep === 1) {
         const values = await form.validateFields();
+        console.log('Step 1 validation passed, values:', values);
         setPriceDiscounts(values);
         setCurrentStep(2);
       } else {
         const values = await form.validateFields();
+        console.log('Step 2 validation passed, values:', values);
         setWorkSchedule(values);
         await handleSubmit({ ...basicDetails, ...priceDiscounts, ...values });
       }
     } catch (error) {
-      console.log('Validation failed:', error);
+      console.error('Validation failed:', error);
+      if (error && typeof error === 'object' && 'errorFields' in error && Array.isArray((error as any).errorFields) && (error as any).errorFields.length > 0) {
+        const firstError = (error as any).errorFields[0];
+        message.error(`${firstError.name.join('.')}: ${firstError.errors[0]}`);
+      } else {
+        message.error('Please fill in all required fields');
+      }
     }
   };
 
   const handleSubmit = async (allData: any) => {
     setSaving(true);
     try {
+      console.log('Submitting vendor data:', allData);
+      
+      // Get uploaded file URLs
+      const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
+      const productImageUrls = productImagesFileList
+        .filter(file => file.response && file.response.url)
+        .map(file => file.response.url);
+
       // Transform data to API format
       const vendorData = {
         name: allData.companyName,
@@ -86,6 +218,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         phone: allData.phoneNumber,
         website: allData.websiteLink,
         category: allData.category,
+        tags: allData.tags || [],
+        description: allData.description || '',
+        logo_url: logoUrl,
+        product_images: productImageUrls,
         address: {
           street: allData.address || '',
           city: allData.city || '',
@@ -110,40 +246,46 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         }
       };
 
+      console.log('Sending vendor data to API:', vendorData);
+
       // Create vendor
       const vendorResponse = await vendorAPI.createVendor(vendorData);
+      console.log('Vendor API response:', vendorResponse);
+      
       if (vendorResponse.success) {
         const vendorId = vendorResponse.data.id;
+        console.log('Vendor created with ID:', vendorId);
         
-        // Create discounts for this vendor
-        if (discounts.length > 0) {
-          for (const discount of discounts) {
-            const discountData = {
-              vendor_id: vendorId,
-              name: discount.discountName,
-              description: discount.discountOn,
-              discount_type: discount.discountType,
-              discount_value: parseFloat(discount.discountValue),
-              min_purchase: discount.minPurchase ? parseFloat(discount.minPurchase) : undefined,
-              max_discount: discount.maxDiscount ? parseFloat(discount.maxDiscount) : undefined,
-              start_date: new Date().toISOString(),
-              end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-              is_active: true
-            };
-            
-            await discountAPI.createDiscount(discountData);
-          }
+        // Create discounts for this vendor if any were provided
+        if (allData.discountName && allData.discountType && allData.discountValue) {
+          const discountData = {
+            vendor_id: vendorId,
+            name: allData.discountName,
+            description: allData.discountOn || allData.discountName,
+            discount_type: allData.discountType,
+            discount_value: parseFloat(allData.discountValue),
+            min_purchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
+            max_discount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
+            start_date: new Date().toISOString(),
+            end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+            is_active: true
+          };
+          
+          console.log('Creating discount:', discountData);
+          const discountResponse = await discountAPI.createDiscount(discountData);
+          console.log('Discount API response:', discountResponse);
         }
         
         message.success('Vendor created successfully!');
         onSubmit(allData);
         handleCancel();
       } else {
+        console.error('Vendor creation failed:', vendorResponse);
         message.error('Failed to create vendor. Please try again.');
       }
     } catch (error) {
       console.error('Error creating vendor:', error);
-      message.error('Failed to create vendor. Please try again.');
+      message.error(`Failed to create vendor: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setSaving(false);
     }
@@ -201,7 +343,114 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     setBasicDetails({});
     setPriceDiscounts({});
     setWorkSchedule({});
+    setLogoFileList([]);
+    setProductImagesFileList([]);
     onCancel();
+  };
+
+  // Upload handlers
+  const handleLogoUpload = (info: any) => {
+    let newFileList = [...info.fileList];
+    newFileList = newFileList.slice(-1); // Only keep the last file
+    setLogoFileList(newFileList);
+    
+    // Set form value for validation
+    if (newFileList.length > 0 && newFileList[0].status === 'done') {
+      form.setFieldsValue({ logo: newFileList[0].response?.url || newFileList[0].name });
+    } else if (newFileList.length > 0) {
+      form.setFieldsValue({ logo: newFileList[0].name });
+    }
+    
+    if (info.file.status === 'done') {
+      message.success(`${info.file.name} file uploaded successfully`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  };
+
+  const handleProductImagesUpload = (info: any) => {
+    let newFileList = [...info.fileList];
+    newFileList = newFileList.slice(-5); // Keep up to 5 files
+    setProductImagesFileList(newFileList);
+    
+    // Set form value for validation
+    const uploadedFiles = newFileList.filter(file => file.status === 'done');
+    if (uploadedFiles.length > 0) {
+      form.setFieldsValue({ productImages: uploadedFiles.map(file => file.response?.url || file.name) });
+    }
+    
+    if (info.file.status === 'done') {
+      message.success(`${info.file.name} file uploaded successfully`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  };
+
+  const uploadProps = {
+    name: 'file',
+    multiple: false,
+    customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
+      try {
+        console.log('Uploading file:', file.name, 'Type:', file.type);
+        
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Upload to the correct endpoint
+        const response = await fetch('http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin/upload', {
+          method: 'POST',
+          headers: {
+            'X-Admin-Secret': 'test-key'
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Upload failed: ${response.status} ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Upload response:', result);
+        
+        onSuccess({
+          url: result.url || result.fileUrl,
+          name: file.name,
+          status: 'done'
+        });
+        
+        message.success(`${file.name} uploaded to S3 successfully`);
+        console.log('Real S3 upload completed:', result.url || result.fileUrl);
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        onError(error);
+        message.error(`${file.name} upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    },
+    beforeUpload: (file: any) => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        message.error('Image must be smaller than 10MB!');
+        return false;
+      }
+      return true;
+    },
+    onChange: (info: any) => {
+      if (info.file.status === 'done') {
+        console.log('Upload completed:', info.file.name);
+      } else if (info.file.status === 'error') {
+        console.error('Upload error:', info.file.error);
+      } else if (info.file.status === 'uploading') {
+        console.log('Uploading:', info.file.name);
+      }
+    },
   };
 
   const renderStepContent = () => {
@@ -277,22 +526,39 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                   label="Category *"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
-                  <Select placeholder="Select category">
-                    <Option value="restaurant">Restaurant</Option>
-                    <Option value="retail">Retail</Option>
-                    <Option value="service">Service</Option>
-                    <Option value="entertainment">Entertainment</Option>
-                    <Option value="other">Other</Option>
-                  </Select>
+                  <Select 
+                    placeholder="Select or search category"
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={categoryOptions}
+                    onChange={(value) => setSelectedCategory(value)}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="tags"
-                  label="Tags *"
-                  rules={[{ required: true, message: 'Please enter tags' }]}
+                  label="Tags"
+                  rules={[{ required: false, message: 'Please select tags' }]}
                 >
-                  <Input placeholder="Enter tags" />
+                  <Select
+                    mode="multiple"
+                    placeholder="Select relevant tags"
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={getTagsForCategory(selectedCategory).map(tag => ({
+                      value: tag,
+                      label: tag
+                    }))}
+                    disabled={!selectedCategory}
+                    notFoundContent={selectedCategory ? "No tags found" : "Please select a category first"}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -310,29 +576,48 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             <Divider />
             <Row gutter={[24, 16]}>
               <Col span={12}>
-                <div className="upload-logo-section">
-                  <Title level={5}>Upload Logo *</Title>
-                  <div className="upload-placeholder">
-                    <div className="placeholder-icon">👤</div>
-                    <Text>Recommended size image (1080px X 1080px)</Text>
-                  </div>
-                  <Button className="upload-btn" icon={<UploadOutlined />}>
-                    Upload Logo
-                  </Button>
-                </div>
+                <Form.Item
+                  name="logo"
+                  label="Upload Logo"
+                  rules={[{ required: false, message: 'Please upload a logo' }]}
+                >
+                  <Dragger
+                    {...uploadProps}
+                    fileList={logoFileList}
+                    onChange={handleLogoUpload}
+                    className="logo-upload"
+                  >
+                    <p className="ant-upload-drag-icon">
+                      <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">Click or drag logo to this area to upload</p>
+                    <p className="ant-upload-hint">
+                      Recommended size: 1080px × 1080px. Max file size: 10MB
+                    </p>
+                  </Dragger>
+                </Form.Item>
               </Col>
               <Col span={12}>
-                <div className="upload-images-section">
-                  <Title level={5}>Upload Product Images</Title>
-                  <Text>Upload min of 3 additional images</Text>
-                  <div className="upload-placeholder large">
-                    <div className="placeholder-icon">☁️</div>
-                    <Text>Upload or drag images</Text>
-                  </div>
-                  <Button className="upload-btn" icon={<UploadOutlined />}>
-                    Upload Images
-                  </Button>
-                </div>
+                <Form.Item
+                  name="productImages"
+                  label="Upload Product Images"
+                >
+                  <Dragger
+                    {...uploadProps}
+                    multiple={true}
+                    fileList={productImagesFileList}
+                    onChange={handleProductImagesUpload}
+                    className="product-images-upload"
+                  >
+                    <p className="ant-upload-drag-icon">
+                      <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">Click or drag images to this area to upload</p>
+                    <p className="ant-upload-hint">
+                      Upload minimum 3 additional images. Max 5 files, 10MB each
+                    </p>
+                  </Dragger>
+                </Form.Item>
               </Col>
             </Row>
           </div>
@@ -348,8 +633,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountName"
-                  label="Discount Name *"
-                  rules={[{ required: true, message: 'Please enter discount name' }]}
+                  label="Discount Name"
+                  rules={[{ required: false, message: 'Please enter discount name' }]}
                 >
                   <Input placeholder="e.g., Summer Special, Happy Hour" />
                 </Form.Item>
@@ -357,8 +642,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountType"
-                  label="Discount Type *"
-                  rules={[{ required: true, message: 'Please select discount type' }]}
+                  label="Discount Type"
+                  rules={[{ required: false, message: 'Please select discount type' }]}
                 >
                   <Select placeholder="Select discount type">
                     <Option value="free">Free</Option>
@@ -375,8 +660,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountValue"
-                  label="Discount Value *"
-                  rules={[{ required: true, message: 'Please enter discount value' }]}
+                  label="Discount Value"
+                  rules={[{ required: false, message: 'Please enter discount value' }]}
                 >
                   <Input 
                     placeholder={form.getFieldValue('discountType') === 'percentage' ? 'e.g., 20' : 
@@ -390,8 +675,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountOn"
-                  label="Discount On *"
-                  rules={[{ required: true, message: 'Please specify what the discount applies to' }]}
+                  label="Discount On"
+                  rules={[{ required: false, message: 'Please specify what the discount applies to' }]}
                 >
                   <Input placeholder="e.g., appetizers, desserts, clothing items, services" />
                 </Form.Item>
@@ -403,8 +688,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="frequency"
-                  label="Monthly Frequency *"
-                  rules={[{ required: true, message: 'Please select monthly frequency' }]}
+                  label="Monthly Frequency"
+                  rules={[{ required: false, message: 'Please select monthly frequency' }]}
                 >
                   <Select placeholder="How many times per month can users get this discount?">
                     <Option value="1">1 time per month</Option>
@@ -419,8 +704,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="promoCode"
-                  label="Promo Code *"
-                  rules={[{ required: true, message: 'Please enter promo code' }]}
+                  label="Promo Code"
+                  rules={[{ required: false, message: 'Please enter promo code' }]}
                 >
                   <Input placeholder="e.g., SUMMER20, HAPPYHOUR" />
                 </Form.Item>
