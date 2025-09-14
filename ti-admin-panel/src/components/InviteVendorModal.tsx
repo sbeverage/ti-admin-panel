@@ -191,10 +191,13 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       }
     } catch (error) {
       console.error('Validation failed:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       if (error && typeof error === 'object' && 'errorFields' in error && Array.isArray((error as any).errorFields) && (error as any).errorFields.length > 0) {
         const firstError = (error as any).errorFields[0];
+        console.error('First validation error:', firstError);
         message.error(`${firstError.name.join('.')}: ${firstError.errors[0]}`);
       } else {
+        console.error('Unknown validation error:', error);
         message.error('Please fill in all required fields');
       }
     }
@@ -204,6 +207,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     setSaving(true);
     try {
       console.log('Submitting vendor data:', allData);
+      console.log('Logo file list:', logoFileList);
+      console.log('Product images file list:', productImagesFileList);
       
       // Get uploaded file URLs
       const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
@@ -249,6 +254,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       console.log('Sending vendor data to API:', vendorData);
 
       // Create vendor
+      console.log('About to call vendorAPI.createVendor with:', vendorData);
       const vendorResponse = await vendorAPI.createVendor(vendorData);
       console.log('Vendor API response:', vendorResponse);
       

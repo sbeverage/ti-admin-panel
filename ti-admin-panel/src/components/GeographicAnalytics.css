@@ -17,8 +17,18 @@
 
 .standard-header .header-left .ant-typography {
   color: #324E58;
-  margin: 0;
+  margin: 0 !important;
   line-height: 1.2;
+}
+
+.standard-header .page-title {
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.standard-header .page-subtitle {
+  margin: 0 !important;
+  margin-top: 4px !important;
 }
 
 .standard-header .ant-typography {
