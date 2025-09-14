@@ -68,7 +68,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <Button 
           type="text" 
-          onClick={handleLogout}
+          onClick={() => logout()}
           style={{ 
             color: '#ffffff', 
             border: 'none', 
