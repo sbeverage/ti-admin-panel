@@ -50,6 +50,9 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
                   className="login-logo"
                 />
               </div>
+              <Text className="login-title">
+                THRIVE INITIATIVE
+              </Text>
               <Text className="login-subtitle">
                 Change4Good.org
               </Text>

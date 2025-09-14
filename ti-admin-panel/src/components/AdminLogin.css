@@ -55,6 +55,13 @@
   letter-spacing: 1px;
 }
 
+.login-title {
+  color: #333333 !important;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
 .login-subtitle {
   color: #DB8633 !important;
   font-size: 16px;
