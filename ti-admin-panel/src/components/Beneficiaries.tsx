@@ -45,6 +45,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
 import BeneficiaryProfile from './BeneficiaryProfile';
+import UserProfile from './UserProfile';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Beneficiaries.css';
@@ -613,14 +614,7 @@ const Beneficiaries: React.FC = () => {
           onClick={handleMenuClick}
         />
 
-        <div className="standard-user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="standard-user-info">
-            <Text strong>Stephanie Beverage</Text>
-            <Text type="secondary">Admin</Text>
-          </div>
-          <Button type="text" icon={<MoreOutlined />} />
-        </div>
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       <Layout className="standard-main-content">

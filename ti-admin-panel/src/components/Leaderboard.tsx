@@ -20,6 +20,7 @@ import {
   GlobalOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import UserProfile from './UserProfile';
 import './Leaderboard.css';
 
 const { Title, Text } = Typography;
@@ -396,13 +397,7 @@ const Leaderboard: React.FC = () => {
           onClick={handleMenuClick}
         />
 
-        <div className="user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="user-info">
-            <Text strong>Stephanie Beverage</Text>
-          </div>
-          <Button type="text" icon={<MoreOutlined />} />
-        </div>
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       <Layout className="main-content">

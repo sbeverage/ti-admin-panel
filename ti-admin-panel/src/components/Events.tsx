@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
@@ -427,13 +428,7 @@ const Events: React.FC = () => {
           onClick={handleMenuClick}
         />
 
-        <div className="user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="user-info">
-            <Text strong>Stephanie Beverage</Text>
-          </div>
-          <Button type="text" icon={<MoreOutlined />} />
-        </div>
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       {/* Main Content */}

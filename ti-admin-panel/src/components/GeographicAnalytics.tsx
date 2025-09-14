@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import UserProfile from './UserProfile';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -481,14 +482,7 @@ const GeographicAnalytics: React.FC = () => {
           onClick={handleMenuClick}
           className="standard-menu"
         />
-        <div className="standard-user-profile">
-          <Avatar size={40} icon={<UserOutlined />} />
-          <div className="standard-user-info">
-            <Text strong>Stephanie Beverage</Text>
-            <Text type="secondary">Admin</Text>
-          </div>
-          <Button type="text" icon={<MoreOutlined />} />
-        </div>
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       <Layout className="standard-main-content">
