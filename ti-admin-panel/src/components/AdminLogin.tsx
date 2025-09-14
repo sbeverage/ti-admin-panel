@@ -10,7 +10,7 @@ interface LoginFormData {
   password: string;
 }
 
-const AdminLogin: React.FC<{ onLogin: (isAuthenticated: boolean) => void }> = ({ onLogin }) => {
+const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -26,7 +26,7 @@ const AdminLogin: React.FC<{ onLogin: (isAuthenticated: boolean) => void }> = ({
         message.success('Login successful!');
         localStorage.setItem('admin_authenticated', 'true');
         localStorage.setItem('admin_username', values.username);
-        onLogin(true);
+        onLogin(values.username);
       } else {
         message.error('Invalid username or password');
       }
