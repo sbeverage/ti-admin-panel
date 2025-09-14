@@ -53,9 +53,6 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               <Text className="login-title">
                 THRIVE INITIATIVE
               </Text>
-              <Text className="login-subtitle">
-                Change4Good.org
-              </Text>
               <Title level={3} className="login-heading">
                 Admin Login
               </Title>
