@@ -39,7 +39,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       icon: <SettingOutlined />,
     },
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
     {
       key: 'logout',
