@@ -27,6 +27,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
     });
   };
 
+  const handleMenuClick = ({ key }: { key: string }) => {
+    console.log('Menu item clicked:', key);
+    if (key === 'logout') {
+      console.log('Logout clicked, showing confirmation modal');
+      handleLogout();
+    } else if (key === 'profile') {
+      // Handle profile view
+      console.log('View Profile clicked');
+    } else if (key === 'settings') {
+      // Handle settings
+      console.log('Account Settings clicked');
+    }
+  };
+
   const userMenuItems = [
     {
       key: 'profile',
@@ -46,7 +60,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       label: 'Sign Out',
       icon: <LogoutOutlined />,
       danger: true,
-      onClick: handleLogout,
     },
   ];
 
@@ -58,7 +71,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
         {showRole && <Text type="secondary">Admin</Text>}
       </div>
       <Dropdown
-        menu={{ items: userMenuItems }}
+        menu={{ items: userMenuItems, onClick: handleMenuClick }}
         trigger={['click']}
         placement="topRight"
         arrow
@@ -67,6 +80,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
           type="text" 
           icon={<MoreOutlined />}
           className="user-menu-button"
+          onClick={(e) => {
+            console.log('3 dots button clicked');
+            e.stopPropagation();
+          }}
         />
       </Dropdown>
     </div>
