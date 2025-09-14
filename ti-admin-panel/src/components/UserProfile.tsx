@@ -15,21 +15,35 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
 
   const handleLogout = () => {
     console.log('handleLogout function called');
-    Modal.confirm({
-      title: 'Sign Out',
-      content: 'Are you sure you want to sign out?',
-      okText: 'Sign Out',
-      cancelText: 'Cancel',
-      okType: 'danger',
-      onOk: () => {
-        console.log('Logout confirmed, calling logout function');
-        logout();
-        message.success('Signed out successfully');
-      },
-      onCancel: () => {
-        console.log('Logout cancelled');
-      }
-    });
+    console.log('Current logout function:', logout);
+    console.log('Type of logout function:', typeof logout);
+    
+    try {
+      Modal.confirm({
+        title: 'Sign Out',
+        content: 'Are you sure you want to sign out?',
+        okText: 'Sign Out',
+        cancelText: 'Cancel',
+        okType: 'danger',
+        onOk: () => {
+          console.log('Logout confirmed, calling logout function');
+          try {
+            logout();
+            console.log('Logout function called successfully');
+            message.success('Signed out successfully');
+          } catch (error) {
+            console.error('Error calling logout function:', error);
+            message.error('Error during logout: ' + error);
+          }
+        },
+        onCancel: () => {
+          console.log('Logout cancelled');
+        }
+      });
+    } catch (error) {
+      console.error('Error in handleLogout:', error);
+      message.error('Error showing logout modal: ' + error);
+    }
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -81,11 +95,29 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
           size="small"
           onClick={() => {
             console.log('Direct logout test clicked');
+            console.log('About to call handleLogout');
             handleLogout();
           }}
           style={{ color: '#ff4d4f', fontSize: '12px' }}
         >
           Test Logout
+        </Button>
+        <Button 
+          type="text" 
+          size="small"
+          onClick={() => {
+            console.log('Direct logout without modal clicked');
+            console.log('Calling logout function directly');
+            try {
+              logout();
+              console.log('Direct logout completed');
+            } catch (error) {
+              console.error('Direct logout error:', error);
+            }
+          }}
+          style={{ color: '#52c41a', fontSize: '12px' }}
+        >
+          Direct Logout
         </Button>
         <Dropdown
           menu={{ items: userMenuItems, onClick: handleMenuClick }}
