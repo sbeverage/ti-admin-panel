@@ -14,6 +14,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
   const { logout, username } = useAuth();
 
   const handleLogout = () => {
+    console.log('handleLogout function called');
     Modal.confirm({
       title: 'Sign Out',
       content: 'Are you sure you want to sign out?',
@@ -21,39 +22,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       cancelText: 'Cancel',
       okType: 'danger',
       onOk: () => {
+        console.log('Logout confirmed, calling logout function');
         logout();
         message.success('Signed out successfully');
+      },
+      onCancel: () => {
+        console.log('Logout cancelled');
       }
     });
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
     console.log('Menu item clicked:', key);
-    if (key === 'logout') {
+    if (key === 'test') {
+      console.log('Test clicked - this should work!');
+      alert('Test click worked! The menu is functioning.');
+    } else if (key === 'logout') {
       console.log('Logout clicked, showing confirmation modal');
       handleLogout();
-    } else if (key === 'profile') {
-      // Handle profile view
-      console.log('View Profile clicked');
-    } else if (key === 'settings') {
-      // Handle settings
-      console.log('Account Settings clicked');
     }
   };
 
   const userMenuItems = [
     {
-      key: 'profile',
-      label: 'View Profile',
+      key: 'test',
+      label: 'Test Click',
       icon: <UserOutlined />,
-    },
-    {
-      key: 'settings',
-      label: 'Account Settings',
-      icon: <SettingOutlined />,
-    },
-    {
-      type: 'divider' as const,
     },
     {
       key: 'logout',

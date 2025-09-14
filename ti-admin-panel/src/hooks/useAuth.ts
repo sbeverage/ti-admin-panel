@@ -40,6 +40,7 @@ export const useAuth = () => {
   };
 
   const logout = () => {
+    console.log('useAuth logout function called');
     localStorage.removeItem('admin_authenticated');
     localStorage.removeItem('admin_username');
     setAuthState({
@@ -47,6 +48,7 @@ export const useAuth = () => {
       username: null,
       loading: false
     });
+    console.log('useAuth logout completed, user should be logged out');
   };
 
   return {
