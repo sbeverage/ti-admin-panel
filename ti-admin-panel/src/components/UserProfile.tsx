@@ -14,7 +14,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
   const { logout, username } = useAuth();
 
   const handleLogout = () => {
-    console.log('handleLogout function called');
     Modal.confirm({
       title: 'Sign Out',
       content: 'Are you sure you want to sign out?',
@@ -22,25 +21,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
       cancelText: 'Cancel',
       okType: 'danger',
       onOk: () => {
-        console.log('Logout confirmed, calling logout function');
         logout();
-      },
-      onCancel: () => {
-        console.log('Logout cancelled');
       }
     });
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    console.log('Menu item clicked:', key);
     if (key === 'logout') {
-      console.log('Logout clicked, showing confirmation modal');
       handleLogout();
     } else if (key === 'profile') {
-      console.log('View Profile clicked');
       // TODO: Navigate to profile page
     } else if (key === 'settings') {
-      console.log('Account Settings clicked');
       // TODO: Navigate to settings page
     }
   };
@@ -84,6 +75,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
           type="text" 
           icon={<MoreOutlined />}
           className="user-menu-button"
+          style={{ color: '#ffffff', border: 'none', background: 'transparent' }}
         />
       </Dropdown>
     </div>
