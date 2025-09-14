@@ -48,7 +48,9 @@ export const useAuth = () => {
       username: null,
       loading: false
     });
-    console.log('useAuth logout completed, user should be logged out');
+    console.log('useAuth logout completed, refreshing page to redirect to login');
+    // Force page refresh to redirect to login
+    window.location.reload();
   };
 
   return {

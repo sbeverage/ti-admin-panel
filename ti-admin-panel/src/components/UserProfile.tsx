@@ -34,29 +34,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ className = "user-profile", s
 
   const handleMenuClick = ({ key }: { key: string }) => {
     console.log('Menu item clicked:', key);
-    if (key === 'test') {
-      console.log('Test clicked - this should work!');
-      alert('Test click worked! The menu is functioning.');
-    } else if (key === 'test-logout') {
-      console.log('Test logout function clicked');
-      alert('Testing logout function directly...');
-      handleLogout();
-    } else if (key === 'logout') {
+    if (key === 'logout') {
       console.log('Logout clicked, showing confirmation modal');
       handleLogout();
+    } else if (key === 'profile') {
+      console.log('View Profile clicked');
+      // TODO: Navigate to profile page
+    } else if (key === 'settings') {
+      console.log('Account Settings clicked');
+      // TODO: Navigate to settings page
     }
   };
 
   const userMenuItems = [
     {
-      key: 'test',
-      label: 'Test Click',
+      key: 'profile',
+      label: 'View Profile',
       icon: <UserOutlined />,
     },
     {
-      key: 'test-logout',
-      label: 'Test Logout Function',
-      icon: <LogoutOutlined />,
+      key: 'settings',
+      label: 'Account Settings',
+      icon: <SettingOutlined />,
+    },
+    {
+      type: 'divider' as const,
     },
     {
       key: 'logout',
