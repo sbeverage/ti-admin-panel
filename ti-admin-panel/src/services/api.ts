@@ -1,7 +1,6 @@
-// API Configuration - Try HTTPS first, fallback to HTTP
+// API Configuration - Use HTTP since backend doesn't support HTTPS
 const API_CONFIG = {
-  baseURL: 'https://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
-  fallbackURL: 'http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
+  baseURL: 'http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
   headers: {
     'X-Admin-Secret': 'test-key',
     'Content-Type': 'application/json'
@@ -87,7 +86,6 @@ export const vendorAPI = {
     });
 
     try {
-      // Try HTTPS first with timeout
       const response = await Promise.race([
         fetch(`${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`, {
           headers: API_CONFIG.headers
@@ -101,25 +99,8 @@ export const vendorAPI = {
       
       return response.json();
     } catch (error) {
-      console.log('HTTPS failed quickly, trying HTTP fallback...', error);
-      try {
-        // Fallback to HTTP with timeout
-        const response = await Promise.race([
-          fetch(`${API_CONFIG.fallbackURL}/vendors?page=${page}&limit=${limit}`, {
-            headers: API_CONFIG.headers
-          }),
-          timeoutPromise
-        ]) as Response;
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return response.json();
-      } catch (fallbackError) {
-        console.log('Both HTTPS and HTTP failed, throwing error...', fallbackError);
-        throw fallbackError;
-      }
+      console.log('API call failed:', error);
+      throw error;
     }
   },
 
@@ -204,7 +185,6 @@ export const discountAPI = {
     });
 
     try {
-      // Try HTTPS first with timeout
       const response = await Promise.race([
         fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}/discounts`, {
           headers: API_CONFIG.headers
@@ -218,25 +198,8 @@ export const discountAPI = {
       
       return response.json();
     } catch (error) {
-      console.log('HTTPS failed for discounts, trying HTTP fallback...', error);
-      try {
-        // Fallback to HTTP with timeout
-        const response = await Promise.race([
-          fetch(`${API_CONFIG.fallbackURL}/vendors/${vendorId}/discounts`, {
-            headers: API_CONFIG.headers
-          }),
-          timeoutPromise
-        ]) as Response;
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return response.json();
-      } catch (fallbackError) {
-        console.log('Both HTTPS and HTTP failed for discounts, throwing error...', fallbackError);
-        throw fallbackError;
-      }
+      console.log('API call failed for discounts:', error);
+      throw error;
     }
   },
 
