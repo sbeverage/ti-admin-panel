@@ -77,9 +77,44 @@ const Vendor: React.FC = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error loading vendors:', error);
-      setError('Failed to load vendors from API. Please check your connection.');
-      setVendorsData([]);
-      setTotalVendors(0);
+      console.error('Error details:', error);
+      
+      // If API fails, show mock data temporarily
+      console.log('API failed, showing mock data as fallback');
+      const mockData = [
+        {
+          key: '1',
+          name: 'Sample Restaurant',
+          contactName: 'John Smith',
+          email: 'john@restaurant.com',
+          contact: '(555) 123-4567',
+          category: 'Restaurant',
+          cityState: 'New York, NY',
+          tier: '$$',
+          discount: 15,
+          active: true,
+          enabled: true,
+          avatar: 'S'
+        },
+        {
+          key: '2',
+          name: 'Fashion Store',
+          contactName: 'Jane Doe',
+          email: 'jane@fashion.com',
+          contact: '(555) 987-6543',
+          category: 'Retail',
+          cityState: 'Los Angeles, CA',
+          tier: '$$$',
+          discount: 20,
+          active: true,
+          enabled: true,
+          avatar: 'F'
+        }
+      ];
+      
+      setVendorsData(mockData);
+      setTotalVendors(mockData.length);
+      setError('API connection failed - showing sample data. Please check backend HTTPS support.');
     } finally {
       setLoading(false);
     }

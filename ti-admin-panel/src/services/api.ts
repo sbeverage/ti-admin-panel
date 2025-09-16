@@ -1,6 +1,7 @@
-// API Configuration
+// API Configuration - Try HTTPS first, fallback to HTTP
 const API_CONFIG = {
   baseURL: 'https://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
+  fallbackURL: 'http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
   headers: {
     'X-Admin-Secret': 'test-key',
     'Content-Type': 'application/json'
@@ -80,15 +81,30 @@ export interface PaginatedResponse<T> {
 export const vendorAPI = {
   // Get all vendors
   getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`, {
-      headers: API_CONFIG.headers
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      // Try HTTPS first
+      const response = await fetch(`${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`, {
+        headers: API_CONFIG.headers
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.log('HTTPS failed, trying HTTP fallback...', error);
+      // Fallback to HTTP
+      const response = await fetch(`${API_CONFIG.fallbackURL}/vendors?page=${page}&limit=${limit}`, {
+        headers: API_CONFIG.headers
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
     }
-    
-    return response.json();
   },
 
   // Get single vendor by ID
