@@ -198,16 +198,31 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
 
   const loadVendorData = async () => {
     setLoading(true);
+    
+    // Create timeout promise that rejects after 3 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 3000);
+    });
+
     try {
       const vendorIdNum = parseInt(vendorId);
+      console.log('Loading vendor profile data...');
+      console.time('Vendor Profile API Call');
       
-      // Load vendor data
-      const vendorResponse = await vendorAPI.getVendor(vendorIdNum);
+      // Load vendor data with timeout
+      const vendorResponse = await Promise.race([
+        vendorAPI.getVendor(vendorIdNum),
+        timeoutPromise
+      ]) as any;
+      
       if (vendorResponse.success) {
         const vendor = vendorResponse.data;
         
-        // Load discounts for this vendor
-        const discountsResponse = await discountAPI.getDiscountsByVendor(vendorIdNum);
+        // Load discounts for this vendor with timeout
+        const discountsResponse = await Promise.race([
+          discountAPI.getDiscountsByVendor(vendorIdNum),
+          timeoutPromise
+        ]) as any;
         const discounts = discountsResponse.success ? discountsResponse.data : [];
         
         // Transform API data to match our interface
@@ -264,7 +279,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         setSelectedCategory(mockData.category || '');
       }
     } catch (error) {
+      console.timeEnd('Vendor Profile API Call');
       console.error('Error loading vendor data:', error);
+      console.error('Error details:', error);
+      console.log('API failed, showing fallback vendor data');
       message.error('Failed to load vendor data. Using mock data.');
       // Fallback to mock data
       const mockData = getMockVendorData();

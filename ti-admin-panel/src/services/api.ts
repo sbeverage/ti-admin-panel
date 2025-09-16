@@ -198,15 +198,46 @@ export const discountAPI = {
 
   // Get discounts by vendor ID
   getDiscountsByVendor: async (vendorId: number): Promise<ApiResponse<Discount[]>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}/discounts`, {
-      headers: API_CONFIG.headers
+    // Create a timeout promise that rejects after 3 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 3000);
     });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+
+    try {
+      // Try HTTPS first with timeout
+      const response = await Promise.race([
+        fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}/discounts`, {
+          headers: API_CONFIG.headers
+        }),
+        timeoutPromise
+      ]) as Response;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.log('HTTPS failed for discounts, trying HTTP fallback...', error);
+      try {
+        // Fallback to HTTP with timeout
+        const response = await Promise.race([
+          fetch(`${API_CONFIG.fallbackURL}/vendors/${vendorId}/discounts`, {
+            headers: API_CONFIG.headers
+          }),
+          timeoutPromise
+        ]) as Response;
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (fallbackError) {
+        console.log('Both HTTPS and HTTP failed for discounts, throwing error...', fallbackError);
+        throw fallbackError;
+      }
     }
-    
-    return response.json();
   },
 
   // Get single discount by ID
