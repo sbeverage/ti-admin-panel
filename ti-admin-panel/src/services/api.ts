@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-  baseURL: 'http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
+  baseURL: 'https://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',
   headers: {
     'X-Admin-Secret': 'test-key',
     'Content-Type': 'application/json'

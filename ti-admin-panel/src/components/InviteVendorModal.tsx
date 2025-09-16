@@ -404,7 +404,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         formData.append('file', file);
         
         // Upload to the correct endpoint
-        const response = await fetch('http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin/upload', {
+        const response = await fetch('https://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin/upload', {
           method: 'POST',
           headers: {
             'X-Admin-Secret': 'test-key'
