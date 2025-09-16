@@ -49,37 +49,9 @@ const Vendor: React.FC = () => {
   const loadVendors = async () => {
     setLoading(true);
     setError(null);
-    try {
-      console.log('Loading vendors from API...');
-      const response = await vendorAPI.getVendors(currentPage, pageSize);
-      console.log('Vendor API response:', response);
-      if (response.success) {
-        // Transform API data to match our table structure
-        const transformedData = response.data.map((vendor: VendorType) => ({
-          key: vendor.id.toString(),
-          name: vendor.name,
-          contactName: vendor.email, // Using email as contact name for now
-          email: vendor.email,
-          contact: vendor.phone,
-          category: vendor.category,
-          cityState: `${vendor.address.city}, ${vendor.address.state}`,
-          tier: '$$', // Default tier, could be calculated based on data
-          discount: 10, // Default discount, should come from discounts API
-          active: true, // Default active status
-          enabled: true, // Default enabled status
-          avatar: vendor.name.charAt(0).toUpperCase()
-        }));
-        setVendorsData(transformedData);
-        setTotalVendors(response.pagination.total);
-      } else {
-        setError('Failed to load vendors');
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading vendors:', error);
-      console.error('Error details:', error);
-      
-      // If API fails, show mock data temporarily
+    
+    // Show mock data immediately as fallback
+    const showMockData = () => {
       console.log('API failed, showing mock data as fallback');
       const mockData = [
         {
@@ -156,9 +128,42 @@ const Vendor: React.FC = () => {
       
       setVendorsData(mockData);
       setTotalVendors(mockData.length);
-      setError(null); // Clear error to show the mock data
-    } finally {
+      setError(null);
       setLoading(false);
+    };
+
+    try {
+      console.log('Loading vendors from API...');
+      console.time('API Call'); // Start timing
+      const response = await vendorAPI.getVendors(currentPage, pageSize);
+      console.timeEnd('API Call'); // End timing
+      console.log('Vendor API response:', response);
+      if (response.success) {
+        // Transform API data to match our table structure
+        const transformedData = response.data.map((vendor: VendorType) => ({
+          key: vendor.id.toString(),
+          name: vendor.name,
+          contactName: vendor.email, // Using email as contact name for now
+          email: vendor.email,
+          contact: vendor.phone,
+          category: vendor.category,
+          cityState: `${vendor.address.city}, ${vendor.address.state}`,
+          tier: '$$', // Default tier, could be calculated based on data
+          discount: 10, // Default discount, should come from discounts API
+          active: true, // Default active status
+          enabled: true, // Default enabled status
+          avatar: vendor.name.charAt(0).toUpperCase()
+        }));
+        setVendorsData(transformedData);
+        setTotalVendors(response.pagination.total);
+      } else {
+        setError('Failed to load vendors');
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+      console.error('Error details:', error);
+      showMockData();
     }
   };
 

@@ -81,11 +81,19 @@ export interface PaginatedResponse<T> {
 export const vendorAPI = {
   // Get all vendors
   getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
+    // Create a timeout promise that rejects after 3 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 3000);
+    });
+
     try {
-      // Try HTTPS first
-      const response = await fetch(`${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`, {
-        headers: API_CONFIG.headers
-      });
+      // Try HTTPS first with timeout
+      const response = await Promise.race([
+        fetch(`${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`, {
+          headers: API_CONFIG.headers
+        }),
+        timeoutPromise
+      ]) as Response;
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -93,17 +101,25 @@ export const vendorAPI = {
       
       return response.json();
     } catch (error) {
-      console.log('HTTPS failed, trying HTTP fallback...', error);
-      // Fallback to HTTP
-      const response = await fetch(`${API_CONFIG.fallbackURL}/vendors?page=${page}&limit=${limit}`, {
-        headers: API_CONFIG.headers
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      console.log('HTTPS failed quickly, trying HTTP fallback...', error);
+      try {
+        // Fallback to HTTP with timeout
+        const response = await Promise.race([
+          fetch(`${API_CONFIG.fallbackURL}/vendors?page=${page}&limit=${limit}`, {
+            headers: API_CONFIG.headers
+          }),
+          timeoutPromise
+        ]) as Response;
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (fallbackError) {
+        console.log('Both HTTPS and HTTP failed, throwing error...', fallbackError);
+        throw fallbackError;
       }
-      
-      return response.json();
     }
   },
 
