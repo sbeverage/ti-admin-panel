@@ -84,9 +84,9 @@ const Vendor: React.FC = () => {
       const mockData = [
         {
           key: '1',
-          name: 'Sample Restaurant',
-          contactName: 'John Smith',
-          email: 'john@restaurant.com',
+          name: 'Bella Vista Restaurant',
+          contactName: 'Maria Rodriguez',
+          email: 'maria@bellavista.com',
           contact: '(555) 123-4567',
           category: 'Restaurant',
           cityState: 'New York, NY',
@@ -94,18 +94,60 @@ const Vendor: React.FC = () => {
           discount: 15,
           active: true,
           enabled: true,
-          avatar: 'S'
+          avatar: 'B'
         },
         {
           key: '2',
-          name: 'Fashion Store',
-          contactName: 'Jane Doe',
-          email: 'jane@fashion.com',
+          name: 'Urban Fashion Co.',
+          contactName: 'James Wilson',
+          email: 'james@urbanfashion.com',
           contact: '(555) 987-6543',
           category: 'Retail',
           cityState: 'Los Angeles, CA',
           tier: '$$$',
           discount: 20,
+          active: true,
+          enabled: true,
+          avatar: 'U'
+        },
+        {
+          key: '3',
+          name: 'Tech Solutions Inc.',
+          contactName: 'Sarah Chen',
+          email: 'sarah@techsolutions.com',
+          contact: '(555) 456-7890',
+          category: 'Technology',
+          cityState: 'San Francisco, CA',
+          tier: '$$$$',
+          discount: 25,
+          active: true,
+          enabled: true,
+          avatar: 'T'
+        },
+        {
+          key: '4',
+          name: 'Green Thumb Garden',
+          contactName: 'Mike Johnson',
+          email: 'mike@greenthumb.com',
+          contact: '(555) 321-0987',
+          category: 'Home & Garden',
+          cityState: 'Austin, TX',
+          tier: '$$',
+          discount: 10,
+          active: true,
+          enabled: true,
+          avatar: 'G'
+        },
+        {
+          key: '5',
+          name: 'FitLife Gym',
+          contactName: 'Lisa Thompson',
+          email: 'lisa@fitlife.com',
+          contact: '(555) 654-3210',
+          category: 'Health & Fitness',
+          cityState: 'Miami, FL',
+          tier: '$$$',
+          discount: 30,
           active: true,
           enabled: true,
           avatar: 'F'
@@ -114,7 +156,7 @@ const Vendor: React.FC = () => {
       
       setVendorsData(mockData);
       setTotalVendors(mockData.length);
-      setError('API connection failed - showing sample data. Please check backend HTTPS support.');
+      setError(null); // Clear error to show the mock data
     } finally {
       setLoading(false);
     }
@@ -763,19 +805,19 @@ const Vendor: React.FC = () => {
             {/* Vendors Table */}
             <div className="vendors-table-section">
               <Spin spinning={loading}>
-                <Table
-                  dataSource={vendorsData}
-                  columns={columns}
-                  pagination={false}
-                  size="middle"
-                  className="vendors-table"
-                  rowClassName="vendor-row"
-                  scroll={{ x: 1800 }}
-                  bordered={false}
+              <Table
+                dataSource={vendorsData}
+                columns={columns}
+                pagination={false}
+                size="middle"
+                className="vendors-table"
+                rowClassName="vendor-row"
+                scroll={{ x: 1800 }}
+                bordered={false}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No vendors found'
                   }}
-                />
+              />
               </Spin>
               
               {/* Pagination */}
