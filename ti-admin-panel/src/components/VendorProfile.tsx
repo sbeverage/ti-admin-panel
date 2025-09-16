@@ -875,7 +875,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                       danger
                       style={{ marginLeft: '4px' }}
                       onClick={() => {
-                        const newImages = vendorData.product_images.filter((_, i) => i !== index);
+                        const newImages = vendorData.product_images?.filter((_, i) => i !== index) || [];
                         setVendorData(prev => prev ? { ...prev, product_images: newImages } : null);
                         message.success('Image removed');
                       }}
