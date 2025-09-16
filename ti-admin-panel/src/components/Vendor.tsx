@@ -50,7 +50,9 @@ const Vendor: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log('Loading vendors from API...');
       const response = await vendorAPI.getVendors(currentPage, pageSize);
+      console.log('Vendor API response:', response);
       if (response.success) {
         // Transform API data to match our table structure
         const transformedData = response.data.map((vendor: VendorType) => ({
@@ -72,6 +74,7 @@ const Vendor: React.FC = () => {
       } else {
         setError('Failed to load vendors');
       }
+      setLoading(false);
     } catch (error) {
       console.error('Error loading vendors:', error);
       setError('Failed to load vendors from API. Please check your connection.');
