@@ -17,7 +17,9 @@ import {
   Tabs,
   Badge,
   Statistic,
-  Divider
+  Divider,
+  Upload,
+  Image
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -39,7 +41,11 @@ import {
   IdcardOutlined,
   TrophyOutlined,
   RiseOutlined,
-  TagOutlined
+  TagOutlined,
+  PictureOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI, Vendor as VendorType, Discount as DiscountType } from '../services/api';
 import './VendorProfile.css';
@@ -81,6 +87,9 @@ interface VendorData {
   pricingTier?: string;
   // Work schedule
   workSchedule?: any;
+  // Images
+  logo_url?: string;
+  product_images?: string[];
 }
 
 interface Discount {
@@ -108,6 +117,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [formData, setFormData] = useState<any>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [logoFileList, setLogoFileList] = useState<any[]>([]);
+  const [productImagesFileList, setProductImagesFileList] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // Predefined tags for each category (same as InviteVendorModal)
   const getTagsForCategory = (category: string) => {
@@ -369,7 +381,14 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       friday: '9:00 AM - 5:00 PM',
       saturday: '10:00 AM - 2:00 PM',
       sunday: 'Closed'
-    }
+    },
+    // Sample images
+    logo_url: 'https://via.placeholder.com/200x200/DB8633/FFFFFF?text=LOGO',
+    product_images: [
+      'https://via.placeholder.com/400x300/DB8633/FFFFFF?text=Product+1',
+      'https://via.placeholder.com/400x300/324E58/FFFFFF?text=Product+2',
+      'https://via.placeholder.com/400x300/DB8633/FFFFFF?text=Product+3'
+    ]
   });
 
   const handleEdit = () => {
@@ -785,6 +804,101 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     </Card>
   );
 
+  const renderImagesInfo = () => (
+    <div className="images-section">
+      <Card title="Logo" className="profile-section-card" style={{ marginBottom: '24px' }}>
+        <div className="logo-section">
+          {vendorData?.logo_url ? (
+            <div className="image-preview">
+              <Image
+                src={vendorData.logo_url}
+                alt="Vendor Logo"
+                style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '8px' }}
+                fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+              />
+              <div className="image-actions" style={{ marginTop: '12px' }}>
+                <Button 
+                  icon={<EyeOutlined />} 
+                  size="small"
+                  onClick={() => window.open(vendorData.logo_url, '_blank')}
+                >
+                  View Full Size
+                </Button>
+                <Button 
+                  icon={<DeleteOutlined />} 
+                  size="small" 
+                  danger
+                  style={{ marginLeft: '8px' }}
+                  onClick={() => {
+                    setVendorData(prev => prev ? { ...prev, logo_url: '' } : null);
+                    message.success('Logo removed');
+                  }}
+                >
+                  Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="no-image">
+              <PictureOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />
+              <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
+                No logo uploaded
+              </Text>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card title="Product Images" className="profile-section-card">
+        <div className="product-images-section">
+          {vendorData?.product_images && vendorData.product_images.length > 0 ? (
+            <div className="images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+              {vendorData.product_images.map((imageUrl, index) => (
+                <div key={index} className="image-item" style={{ border: '1px solid #e8e8e8', borderRadius: '8px', padding: '8px' }}>
+                  <Image
+                    src={imageUrl}
+                    alt={`Product ${index + 1}`}
+                    style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                  />
+                  <div className="image-actions" style={{ marginTop: '8px', textAlign: 'center' }}>
+                    <Button 
+                      icon={<EyeOutlined />} 
+                      size="small"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                    >
+                      View
+                    </Button>
+                    <Button 
+                      icon={<DeleteOutlined />} 
+                      size="small" 
+                      danger
+                      style={{ marginLeft: '4px' }}
+                      onClick={() => {
+                        const newImages = vendorData.product_images.filter((_, i) => i !== index);
+                        setVendorData(prev => prev ? { ...prev, product_images: newImages } : null);
+                        message.success('Image removed');
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-images" style={{ textAlign: 'center', padding: '40px' }}>
+              <PictureOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />
+              <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
+                No product images uploaded
+              </Text>
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+
   const tabItems = [
     {
       key: 'overview',
@@ -804,6 +918,16 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       children: (
         <div className="tab-content">
           {renderDiscountsInfo()}
+        </div>
+      )
+    },
+    {
+      key: 'images',
+      label: 'Images',
+      icon: <PictureOutlined />,
+      children: (
+        <div className="tab-content">
+          {renderImagesInfo()}
         </div>
       )
     }
