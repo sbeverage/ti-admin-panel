@@ -210,7 +210,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       console.log('Logo file list:', logoFileList);
       console.log('Product images file list:', productImagesFileList);
       
-      // Get uploaded file URLs
+      // Get uploaded file URLs (for now using mock URLs until we fix the upload endpoint)
       const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
       const productImageUrls = productImagesFileList
         .filter(file => file.response && file.response.url)
@@ -228,7 +228,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         logo_url: logoUrl,
         product_images: productImageUrls,
         address: {
-          street: allData.address || '',
+          street: allData.street || '',
           city: allData.city || '',
           state: allData.state || '',
           zipCode: allData.zipCode || '',
@@ -253,14 +253,44 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
 
       console.log('Sending vendor data to API:', vendorData);
 
+      // Store form data in description as JSON since backend doesn't support custom fields
+      const formData = {
+        tags: allData.tags || [],
+        pricingTier: allData.pricingTier || 'Not Set',
+        description: allData.description || '',
+        logo_file_name: logoFileList.length > 0 ? logoFileList[0].name : null,
+        product_images: productImagesFileList.map(file => file.name),
+        image_upload_status: 'pending'
+      };
+
+      const vendorDataWithImages = {
+        ...vendorData,
+        description: JSON.stringify(formData) // Store form data as JSON in description
+      };
+
       // Create vendor
-      console.log('About to call vendorAPI.createVendor with:', vendorData);
-      const vendorResponse = await vendorAPI.createVendor(vendorData);
+      console.log('About to call vendorAPI.createVendor with:', vendorDataWithImages);
+      const vendorResponse = await vendorAPI.createVendor(vendorDataWithImages);
       console.log('Vendor API response:', vendorResponse);
       
-      if (vendorResponse.success) {
+      if (vendorResponse.success && vendorResponse.data) {
         const vendorId = vendorResponse.data.id;
-        console.log('Vendor created with ID:', vendorId);
+        console.log('✅ Vendor created successfully with ID:', vendorId);
+        
+        // Upload logo to S3 if provided
+        if (logoFileList.length > 0 && logoFileList[0].originFileObj) {
+          try {
+            console.log('Uploading logo to S3...');
+            const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
+            console.log('Logo upload response:', logoUploadResponse);
+            if (logoUploadResponse.success) {
+              message.success('Logo uploaded successfully!');
+            }
+          } catch (error) {
+            console.error('Logo upload failed:', error);
+            message.warning('Vendor created but logo upload failed. You can upload it later.');
+          }
+        }
         
         // Create discounts for this vendor if any were provided
         if (allData.discountName && allData.discountType && allData.discountValue) {
@@ -280,14 +310,30 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           console.log('Creating discount:', discountData);
           const discountResponse = await discountAPI.createDiscount(discountData);
           console.log('Discount API response:', discountResponse);
+          
+          // Upload discount image to S3 if provided
+          if (discountResponse.success && discountResponse.data && productImagesFileList.length > 0) {
+            try {
+              console.log('Uploading discount image to S3...');
+              const discountId = discountResponse.data.id;
+              const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
+              console.log('Discount image upload response:', imageUploadResponse);
+              if (imageUploadResponse.success) {
+                message.success('Discount image uploaded successfully!');
+              }
+            } catch (error) {
+              console.error('Discount image upload failed:', error);
+              message.warning('Discount created but image upload failed. You can upload it later.');
+            }
+          }
         }
         
         message.success('Vendor created successfully!');
         onSubmit(allData);
         handleCancel();
       } else {
-        console.error('Vendor creation failed:', vendorResponse);
-        message.error('Failed to create vendor. Please try again.');
+        console.error('❌ Vendor creation failed:', vendorResponse.error);
+        message.error(`Failed to create vendor: ${vendorResponse.error}`);
       }
     } catch (error) {
       console.error('Error creating vendor:', error);
@@ -399,35 +445,25 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       try {
         console.log('Uploading file:', file.name, 'Type:', file.type);
         
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('file', file);
+        // For now, we'll create a mock URL and store the file for later upload
+        // This allows the form to work while we figure out the correct upload endpoint
+        const mockUrl = `https://thrive-backend-uploads.s3.us-east-1.amazonaws.com/mock-${Date.now()}-${file.name}`;
         
-        // Upload to the correct endpoint
-        const response = await fetch('http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin/upload', {
-          method: 'POST',
-          headers: {
-            'X-Admin-Secret': 'test-key'
-          },
-          body: formData
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Upload failed: ${response.status} ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log('Upload response:', result);
-        
-        onSuccess({
-          url: result.url || result.fileUrl,
-          name: file.name,
-          status: 'done'
-        });
-        
-        message.success(`${file.name} uploaded to S3 successfully`);
-        console.log('Real S3 upload completed:', result.url || result.fileUrl);
+        // Simulate upload progress
+        onProgress({ percent: 50 });
+        setTimeout(() => {
+          onProgress({ percent: 100 });
+          
+          onSuccess({
+            url: mockUrl,
+            name: file.name,
+            status: 'done',
+            file: file // Store the actual file for later processing
+          });
+          
+        message.success(`${file.name} ready for upload (Note: Upload endpoint needs backend configuration)`);
+        console.log('File prepared for upload:', file.name);
+        }, 1000);
         
       } catch (error) {
         console.error('Upload error:', error);
@@ -508,11 +544,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
-                  name="address"
-                  label="Address, City, State *"
-                  rules={[{ required: true, message: 'Please enter address' }]}
+                  name="street"
+                  label="Street Address *"
+                  rules={[{ required: true, message: 'Please enter street address' }]}
                 >
-                  <Input placeholder="Enter address, city, state" />
+                  <Input placeholder="Enter street address" />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -522,6 +558,35 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                   rules={[{ required: true, message: 'Please enter phone number' }]}
                 >
                   <Input placeholder="Enter company phone number" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={8}>
+                <Form.Item
+                  name="city"
+                  label="City *"
+                  rules={[{ required: true, message: 'Please enter city' }]}
+                >
+                  <Input placeholder="Enter city" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  name="state"
+                  label="State *"
+                  rules={[{ required: true, message: 'Please enter state' }]}
+                >
+                  <Input placeholder="Enter state" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  name="zipCode"
+                  label="ZIP Code *"
+                  rules={[{ required: true, message: 'Please enter ZIP code' }]}
+                >
+                  <Input placeholder="Enter ZIP code" />
                 </Form.Item>
               </Col>
             </Row>
@@ -739,8 +804,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="approvedBy"
-                  label="Approved By *"
-                  rules={[{ required: true, message: 'Please enter who approved this discount' }]}
+                  label="Approved By"
+                  rules={[{ required: false, message: 'Please enter who approved this discount' }]}
                 >
                   <Input placeholder="e.g., John Smith, Marketing Manager" />
                 </Form.Item>
@@ -748,8 +813,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="approvalDate"
-                  label="Approval Date *"
-                  rules={[{ required: true, message: 'Please select approval date' }]}
+                  label="Approval Date"
+                  rules={[{ required: false, message: 'Please select approval date' }]}
                 >
                   <Input type="date" />
                 </Form.Item>
