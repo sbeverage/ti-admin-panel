@@ -1,10 +1,10 @@
-// API Configuration - Updated with CORRECT backend URL
+// API Configuration - Updated with HTTPS URL ✅
 const API_CONFIG = {
   baseURL: process.env.NODE_ENV === 'development' 
     ? '/api/admin'  // Use proxy in development
-    : 'http://thrive-backend-fixed.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin',  // CORRECT backend URL
+    : 'https://api.forpurposetechnologies.com/api/admin',  // ✅ HTTPS Production URL
   headers: {
-    'X-Admin-Secret': 'thrive-admin-super-secret-2024',  // Updated admin secret
+    'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',  // Correct admin secret
     'Content-Type': 'application/json'
   }
 };
