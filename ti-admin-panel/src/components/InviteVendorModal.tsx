@@ -216,6 +216,33 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         .filter(file => file.response && file.response.url)
         .map(file => file.response.url);
 
+      // Helper function to format time from TimePicker
+      const formatTime = (time: any) => {
+        if (!time) return null;
+        return time.format ? time.format('hh:mm A') : time;
+      };
+
+      // Helper function to format hours for a day
+      const formatDayHours = (day: string) => {
+        const dayLower = day.toLowerCase();
+        const isClosed = allData[`${dayLower}Closed`];
+        
+        if (isClosed) {
+          return 'Closed';
+        }
+        
+        const startTime = formatTime(allData[`${dayLower}Start`]);
+        const endTime = formatTime(allData[`${dayLower}End`]);
+        
+        if (startTime && endTime) {
+          return `${startTime} - ${endTime}`;
+        } else if (startTime || endTime) {
+          return startTime || endTime || 'Closed';
+        } else {
+          return '9:00 AM - 5:00 PM'; // Default hours
+        }
+      };
+
       // Transform data to API format
       const vendorData = {
         name: allData.companyName,
@@ -236,13 +263,13 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           longitude: 0
         },
         hours: {
-          monday: allData.monday || '9:00 AM - 5:00 PM',
-          tuesday: allData.tuesday || '9:00 AM - 5:00 PM',
-          wednesday: allData.wednesday || '9:00 AM - 5:00 PM',
-          thursday: allData.thursday || '9:00 AM - 5:00 PM',
-          friday: allData.friday || '9:00 AM - 5:00 PM',
-          saturday: allData.saturday || 'Closed',
-          sunday: allData.sunday || 'Closed'
+          monday: formatDayHours('monday'),
+          tuesday: formatDayHours('tuesday'),
+          wednesday: formatDayHours('wednesday'),
+          thursday: formatDayHours('thursday'),
+          friday: formatDayHours('friday'),
+          saturday: formatDayHours('saturday'),
+          sunday: formatDayHours('sunday')
         },
         social_links: {
           facebook: allData.facebook || '',
@@ -845,37 +872,56 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             <Row gutter={[24, 16]}>
               <Col span={24}>
                 <Title level={5}>Availability Schedule</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+                  Set business hours for each day. Leave checkboxes checked for closed days.
+                </Text>
                 <div className="schedule-table">
                   <div className="schedule-header">
                     <div className="schedule-col">Weekdays</div>
                     <div className="schedule-col">Availability</div>
-                    <div className="schedule-col">Start Time *</div>
-                    <div className="schedule-col">End Time *</div>
+                    <div className="schedule-col">Start Time</div>
+                    <div className="schedule-col">End Time</div>
                   </div>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => (
                     <div key={day} className="schedule-row">
                       <div className="schedule-col">{day}</div>
                       <div className="schedule-col">
-                        <Checkbox 
+                        <Form.Item 
                           name={`${day.toLowerCase()}Closed`}
-                          defaultChecked={day === 'Saturday' || day === 'Sunday'}
+                          valuePropName="checked"
+                          initialValue={day === 'Saturday' || day === 'Sunday'}
+                          style={{ margin: 0 }}
                         >
-                          Closed
-                        </Checkbox>
+                          <Checkbox>
+                            Closed
+                          </Checkbox>
+                        </Form.Item>
                       </div>
                       <div className="schedule-col">
-                        <TimePicker 
-                          format="hh:mm A"
-                          placeholder="HH : MM AM"
-                          className="time-picker"
-                        />
+                        <Form.Item 
+                          name={`${day.toLowerCase()}Start`}
+                          style={{ margin: 0 }}
+                        >
+                          <TimePicker 
+                            format="hh:mm A"
+                            placeholder="HH : MM AM"
+                            className="time-picker"
+                            use12Hours
+                          />
+                        </Form.Item>
                       </div>
                       <div className="schedule-col">
-                        <TimePicker 
-                          format="hh:mm A"
-                          placeholder="HH : MM AM"
-                          className="time-picker"
-                        />
+                        <Form.Item 
+                          name={`${day.toLowerCase()}End`}
+                          style={{ margin: 0 }}
+                        >
+                          <TimePicker 
+                            format="hh:mm A"
+                            placeholder="HH : MM AM"
+                            className="time-picker"
+                            use12Hours
+                          />
+                        </Form.Item>
                       </div>
                     </div>
                   ))}
