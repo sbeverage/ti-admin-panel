@@ -170,45 +170,55 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
 
   const handleNext = async () => {
     try {
-      console.log('Current step:', currentStep);
-      console.log('Form values before validation:', form.getFieldsValue());
+      console.log('🔍 Current step:', currentStep);
+      console.log('📝 All form values:', form.getFieldsValue());
       
       if (currentStep === 0) {
-        const values = await form.validateFields();
-        console.log('Step 0 validation passed, values:', values);
+        // Step 0: Basic Details - validate required fields only
+        const fieldsToValidate = [
+          'primaryContact', 'primaryEmail', 'companyName', 'websiteLink',
+          'street', 'phoneNumber', 'city', 'state', 'zipCode', 'category', 'description'
+        ];
+        const values = await form.validateFields(fieldsToValidate);
+        console.log('✅ Step 0 validation passed');
         setBasicDetails(values);
         setCurrentStep(1);
       } else if (currentStep === 1) {
-        const values = await form.validateFields();
-        console.log('Step 1 validation passed, values:', values);
-        setPriceDiscounts(values);
+        // Step 1: Discounts - all fields optional, just get values
+        const allValues = form.getFieldsValue();
+        console.log('✅ Step 1 - collecting discount values (optional)');
+        setPriceDiscounts(allValues);
         setCurrentStep(2);
       } else {
-        const values = await form.validateFields();
-        console.log('Step 2 validation passed, values:', values);
-        setWorkSchedule(values);
-        await handleSubmit({ ...basicDetails, ...priceDiscounts, ...values });
+        // Step 2: Work Schedule - all fields optional, just get values
+        console.log('🚀 Step 2 - Preparing to submit...');
+        const allValues = form.getFieldsValue();
+        console.log('📦 All collected values:', { ...basicDetails, ...priceDiscounts, ...allValues });
+        setWorkSchedule(allValues);
+        await handleSubmit({ ...basicDetails, ...priceDiscounts, ...allValues });
       }
     } catch (error) {
-      console.error('Validation failed:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('❌ Validation failed:', error);
+      console.error('📋 Error details:', JSON.stringify(error, null, 2));
       if (error && typeof error === 'object' && 'errorFields' in error && Array.isArray((error as any).errorFields) && (error as any).errorFields.length > 0) {
         const firstError = (error as any).errorFields[0];
-        console.error('First validation error:', firstError);
-        message.error(`${firstError.name.join('.')}: ${firstError.errors[0]}`);
+        console.error('🔴 First validation error:', firstError);
+        message.error(`Validation Error: ${firstError.name.join('.')}: ${firstError.errors[0]}`);
       } else {
-        console.error('Unknown validation error:', error);
-        message.error('Please fill in all required fields');
+        console.error('🔴 Unknown validation error:', error);
+        message.error('Please check the form and try again');
       }
     }
   };
 
   const handleSubmit = async (allData: any) => {
+    console.log('🎯 handleSubmit CALLED!');
+    console.log('📦 Submitting vendor data:', allData);
+    console.log('🖼️ Logo file list:', logoFileList);
+    console.log('📸 Product images file list:', productImagesFileList);
+    
     setSaving(true);
     try {
-      console.log('Submitting vendor data:', allData);
-      console.log('Logo file list:', logoFileList);
-      console.log('Product images file list:', productImagesFileList);
       
       // Get uploaded file URLs (for now using mock URLs until we fix the upload endpoint)
       const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
@@ -991,7 +1001,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               )}
               <Button 
                 type="primary" 
-                onClick={handleNext}
+                onClick={() => {
+                  console.log('🖱️ Submit/Next button clicked! Current step:', currentStep);
+                  handleNext();
+                }}
                 className="next-btn"
                 loading={saving}
                 disabled={saving}
