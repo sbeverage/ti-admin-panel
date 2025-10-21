@@ -324,18 +324,31 @@ export const vendorAPI = {
       });
     }
 
+    const url = `${API_CONFIG.baseURL}/vendors`;
+    console.log('🌐 API Request URL:', url);
+    console.log('🔑 Headers:', API_CONFIG.headers);
+    console.log('📦 Payload:', JSON.stringify(vendorData, null, 2));
+
     try {
-      const response = await fetch(`${API_CONFIG.baseURL}/vendors`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: API_CONFIG.headers,
-        body: JSON.stringify(vendorData)
+        body: JSON.stringify(vendorData),
+        mode: 'cors',
+        credentials: 'omit'
       });
       
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
       const vendor = await response.json();
+      console.log('✅ Vendor created successfully:', vendor);
       
       // The backend returns the vendor object directly
       // Wrap it in the format the frontend expects
@@ -345,7 +358,10 @@ export const vendorAPI = {
       };
       
     } catch (error) {
-      console.error('Vendor creation error:', error);
+      console.error('❌ Vendor creation error:', error);
+      console.error('❌ Error type:', error instanceof TypeError ? 'TypeError' : error instanceof Error ? 'Error' : 'Unknown');
+      console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
