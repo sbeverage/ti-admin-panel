@@ -526,7 +526,9 @@ const Beneficiaries: React.FC = () => {
         <Header className="beneficiaries-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>
-            <Text type="secondary" className="beneficiaries-count">300 Beneficiaries Found</Text>
+            <Text type="secondary" className="beneficiaries-count">
+              {totalBeneficiaries} Beneficiaries Found
+            </Text>
           </div>
           <div className="header-right">
             <Button 

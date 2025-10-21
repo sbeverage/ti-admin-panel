@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -10,6 +10,7 @@ import {
   DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
+import { donorAPI } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Donors.css';
@@ -26,12 +27,77 @@ const Donors: React.FC = () => {
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+  const [donorsData, setDonorsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalDonors, setTotalDonors] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Load donors from API
+  const loadDonors = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading donors from API...');
+      const response = await donorAPI.getDonors(currentPage, pageSize);
+      console.log('Donor API response:', response);
+      
+      if (response.success) {
+        // Transform API data to match our table structure
+        const transformedData = response.data.map((donor: any) => ({
+          key: donor.id.toString(),
+          name: donor.name || 'Unknown',
+          email: donor.email || 'N/A',
+          contact: donor.phone || 'N/A',
+          beneficiary: donor.beneficiary_name || 'N/A',
+          coworking: donor.coworking ? 'Yes' : 'No',
+          donation: donor.total_donations ? `$${donor.total_donations}` : '$0',
+          oneTime: donor.one_time_donation ? `$${donor.one_time_donation}` : '$0',
+          lastDonated: donor.last_donation_date ? new Date(donor.last_donation_date).toLocaleDateString() : 'Never',
+          cityState: donor.address ? `${donor.address.city}, ${donor.address.state}` : 'N/A',
+          active: donor.is_active || false,
+          enabled: donor.is_enabled || false,
+          avatar: donor.name ? donor.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'D'
+        }));
+        
+        setDonorsData(transformedData);
+        setTotalDonors(response.pagination?.total || transformedData.length);
+        console.log('Donors loaded successfully');
+      } else {
+        setError('Failed to load donors');
+        setDonorsData([]);
+        setTotalDonors(0);
+      }
+    } catch (error: any) {
+      console.error('Error loading donors:', error);
+      
+      // Check if it's a 404 error (endpoint not ready)
+      if (error.message && error.message.includes('404')) {
+        console.log('⚠️ Donor endpoint not ready yet');
+        setError('Backend endpoint is being prepared. Use "Invite Donor" button to add donors.');
+        setDonorsData([]);
+        setTotalDonors(0);
+      } else {
+        setError('Failed to load donors');
+        setDonorsData([]);
+        setTotalDonors(0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount and when page changes
+  useEffect(() => {
+    loadDonors();
+  }, [currentPage, pageSize]);
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     setDonorsData(prevData =>
@@ -105,189 +171,6 @@ const Donors: React.FC = () => {
       onClick: () => handleTimeFilterChange('all-time')
     }
   ];
-
-  const [donorsData, setDonorsData] = useState([
-    {
-      key: '1',
-      name: 'Stephanie Lewis',
-      email: 'stephanielewis@gmail.com',
-      contact: '(555) 123-4567',
-      beneficiary: 'United Way',
-      coworking: 'Yes',
-      donation: '$31',
-      oneTime: '$31',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Springfield, IL',
-      active: false,
-      enabled: false,
-      avatar: 'SL'
-    },
-    {
-      key: '2',
-      name: 'Sarah Thompson',
-      email: 'sarahthompson@gmail.com',
-      contact: '(555) 234-5678',
-      beneficiary: 'American Red Cross',
-      coworking: 'No',
-      donation: '$15',
-      oneTime: '$15',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Portland, OR',
-      active: true,
-      enabled: true,
-      avatar: 'ST'
-    },
-    {
-      key: '3',
-      name: 'David Anderson',
-      email: 'davidanderson@gmail.com',
-      contact: '(555) 345-6789',
-      beneficiary: 'Feeding America',
-      coworking: 'Yes',
-      donation: '$14',
-      oneTime: '$14',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Charleston, SC',
-      active: true,
-      enabled: true,
-      avatar: 'DA'
-    },
-    {
-      key: '4',
-      name: 'Jennifer Parker',
-      email: 'jenniferparker@gmail.com',
-      contact: '(555) 456-7890',
-      beneficiary: 'St. Jude Children\'s Research Hospital',
-      coworking: 'No',
-      donation: '$36',
-      oneTime: '$36',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Austin, TX',
-      active: true,
-      enabled: true,
-      avatar: 'JP'
-    },
-    {
-      key: '5',
-      name: 'Christopher Martinez',
-      email: 'christophermartinez@gmail.com',
-      contact: '(555) 567-8901',
-      beneficiary: 'Habitat for Humanity',
-      coworking: 'Yes',
-      donation: '$44',
-      oneTime: '$44',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Denver, CO',
-      active: false,
-      enabled: false,
-      avatar: 'CM'
-    },
-    {
-      key: '6',
-      name: 'Emily Davis',
-      email: 'emilydavis@gmail.com',
-      contact: '(555) 678-9012',
-      beneficiary: 'Make-A-Wish Foundation',
-      coworking: 'No',
-      donation: '$6',
-      oneTime: '$6',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Nashville, TN',
-      active: false,
-      enabled: false,
-      avatar: 'ED'
-    },
-    {
-      key: '7',
-      name: 'Joshua Wilson',
-      email: 'joshuawilson@gmail.com',
-      contact: '(555) 789-0123',
-      beneficiary: 'Doctors Without Borders USA',
-      coworking: 'Yes',
-      donation: '$66',
-      oneTime: '$66',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Boston, MA',
-      active: false,
-      enabled: false,
-      avatar: 'JW'
-    },
-    {
-      key: '8',
-      name: 'Jessica Mitchell',
-      email: 'jessicamitchell@gmail.com',
-      contact: '(555) 890-1234',
-      beneficiary: 'Save the Children USA',
-      coworking: 'No',
-      donation: '$8',
-      oneTime: '$8',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Seattle, WA',
-      active: false,
-      enabled: false,
-      avatar: 'JM'
-    },
-    {
-      key: '9',
-      name: 'Matthew Clark',
-      email: 'matthewclark@gmail.com',
-      contact: '(555) 901-2345',
-      beneficiary: 'The Nature Conservancy',
-      coworking: 'Yes',
-      donation: '$20',
-      oneTime: '$20',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Atlanta, GA',
-      active: true,
-      enabled: true,
-      avatar: 'MC'
-    },
-    {
-      key: '10',
-      name: 'Amanda Taylor',
-      email: 'amandataylor@gmail.com',
-      contact: '(555) 012-3456',
-      beneficiary: 'American Cancer Society',
-      coworking: 'No',
-      donation: '$44',
-      oneTime: '$44',
-      lastDonated: 'July 17, 2023',
-      cityState: 'Miami, FL',
-      active: true,
-      enabled: true,
-      avatar: 'AT'
-    },
-    {
-      key: '11',
-      name: 'Andrew Rodriguez',
-      email: 'andrewrodriguez@gmail.com',
-      contact: '(555) 123-4567',
-      beneficiary: 'Big Brothers Big Sisters of America',
-      coworking: 'Yes',
-      donation: '$30',
-      oneTime: '$30',
-      lastDonated: 'July 20, 2023',
-      cityState: 'Phoenix, AZ',
-      active: true,
-      enabled: true,
-      avatar: 'AR'
-    },
-    {
-      key: '12',
-      name: 'Daniel Hall',
-      email: 'danielhall@gmail.com',
-      contact: '(555) 234-5678',
-      beneficiary: 'The Salvation Army',
-      coworking: 'No',
-      donation: '$45',
-      oneTime: '$45',
-      lastDonated: 'July 17, 2023',
-      cityState: 'New York, NY',
-      active: true,
-      enabled: true,
-      avatar: 'DH'
-    },
-  ]);
 
   const menuItems = [
     {
@@ -512,31 +395,38 @@ const Donors: React.FC = () => {
     if (size) setPageSize(size);
   };
 
-  const handleInviteDonor = (values: any) => {
-    // Here you would typically send the data to your backend
-    console.log('Inviting donor with values:', values);
-    
-    // Add the new donor to the local state
-    const newDonor = {
-      key: (donorsData.length + 1).toString(),
-      name: values.name,
-      email: values.email,
-      contact: values.contact,
-      beneficiary: values.beneficiary,
-      coworking: values.coworking,
-      donation: values.donation,
-      oneTime: values.oneTime,
-      lastDonated: values.lastDonated || 'Never',
-      cityState: values.cityState,
-      active: false,
-      enabled: false,
-      avatar: values.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
-    };
-    
-    setDonorsData(prevData => [...prevData, newDonor]);
-    
-    message.success('Donor invited successfully!');
-    setIsInviteModalVisible(false);
+  const handleInviteDonor = async (values: any) => {
+    try {
+      console.log('Creating new donor:', values);
+      
+      const donorData = {
+        name: values.name,
+        email: values.email,
+        phone: values.contact,
+        beneficiary_id: values.beneficiary,
+        coworking: values.coworking || false,
+        address: {
+          city: values.cityState?.split(',')[0]?.trim() || '',
+          state: values.cityState?.split(',')[1]?.trim() || ''
+        },
+        is_active: true,
+        is_enabled: true
+      };
+      
+      const response = await donorAPI.createDonor(donorData);
+      
+      if (response.success) {
+        message.success('Donor created successfully!');
+        setIsInviteModalVisible(false);
+        // Refresh the donors list
+        loadDonors();
+      } else {
+        message.error('Failed to create donor');
+      }
+    } catch (error) {
+      console.error('Error creating donor:', error);
+      message.error('Failed to create donor. Please try again.');
+    }
   };
 
   return (
@@ -663,22 +553,27 @@ const Donors: React.FC = () => {
 
             {/* Donors Table */}
             <div className="donors-table-section">
-              <Table
-                dataSource={donorsData}
-                columns={columns}
-                pagination={false}
-                size="middle"
-                className="donors-table"
-                rowClassName="donor-row"
-                scroll={{ x: 1800 }}
-                bordered={false}
-              />
+              <Spin spinning={loading}>
+                <Table
+                  dataSource={donorsData}
+                  columns={columns}
+                  pagination={false}
+                  size="middle"
+                  className="donors-table"
+                  rowClassName="donor-row"
+                  scroll={{ x: 1800 }}
+                  bordered={false}
+                  locale={{
+                    emptyText: error ? `Error: ${error}` : 'No donors found'
+                  }}
+                />
+              </Spin>
               
               {/* Pagination */}
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={300}
+                  total={totalDonors}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
