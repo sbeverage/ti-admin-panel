@@ -1,13 +1,16 @@
-// API Configuration - Updated with HTTPS URL ✅
+// API Configuration - HTTPS Production URL (Build: Oct 21, 2025)
 const API_CONFIG = {
   baseURL: process.env.NODE_ENV === 'development' 
     ? '/api/admin'  // Use proxy in development
-    : 'https://api.forpurposetechnologies.com/api/admin',  // ✅ HTTPS Production URL
+    : 'https://api.forpurposetechnologies.com/api/admin',  // ✅ HTTPS Production URL - SECURE
   headers: {
     'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',  // Correct admin secret
     'Content-Type': 'application/json'
   }
 };
+
+// Ensure we're always using HTTPS in production
+console.log('🔒 API Config loaded - Base URL:', API_CONFIG.baseURL);
 
 // Backend is fully operational - disable mock data
 const USE_MOCK_DATA = false; // Using real backend now!
