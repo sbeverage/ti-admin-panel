@@ -17,6 +17,7 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
+import ImageUpload from './ImageUpload';
 import './InviteBeneficiaryModal.css';
 
 const { Title, Text } = Typography;
@@ -42,6 +43,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const [volunteerInfo, setVolunteerInfo] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
 
   const steps = [
     {
@@ -77,6 +79,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       if (currentStep === 0) {
         const values = await form.validateFields();
+        
+        // Check if main image is uploaded
+        if (!mainImageUrl) {
+          message.error('Please upload a main image before continuing');
+          return;
+        }
+        
         console.log('✅ Step 0 validated:', values);
         setBasicDetails(values);
         setCurrentStep(1);
@@ -176,6 +185,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setBasicDetails({});
     setImpactStory({});
     setTrustTransparency({});
+    setMainImageUrl(null);
     setVolunteerInfo({});
     setUploadImages({});
     onCancel();
@@ -302,16 +312,23 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               />
             </Form.Item>
             <Form.Item
-              name="mainImage"
               label="Main Image *"
-              rules={[{ required: true, message: 'Please upload main image' }]}
+              required
+              help={!mainImageUrl && "Please upload a main image for this beneficiary"}
+              validateStatus={!mainImageUrl && currentStep > 0 ? 'error' : ''}
             >
-              <div className="upload-section">
-                <Input placeholder="Select main image file" />
-                <Button className="upload-btn" icon={<UploadOutlined />}>
-                  Upload Image
-                </Button>
-              </div>
+              <ImageUpload
+                currentImageUrl={mainImageUrl || undefined}
+                onImageChange={(url) => {
+                  setMainImageUrl(url);
+                  form.setFieldsValue({ mainImage: url });
+                }}
+                title="Upload Main Beneficiary Image"
+                description="This image will be featured prominently on the beneficiary profile"
+              />
+            </Form.Item>
+            <Form.Item name="mainImage" hidden>
+              <Input />
             </Form.Item>
           </div>
         );
