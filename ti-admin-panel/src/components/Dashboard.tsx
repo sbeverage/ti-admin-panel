@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { dashboardAPI } from '../services/api';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -27,7 +28,8 @@ import {
   DownOutlined,
   FallOutlined,
   TeamOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
@@ -42,55 +44,95 @@ const Dashboard: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const [approvalsData, setApprovalsData] = useState([
-    {
-      key: '1',
-      beneficiary: 'United Way',
-      email: 'keitharnold@gmail...',
-      cityState: 'Springfield, IL',
-      cause: 'Health and Medical...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '2',
-      beneficiary: 'American Red Cross',
-      email: 'Jeanatchison@gm...',
-      cityState: 'Portland, OR',
-      cause: 'Education and Sch...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '3',
-      beneficiary: 'Feeding America',
-      email: 'Timbarber@gmail...',
-      cityState: 'Charleston, SC',
-      cause: 'Animal Welfare an...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '4',
-      beneficiary: 'St. Jude Children\'s R...',
-      email: 'Megbraff@gmail.c...',
-      cityState: 'Austin, TX',
-      cause: 'Environmental and...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '5',
-      beneficiary: 'Habitat for Humanity',
-      email: 'Heidiburwell@gm...',
-      cityState: 'Denver, CO',
-      cause: 'Hunger Relief and...',
-      active: true,
-      enabled: true,
-    },
-  ]);
+
+  // Load dashboard data from API
+  const loadDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('📊 Loading dashboard data from API...');
+      
+      // Import API functions
+      const { vendorAPI, donorAPI, beneficiaryAPI, tenantAPI } = await import('../services/api');
+      
+      // Load counts from all endpoints in parallel
+      const [vendorsResponse, donorsResponse, beneficiariesResponse, tenantsResponse] = await Promise.all([
+        vendorAPI.getVendors(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        donorAPI.getDonors(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        beneficiaryAPI.getBeneficiaries(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        tenantAPI.getTenants(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } }))
+      ]);
+      
+      console.log('📊 Dashboard responses:', {
+        vendors: vendorsResponse,
+        donors: donorsResponse,
+        beneficiaries: beneficiariesResponse,
+        tenants: tenantsResponse
+      });
+      
+      // Calculate stats from actual data
+      const stats = {
+        totalVendors: vendorsResponse.pagination?.total || 0,
+        totalDonors: donorsResponse.pagination?.total || 0,
+        totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
+        totalTenants: tenantsResponse.pagination?.total || 0,
+        totalRevenue: 0, // Would need a separate endpoint
+        pendingApprovals: 0, // Would need a separate endpoint
+        activeDiscounts: 0, // Would need a separate endpoint
+        upcomingEvents: 0 // Would need a separate endpoint
+      };
+      
+      console.log('📊 Calculated dashboard stats:', stats);
+      setDashboardStats(stats);
+      
+    } catch (error) {
+      console.error('❌ Error loading dashboard data:', error);
+      setError('Failed to load dashboard data');
+      setDashboardStats({
+        totalVendors: 0,
+        totalDonors: 0,
+        totalBeneficiaries: 0,
+        totalTenants: 0,
+        totalRevenue: 0,
+        pendingApprovals: 0,
+        activeDiscounts: 0,
+        upcomingEvents: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount and when navigating back to dashboard
+  useEffect(() => {
+    loadDashboardData();
+  }, []); // Initial load
+  
+  // Refresh dashboard data when the page becomes visible (e.g., after creating a vendor)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📊 Dashboard visible - refreshing data...');
+        loadDashboardData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const [approvalsData, setApprovalsData] = useState<any[]>([]);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -238,61 +280,45 @@ const Dashboard: React.FC = () => {
   ];
 
   const summaryCards = [
-    { title: 'Total Donors', value: 1000, icon: <UserOutlined />, growth: '+92.3' },
-    { title: 'Total Vendors', value: 500, icon: <ShoppingOutlined />, growth: '+92.3' },
-    { title: 'Total Tenants', value: 20, icon: <BankOutlined />, growth: '+92.3' },
-    { title: 'Total Events', value: 40, icon: <CalendarOutlined />, growth: '+92.3' },
-    { title: 'Total One Time Gift', value: '$3541K', icon: <GiftOutlined />, growth: '+92.3' },
-    { title: 'Total Donation', value: '$1654K', icon: <DollarOutlined />, growth: '+92.3' },
+    { 
+      title: 'Total Donors', 
+      value: dashboardStats?.totalDonors || '--', 
+      icon: <UserOutlined />, 
+      growth: '+92.3' 
+    },
+    { 
+      title: 'Total Vendors', 
+      value: dashboardStats?.totalVendors || '--', 
+      icon: <ShoppingOutlined />, 
+      growth: '+92.3' 
+    },
+    { 
+      title: 'Total Beneficiaries', 
+      value: dashboardStats?.totalBeneficiaries || '--', 
+      icon: <StarOutlined />, 
+      growth: '+92.3' 
+    },
+    { 
+      title: 'Active Users', 
+      value: dashboardStats?.activeUsers || '--', 
+      icon: <TeamOutlined />, 
+      growth: '+92.3' 
+    },
+    { 
+      title: 'Monthly Donations', 
+      value: dashboardStats?.monthlyDonations ? `$${(dashboardStats.monthlyDonations / 1000).toFixed(0)}K` : '--', 
+      icon: <GiftOutlined />, 
+      growth: '+92.3' 
+    },
+    { 
+      title: 'Total Donations', 
+      value: dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--', 
+      icon: <DollarOutlined />, 
+      growth: '+92.3' 
+    },
   ];
 
-  const recentApprovals = [
-    {
-      key: '1',
-      beneficiary: 'United Way',
-      email: 'keitharnold@gmail...',
-      cityState: 'Springfield, IL',
-      cause: 'Health and Medical...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '2',
-      beneficiary: 'American Red Cross',
-      email: 'Jeanatchison@gm...',
-      cityState: 'Portland, OR',
-      cause: 'Education and Sch...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '3',
-      beneficiary: 'Feeding America',
-      email: 'Timbarber@gmail...',
-      cityState: 'Charleston, SC',
-      cause: 'Animal Welfare an...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '4',
-      beneficiary: 'St. Jude Children\'s R...',
-      email: 'Megbraff@gmail.c...',
-      cityState: 'Austin, TX',
-      cause: 'Environmental and...',
-      active: true,
-      enabled: true,
-    },
-    {
-      key: '5',
-      beneficiary: 'Habitat for Humanity',
-      email: 'Heidiburwell@gm...',
-      cityState: 'Denver, CO',
-      cause: 'Hunger Relief and...',
-      active: true,
-      enabled: true,
-    },
-  ];
+  const recentApprovals: any[] = [];
 
   const beneficiaryColumns = [
     {
@@ -408,35 +434,7 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const newsfeedItems = [
-    {
-      id: 1,
-      brand: 'Apple Shop',
-      date: '02-July-2023',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      image: 'DEALS',
-      likes: 324,
-      shares: 20,
-    },
-    {
-      id: 2,
-      brand: 'starbucks',
-      date: '02-July-2023',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      image: 'Grocery Store',
-      likes: 156,
-      shares: 12,
-    },
-    {
-      id: 3,
-      brand: 'Amazon On-Site Store',
-      date: '02-July-2023',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      image: 'DEALS',
-      likes: 89,
-      shares: 8,
-    },
-  ];
+  const newsfeedItems: any[] = [];
 
   const columns = [
     {
@@ -539,16 +537,33 @@ const Dashboard: React.FC = () => {
         <Header className="dashboard-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Dashboard</Title>
+            {dashboardStats && (
+              <Text type="secondary" style={{ marginLeft: 16 }}>
+                {dashboardStats.totalVendors} Vendors • {dashboardStats.totalDonors} Donors • {dashboardStats.totalBeneficiaries} Beneficiaries
+              </Text>
+            )}
           </div>
           <div className="header-actions">
+            <Button 
+              type="text" 
+              icon={<ReloadOutlined spin={loading} />}
+              onClick={() => {
+                message.info('Refreshing dashboard...');
+                loadDashboardData();
+              }}
+              title="Refresh Dashboard"
+            >
+              Refresh
+            </Button>
             <Button type="text" icon={<BellOutlined />} />
             <Avatar size={32} icon={<UserOutlined />} />
           </div>
         </Header>
 
         <Content className="dashboard-content">
-          {/* Top Section - 3 Rows of Summary Cards */}
-          <div className="summary-section">
+          <Spin spinning={loading}>
+            {/* Top Section - 3 Rows of Summary Cards */}
+            <div className="summary-section">
               <div className="summary-header">
                 <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
                 <Dropdown
@@ -569,7 +584,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donors"
-                      value={1000}
+                      value={dashboardStats?.totalDonors || '--'}
                       prefix={<UserOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -586,7 +601,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Vendors"
-                      value={500}
+                      value={dashboardStats?.totalVendors || '--'}
                       prefix={<ShoppingOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -603,7 +618,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Tenants"
-                      value={20}
+                      value={dashboardStats?.totalTenants || '--'}
                       prefix={<BankOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -623,7 +638,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Events"
-                      value={40}
+                      value={dashboardStats?.totalEvents || '--'}
                       prefix={<CalendarOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -640,7 +655,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total One Time Gift"
-                      value="$3541K"
+                      value={dashboardStats?.totalOneTimeGift ? `$${(dashboardStats.totalOneTimeGift / 1000).toFixed(0)}K` : '--'}
                       prefix={<GiftOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -657,7 +672,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donation"
-                      value="$1654K"
+                      value={dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--'}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -677,7 +692,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Active Donors"
-                      value={200}
+                      value={dashboardStats?.activeDonors || '--'}
                       prefix={<UserOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -694,7 +709,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Pending Approvals"
-                      value={12}
+                      value={dashboardStats?.pendingApprovals || '--'}
                       prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -711,7 +726,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Revenue"
-                      value="$5195K"
+                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                       suffix={
                         <div className="stat-status">
@@ -756,18 +771,18 @@ const Dashboard: React.FC = () => {
                           </div>
                           <div className="chart-content">
                             <div className="chart-total">
-                              <span className="total-number">1000</span>
+                              <span className="total-number">{dashboardStats?.totalDonors || '--'}</span>
                               <span className="total-label">Total Donors</span>
                             </div>
                             <div className="donut-chart"></div>
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>200 Active Donors</span>
+                                <span>{dashboardStats?.activeDonors || '--'} Active Donors</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>400 In-Active Donors</span>
+                                <span>{(dashboardStats?.totalDonors || 0) - (dashboardStats?.activeDonors || 0)} In-Active Donors</span>
                               </div>
                             </div>
                           </div>
@@ -791,7 +806,7 @@ const Dashboard: React.FC = () => {
                           </div>
                           <div className="chart-content">
                             <div className="chart-total">
-                              <span className="total-number">$2,500</span>
+                              <span className="total-number">{dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--'}</span>
                               <span className="total-label">Total Donations</span>
                             </div>
                             <div className="line-chart">
@@ -944,6 +959,7 @@ const Dashboard: React.FC = () => {
                 </Card>
               </Col>
             </Row>
+          </Spin>
         </Content>
       </Layout>
 
