@@ -331,37 +331,49 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         
         // Create discounts for this vendor if any were provided
         if (allData.discountName && allData.discountType && allData.discountValue) {
-          const discountData = {
-            vendor_id: vendorId,
-            name: allData.discountName,
-            description: allData.discountOn || allData.discountName,
-            discount_type: allData.discountType,
-            discount_value: parseFloat(allData.discountValue),
-            min_purchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
-            max_discount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
-            start_date: new Date().toISOString(),
-            end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-            is_active: true
-          };
-          
-          console.log('Creating discount:', discountData);
-          const discountResponse = await discountAPI.createDiscount(discountData);
-          console.log('Discount API response:', discountResponse);
-          
-          // Upload discount image to S3 if provided
-          if (discountResponse.success && discountResponse.data && productImagesFileList.length > 0) {
-            try {
-              console.log('Uploading discount image to S3...');
-              const discountId = discountResponse.data.id;
-              const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
-              console.log('Discount image upload response:', imageUploadResponse);
-              if (imageUploadResponse.success) {
-                message.success('Discount image uploaded successfully!');
+          try {
+            const discountData = {
+              vendor_id: vendorId,
+              name: allData.discountName,
+              description: allData.discountOn || allData.discountName,
+              discount_type: allData.discountType,
+              discount_value: parseFloat(allData.discountValue),
+              min_purchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
+              max_discount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
+              start_date: new Date().toISOString(),
+              end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              is_active: true
+            };
+            
+            console.log('Creating discount:', discountData);
+            const discountResponse = await discountAPI.createDiscount(discountData);
+            console.log('Discount API response:', discountResponse);
+            
+            if (discountResponse.success && discountResponse.data) {
+              message.success('Discount created successfully!');
+              
+              // Upload discount image to S3 if provided
+              if (productImagesFileList.length > 0) {
+                try {
+                  console.log('Uploading discount image to S3...');
+                  const discountId = discountResponse.data.id;
+                  const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
+                  console.log('Discount image upload response:', imageUploadResponse);
+                  if (imageUploadResponse.success) {
+                    message.success('Discount image uploaded successfully!');
+                  }
+                } catch (error) {
+                  console.error('Discount image upload failed:', error);
+                  message.warning('Discount created but image upload failed. You can upload it later.');
+                }
               }
-            } catch (error) {
-              console.error('Discount image upload failed:', error);
-              message.warning('Discount created but image upload failed. You can upload it later.');
+            } else {
+              console.warn('Discount creation failed, but vendor was created successfully');
+              message.warning('Vendor created! Discount setup can be completed later from the vendor profile.');
             }
+          } catch (error) {
+            console.error('Error creating discount:', error);
+            message.warning('Vendor created successfully! Discount setup can be completed later from the vendor profile.');
           }
         }
         
