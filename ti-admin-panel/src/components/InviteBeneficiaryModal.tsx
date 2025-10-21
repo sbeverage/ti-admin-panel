@@ -14,11 +14,13 @@ import {
   BookOutlined,
   TeamOutlined,
   SafetyOutlined,
-  UserOutlined
+  UserOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
-import ImageUpload from './ImageUpload';
 import './InviteBeneficiaryModal.css';
+
+const { Dragger } = Upload;
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -43,7 +45,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const [volunteerInfo, setVolunteerInfo] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
-  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
+  const [mainImageFileList, setMainImageFileList] = useState<any[]>([]);
 
   const steps = [
     {
@@ -73,6 +75,70 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   ];
 
+  // Upload configuration (same as vendor form - mock upload)
+  const uploadProps = {
+    name: 'file',
+    multiple: false,
+    customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
+      try {
+        console.log('Uploading file:', file.name, 'Type:', file.type);
+        
+        // Simulate file processing
+        const fileObj: any = file;
+        console.log('File prepared for upload:', file.name);
+        
+        // Generate mock S3 URL for preview
+        const mockUrl = `https://thrive-backend-uploads.s3.us-east-1.amazonaws.com/mock-${Date.now()}-${file.name}`;
+        
+        onProgress({ percent: 100 });
+        
+        setTimeout(() => {
+          onSuccess({
+            url: mockUrl,
+            name: file.name
+          }, file);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        onError(error);
+        message.error(`${file.name} upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    },
+    beforeUpload: (file: any) => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error('Image must be smaller than 5MB!');
+        return false;
+      }
+      return true;
+    }
+  };
+
+  const handleMainImageUpload = (info: any) => {
+    let newFileList = [...info.fileList];
+    newFileList = newFileList.slice(-1); // Only keep the last file
+    setMainImageFileList(newFileList);
+    
+    // Set form value for validation
+    if (newFileList.length > 0 && newFileList[0].status === 'done') {
+      form.setFieldsValue({ mainImage: newFileList[0].response?.url || newFileList[0].name });
+    } else if (newFileList.length > 0) {
+      form.setFieldsValue({ mainImage: newFileList[0].name });
+    }
+    
+    if (info.file.status === 'done') {
+      message.success(`${info.file.name} file uploaded successfully`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  };
+
   const handleNext = async () => {
     try {
       console.log('🎯 Beneficiary form - Current step:', currentStep);
@@ -81,7 +147,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         const values = await form.validateFields();
         
         // Check if main image is uploaded
-        if (!mainImageUrl) {
+        if (mainImageFileList.length === 0) {
           message.error('Please upload a main image before continuing');
           return;
         }
@@ -185,7 +251,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setBasicDetails({});
     setImpactStory({});
     setTrustTransparency({});
-    setMainImageUrl(null);
+    setMainImageFileList([]);
     setVolunteerInfo({});
     setUploadImages({});
     onCancel();
@@ -312,23 +378,25 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               />
             </Form.Item>
             <Form.Item
+              name="mainImage"
               label="Main Image *"
-              required
-              help={!mainImageUrl && "Please upload a main image for this beneficiary"}
-              validateStatus={!mainImageUrl && currentStep > 0 ? 'error' : ''}
+              rules={[{ required: false, message: 'Please upload a main image' }]}
             >
-              <ImageUpload
-                currentImageUrl={mainImageUrl || undefined}
-                onImageChange={(url) => {
-                  setMainImageUrl(url);
-                  form.setFieldsValue({ mainImage: url });
-                }}
-                title="Upload Main Beneficiary Image"
-                description="This image will be featured prominently on the beneficiary profile"
-              />
-            </Form.Item>
-            <Form.Item name="mainImage" hidden>
-              <Input />
+              <Dragger
+                {...uploadProps}
+                fileList={mainImageFileList}
+                onChange={handleMainImageUpload}
+                className="main-image-upload"
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">Click or drag image to upload</p>
+                <p className="ant-upload-hint">
+                  This image will be featured prominently on the beneficiary profile.
+                  Support for JPEG, PNG, GIF, WebP. Max 5MB.
+                </p>
+              </Dragger>
             </Form.Item>
           </div>
         );
