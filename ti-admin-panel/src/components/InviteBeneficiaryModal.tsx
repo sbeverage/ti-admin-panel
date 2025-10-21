@@ -377,27 +377,31 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 maxLength={1000}
               />
             </Form.Item>
-            <Form.Item
-              name="mainImage"
-              label="Main Image *"
-              rules={[{ required: false, message: 'Please upload a main image' }]}
-            >
-              <Dragger
-                {...uploadProps}
-                fileList={mainImageFileList}
-                onChange={handleMainImageUpload}
-                className="main-image-upload"
-              >
-                <p className="ant-upload-drag-icon">
-                  <InboxOutlined />
-                </p>
-                <p className="ant-upload-text">Click or drag image to upload</p>
-                <p className="ant-upload-hint">
-                  This image will be featured prominently on the beneficiary profile.
-                  Support for JPEG, PNG, GIF, WebP. Max 5MB.
-                </p>
-              </Dragger>
-            </Form.Item>
+            <Divider />
+            <Row gutter={[24, 16]}>
+              <Col span={24}>
+                <Form.Item
+                  name="mainImage"
+                  label="Upload Main Image"
+                  rules={[{ required: false, message: 'Please upload a main image' }]}
+                >
+                  <Dragger
+                    {...uploadProps}
+                    fileList={mainImageFileList}
+                    onChange={handleMainImageUpload}
+                    className="main-image-upload"
+                  >
+                    <p className="ant-upload-drag-icon">
+                      <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">Click or drag image to this area to upload</p>
+                    <p className="ant-upload-hint">
+                      Recommended size: 1080px × 1080px. Max file size: 10MB
+                    </p>
+                  </Dragger>
+                </Form.Item>
+              </Col>
+            </Row>
           </div>
         );
 
