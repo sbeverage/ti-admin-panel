@@ -1,16 +1,30 @@
-// API Configuration - HTTPS Production URL (Build: Oct 21, 2025)
+// API Configuration - HTTPS Production URL (Build: Oct 21, 2025 - HTTPS Enforced)
+// Force HTTPS and use the correct production URL
+const getBaseURL = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return '/api/admin';
+  }
+  
+  // Always use the secure HTTPS URL - ignore any environment variables pointing to HTTP
+  const secureURL = 'https://api.forpurposetechnologies.com/api/admin';
+  
+  console.log('🔒 Production Mode - Using secure HTTPS URL:', secureURL);
+  return secureURL;
+};
+
 const API_CONFIG = {
-  baseURL: process.env.NODE_ENV === 'development' 
-    ? '/api/admin'  // Use proxy in development
-    : 'https://api.forpurposetechnologies.com/api/admin',  // ✅ HTTPS Production URL - SECURE
+  baseURL: getBaseURL(),
   headers: {
-    'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',  // Correct admin secret
+    'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
     'Content-Type': 'application/json'
   }
 };
 
-// Ensure we're always using HTTPS in production
-console.log('🔒 API Config loaded - Base URL:', API_CONFIG.baseURL);
+// Log configuration for debugging
+console.log('🚀 API Config loaded:');
+console.log('   - Environment:', process.env.NODE_ENV);
+console.log('   - Base URL:', API_CONFIG.baseURL);
+console.log('   - HTTPS Enforced: ✅');
 
 // Backend is fully operational - disable mock data
 const USE_MOCK_DATA = false; // Using real backend now!
