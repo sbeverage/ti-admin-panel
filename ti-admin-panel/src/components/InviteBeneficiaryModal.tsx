@@ -47,7 +47,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     {
       title: 'Basic Information',
       icon: <FileTextOutlined style={{ color: '#324E58' }} />,
-      description: basicDetails.beneficiaryName || 'Organization name here'
+      description: basicDetails.beneficiaryName || basicDetails.city ? `${basicDetails.beneficiaryName || ''} ${basicDetails.city ? `(${basicDetails.city}, ${basicDetails.state || ''})` : ''}` : 'Organization name here'
     },
     {
       title: 'Impact & Story',
@@ -118,7 +118,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       const beneficiaryData = {
         name: allData.beneficiaryName,
         category: allData.category,
-        location: allData.location,
+        city: allData.city,
+        state: allData.state,
+        zip_code: allData.zipCode || '',
+        location: `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Combined for display
         email: allData.primaryEmail,
         phone: allData.phoneNumber,
         contact_name: allData.primaryContact,
@@ -215,15 +218,35 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               </Col>
             </Row>
             <Row gutter={[24, 16]}>
-              <Col span={12}>
+              <Col span={8}>
                 <Form.Item
-                  name="location"
-                  label="Location *"
-                  rules={[{ required: true, message: 'Please enter location' }]}
+                  name="city"
+                  label="City *"
+                  rules={[{ required: true, message: 'Please enter city' }]}
                 >
-                  <Input placeholder="City, State" />
+                  <Input placeholder="Enter city" />
                 </Form.Item>
               </Col>
+              <Col span={8}>
+                <Form.Item
+                  name="state"
+                  label="State *"
+                  rules={[{ required: true, message: 'Please enter state' }]}
+                >
+                  <Input placeholder="Enter state" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  name="zipCode"
+                  label="ZIP Code"
+                  rules={[{ required: false }]}
+                >
+                  <Input placeholder="Enter ZIP code" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
@@ -231,6 +254,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="website"
+                  label="Website"
+                  rules={[{ required: false }]}
+                >
+                  <Input placeholder="https://..." />
                 </Form.Item>
               </Col>
             </Row>
