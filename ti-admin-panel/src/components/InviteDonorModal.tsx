@@ -31,6 +31,14 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
         values.lastDonated = values.lastDonated.format('MMMM DD, YYYY');
       }
       
+      // Combine city, state, and ZIP for display/storage
+      if (values.city && values.state) {
+        values.cityState = `${values.city}, ${values.state}${values.zipCode ? ' ' + values.zipCode : ''}`;
+        values.location = values.cityState; // For API compatibility
+      }
+      
+      console.log('📦 Donor data:', values);
+      
       onSubmit(values);
       form.resetFields();
       onCancel();
@@ -129,16 +137,42 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
                   size="large"
                 />
               </Form.Item>
-              
+            </div>
+            
+            <div className="form-row form-row-three">
               <Form.Item
-                name="cityState"
-                label="City, State"
-                rules={[{ required: true, message: 'Please enter city and state' }]}
+                name="city"
+                label="City"
+                rules={[{ required: true, message: 'Please enter city' }]}
                 className="form-item"
               >
                 <Input 
-                  placeholder="Enter city, state"
+                  placeholder="Enter city"
                   prefix={<EnvironmentOutlined />}
+                  size="large"
+                />
+              </Form.Item>
+              
+              <Form.Item
+                name="state"
+                label="State"
+                rules={[{ required: true, message: 'Please enter state' }]}
+                className="form-item"
+              >
+                <Input 
+                  placeholder="Enter state"
+                  size="large"
+                />
+              </Form.Item>
+              
+              <Form.Item
+                name="zipCode"
+                label="ZIP Code"
+                rules={[{ required: false }]}
+                className="form-item"
+              >
+                <Input 
+                  placeholder="Enter ZIP"
                   size="large"
                 />
               </Form.Item>
