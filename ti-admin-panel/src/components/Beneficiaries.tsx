@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layout,
   Menu,
@@ -15,7 +15,9 @@ import {
   Col,
   Select,
   Badge,
-  Tag
+  Tag,
+  message,
+  Spin
 } from 'antd';
 import {
   DashboardOutlined,
@@ -46,6 +48,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
 import BeneficiaryProfile from './BeneficiaryProfile';
 import UserProfile from './UserProfile';
+import { beneficiaryAPI } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Beneficiaries.css';
@@ -64,8 +67,75 @@ const Beneficiaries: React.FC = () => {
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
+  const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalBeneficiaries, setTotalBeneficiaries] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Load beneficiaries from API
+  const loadBeneficiaries = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading beneficiaries from API...');
+      const response = await beneficiaryAPI.getBeneficiaries(currentPage, pageSize);
+      console.log('Beneficiary API response:', response);
+      
+      if (response.success) {
+        // Transform API data to match our table structure
+        const transformedData = response.data.map((beneficiary: any) => ({
+          key: beneficiary.id.toString(),
+          beneficiaryName: beneficiary.name || 'Unknown',
+          contactName: beneficiary.contact_name || 'N/A',
+          email: beneficiary.email || 'N/A',
+          contactNumber: beneficiary.phone || 'N/A',
+          bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 'N/A',
+          donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : '$0',
+          dateOfJoin: beneficiary.created_at ? new Date(beneficiary.created_at).toLocaleDateString() : 'N/A',
+          cityState: beneficiary.address ? `${beneficiary.address.city}, ${beneficiary.address.state}` : 'N/A',
+          beneficiaryCause: beneficiary.cause || 'General',
+          beneficiaryType: beneficiary.type || 'Local',
+          donors: beneficiary.donor_count || 0,
+          active: beneficiary.is_active || false,
+          enabled: beneficiary.is_enabled || false,
+          avatar: beneficiary.name ? beneficiary.name.charAt(0).toUpperCase() : 'B'
+        }));
+        
+        setBeneficiariesData(transformedData);
+        setTotalBeneficiaries(response.pagination?.total || transformedData.length);
+        console.log('Beneficiaries loaded successfully');
+      } else {
+        setError('Failed to load beneficiaries');
+        setBeneficiariesData([]);
+        setTotalBeneficiaries(0);
+      }
+    } catch (error: any) {
+      console.error('Error loading beneficiaries:', error);
+      
+      // Check if it's a 404 error (endpoint not ready)
+      if (error.message && error.message.includes('404')) {
+        console.log('⚠️ Beneficiary endpoint not ready yet');
+        setError('Backend endpoint is being prepared. Use "Invite Beneficiary" button to add beneficiaries.');
+        setBeneficiariesData([]);
+        setTotalBeneficiaries(0);
+      } else {
+        setError('Failed to load beneficiaries');
+        setBeneficiariesData([]);
+        setTotalBeneficiaries(0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount and when page changes
+  useEffect(() => {
+    loadBeneficiaries();
+  }, [currentPage, pageSize]);
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     // This would typically update the backend
@@ -80,11 +150,39 @@ const Beneficiaries: React.FC = () => {
     setInviteModalVisible(false);
   };
 
-  const handleInviteModalSubmit = (values: any) => {
-    console.log('Invite beneficiary form submitted:', values);
-    // Here you would typically send the data to your backend
-    setInviteModalVisible(false);
-    // You could also show a success message here
+  const handleInviteModalSubmit = async (values: any) => {
+    try {
+      console.log('Creating new beneficiary:', values);
+      
+      const beneficiaryData = {
+        name: values.beneficiaryName,
+        contact_name: values.contactName,
+        email: values.email,
+        phone: values.contactNumber,
+        address: {
+          city: values.cityState?.split(',')[0]?.trim() || '',
+          state: values.cityState?.split(',')[1]?.trim() || ''
+        },
+        cause: values.beneficiaryCause,
+        type: values.beneficiaryType,
+        is_active: true,
+        is_enabled: true
+      };
+      
+      const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
+      
+      if (response.success) {
+        message.success('Beneficiary created successfully!');
+        setInviteModalVisible(false);
+        // Refresh the beneficiaries list
+        loadBeneficiaries();
+      } else {
+        message.error('Failed to create beneficiary');
+      }
+    } catch (error) {
+      console.error('Error creating beneficiary:', error);
+      message.error('Failed to create beneficiary. Please try again.');
+    }
   };
 
   const handleBeneficiaryClick = (beneficiaryId: string) => {
@@ -161,200 +259,7 @@ const Beneficiaries: React.FC = () => {
     }
   ];
 
-  const beneficiariesData = [
-    {
-      key: '1',
-      beneficiaryName: 'United Way',
-      contactName: 'Keith Arnold',
-      email: 'keitharnold@gmail.com',
-      contactNumber: '+1 (555) 123-4567',
-      bankAccount: '****1234',
-      donation: '$25,000',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Springfield, IL',
-      beneficiaryCause: 'Health and Medical Charities',
-      beneficiaryType: 'National',
-      donors: 300,
-      active: false,
-      enabled: false
-    },
-    {
-      key: '2',
-      beneficiaryName: 'American Red Cross',
-      contactName: 'Jean Atchison',
-      email: 'Jeanatchison@gmail.com',
-      contactNumber: '+1 (555) 234-5678',
-      bankAccount: '****5678',
-      donation: '$18,500',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Portland, OR',
-      beneficiaryCause: 'Education and Scholarship Charities',
-      beneficiaryType: 'International',
-      donors: 280,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '3',
-      beneficiaryName: 'Feeding America',
-      contactName: 'Tim Barber',
-      email: 'Timbarber@gmail.com',
-      contactNumber: '+1 (555) 345-6789',
-      bankAccount: '****9012',
-      donation: '$32,100',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Charleston, SC',
-      beneficiaryCause: 'Animal Welfare and Protection Charities',
-      beneficiaryType: 'Local',
-      donors: 265,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '4',
-      beneficiaryName: 'St. Jude Children\'s Research Hospital',
-      contactName: 'Meg Braff',
-      email: 'Megbraff@gmail.com',
-      contactNumber: '+1 (555) 456-7890',
-      bankAccount: '****3456',
-      donation: '$45,750',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Austin, TX',
-      beneficiaryCause: 'Environmental and Conservation Charities',
-      beneficiaryType: 'National',
-      donors: 240,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '5',
-      beneficiaryName: 'Habitat for Humanity',
-      contactName: 'Heidi Burwell',
-      email: 'Heidiburwell@gmail.com',
-      contactNumber: '+1 (555) 567-8901',
-      bankAccount: '****7890',
-      donation: '$28,900',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Denver, CO',
-      beneficiaryCause: 'Hunger Relief and Food Banks',
-      beneficiaryType: 'Local',
-      donors: 220,
-      active: false,
-      enabled: false
-    },
-    {
-      key: '6',
-      beneficiaryName: 'Make-A-Wish Foundation',
-      contactName: 'Sarah Johnson',
-      email: 'sarah.johnson@gmail.com',
-      contactNumber: '+1 (555) 678-9012',
-      bankAccount: '****2345',
-      donation: '$38,200',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Nashville, TN',
-      beneficiaryCause: 'Children and Youth Charities',
-      beneficiaryType: 'National',
-      donors: 195,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '7',
-      beneficiaryName: 'Doctors Without Borders USA',
-      contactName: 'Michael Chen',
-      email: 'michael.chen@gmail.com',
-      contactNumber: '+1 (555) 789-0123',
-      bankAccount: '****6789',
-      donation: '$52,300',
-      dateOfJoin: 'July 20, 2023',
-      cityState: 'Boston, MA',
-      beneficiaryCause: 'International Relief and Development',
-      beneficiaryType: 'International',
-      donors: 180,
-      active: false,
-      enabled: false
-    },
-    {
-      key: '8',
-      beneficiaryName: 'Save the Children USA',
-      contactName: 'Emily Davis',
-      email: 'emily.davis@gmail.com',
-      contactNumber: '+1 (555) 890-1234',
-      bankAccount: '****0123',
-      donation: '$29,800',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Seattle, WA',
-      beneficiaryCause: 'Children and Youth Charities',
-      beneficiaryType: 'International',
-      donors: 175,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '9',
-      beneficiaryName: 'The Nature Conservancy',
-      contactName: 'David Wilson',
-      email: 'david.wilson@gmail.com',
-      contactNumber: '+1 (555) 901-2345',
-      bankAccount: '****4567',
-      donation: '$41,600',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Atlanta, GA',
-      beneficiaryCause: 'Environmental and Conservation Charities',
-      beneficiaryType: 'National',
-      donors: 168,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '10',
-      beneficiaryName: 'American Cancer Society',
-      contactName: 'Lisa Rodriguez',
-      email: 'lisa.rodriguez@gmail.com',
-      contactNumber: '+1 (555) 012-3456',
-      bankAccount: '****8901',
-      donation: '$35,400',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Miami, FL',
-      beneficiaryCause: 'Health and Medical Charities',
-      beneficiaryType: 'National',
-      donors: 162,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '11',
-      beneficiaryName: 'Big Brothers Big Sisters of America',
-      contactName: 'Robert Thompson',
-      email: 'robert.thompson@gmail.com',
-      contactNumber: '+1 (555) 123-4567',
-      bankAccount: '****2345',
-      donation: '$22,700',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Phoenix, AZ',
-      beneficiaryCause: 'Children and Youth Charities',
-      beneficiaryType: 'Local',
-      donors: 160,
-      active: true,
-      enabled: true
-    },
-    {
-      key: '12',
-      beneficiaryName: 'The Salvation Army',
-      contactName: 'Jennifer Lee',
-      email: 'jennifer.lee@gmail.com',
-      contactNumber: '+1 (555) 234-5678',
-      bankAccount: '****6789',
-      donation: '$31,900',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'New York, NY',
-      beneficiaryCause: 'Social Services and Community Charities',
-      beneficiaryType: 'National',
-      donors: 157,
-      active: true,
-      enabled: true
-    }
-  ];
+  // No hardcoded data - use API data only
 
   const columns = [
     {
@@ -699,22 +604,27 @@ const Beneficiaries: React.FC = () => {
 
             {/* Beneficiaries Table */}
             <div className="beneficiaries-table-section">
-              <Table
-                dataSource={beneficiariesData}
-                columns={columns}
-                pagination={false}
-                size="middle"
-                className="beneficiaries-table"
-                rowClassName="beneficiary-row"
-                scroll={{ x: 1800 }}
-                bordered={false}
-              />
+              <Spin spinning={loading}>
+                <Table
+                  dataSource={beneficiariesData}
+                  columns={columns}
+                  pagination={false}
+                  size="middle"
+                  className="beneficiaries-table"
+                  rowClassName="beneficiary-row"
+                  scroll={{ x: 1800 }}
+                  bordered={false}
+                  locale={{
+                    emptyText: error ? `Error: ${error}` : 'No beneficiaries found'
+                  }}
+                />
+              </Spin>
               
               {/* Pagination */}
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={300}
+                  total={totalBeneficiaries}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
