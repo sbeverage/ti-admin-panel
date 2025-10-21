@@ -332,17 +332,18 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         // Create discounts for this vendor if any were provided
         if (allData.discountName && allData.discountType && allData.discountValue) {
           try {
+            // Backend expects camelCase field names
             const discountData = {
-              vendor_id: vendorId,
-              name: allData.discountName,
+              vendorId: vendorId,
+              title: allData.discountName,
               description: allData.discountOn || allData.discountName,
-              discount_type: allData.discountType,
-              discount_value: parseFloat(allData.discountValue),
-              min_purchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
-              max_discount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
-              start_date: new Date().toISOString(),
-              end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-              is_active: true
+              discountType: allData.discountType,
+              discountValue: parseFloat(allData.discountValue),
+              minPurchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
+              maxDiscount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
+              startDate: new Date().toISOString(),
+              endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              isActive: true
             };
             
             console.log('Creating discount:', discountData);

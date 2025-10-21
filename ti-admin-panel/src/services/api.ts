@@ -542,18 +542,31 @@ export const discountAPI = {
   },
 
   // Create new discount
-  createDiscount: async (discountData: Partial<Discount>): Promise<ApiResponse<Discount>> => {
+  // Note: Backend expects camelCase field names, not snake_case
+  createDiscount: async (discountData: any): Promise<ApiResponse<any>> => {
+    console.log('💰 Creating discount with data:', discountData);
+    
     const response = await fetch(`${API_CONFIG.baseURL}/discounts`, {
       method: 'POST',
       headers: API_CONFIG.headers,
       body: JSON.stringify(discountData)
     });
     
+    console.log('💰 Discount API response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('💰 Discount creation failed:', errorText);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
     
-    return response.json();
+    const result = await response.json();
+    console.log('💰 Discount created successfully:', result);
+    
+    return {
+      success: true,
+      data: result
+    };
   },
 
   // Update discount
