@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { approvalsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
@@ -46,12 +47,69 @@ const PendingApprovals: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [selectedDocumentFilter, setSelectedDocumentFilter] = useState('all');
+  const [approvalsData, setApprovalsData] = useState<ApprovalItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalApprovals, setTotalApprovals] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Load pending approvals from API
+  const loadApprovals = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading pending approvals from API...');
+      const response = await approvalsAPI.getPendingApprovals(currentPage, pageSize);
+      console.log('Approvals API response:', response);
+      
+      if (response.success) {
+        // Transform API data to match our interface
+        const transformedData = response.data.map((approval: any) => ({
+          key: approval.id.toString(),
+          name: approval.name || 'Unknown',
+          contactPerson: approval.contact_person || 'N/A',
+          email: approval.email || 'N/A',
+          phone: approval.phone || 'N/A',
+          type: approval.type || 'vendor',
+          location: approval.location || 'N/A',
+          registrationDate: approval.created_at ? new Date(approval.created_at).toLocaleDateString() : 'N/A',
+          documentsSubmitted: approval.documents_submitted || 'N/A',
+          verificationStatus: approval.verification_status || 'pending',
+          active: approval.is_active || false,
+          enabled: approval.is_enabled || false,
+          avatar: approval.name ? approval.name.charAt(0).toUpperCase() : 'A',
+          itemType: (approval.type === 'beneficiary' ? 'beneficiary' : 'vendor') as 'vendor' | 'beneficiary'
+        }));
+        
+        setApprovalsData(transformedData);
+        setTotalApprovals(response.pagination?.total || transformedData.length);
+        console.log('Approvals loaded successfully');
+      } else {
+        setError('Failed to load pending approvals');
+        setApprovalsData([]);
+        setTotalApprovals(0);
+      }
+    } catch (error) {
+      console.error('Error loading approvals:', error);
+      setError('Failed to load pending approvals');
+      setApprovalsData([]);
+      setTotalApprovals(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount and when page changes
+  useEffect(() => {
+    loadApprovals();
+  }, [currentPage, pageSize, activeTab]);
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     if (activeTab === 'vendors') {
@@ -146,107 +204,9 @@ const PendingApprovals: React.FC = () => {
     }
   ];
 
-  const [vendorsData, setVendorsData] = useState<ApprovalItem[]>([
-    {
-      key: '1',
-      name: 'Fresh Market Deli',
-      contactPerson: 'Sarah Johnson',
-      email: 'sarah@freshmarket.com',
-      phone: '(555) 123-4567',
-      type: 'Food & Beverage',
-      location: 'Springfield, IL',
-      registrationDate: 'July 15, 2023',
-      documentsSubmitted: 'Complete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'FM',
-      itemType: 'vendor'
-    },
-    {
-      key: '2',
-      name: 'Tech Solutions Pro',
-      contactPerson: 'Michael Chen',
-      email: 'michael@techsolutions.com',
-      phone: '(555) 234-5678',
-      type: 'Technology',
-      location: 'Portland, OR',
-      registrationDate: 'July 16, 2023',
-      documentsSubmitted: 'Complete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'TS',
-      itemType: 'vendor'
-    },
-    {
-      key: '3',
-      name: 'Green Thumb Nursery',
-      contactPerson: 'Emily Rodriguez',
-      email: 'emily@greenthumb.com',
-      phone: '(555) 345-6789',
-      type: 'Home & Garden',
-      location: 'Charleston, SC',
-      registrationDate: 'July 17, 2023',
-      documentsSubmitted: 'Incomplete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'GT',
-      itemType: 'vendor'
-    }
-  ]);
+  const [vendorsData, setVendorsData] = useState<ApprovalItem[]>([]);
 
-  const [beneficiariesData, setBeneficiariesData] = useState<ApprovalItem[]>([
-    {
-      key: '1',
-      name: 'Hope for Tomorrow',
-      contactPerson: 'David Wilson',
-      email: 'david@hopefortomorrow.org',
-      phone: '(555) 456-7890',
-      type: 'Non-Profit',
-      location: 'Austin, TX',
-      registrationDate: 'July 15, 2023',
-      documentsSubmitted: 'Complete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'HT',
-      itemType: 'beneficiary'
-    },
-    {
-      key: '2',
-      name: 'Community Care Center',
-      contactPerson: 'Lisa Thompson',
-      email: 'lisa@communitycare.org',
-      phone: '(555) 567-8901',
-      type: 'Healthcare',
-      location: 'Denver, CO',
-      registrationDate: 'July 16, 2023',
-      documentsSubmitted: 'Complete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'CC',
-      itemType: 'beneficiary'
-    },
-    {
-      key: '3',
-      name: 'Youth Empowerment League',
-      contactPerson: 'Robert Martinez',
-      email: 'robert@youthempowerment.org',
-      phone: '(555) 678-9012',
-      type: 'Education',
-      location: 'Nashville, TN',
-      registrationDate: 'July 17, 2023',
-      documentsSubmitted: 'Incomplete',
-      verificationStatus: 'Pending',
-      active: false,
-      enabled: false,
-      avatar: 'YE',
-      itemType: 'beneficiary'
-    }
-  ]);
+  const [beneficiariesData, setBeneficiariesData] = useState<ApprovalItem[]>([]);
 
   const menuItems = [
     {
@@ -476,23 +436,39 @@ const PendingApprovals: React.FC = () => {
     setApprovalModalVisible(true);
   };
 
-  const handleApprove = (record: ApprovalItem) => {
-    message.success(`${activeTab === 'vendors' ? 'Vendor' : 'Beneficiary'} approved successfully!`);
-    // Here you would typically update the backend
-    if (activeTab === 'vendors') {
-      setVendorsData(prevData => prevData.filter(item => item.key !== record.key));
-    } else {
-      setBeneficiariesData(prevData => prevData.filter(item => item.key !== record.key));
+  const handleApprove = async (record: ApprovalItem) => {
+    try {
+      console.log('Approving item:', record);
+      const response = await approvalsAPI.approveItem(parseInt(record.key), record.itemType);
+      
+      if (response.success) {
+        message.success(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} approved successfully!`);
+        // Refresh the approvals list
+        loadApprovals();
+      } else {
+        message.error('Failed to approve item');
+      }
+    } catch (error) {
+      console.error('Error approving item:', error);
+      message.error('Failed to approve item. Please try again.');
     }
   };
 
-  const handleReject = (record: ApprovalItem) => {
-    message.error(`${activeTab === 'vendors' ? 'Vendor' : 'Beneficiary'} rejected.`);
-    // Here you would typically update the backend
-    if (activeTab === 'vendors') {
-      setVendorsData(prevData => prevData.filter(item => item.key !== record.key));
-    } else {
-      setBeneficiariesData(prevData => prevData.filter(item => item.key !== record.key));
+  const handleReject = async (record: ApprovalItem) => {
+    try {
+      console.log('Rejecting item:', record);
+      const response = await approvalsAPI.rejectItem(parseInt(record.key), record.itemType, 'Rejected by admin');
+      
+      if (response.success) {
+        message.error(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} rejected.`);
+        // Refresh the approvals list
+        loadApprovals();
+      } else {
+        message.error('Failed to reject item');
+      }
+    } catch (error) {
+      console.error('Error rejecting item:', error);
+      message.error('Failed to reject item. Please try again.');
     }
   };
 
@@ -712,22 +688,27 @@ const PendingApprovals: React.FC = () => {
 
             {/* Approvals Table */}
             <div className="approvals-table-section">
-              <Table
-                dataSource={getCurrentData()}
-                columns={approvalColumns}
-                pagination={false}
-                size="middle"
-                className="approvals-table"
+              <Spin spinning={loading}>
+                <Table
+                  dataSource={approvalsData}
+                  columns={approvalColumns}
+                  pagination={false}
+                  size="middle"
+                  className="approvals-table"
                 rowClassName="approval-row"
                 scroll={{ x: 1800 }}
                 bordered={false}
+                locale={{
+                  emptyText: error ? `Error: ${error}` : 'No pending approvals found'
+                }}
               />
+              </Spin>
               
               {/* Pagination */}
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={getTotalCount()}
+                  total={totalApprovals}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}

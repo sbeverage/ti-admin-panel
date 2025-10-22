@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown, Spin, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { analyticsAPI } from '../services/api';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -55,12 +56,47 @@ const GeographicAnalytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRegion, setSelectedRegion] = useState('all');
   const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
+  const [geographicData, setGeographicData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Load geographic analytics from API
+  const loadGeographicAnalytics = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading geographic analytics from API...');
+      const response = await analyticsAPI.getGeographicAnalytics('30d');
+      console.log('Geographic analytics API response:', response);
+      
+      if (response.success) {
+        setGeographicData(response.data);
+        console.log('Geographic analytics loaded successfully');
+      } else {
+        setError('Failed to load geographic analytics');
+        setGeographicData(null);
+      }
+    } catch (error) {
+      console.error('Error loading geographic analytics:', error);
+      setError('Failed to load geographic analytics');
+      setGeographicData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount
+  useEffect(() => {
+    loadGeographicAnalytics();
+  }, []);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
     setSelectedTimeFilter(key);
@@ -187,110 +223,55 @@ const GeographicAnalytics: React.FC = () => {
 
   // Geographic Overview Data
   const geographicOverviewData = [
-    { title: 'Active Regions', value: 24, icon: <GlobalOutlined />, growth: '+2.1%', color: '#DB8633' },
-    { title: 'Total Cities', value: 156, icon: <HomeOutlined />, growth: '+8.7%', color: '#324E58' },
-    { title: 'Coverage Area', value: '2.4M km²', icon: <GlobalOutlined />, growth: '+15.3%', color: '#324E58' },
-    { title: 'Population Reach', value: '45.2M', icon: <UserOutlined />, growth: '+12.4%', color: '#324E58' },
-    { title: 'Regional Donations', value: '$8.2M', icon: <DollarOutlined />, growth: '+18.7%', color: '#DB8633' },
-    { title: 'Local Events', value: 89, icon: <CalendarOutlined />, growth: '+25.1%', color: '#DB8633' },
+    { 
+      title: 'Active Countries', 
+      value: geographicData?.totalCountries || '--', 
+      icon: <GlobalOutlined />, 
+      growth: '+2.1%', 
+      color: '#DB8633' 
+    },
+    { 
+      title: 'Total States', 
+      value: geographicData?.totalStates || '--', 
+      icon: <HomeOutlined />, 
+      growth: '+8.7%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Total Cities', 
+      value: geographicData?.totalCities || '--', 
+      icon: <EnvironmentOutlined />, 
+      growth: '+15.3%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Top Country', 
+      value: geographicData?.topCountries?.[0]?.name || '--', 
+      icon: <CrownOutlined />, 
+      growth: '+12.4%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Top State', 
+      value: geographicData?.topStates?.[0]?.name || '--', 
+      icon: <RiseOutlined />, 
+      growth: '+18.7%', 
+      color: '#DB8633' 
+    },
+    { 
+      title: 'Top City', 
+      value: geographicData?.topCities?.[0]?.name || '--', 
+      icon: <StarOutlined />, 
+      growth: '+25.1%', 
+      color: '#DB8633' 
+    },
   ];
 
-  // Top Performing Regions
-  const topRegionsData = [
-    {
-      key: '1',
-      rank: 1,
-      region: 'Northeast',
-      states: ['NY', 'MA', 'CT', 'NJ', 'PA', 'RI', 'VT', 'NH', 'ME'],
-      population: '56.2M',
-      donors: 12450,
-      vendors: 2890,
-      beneficiaries: 456,
-      totalDonations: '$2.1M',
-      growth: '+18.7%',
-      avatar: 'NE',
-      status: 'high-growth'
-    },
-    {
-      key: '2',
-      rank: 2,
-      region: 'West Coast',
-      states: ['CA', 'OR', 'WA', 'NV', 'ID', 'MT', 'WY', 'UT', 'CO', 'AZ', 'NM'],
-      population: '78.9M',
-      donors: 18230,
-      vendors: 4120,
-      beneficiaries: 678,
-      totalDonations: '$2.8M',
-      growth: '+15.3%',
-      avatar: 'WC',
-      status: 'high-growth'
-    },
-    {
-      key: '3',
-      rank: 3,
-      region: 'Southeast',
-      states: ['FL', 'GA', 'NC', 'SC', 'VA', 'WV', 'KY', 'TN', 'AL', 'MS', 'AR', 'LA'],
-      population: '67.4M',
-      donors: 15670,
-      vendors: 3450,
-      beneficiaries: 534,
-      totalDonations: '$2.3M',
-      growth: '+12.8%',
-      avatar: 'SE',
-      status: 'stable'
-    },
-    {
-      key: '4',
-      rank: 4,
-      region: 'Midwest',
-      states: ['IL', 'IN', 'OH', 'MI', 'WI', 'MN', 'IA', 'MO', 'KS', 'NE', 'ND', 'SD'],
-      population: '68.1M',
-      donors: 14890,
-      vendors: 3120,
-      beneficiaries: 489,
-      totalDonations: '$2.0M',
-      growth: '+10.2%',
-      avatar: 'MW',
-      status: 'stable'
-    },
-    {
-      key: '5',
-      rank: 5,
-      region: 'Southwest',
-      states: ['TX', 'OK', 'NM', 'AZ'],
-      population: '42.3M',
-      donors: 9230,
-      vendors: 2340,
-      beneficiaries: 312,
-      totalDonations: '$1.4M',
-      growth: '+8.9%',
-      avatar: 'SW',
-      status: 'emerging'
-    }
-  ];
+  // No hardcoded data - use API data only
 
-  // City Performance Data
-  const cityPerformanceData = [
-    { city: 'New York', state: 'NY', region: 'Northeast', donors: 2450, vendors: 890, donations: '$450K', growth: '+22.1%' },
-    { city: 'Los Angeles', state: 'CA', region: 'West Coast', donors: 2120, vendors: 780, donations: '$380K', growth: '+18.7%' },
-    { city: 'Chicago', state: 'IL', region: 'Midwest', donors: 1890, vendors: 650, donations: '$320K', growth: '+15.3%' },
-    { city: 'Houston', state: 'TX', region: 'Southwest', donors: 1560, vendors: 540, donations: '$280K', growth: '+12.8%' },
-    { city: 'Phoenix', state: 'AZ', region: 'Southwest', donors: 1340, vendors: 480, donations: '$240K', growth: '+10.2%' },
-    { city: 'Philadelphia', state: 'PA', region: 'Northeast', donors: 1280, vendors: 460, donations: '$220K', growth: '+9.8%' },
-    { city: 'San Antonio', state: 'TX', region: 'Southwest', donors: 1120, vendors: 420, donations: '$190K', growth: '+8.7%' },
-    { city: 'San Diego', state: 'CA', region: 'West Coast', donors: 1080, vendors: 390, donations: '$180K', growth: '+7.9%' },
-    { city: 'Dallas', state: 'TX', region: 'Southwest', donors: 1040, vendors: 380, donations: '$170K', growth: '+7.2%' },
-    { city: 'San Jose', state: 'CA', region: 'West Coast', donors: 980, vendors: 350, donations: '$160K', growth: '+6.8%' }
-  ];
+  // No hardcoded data - use API data only
 
-  // Regional Growth Trends
-  const regionalGrowthData = [
-    { region: 'Northeast', q1: 85.2, q2: 87.1, q3: 89.4, q4: 92.3, growth: '+8.3%' },
-    { region: 'West Coast', q1: 82.7, q2: 84.9, q3: 87.2, q4: 89.8, growth: '+8.6%' },
-    { region: 'Southeast', q1: 78.9, q2: 80.4, q3: 82.1, q4: 84.7, growth: '+7.3%' },
-    { region: 'Midwest', q1: 76.4, q2: 77.8, q3: 79.2, q4: 81.1, growth: '+6.2%' },
-    { region: 'Southwest', q1: 72.1, q2: 73.5, q3: 75.8, q4: 77.9, growth: '+8.1%' }
-  ];
+  // No hardcoded data - use API data only
 
   const regionColumns = [
     {
@@ -528,9 +509,10 @@ const GeographicAnalytics: React.FC = () => {
         </Header>
 
         <Content className="standard-content">
-          <div className="content-wrapper">
-            {/* Overview Cards */}
-            <Row gutter={[24, 24]} className="overview-cards">
+          <Spin spinning={loading}>
+            <div className="content-wrapper">
+              {/* Overview Cards */}
+              <Row gutter={[24, 24]} className="overview-cards">
               {geographicOverviewData.map((card, index) => (
                 <Col xs={24} sm={12} lg={8} xl={6} key={index}>
                   <Card className="overview-card">
@@ -575,32 +557,7 @@ const GeographicAnalytics: React.FC = () => {
                           <Col span={16}>
                             <Card title="Regional Growth Trends" className="chart-card">
                               <div className="regional-growth">
-                                {regionalGrowthData.map((region, index) => (
-                                  <div key={index} className="region-growth-item">
-                                    <div className="region-header">
-                                      <Text strong>{region.region}</Text>
-                                      <Tag color="green" className="growth-tag">{region.growth}</Tag>
-                                    </div>
-                                    <div className="quarterly-progress">
-                                      <div className="quarter">
-                                        <Text type="secondary">Q1: {region.q1}%</Text>
-                                        <Progress percent={region.q1} size="small" strokeColor="#324E58" showInfo={false} />
-                                      </div>
-                                      <div className="quarter">
-                                        <Text type="secondary">Q2: {region.q2}%</Text>
-                                        <Progress percent={region.q2} size="small" strokeColor="#DB8633" showInfo={false} />
-                                      </div>
-                                      <div className="quarter">
-                                        <Text type="secondary">Q3: {region.q3}%</Text>
-                                        <Progress percent={region.q3} size="small" strokeColor="#324E58" showInfo={false} />
-                                      </div>
-                                      <div className="quarter">
-                                        <Text type="secondary">Q4: {region.q4}%</Text>
-                                        <Progress percent={region.q4} size="small" strokeColor="#DB8633" showInfo={false} />
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                                {/* No data available */}
                               </div>
                             </Card>
                           </Col>
@@ -664,7 +621,7 @@ const GeographicAnalytics: React.FC = () => {
                     children: (
                       <div className="regions-content">
                         <Table 
-                          dataSource={topRegionsData} 
+                          dataSource={[]} 
                           columns={regionColumns}
                           pagination={false}
                           className="regions-table"
@@ -684,7 +641,7 @@ const GeographicAnalytics: React.FC = () => {
                     children: (
                       <div className="cities-content">
                         <Table 
-                          dataSource={cityPerformanceData} 
+                          dataSource={[]} 
                           columns={cityColumns}
                           pagination={{ pageSize: 10 }}
                           className="cities-table"
@@ -696,7 +653,8 @@ const GeographicAnalytics: React.FC = () => {
                 ]}
               />
             </Card>
-          </div>
+            </div>
+          </Spin>
         </Content>
       </Layout>
     </Layout>

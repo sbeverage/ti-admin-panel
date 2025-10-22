@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -7,7 +7,8 @@ import {
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined
+  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined,
+  CheckCircleOutlined, StopOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
@@ -34,6 +35,7 @@ const Vendor: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
+  const [showInactive, setShowInactive] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,87 +52,7 @@ const Vendor: React.FC = () => {
     setLoading(true);
     setError(null);
     
-    // Show mock data immediately as fallback
-    const showMockData = () => {
-      console.log('API failed, showing mock data as fallback');
-      const mockData = [
-        {
-          key: '1',
-          name: 'Bella Vista Restaurant',
-          contactName: 'Maria Rodriguez',
-          email: 'maria@bellavista.com',
-          contact: '(555) 123-4567',
-          category: 'Restaurant',
-          cityState: 'New York, NY',
-          tier: '$$',
-          discount: 15,
-          active: true,
-          enabled: true,
-          avatar: 'B'
-        },
-        {
-          key: '2',
-          name: 'Urban Fashion Co.',
-          contactName: 'James Wilson',
-          email: 'james@urbanfashion.com',
-          contact: '(555) 987-6543',
-          category: 'Retail',
-          cityState: 'Los Angeles, CA',
-          tier: '$$$',
-          discount: 20,
-          active: true,
-          enabled: true,
-          avatar: 'U'
-        },
-        {
-          key: '3',
-          name: 'Tech Solutions Inc.',
-          contactName: 'Sarah Chen',
-          email: 'sarah@techsolutions.com',
-          contact: '(555) 456-7890',
-          category: 'Technology',
-          cityState: 'San Francisco, CA',
-          tier: '$$$$',
-          discount: 25,
-          active: true,
-          enabled: true,
-          avatar: 'T'
-        },
-        {
-          key: '4',
-          name: 'Green Thumb Garden',
-          contactName: 'Mike Johnson',
-          email: 'mike@greenthumb.com',
-          contact: '(555) 321-0987',
-          category: 'Home & Garden',
-          cityState: 'Austin, TX',
-          tier: '$$',
-          discount: 10,
-          active: true,
-          enabled: true,
-          avatar: 'G'
-        },
-        {
-          key: '5',
-          name: 'FitLife Gym',
-          contactName: 'Lisa Thompson',
-          email: 'lisa@fitlife.com',
-          contact: '(555) 654-3210',
-          category: 'Health & Fitness',
-          cityState: 'Miami, FL',
-          tier: '$$$',
-          discount: 30,
-          active: true,
-          enabled: true,
-          avatar: 'F'
-        }
-      ];
-      
-      setVendorsData(mockData);
-      setTotalVendors(mockData.length);
-      setError(null);
-      setLoading(false);
-    };
+    // No mock data fallback - use real API data only
 
     try {
       console.log('Loading vendors from API...');
@@ -138,24 +60,37 @@ const Vendor: React.FC = () => {
       const response = await vendorAPI.getVendors(currentPage, pageSize);
       console.timeEnd('API Call'); // End timing
       console.log('Vendor API response:', response);
+      console.log('Response success:', response.success);
+      console.log('Response data length:', response.data?.length);
+      console.log('Response pagination:', response.pagination);
       if (response.success) {
         // Transform API data to match our table structure
+        console.log('Transforming vendor data...');
         const transformedData = response.data.map((vendor: VendorType) => ({
-          key: vendor.id.toString(),
-          name: vendor.name,
-          contactName: vendor.email, // Using email as contact name for now
-          email: vendor.email,
-          contact: vendor.phone,
-          category: vendor.category,
-          cityState: `${vendor.address.city}, ${vendor.address.state}`,
-          tier: '$$', // Default tier, could be calculated based on data
-          discount: 10, // Default discount, should come from discounts API
-          active: true, // Default active status
-          enabled: true, // Default enabled status
-          avatar: vendor.name.charAt(0).toUpperCase()
-        }));
+            key: vendor.id.toString(),
+            name: vendor.name,
+            contactName: vendor.email, // Using email as contact name for now
+            email: vendor.email,
+            contact: vendor.phone,
+            category: vendor.category || 'Uncategorized',
+            cityState: vendor.address && vendor.address.city && vendor.address.state 
+              ? `${vendor.address.city}, ${vendor.address.state}`
+              : vendor.address && vendor.address.city 
+              ? vendor.address.city
+              : 'Location not specified',
+            tier: '$$', // Default tier, could be calculated based on data
+            discount: 10, // Default discount, should come from discounts API
+            active: true, // Default active status
+            enabled: true, // Default enabled status
+            status: vendor.status || 'active', // Use vendor status from API, default to active
+            avatar: vendor.name.charAt(0).toUpperCase()
+          }));
+        console.log('Transformed data:', transformedData);
+        console.log('Sample vendor status:', transformedData[0]?.status);
+        console.log('Setting vendors data...');
         setVendorsData(transformedData);
         setTotalVendors(response.pagination.total);
+        console.log('Vendors data set successfully');
       } else {
         setError('Failed to load vendors');
       }
@@ -163,181 +98,13 @@ const Vendor: React.FC = () => {
     } catch (error) {
       console.error('Error loading vendors:', error);
       console.error('Error details:', error);
-      showMockData();
+      setVendorsData([]);
+      setTotalVendors(0);
+      setError('Failed to load vendors');
+      setLoading(false);
     }
   };
 
-  // Mock data removed - now using real API data only
-  const getMockVendorData = () => [
-    {
-      key: '1',
-      name: 'Apple',
-      contactName: 'Stephanie Lewis',
-      email: 'stephanielewis@gmail.com',
-      contact: '(555) 123-4567',
-      category: 'Electronics',
-      cityState: 'Springfield, IL',
-      tier: '$$',
-      discount: 10,
-      active: false,
-      enabled: false,
-      avatar: 'A'
-    },
-    {
-      key: '2',
-      name: 'Nike',
-      contactName: 'Sarah Thompson',
-      email: 'sarahthompson@gmail.com',
-      contact: '(555) 987-6543',
-      category: 'Athletic footwear and apparel',
-      cityState: 'Portland, OR',
-      tier: '$$$',
-      discount: 10,
-      active: true,
-      enabled: true,
-      avatar: 'N'
-    },
-    {
-      key: '3',
-      name: 'Coca-Cola',
-      contactName: 'David Anderson',
-      email: 'davidanderson@gmail.com',
-      contact: '(555) 567-8901',
-      category: 'Beverages',
-      cityState: 'Charleston, SC',
-      tier: '$$',
-      discount: 10,
-      active: true,
-      enabled: true,
-      avatar: 'C'
-    },
-    {
-      key: '4',
-      name: 'Amazon',
-      contactName: 'Jennifer Parker',
-      email: 'jenniferparker@gmail.com',
-      contact: '(555) 111-2222',
-      category: 'E-commerce',
-      cityState: 'Austin, TX',
-      tier: '$$$$',
-      discount: 40,
-      active: true,
-      enabled: true,
-      avatar: 'A'
-    },
-    {
-      key: '5',
-      name: 'Procter & Gamble',
-      contactName: 'Christopher Martinez',
-      email: 'christopher@gmail.com',
-      contact: '(555) 333-4444',
-      category: 'Consumer goods',
-      cityState: 'Denver, CO',
-      tier: '$',
-      discount: 10,
-      active: false,
-      enabled: false,
-      avatar: 'P'
-    },
-    {
-      key: '6',
-      name: 'Ford',
-      contactName: 'Emily Davis',
-      email: 'emliydavis@gmail.com',
-      contact: '(555) 777-8888',
-      category: 'Automotive',
-      cityState: 'Nashville, TN',
-      tier: '$$',
-      discount: 20,
-      active: true,
-      enabled: true,
-      avatar: 'F'
-    },
-    {
-      key: '7',
-      name: 'Levi\'s',
-      contactName: 'Joshua Wilson',
-      email: 'joshuawilson@gmail.com',
-      contact: '(555) 222-3333',
-      category: 'Apparel',
-      cityState: 'Boston, MA',
-      tier: '$$$',
-      discount: 10,
-      active: false,
-      enabled: false,
-      avatar: 'L'
-    },
-    {
-      key: '8',
-      name: 'Samsung',
-      contactName: 'Jessica Mitchell',
-      email: 'jessicamitchell@gmail.com',
-      contact: '(555) 876-5432',
-      category: 'Electronics',
-      cityState: 'Seattle, WA',
-      tier: '$$$$',
-      discount: 50,
-      active: true,
-      enabled: true,
-      avatar: 'S'
-    },
-    {
-      key: '9',
-      name: 'Under Armour',
-      contactName: 'Matthew Clark',
-      email: 'matthewclark@gmail.com',
-      contact: '(555) 333-9999',
-      category: 'Sportswear',
-      cityState: 'Atlanta, GA',
-      tier: '$$$',
-      discount: 20,
-      active: true,
-      enabled: true,
-      avatar: 'U'
-    },
-    {
-      key: '10',
-      name: 'PepsiCo',
-      contactName: 'Amanda Taylor',
-      email: 'amandataylor@gmail.com',
-      contact: '(555) 654-7890',
-      category: 'Beverages',
-      cityState: 'Miami, FL',
-      tier: '$$',
-      discount: 30,
-      active: true,
-      enabled: true,
-      avatar: 'P'
-    },
-    {
-      key: '11',
-      name: 'Kellogg\'s',
-      contactName: 'Andrew Rodriguez',
-      email: 'andrewrodriguez@gmail.com',
-      contact: '(555) 987-1234',
-      category: 'Food products',
-      cityState: 'Phoenix, AZ',
-      tier: '$$',
-      discount: 40,
-      active: true,
-      enabled: true,
-      avatar: 'K'
-    },
-    {
-      key: '12',
-      name: 'Pampers',
-      contactName: 'Daniel Hall',
-      email: 'danielhall@gmail.com',
-      contact: '(555) 222-7777',
-      category: 'Baby care products',
-      cityState: 'New York, NY',
-      tier: '$$',
-      discount: 10,
-      active: true,
-      enabled: true,
-      avatar: 'P'
-    }
-  ];
 
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     try {
@@ -377,23 +144,11 @@ const Vendor: React.FC = () => {
   };
 
   const handleInviteVendorModalSubmit = async (values: any) => {
-    try {
-      setLoading(true);
-      const result = await vendorAPI.createVendor(values);
-      if (result.success) {
-        message.success('Vendor created successfully!');
-        setInviteVendorModalVisible(false);
-        // Refresh the vendor list
-        loadVendors();
-      } else {
-        message.error('Failed to create vendor. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error creating vendor:', error);
-      message.error('Failed to create vendor. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // The modal already handles vendor creation, we just need to refresh the list
+    console.log('Vendor creation completed, refreshing vendor list...');
+    setInviteVendorModalVisible(false);
+    // Refresh the vendor list
+    loadVendors();
   };
 
   const handleVendorClick = (vendorId: string) => {
@@ -425,6 +180,88 @@ const Vendor: React.FC = () => {
     } finally {
       setProfileVisible(false);
       setSelectedVendorId(null);
+    }
+  };
+
+  const handleEditVendor = (record: any) => {
+    console.log('Edit vendor:', record);
+    // Open the vendor profile in edit mode
+    setSelectedVendorId(record.key);
+    setProfileVisible(true);
+  };
+
+  const handleDeleteVendor = (record: any) => {
+    // Show confirmation modal
+    Modal.confirm({
+      title: 'Are you sure you want to delete this vendor?',
+      content: `This will permanently delete "${record.name}" and all associated data. This action cannot be undone.`,
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          
+          // Call real API
+          const mockSuccess = false; // Set to true to test error handling
+          
+          if (mockSuccess) {
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Remove vendor from local state (mock deletion)
+            setVendorsData(prevVendors => 
+              prevVendors.filter(vendor => vendor.key !== record.key)
+            );
+            setTotalVendors(prev => prev - 1);
+            
+            message.success('Vendor deleted successfully (Mock Mode)');
+          } else {
+            // Call real API (when it's back online)
+            await vendorAPI.deleteVendor(parseInt(record.key));
+            message.success('Vendor deleted successfully');
+            loadVendors();
+          }
+        } catch (error) {
+          console.error('Error deleting vendor:', error);
+          message.error('Failed to delete vendor. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleToggleStatus = async (record: any) => {
+    console.log('Toggle status clicked for vendor:', record);
+    console.log('Current status:', record.status);
+    
+    const newStatus = record.status === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'activate' : 'deactivate';
+    
+    console.log('New status will be:', newStatus);
+    console.log('Action:', action);
+    
+    try {
+      setLoading(true);
+      
+      // Call API to update status
+      const response = await vendorAPI.updateVendorStatus(parseInt(record.key), newStatus);
+      
+      console.log('API response:', response);
+      
+      if (response.success) {
+        message.success(`Vendor ${action}d successfully`);
+        // Reload vendors to get updated data
+        loadVendors();
+      } else {
+        message.error(`Failed to ${action} vendor: ${response.error}`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing vendor:`, error);
+      message.error(`Failed to ${action} vendor. Please try again.`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -664,12 +501,61 @@ const Vendor: React.FC = () => {
       width: 140,
     },
     {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string, record: any) => (
+        <Space size="small">
+          <span 
+            className={`status-badge ${status === 'active' ? 'active' : 'inactive'}`}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: '500',
+              backgroundColor: status === 'active' ? '#f6ffed' : '#fff2e8',
+              color: status === 'active' ? '#52c41a' : '#fa8c16',
+              border: `1px solid ${status === 'active' ? '#b7eb8f' : '#ffd591'}`
+            }}
+          >
+            {status === 'active' ? 'Active' : 'Inactive'}
+          </span>
+        </Space>
+      ),
+      width: 100,
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (text: string, record: any) => (
-        <Button type="text" icon={<EditOutlined />} size="small" className="edit-action-btn" />
+        <Space size="small">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              size="small" 
+              className="edit-action-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditVendor(record);
+              }}
+              title="Edit Vendor"
+            />
+            <Button 
+              type={record.status === 'active' ? 'default' : 'primary'}
+              icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
+              size="small" 
+              className="status-toggle-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleStatus(record);
+              }}
+              title={record.status === 'active' ? 'Deactivate Vendor' : 'Activate Vendor'}
+            >
+              {record.status === 'active' ? 'Deactivate' : 'Activate'}
+            </Button>
+        </Space>
       ),
-      width: 100,
+      width: 160,
       fixed: 'right' as const,
     },
   ];
@@ -677,6 +563,11 @@ const Vendor: React.FC = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  // Filter vendors based on status
+  const filteredVendors = showInactive 
+    ? vendorsData 
+    : vendorsData.filter(vendor => vendor.status === 'active');
 
   return (
     <Layout className="vendor-layout">
@@ -761,6 +652,17 @@ const Vendor: React.FC = () => {
               <div className="filter-section">
                 <Text strong className="filter-label">Filters</Text>
                 <div className="filter-dropdowns">
+                  <div className="filter-item">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={showInactive}
+                        onChange={(e) => setShowInactive(e.target.checked)}
+                        style={{ margin: 0 }}
+                      />
+                      <Text>Show Inactive Vendors</Text>
+                    </label>
+                  </div>
                   <Select
                     placeholder="Select Category"
                     className="filter-dropdown"
@@ -811,7 +713,7 @@ const Vendor: React.FC = () => {
             <div className="vendors-table-section">
               <Spin spinning={loading}>
               <Table
-                dataSource={vendorsData}
+                dataSource={filteredVendors}
                 columns={columns}
                 pagination={false}
                 size="middle"

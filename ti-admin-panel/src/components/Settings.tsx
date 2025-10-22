@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Dropdown } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Dropdown, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import UserProfile from './UserProfile';
+import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
@@ -29,11 +30,59 @@ const Settings: React.FC = () => {
   const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
   const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [settingsData, setSettingsData] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Load settings data from API
+  const loadSettingsData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading settings data from API...');
+      const [settingsResponse, teamResponse] = await Promise.all([
+        settingsAPI.getSettings(),
+        settingsAPI.getTeamMembers()
+      ]);
+      
+      console.log('Settings API responses:', { settingsResponse, teamResponse });
+      
+      if (settingsResponse.success) {
+        setSettingsData(settingsResponse.data);
+      } else {
+        setError('Failed to load settings');
+        setSettingsData(null);
+      }
+      
+      if (teamResponse.success) {
+        setTeamMembers(teamResponse.data);
+      } else {
+        setError('Failed to load team members');
+        setTeamMembers([]);
+      }
+      
+    } catch (error) {
+      console.error('Error loading settings data:', error);
+      setError('Failed to load settings data');
+      setSettingsData(null);
+      setTeamMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount
+  useEffect(() => {
+    loadSettingsData();
+  }, []);
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {
@@ -63,56 +112,7 @@ const Settings: React.FC = () => {
     }
   };
 
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      key: '1',
-      name: 'Stephanie Beverage',
-      email: 'stephanie@thriveinitiative.org',
-      role: 'Super Admin',
-      status: 'Active',
-      lastLogin: '2024-01-15 10:30 AM',
-      avatar: 'SB'
-    },
-    {
-      key: '2',
-      name: 'John Smith',
-      email: 'john@thriveinitiative.org',
-      role: 'Admin',
-      status: 'Active',
-      lastLogin: '2024-01-14 2:15 PM',
-      avatar: 'JS'
-    },
-    {
-      key: '3',
-      name: 'Sarah Johnson',
-      email: 'sarah@thriveinitiative.org',
-      role: 'Manager',
-      status: 'Active',
-      lastLogin: '2024-01-13 9:45 AM',
-      avatar: 'SJ'
-    },
-    {
-      key: '4',
-      name: 'Mike Davis',
-      email: 'mike@thriveinitiative.org',
-      role: 'User',
-      status: 'Inactive',
-      lastLogin: '2024-01-10 11:20 AM',
-      avatar: 'MD'
-    }
-  ]);
-
-  const [personalProfile, setPersonalProfile] = useState({
-    name: 'Stephanie Beverage',
-    email: 'stephanie@thriveinitiative.org',
-    phone: '+1 (555) 123-4567',
-    role: 'Super Admin',
-    notifications: {
-      email: true,
-      push: true,
-      sms: false
-    }
-  });
+  const [personalProfile, setPersonalProfile] = useState<any>(null);
 
   const menuItems = [
     {
@@ -272,17 +272,41 @@ const Settings: React.FC = () => {
     setActiveTab(key);
   };
 
-  const handleProfileUpdate = (values: any) => {
-    setPersonalProfile(prev => ({ ...prev, ...values }));
-    message.success('Profile updated successfully!');
+  const handleProfileUpdate = async (values: any) => {
+    try {
+      console.log('Updating profile:', values);
+      const response = await settingsAPI.updateSettings(values);
+      
+      if (response.success) {
+        setPersonalProfile((prev: any) => ({ ...prev, ...values }));
+        message.success('Profile updated successfully!');
+      } else {
+        message.error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      message.error('Failed to update profile. Please try again.');
+    }
   };
 
-  const handlePasswordChange = (values: any) => {
-    message.success('Password changed successfully!');
+  const handlePasswordChange = async (values: any) => {
+    try {
+      console.log('Changing password');
+      const response = await settingsAPI.updateSettings({ password: values.newPassword });
+      
+      if (response.success) {
+        message.success('Password changed successfully!');
+      } else {
+        message.error('Failed to change password');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      message.error('Failed to change password. Please try again.');
+    }
   };
 
   const handleNotificationChange = (key: string, checked: boolean) => {
-    setPersonalProfile(prev => ({
+    setPersonalProfile((prev: any) => ({
       ...prev,
       notifications: {
         ...prev.notifications,
@@ -369,9 +393,10 @@ const Settings: React.FC = () => {
         </Header>
 
         <Content className="settings-content">
-          <div className="content-wrapper">
-            <Tabs 
-              activeKey={activeTab} 
+          <Spin spinning={loading}>
+            <div className="content-wrapper">
+              <Tabs 
+                activeKey={activeTab} 
               onChange={handleTabChange}
               className="settings-tabs"
               items={[
@@ -642,7 +667,8 @@ const Settings: React.FC = () => {
                 }
               ]}
             />
-          </div>
+            </div>
+          </Spin>
         </Content>
       </Layout>
 

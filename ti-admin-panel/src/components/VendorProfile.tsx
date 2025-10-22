@@ -48,6 +48,7 @@ import {
   EyeOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI, Vendor as VendorType, Discount as DiscountType } from '../services/api';
+import ImageUpload from './ImageUpload';
 import './VendorProfile.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -73,6 +74,7 @@ interface VendorData {
   customers: number;
   active: boolean;
   enabled: boolean;
+  status?: 'active' | 'inactive';
   // Basic vendor information (from invite form)
   companyName?: string;
   primaryContact?: string;
@@ -81,7 +83,6 @@ interface VendorData {
   address?: string;
   phoneNumber?: string;
   category?: string;
-  tags?: string[];
   // Discount information (core of the app)
   discounts?: Discount[];
   pricingTier?: string;
@@ -89,7 +90,12 @@ interface VendorData {
   workSchedule?: any;
   // Images
   logo_url?: string;
+  logo_file_name?: string;
   product_images?: string[];
+  image_upload_status?: string;
+  // Form data
+  tags?: string[];
+  description?: string;
 }
 
 interface Discount {
@@ -227,41 +233,68 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         timeoutPromise
       ]) as any;
       
-      if (vendorResponse.success) {
+      console.log('Vendor API response:', vendorResponse);
+      if (vendorResponse.success && vendorResponse.data) {
         const vendor = vendorResponse.data;
+        console.log('Vendor data from API:', vendor);
         
-        // Load discounts for this vendor with timeout
-        const discountsResponse = await Promise.race([
-          discountAPI.getDiscountsByVendor(vendorIdNum),
-          timeoutPromise
-        ]) as any;
-        const discounts = discountsResponse.success ? discountsResponse.data : [];
+        // Load discounts for this vendor with timeout (optional - don't fail if endpoint doesn't exist)
+        let discounts = [];
+        try {
+          const discountsResponse = await Promise.race([
+            discountAPI.getDiscountsByVendor(vendorIdNum),
+            timeoutPromise
+          ]) as any;
+          discounts = discountsResponse.success ? discountsResponse.data : [];
+          console.log('Discounts loaded:', discounts);
+        } catch (discountError) {
+          console.log('Discounts endpoint not available, continuing without discounts:', discountError);
+          discounts = [];
+        }
         
+        // Parse form data from description field (stored as JSON)
+        let formData: any = {};
+        try {
+          if (vendor.description) {
+            formData = JSON.parse(vendor.description);
+            console.log('Parsed form data from description:', formData);
+          }
+        } catch (error) {
+          console.log('Could not parse form data from description:', error);
+        }
+
         // Transform API data to match our interface
+        console.log('Transforming vendor data for profile...');
         const transformedData: VendorData = {
           id: vendor.id.toString(),
           vendorName: vendor.name,
           contactName: vendor.email, // Using email as contact name for now
           email: vendor.email,
           contactNumber: vendor.phone,
-          bankAccount: '****5678', // This would come from a separate API
-          revenue: '$125,000', // This would come from analytics API
+          bankAccount: 'Not Available', // This would come from a separate API
+          revenue: 'Not Available', // This would come from analytics API
           dateOfJoin: new Date(vendor.created_at).toLocaleDateString(),
-          cityState: `${vendor.address.city}, ${vendor.address.state}`,
-          vendorType: vendor.category,
-          customers: 45, // This would come from analytics API
-          active: true, // This would come from vendor status
-          enabled: true, // This would come from vendor status
+          cityState: vendor.address && vendor.address.city && vendor.address.state 
+            ? `${vendor.address.city}, ${vendor.address.state}`
+            : vendor.address && vendor.address.city 
+            ? vendor.address.city
+            : 'Location not specified',
+          vendorType: vendor.category || 'Uncategorized',
+          customers: 0, // This would come from analytics API
+          active: vendor.status === 'active', // Use actual vendor status
+          enabled: vendor.status === 'active', // Use actual vendor status
+          status: vendor.status || 'active', // Add status field
           // Basic vendor information (from API)
           companyName: vendor.name,
           primaryContact: vendor.email, // This would be a separate field in the API
           primaryEmail: vendor.email,
-          websiteLink: vendor.website,
-          address: `${vendor.address.street}, ${vendor.address.city}, ${vendor.address.state} ${vendor.address.zipCode}`,
+          websiteLink: vendor.website || 'Not provided',
+          address: vendor.address && vendor.address.street 
+            ? `${vendor.address.street}, ${vendor.address.city}, ${vendor.address.state} ${vendor.address.zipCode}`.replace(/,\s*,/g, ',').replace(/,\s*$/, '')
+            : 'Address not provided',
           phoneNumber: vendor.phone,
-          category: vendor.category,
+          category: vendor.category || 'Uncategorized',
           // Discount information (from discounts API)
-          pricingTier: '$$$', // This would be calculated or come from vendor data
           discounts: discounts.map((discount: DiscountType) => ({
             id: discount.id,
             discountName: discount.name,
@@ -273,123 +306,49 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             additionalTerms: discount.description,
             approvedBy: 'Admin', // This would come from discount data
             approvalDate: new Date(discount.created_at).toLocaleDateString(),
-            pricingTier: '$$$'
+            pricingTier: 'Not Set'
           })),
           // Work schedule (from vendor data)
-          workSchedule: vendor.hours
+          workSchedule: vendor.hours,
+          // Images from vendor data
+          logo_url: vendor.logo_url,
+          // Form data parsed from description field
+          tags: formData.tags || [],
+          pricingTier: formData.pricingTier || 'Not Set',
+          description: formData.description || 'No description provided',
+          logo_file_name: formData.logo_file_name,
+          product_images: formData.product_images || [],
+          image_upload_status: formData.image_upload_status
         };
 
+        console.log('Setting vendor data:', transformedData);
         setVendorData(transformedData);
         setFormData(transformedData);
         setSelectedCategory(transformedData.category || '');
+        console.log('Vendor profile data loaded successfully');
       } else {
+        console.error('❌ Vendor API response failed:', vendorResponse);
         message.error('Failed to load vendor data');
-        // Fallback to mock data
-        const mockData = getMockVendorData();
-        setVendorData(mockData);
-        setFormData(mockData);
-        setSelectedCategory(mockData.category || '');
+        // No data available
+        console.log('No vendor data available');
+        setVendorData(null);
+        setFormData(null);
+        setSelectedCategory('');
       }
     } catch (error) {
       console.timeEnd('Vendor Profile API Call');
       console.error('Error loading vendor data:', error);
       console.error('Error details:', error);
       console.log('API failed, showing fallback vendor data');
-      message.error('Failed to load vendor data. Using mock data.');
-      // Fallback to mock data
-      const mockData = getMockVendorData();
-      setVendorData(mockData);
-      setFormData(mockData);
-      setSelectedCategory(mockData.category || '');
+      message.error('Failed to load vendor data.');
+      setVendorData(null);
+      setFormData(null);
+      setSelectedCategory('');
     } finally {
       setLoading(false);
     }
   };
 
-  const getMockVendorData = (): VendorData => ({
-    id: vendorId,
-    vendorName: 'Tech Solutions Pro',
-    contactName: 'Michael Chen',
-    email: 'michael.chen@techsolutionspro.com',
-    contactNumber: '+1 (555) 234-5678',
-    bankAccount: '****5678',
-    revenue: '$125,000',
-    dateOfJoin: 'March 15, 2023',
-    cityState: 'San Francisco, CA',
-    vendorType: 'Technology Services',
-    customers: 45,
-    active: true,
-    enabled: true,
-    // Basic vendor information (from invite form)
-    companyName: 'Tech Solutions Pro',
-    primaryContact: 'Michael Chen',
-    primaryEmail: 'michael.chen@techsolutionspro.com',
-    websiteLink: 'https://techsolutionspro.com',
-    address: '123 Tech Street, San Francisco, CA 94105',
-    phoneNumber: '+1 (555) 234-5678',
-    category: 'technology',
-    tags: ['Software Development', 'IT Support', 'Web Design', 'Tech Consulting'],
-    // Discount information (core of the app)
-    pricingTier: '$$$',
-    discounts: [
-      {
-        id: 1,
-        discountName: 'Summer Special',
-        discountType: 'percentage',
-        discountValue: '25',
-        discountOn: 'All software development services',
-        frequency: '3',
-        promoCode: 'SUMMER25',
-        additionalTerms: 'Valid for new clients only. Cannot be combined with other offers.',
-        approvedBy: 'Sarah Johnson',
-        approvalDate: '2024-06-01',
-        pricingTier: '$$$'
-      },
-      {
-        id: 2,
-        discountName: 'First Time Client',
-        discountType: 'dollar',
-        discountValue: '500',
-        discountOn: 'Initial consultation and project setup',
-        frequency: '1',
-        promoCode: 'FIRST500',
-        additionalTerms: 'One-time use for new clients. Applies to projects over $5,000.',
-        approvedBy: 'Sarah Johnson',
-        approvalDate: '2024-05-15',
-        pricingTier: '$$$'
-      },
-      {
-        id: 3,
-        discountName: 'Referral Bonus',
-        discountType: 'percentage',
-        discountValue: '15',
-        discountOn: 'Next project for referring new clients',
-        frequency: 'unlimited',
-        promoCode: 'REFERRAL15',
-        additionalTerms: 'Valid when referred client completes a project. No expiration.',
-        approvedBy: 'Sarah Johnson',
-        approvalDate: '2024-04-01',
-        pricingTier: '$$$'
-      }
-    ],
-    // Work schedule
-    workSchedule: {
-      monday: '9:00 AM - 6:00 PM',
-      tuesday: '9:00 AM - 6:00 PM',
-      wednesday: '9:00 AM - 6:00 PM',
-      thursday: '9:00 AM - 6:00 PM',
-      friday: '9:00 AM - 5:00 PM',
-      saturday: '10:00 AM - 2:00 PM',
-      sunday: 'Closed'
-    },
-    // Sample images
-    logo_url: 'https://via.placeholder.com/200x200/DB8633/FFFFFF?text=LOGO',
-    product_images: [
-      'https://via.placeholder.com/400x300/DB8633/FFFFFF?text=Product+1',
-      'https://via.placeholder.com/400x300/324E58/FFFFFF?text=Product+2',
-      'https://via.placeholder.com/400x300/DB8633/FFFFFF?text=Product+3'
-    ]
-  });
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -564,6 +523,24 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                   <Text type="secondary">No tags selected</Text>
                 )}
               </div>
+            )}
+          </div>
+        </Col>
+      </Row>
+      
+      <Row gutter={[24, 16]}>
+        <Col span={24}>
+          <div className="form-field">
+            <label>Description</label>
+            {isEditing ? (
+              <Input.TextArea
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Enter vendor description"
+                rows={3}
+              />
+            ) : (
+              <Text>{vendorData.description || 'No description provided'}</Text>
             )}
           </div>
         </Col>
@@ -768,7 +745,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const renderStats = () => (
     <Card title="Quick Stats" className="profile-section-card">
       <Row gutter={[24, 16]}>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Total Revenue"
             value={vendorData.revenue}
@@ -776,7 +753,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             valueStyle={{ color: '#DB8633' }}
           />
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Customers"
             value={vendorData.customers}
@@ -784,20 +761,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             valueStyle={{ color: '#52c41a' }}
           />
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Date Joined"
             value={vendorData.dateOfJoin}
             prefix={<CalendarOutlined />}
             valueStyle={{ color: '#1890ff' }}
-          />
-        </Col>
-        <Col span={6}>
-          <Statistic
-            title="Status"
-            value={vendorData.active ? 'Active' : 'Inactive'}
-            prefix={vendorData.active ? <CheckCircleFilled /> : <CloseOutlined />}
-            valueStyle={{ color: vendorData.active ? '#52c41a' : '#ff4d4f' }}
           />
         </Col>
       </Row>
@@ -808,92 +777,40 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     <div className="images-section">
       <Card title="Logo" className="profile-section-card" style={{ marginBottom: '24px' }}>
         <div className="logo-section">
-          {vendorData?.logo_url ? (
-            <div className="image-preview">
-              <Image
-                src={vendorData.logo_url}
-                alt="Vendor Logo"
-                style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '8px' }}
-                fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-              />
-              <div className="image-actions" style={{ marginTop: '12px' }}>
-                <Button 
-                  icon={<EyeOutlined />} 
-                  size="small"
-                  onClick={() => window.open(vendorData.logo_url, '_blank')}
-                >
-                  View Full Size
-                </Button>
-                <Button 
-                  icon={<DeleteOutlined />} 
-                  size="small" 
-                  danger
-                  style={{ marginLeft: '8px' }}
-                  onClick={() => {
-                    setVendorData(prev => prev ? { ...prev, logo_url: '' } : null);
-                    message.success('Logo removed');
-                  }}
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="no-image">
-              <PictureOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />
-              <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
-                No logo uploaded
-              </Text>
-            </div>
-          )}
+          <ImageUpload
+            currentImageUrl={vendorData?.logo_url}
+            onImageChange={(url) => {
+              setVendorData(prev => prev ? { ...prev, logo_url: url || '' } : null);
+            }}
+            title="Upload Vendor Logo"
+            description="Click or drag an image file to upload"
+          />
         </div>
       </Card>
 
       <Card title="Product Images" className="profile-section-card">
         <div className="product-images-section">
-          {vendorData?.product_images && vendorData.product_images.length > 0 ? (
-            <div className="images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-              {vendorData.product_images.map((imageUrl, index) => (
-                <div key={index} className="image-item" style={{ border: '1px solid #e8e8e8', borderRadius: '8px', padding: '8px' }}>
-                  <Image
-                    src={imageUrl}
-                    alt={`Product ${index + 1}`}
-                    style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px' }}
-                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-                  />
-                  <div className="image-actions" style={{ marginTop: '8px', textAlign: 'center' }}>
-                    <Button 
-                      icon={<EyeOutlined />} 
-                      size="small"
-                      onClick={() => window.open(imageUrl, '_blank')}
-                    >
-                      View
-                    </Button>
-                    <Button 
-                      icon={<DeleteOutlined />} 
-                      size="small" 
-                      danger
-                      style={{ marginLeft: '4px' }}
-                      onClick={() => {
-                        const newImages = vendorData.product_images?.filter((_, i) => i !== index) || [];
-                        setVendorData(prev => prev ? { ...prev, product_images: newImages } : null);
-                        message.success('Image removed');
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="no-images" style={{ textAlign: 'center', padding: '40px' }}>
-              <PictureOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />
+          <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+            Upload product images to showcase your offerings
+          </Text>
+          <div className="product-images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+            {/* Placeholder for product images - can be expanded later */}
+            <div style={{ 
+              border: '2px dashed #d9d9d9', 
+              borderRadius: '8px', 
+              padding: '20px', 
+              textAlign: 'center',
+              backgroundColor: '#fafafa'
+            }}>
+              <PictureOutlined style={{ fontSize: '32px', color: '#d9d9d9' }} />
               <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
-                No product images uploaded
+                Product Images
+              </Text>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                Coming Soon
               </Text>
             </div>
-          )}
+          </div>
         </div>
       </Card>
     </div>
@@ -954,9 +871,25 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                 <Title level={2} style={{ margin: 0 }}>
                   {vendorData.companyName || vendorData.vendorName}
                 </Title>
-                <Text type="secondary">
-                  {vendorData.category || vendorData.vendorType} • {vendorData.address || vendorData.cityState}
-                </Text>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <Text type="secondary">
+                    {vendorData.category || vendorData.vendorType} • {vendorData.address || vendorData.cityState}
+                  </Text>
+                  <span 
+                    className={`status-badge ${vendorData.status === 'active' ? 'active' : 'inactive'}`}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      backgroundColor: vendorData.status === 'active' ? '#f6ffed' : '#fff2e8',
+                      color: vendorData.status === 'active' ? '#52c41a' : '#fa8c16',
+                      border: `1px solid ${vendorData.status === 'active' ? '#b7eb8f' : '#ffd591'}`
+                    }}
+                  >
+                    {vendorData.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

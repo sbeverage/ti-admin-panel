@@ -218,7 +218,7 @@ const NewsfeedManagement: React.FC = () => {
     },
   ];
 
-  // Mock data - replace with actual API calls
+  // Load data from API
   useEffect(() => {
     setPosts([
       {

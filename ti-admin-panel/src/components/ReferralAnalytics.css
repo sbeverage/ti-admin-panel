@@ -660,6 +660,186 @@ a:hover, .ant-btn-link:hover {
   }
 }
 
+/* Invitation Actions Button Hover Styles - Maximum Specificity */
+.standard-layout .invitation-actions .ant-btn.ant-btn-primary:hover {
+  color: #ffffff !important;
+  background-color: #ff6b35 !important;
+}
+
+.standard-layout .invitation-actions .ant-btn.ant-btn-primary:hover span {
+  color: #ffffff !important;
+}
+
+.standard-layout .invitation-actions .ant-btn.ant-btn-primary:hover .anticon {
+  color: #ffffff !important;
+}
+
+.standard-layout .invitation-actions .ant-btn.ant-btn-primary:hover .ant-btn-icon {
+  color: #ffffff !important;
+}
+
+/* Force white text on hover - catch all */
+.standard-layout .invitation-actions .ant-btn-primary:hover * {
+  color: #ffffff !important;
+}
+
+/* Even more specific - target the button text directly */
+.standard-layout .invitation-actions .ant-btn-primary:hover .ant-btn-icon + span {
+  color: #ffffff !important;
+}
+
+/* Target any text content with maximum specificity */
+.standard-layout .invitation-actions .ant-btn-primary:hover {
+  color: #ffffff !important;
+}
+
+.standard-layout .invitation-actions .ant-btn-primary:hover::before,
+.standard-layout .invitation-actions .ant-btn-primary:hover::after {
+  color: #ffffff !important;
+}
+
+/* Nuclear option - target everything in the button */
+.standard-layout .invitation-actions .ant-btn-primary:hover,
+.standard-layout .invitation-actions .ant-btn-primary:hover *,
+.standard-layout .invitation-actions .ant-btn-primary:hover span,
+.standard-layout .invitation-actions .ant-btn-primary:hover div {
+  color: #ffffff !important;
+}
+
+/* Custom class approach - white background with orange text normally */
+.ant-btn.invitation-primary-btn {
+  color: #ff6b35 !important;
+  background-color: #ffffff !important;
+  border-color: #ff6b35 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+.ant-btn.invitation-primary-btn * {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-primary-btn span {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-primary-btn .anticon {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-primary-btn .ant-btn-icon {
+  color: #ff6b35 !important;
+}
+
+/* Orange background with white text on hover */
+.invitation-primary-btn:hover {
+  color: #ffffff !important;
+  background-color: #ff6b35 !important;
+  border-color: #ff6b35 !important;
+}
+
+.invitation-primary-btn:hover * {
+  color: #ffffff !important;
+}
+
+.invitation-primary-btn:hover span {
+  color: #ffffff !important;
+}
+
+.invitation-primary-btn:hover .anticon {
+  color: #ffffff !important;
+}
+
+/* Nuclear CSS approach - target every possible element */
+.invitation-primary-btn:hover,
+.invitation-primary-btn:hover span,
+.invitation-primary-btn:hover div,
+.invitation-primary-btn:hover p,
+.invitation-primary-btn:hover strong,
+.invitation-primary-btn:hover em,
+.invitation-primary-btn:hover .anticon,
+.invitation-primary-btn:hover .ant-btn-icon,
+.invitation-primary-btn:hover .ant-btn-icon span {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+/* Force override any Ant Design styles */
+.ant-btn.invitation-primary-btn:hover {
+  color: #ffffff !important;
+}
+
+.ant-btn.invitation-primary-btn:hover * {
+  color: #ffffff !important;
+}
+
+/* Second button styles - white background with orange text normally */
+.ant-btn.invitation-secondary-btn {
+  color: #ff6b35 !important;
+  background-color: #ffffff !important;
+  border-color: #ff6b35 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+.ant-btn.invitation-secondary-btn * {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-secondary-btn span {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-secondary-btn .anticon {
+  color: #ff6b35 !important;
+}
+
+.ant-btn.invitation-secondary-btn .ant-btn-icon {
+  color: #ff6b35 !important;
+}
+
+/* Orange background with white text on hover */
+.invitation-secondary-btn:hover {
+  color: #ffffff !important;
+  background-color: #ff6b35 !important;
+  border-color: #ff6b35 !important;
+}
+
+.invitation-secondary-btn:hover * {
+  color: #ffffff !important;
+}
+
+.invitation-secondary-btn:hover span {
+  color: #ffffff !important;
+}
+
+.invitation-secondary-btn:hover .anticon {
+  color: #ffffff !important;
+}
+
+/* Nuclear CSS approach for second button */
+.invitation-secondary-btn:hover,
+.invitation-secondary-btn:hover span,
+.invitation-secondary-btn:hover div,
+.invitation-secondary-btn:hover p,
+.invitation-secondary-btn:hover strong,
+.invitation-secondary-btn:hover em,
+.invitation-secondary-btn:hover .anticon,
+.invitation-secondary-btn:hover .ant-btn-icon,
+.invitation-secondary-btn:hover .ant-btn-icon span {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+/* Force override any Ant Design styles for second button */
+.ant-btn.invitation-secondary-btn:hover {
+  color: #ffffff !important;
+}
+
+.ant-btn.invitation-secondary-btn:hover * {
+  color: #ffffff !important;
+}
+
 @media (max-width: 576px) {
   /* Standard header styling now handled by global sidebar standards */
   

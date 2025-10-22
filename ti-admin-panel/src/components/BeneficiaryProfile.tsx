@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Layout,
   Typography,
   Button,
   Card,
@@ -14,13 +13,11 @@ import {
   Select,
   Checkbox,
   InputNumber,
-  Upload,
   message,
   Spin,
   Tabs,
   Badge,
   Statistic,
-  Descriptions,
   Image
 } from 'antd';
 import {
@@ -33,17 +30,11 @@ import {
   HeartOutlined,
   SafetyOutlined,
   TeamOutlined,
-  PictureOutlined,
-  UploadOutlined,
   CheckCircleFilled,
-  PhoneOutlined,
-  MailOutlined,
-  GlobalOutlined,
-  IdcardOutlined,
-  TrophyOutlined,
   BankOutlined
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
+import ImageUpload from './ImageUpload';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -97,40 +88,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // Mock data - replace with actual API call
+  // Load data from API
   useEffect(() => {
-    const mockData: BeneficiaryData = {
-      id: beneficiaryId,
-      beneficiaryName: 'United Way',
-      contactName: 'Keith Arnold',
-      email: 'keitharnold@gmail.com',
-      contactNumber: '+1 (555) 123-4567',
-      bankAccount: '****1234',
-      donation: '$25,000',
-      dateOfJoin: 'July 17, 2023',
-      cityState: 'Springfield, IL',
-      beneficiaryCause: 'Health and Medical Charities',
-      beneficiaryType: 'National',
-      donors: 300,
-      active: false,
-      enabled: false,
-      about: 'United Way is a global network of more than 1,800 local nonprofit fundraising affiliates. We work to create lasting positive change in communities across the world by mobilizing the caring power of communities around the globe to advance the common good.',
-      whyThisMatters: 'Every donation directly supports families in need, providing immediate relief and long-term solutions. Your generosity creates real change in our community and helps build a stronger future for everyone. We believe that everyone deserves access to basic necessities and opportunities to thrive.',
-      successStory: 'Thanks to generous donors like you, we were able to provide emergency housing for the Johnson family during their crisis. When they lost their home due to a devastating fire, your support made it possible for us to secure temporary housing, replace essential items, and connect them with long-term housing resources. Your support makes these miracles possible and transforms lives every day.',
-      storyAuthor: 'Sarah M., Program Director',
-      familiesHelped: '10,000+',
-      communitiesServed: 25,
-      directToPrograms: 95,
-      impactStatement1: 'Every $25 provides a family with essential supplies for one week',
-      impactStatement2: 'Every $100 helps provide emergency housing for families in crisis',
-      ein: '12-3456789',
-      website: 'https://unitedway.org',
-      verificationStatus: true,
-      volunteerInfo: 'Beyond financial support, there are many ways to make a difference: volunteer at events, spread awareness, join committees, and participate in community outreach programs. Contact us to learn more about volunteer opportunities and how you can get involved in making a positive impact.'
-    };
-
-    setBeneficiaryData(mockData);
-    setFormData(mockData);
+    // TODO: Implement API call to load beneficiary data
+    setBeneficiaryData(null);
+    setFormData({});
     setLoading(false);
   }, [beneficiaryId]);
 
@@ -341,6 +303,32 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         ) : (
           <Paragraph>{beneficiaryData.about}</Paragraph>
         )}
+      </div>
+
+      <Divider />
+
+      <div className="form-field">
+        <label>Main Image</label>
+        <div style={{ marginTop: '8px' }}>
+          {isEditing ? (
+            <ImageUpload
+              currentImageUrl={formData.mainImageUrl}
+              onImageChange={(url) => handleInputChange('mainImageUrl', url)}
+              title="Upload Beneficiary Image"
+              description="Upload a main image for the beneficiary organization"
+            />
+          ) : (
+            beneficiaryData.mainImageUrl ? (
+              <Image
+                src={beneficiaryData.mainImageUrl}
+                alt="Beneficiary main image"
+                style={{ maxWidth: 300, borderRadius: '8px' }}
+              />
+            ) : (
+              <Text type="secondary">No image uploaded</Text>
+            )
+          )}
+        </div>
       </div>
     </Card>
   );

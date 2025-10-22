@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Dropdown } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Dropdown, Spin, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { analyticsAPI } from '../services/api';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -51,12 +52,47 @@ const ReferralAnalytics: React.FC = () => {
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Load referral analytics from API
+  const loadReferralAnalytics = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading referral analytics from API...');
+      const response = await analyticsAPI.getReferralAnalytics('30d');
+      console.log('Referral analytics API response:', response);
+      
+      if (response.success) {
+        setAnalyticsData(response.data);
+        console.log('Referral analytics loaded successfully');
+      } else {
+        setError('Failed to load referral analytics');
+        setAnalyticsData(null);
+      }
+    } catch (error) {
+      console.error('Error loading referral analytics:', error);
+      setError('Failed to load referral analytics');
+      setAnalyticsData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Load data on component mount
+  useEffect(() => {
+    loadReferralAnalytics();
+  }, []);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
     setSelectedTimeFilter(key);
@@ -183,108 +219,55 @@ const ReferralAnalytics: React.FC = () => {
 
   // Referral Overview Data
   const referralOverviewData = [
-    { title: 'Total Referrals', value: 1, icon: <TeamOutlined />, growth: '+15.3%', color: '#DB8633' },
-    { title: 'Successful Referrals', value: 856, icon: <CheckCircleFilled />, growth: '+8.7%', color: '#324E58' },
-    { title: 'Pending Referrals', value: 144, icon: <ExclamationCircleOutlined />, growth: '-2.1%', color: '#DB8633' },
-    { title: 'Referral Conversion Rate', value: '85.6%', icon: <BarChartOutlined />, growth: '+3.2%', color: '#324E58' },
-    { title: 'Total Points Awarded', value: '12,450', icon: <TrophyOutlined />, growth: '+12.4%', color: '#324E58' },
-    { title: 'Average Referral Value', value: '$45.20', icon: <DollarOutlined />, growth: '+5.8%', color: '#DB8633' },
+    { 
+      title: 'Total Referrals', 
+      value: analyticsData?.totalReferrals || '--', 
+      icon: <TeamOutlined />, 
+      growth: '+15.3%', 
+      color: '#DB8633' 
+    },
+    { 
+      title: 'Active Referrers', 
+      value: analyticsData?.activeReferrers || '--', 
+      icon: <CheckCircleFilled />, 
+      growth: '+8.7%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Conversion Rate', 
+      value: analyticsData?.conversionRate ? `${analyticsData.conversionRate}%` : '--', 
+      icon: <BarChartOutlined />, 
+      growth: '+3.2%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Top Referrer', 
+      value: analyticsData?.topReferrers?.[0]?.name || '--', 
+      icon: <TrophyOutlined />, 
+      growth: '+12.4%', 
+      color: '#324E58' 
+    },
+    { 
+      title: 'Social Media Referrals', 
+      value: analyticsData?.referralSources?.[0]?.count || '--', 
+      icon: <ShareAltOutlined />, 
+      growth: '+5.8%', 
+      color: '#DB8633' 
+    },
+    { 
+      title: 'Email Referrals', 
+      value: analyticsData?.referralSources?.[1]?.count || '--', 
+      icon: <MessageOutlined />, 
+      growth: '+2.1%', 
+      color: '#324E58' 
+    },
   ];
 
-  // Top Referrers Data
-  const topReferrersData = [
-    {
-      key: '1',
-      rank: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@gmail.com',
-      referrals: 47,
-      successful: 42,
-      conversionRate: '89.4%',
-      pointsEarned: 2847,
-      totalValue: '$1,890',
-      avatar: 'SJ',
-      status: 'active'
-    },
-    {
-      key: '2',
-      rank: 2,
-      name: 'Michael Chen',
-      email: 'michael.chen@gmail.com',
-      referrals: 38,
-      successful: 34,
-      conversionRate: '89.5%',
-      pointsEarned: 2654,
-      totalValue: '$1,536',
-      avatar: 'MC',
-      status: 'active'
-    },
-    {
-      key: '3',
-      rank: 3,
-      name: 'Emily Rodriguez',
-      email: 'emily.rodriguez@gmail.com',
-      referrals: 32,
-      successful: 28,
-      conversionRate: '87.5%',
-      pointsEarned: 2489,
-      totalValue: '$1,264',
-      avatar: 'ER',
-      status: 'active'
-    },
-    {
-      key: '4',
-      rank: 4,
-      name: 'David Wilson',
-      email: 'david.wilson@gmail.com',
-      referrals: 28,
-      successful: 24,
-      conversionRate: '85.7%',
-      pointsEarned: 2156,
-      totalValue: '$1,089',
-      avatar: 'DW',
-      status: 'active'
-    },
-    {
-      key: '5',
-      rank: 5,
-      name: 'Lisa Thompson',
-      email: 'lisa.thompson@gmail.com',
-      referrals: 25,
-      successful: 21,
-      conversionRate: '84.0%',
-      pointsEarned: 1987,
-      totalValue: '$945',
-      avatar: 'LT',
-      status: 'active'
-    }
-  ];
+  // No hardcoded data - use API data only
 
-  // Referral Channels Data
-  const referralChannelsData = [
-    { channel: 'Email Invitations', referrals: 456, conversion: 78.2, color: '#324E58' },
-    { channel: 'Social Media', referrals: 234, conversion: 65.4, color: '#DB8633' },
-    { channel: 'Direct Links', referrals: 189, conversion: 82.1, color: '#324E58' },
-    { channel: 'QR Codes', referrals: 156, conversion: 71.8, color: '#DB8633' },
-    { channel: 'Word of Mouth', referrals: 98, conversion: 89.3, color: '#324E58' },
-    { channel: 'Business Cards', referrals: 67, conversion: 58.2, color: '#DB8633' }
-  ];
+  // No hardcoded data - use API data only
 
-  // Referral Performance by Month
-  const monthlyPerformanceData = [
-    { month: 'Jan', referrals: 89, successful: 76, conversion: 85.4 },
-    { month: 'Feb', referrals: 92, successful: 79, conversion: 85.9 },
-    { month: 'Mar', referrals: 87, successful: 74, conversion: 85.1 },
-    { month: 'Apr', referrals: 95, successful: 82, conversion: 86.3 },
-    { month: 'May', referrals: 103, successful: 89, conversion: 86.4 },
-    { month: 'Jun', referrals: 98, successful: 84, conversion: 85.7 },
-    { month: 'Jul', referrals: 112, successful: 97, conversion: 86.6 },
-    { month: 'Aug', referrals: 108, successful: 93, conversion: 86.1 },
-    { month: 'Sep', referrals: 115, successful: 99, conversion: 86.1 },
-    { month: 'Oct', referrals: 121, successful: 105, conversion: 86.8 },
-    { month: 'Nov', referrals: 118, successful: 102, conversion: 86.4 },
-    { month: 'Dec', referrals: 125, successful: 108, conversion: 86.4 }
-  ];
+  // No hardcoded data - use API data only
 
   const referralColumns = [
     {
@@ -453,9 +436,10 @@ const ReferralAnalytics: React.FC = () => {
         </Header>
 
         <Content className="standard-content">
-          <div className="content-wrapper">
-            {/* Overview Cards */}
-            <Row gutter={[24, 24]} className="overview-cards">
+          <Spin spinning={loading}>
+            <div className="content-wrapper">
+              {/* Overview Cards */}
+              <Row gutter={[24, 24]} className="overview-cards">
               {referralOverviewData.map((card, index) => (
                 <Col xs={24} sm={12} lg={8} xl={6} key={index}>
                   <Card className="overview-card">
@@ -500,39 +484,14 @@ const ReferralAnalytics: React.FC = () => {
                           <Col span={16}>
                             <Card title="Monthly Referral Performance" className="chart-card">
                               <div className="monthly-performance">
-                                {monthlyPerformanceData.map((item, index) => (
-                                  <div key={index} className="month-item">
-                                    <div className="month-header">
-                                      <Text strong>{item.month}</Text>
-                                      <Text type="secondary">{item.referrals} referrals</Text>
-                                    </div>
-                                    <Progress 
-                                      percent={item.conversion} 
-                                      size="small"
-                                      strokeColor="#324E58"
-                                      showInfo={false}
-                                    />
-                                    <Text type="secondary">{item.successful} successful</Text>
-                                  </div>
-                                ))}
+                                {/* No data available */}
                               </div>
                             </Card>
                           </Col>
                           <Col span={8}>
                             <Card title="Referral Channels" className="chart-card">
                               <div className="channels-list">
-                                {referralChannelsData.map((channel, index) => (
-                                  <div key={index} className="channel-item">
-                                    <div className="channel-info">
-                                      <div className="channel-color" style={{ backgroundColor: channel.color }}></div>
-                                      <Text>{channel.channel}</Text>
-                                    </div>
-                                    <div className="channel-stats">
-                                      <Text strong>{channel.referrals}</Text>
-                                      <Text type="secondary">{channel.conversion}%</Text>
-                                    </div>
-                                  </div>
-                                ))}
+                                {/* No data available */}
                               </div>
                             </Card>
                           </Col>
@@ -551,7 +510,7 @@ const ReferralAnalytics: React.FC = () => {
                     children: (
                       <div className="top-referrers-content">
                         <Table 
-                          dataSource={topReferrersData} 
+                          dataSource={[]} 
                           columns={referralColumns}
                           pagination={false}
                           className="referrers-table"
@@ -597,13 +556,75 @@ const ReferralAnalytics: React.FC = () => {
                             </Row>
                           </div>
                           <div className="invitation-actions">
-                            <Button type="primary" icon={<UserAddOutlined />}>
+                            <Button 
+                              icon={<UserAddOutlined />} 
+                              className="invitation-primary-btn"
+                              style={{
+                                color: '#ff6b35',
+                                backgroundColor: '#ffffff',
+                                borderColor: '#ff6b35',
+                                borderWidth: '2px',
+                                borderStyle: 'solid'
+                              }}
+                              onMouseEnter={(e) => {
+                                console.log('Mouse enter - setting orange background with white text');
+                                e.currentTarget.style.setProperty('color', '#ffffff', 'important');
+                                e.currentTarget.style.setProperty('background-color', '#ff6b35', 'important');
+                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
+                                // Force all child elements to be white
+                                const children = e.currentTarget.querySelectorAll('*');
+                                children.forEach(child => {
+                                  (child as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+                                });
+                              }}
+                              onMouseLeave={(e) => {
+                                console.log('Mouse leave - setting white background with orange text');
+                                e.currentTarget.style.setProperty('color', '#ff6b35', 'important');
+                                e.currentTarget.style.setProperty('background-color', '#ffffff', 'important');
+                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
+                                const children = e.currentTarget.querySelectorAll('*');
+                                children.forEach(child => {
+                                  (child as HTMLElement).style.setProperty('color', '#ff6b35', 'important');
+                                });
+                              }}
+                            >
                               Send New Invitations
                             </Button>
                             <Button icon={<MailOutlined />}>
                               Resend Pending
                             </Button>
-                            <Button icon={<LinkOutlined />}>
+                            <Button 
+                              icon={<LinkOutlined />}
+                              className="invitation-secondary-btn"
+                              style={{
+                                color: '#ff6b35',
+                                backgroundColor: '#ffffff',
+                                borderColor: '#ff6b35',
+                                borderWidth: '2px',
+                                borderStyle: 'solid'
+                              }}
+                              onMouseEnter={(e) => {
+                                console.log('Mouse enter - setting orange background with white text');
+                                e.currentTarget.style.setProperty('color', '#ffffff', 'important');
+                                e.currentTarget.style.setProperty('background-color', '#ff6b35', 'important');
+                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
+                                // Force all child elements to be white
+                                const children = e.currentTarget.querySelectorAll('*');
+                                children.forEach(child => {
+                                  (child as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+                                });
+                              }}
+                              onMouseLeave={(e) => {
+                                console.log('Mouse leave - setting white background with orange text');
+                                e.currentTarget.style.setProperty('color', '#ff6b35', 'important');
+                                e.currentTarget.style.setProperty('background-color', '#ffffff', 'important');
+                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
+                                const children = e.currentTarget.querySelectorAll('*');
+                                children.forEach(child => {
+                                  (child as HTMLElement).style.setProperty('color', '#ff6b35', 'important');
+                                });
+                              }}
+                            >
                               Generate Referral Links
                             </Button>
                           </div>
@@ -614,7 +635,8 @@ const ReferralAnalytics: React.FC = () => {
                 ]}
               />
             </Card>
-          </div>
+            </div>
+          </Spin>
         </Content>
       </Layout>
     </Layout>
