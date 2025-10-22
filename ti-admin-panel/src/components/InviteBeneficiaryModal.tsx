@@ -394,9 +394,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                     <p className="ant-upload-drag-icon">
                       <InboxOutlined />
                     </p>
-                    <p className="ant-upload-text">Click or drag image to this area to upload</p>
+                    <p className="ant-upload-text">Click or drag file to this area to upload</p>
                     <p className="ant-upload-hint">
-                      Recommended size: 1080px × 1080px. Max file size: 10MB
+                      Support for JPG, PNG, GIF. Recommended: 1080px × 1080px. Max 10MB
                     </p>
                   </Dragger>
                 </Form.Item>
