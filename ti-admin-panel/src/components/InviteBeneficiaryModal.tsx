@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, Steps, Form, Input, Select, Upload, Button, Row, Col, Typography, Divider, Checkbox, InputNumber, message } from 'antd';
+import { Modal, Steps, Form, Input, Select, Button, Row, Col, Typography, Divider, Checkbox, InputNumber, message, Card } from 'antd';
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   PlusOutlined,
-  UploadOutlined,
   FileTextOutlined,
   SafetyCertificateOutlined,
   PictureOutlined,
@@ -14,13 +13,11 @@ import {
   BookOutlined,
   TeamOutlined,
   SafetyOutlined,
-  UserOutlined,
-  InboxOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
+import ImageUpload from './ImageUpload';
 import './InviteBeneficiaryModal.css';
-
-const { Dragger } = Upload;
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -45,7 +42,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const [volunteerInfo, setVolunteerInfo] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
-  const [mainImageFileList, setMainImageFileList] = useState<any[]>([]);
+  // Image URLs from S3 uploads
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [additionalImages, setAdditionalImages] = useState<string[]>([]);
 
   const steps = [
     {
@@ -75,67 +75,25 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   ];
 
-  // Upload configuration (same as vendor form - mock upload)
-  const uploadProps = {
-    name: 'file',
-    multiple: false,
-    customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
-      try {
-        console.log('Uploading file:', file.name, 'Type:', file.type);
-        
-        // Simulate file processing
-        const fileObj: any = file;
-        console.log('File prepared for upload:', file.name);
-        
-        // Generate mock S3 URL for preview
-        const mockUrl = `https://thrive-backend-uploads.s3.us-east-1.amazonaws.com/mock-${Date.now()}-${file.name}`;
-        
-        onProgress({ percent: 100 });
-        
-        setTimeout(() => {
-          onSuccess({
-            url: mockUrl,
-            name: file.name
-          }, file);
-        }, 500);
-        
-      } catch (error) {
-        console.error('Upload error:', error);
-        onError(error);
-        message.error(`${file.name} upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    },
-    beforeUpload: (file: any) => {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        message.error('You can only upload image files!');
-        return false;
-      }
-      const isLt5M = file.size / 1024 / 1024 < 5;
-      if (!isLt5M) {
-        message.error('Image must be smaller than 5MB!');
-        return false;
-      }
-      return true;
-    }
+  // Image upload handlers - using real AWS S3 uploads
+  const handleMainImageChange = (url: string | null) => {
+    setMainImageUrl(url);
+    form.setFieldsValue({ mainImage: url });
   };
 
-  const handleMainImageUpload = (info: any) => {
-    let newFileList = [...info.fileList];
-    newFileList = newFileList.slice(-1); // Only keep the last file
-    setMainImageFileList(newFileList);
-    
-    // Set form value for validation
-    if (newFileList.length > 0 && newFileList[0].status === 'done') {
-      form.setFieldsValue({ mainImage: newFileList[0].response?.url || newFileList[0].name });
-    } else if (newFileList.length > 0) {
-      form.setFieldsValue({ mainImage: newFileList[0].name });
-    }
-    
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
-      message.error(`${info.file.name} file upload failed.`);
+  const handleLogoChange = (url: string | null) => {
+    setLogoUrl(url);
+    form.setFieldsValue({ logo: url });
+  };
+
+  const handleAdditionalImageChange = (url: string | null, index: number) => {
+    if (url) {
+      const newImages = [...additionalImages];
+      newImages[index] = url;
+      setAdditionalImages(newImages);
+    } else {
+      const newImages = additionalImages.filter((_, i) => i !== index);
+      setAdditionalImages(newImages);
     }
   };
 
@@ -146,11 +104,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       if (currentStep === 0) {
         const values = await form.validateFields();
         
-        // Check if main image is uploaded
-        if (mainImageFileList.length === 0) {
-          message.error('Please upload a main image before continuing');
-          return;
-        }
+        // Main image is optional, but you can add validation if needed
+        // if (!mainImageUrl) {
+        //   message.error('Please upload a main image before continuing');
+        //   return;
+        // }
         
         console.log('✅ Step 0 validated:', values);
         setBasicDetails(values);
@@ -207,9 +165,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         ein: allData.ein || '',
         website: allData.website || '',
         volunteer_info: allData.volunteerInfo || '',
-        // Images would be uploaded separately
-        main_image: allData.mainImage || '',
-        additional_images: []
+        // Images uploaded to S3
+        main_image: mainImageUrl || '',
+        logo: logoUrl || '',
+        additional_images: additionalImages.filter(img => img) // Filter out empty slots
       };
       
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
@@ -251,9 +210,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setBasicDetails({});
     setImpactStory({});
     setTrustTransparency({});
-    setMainImageFileList([]);
     setVolunteerInfo({});
     setUploadImages({});
+    // Reset image states
+    setMainImageUrl(null);
+    setLogoUrl(null);
+    setAdditionalImages([]);
     onCancel();
   };
 
@@ -385,20 +347,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   label="Upload Main Image"
                   rules={[{ required: false, message: 'Please upload a main image' }]}
                 >
-                  <Dragger
-                    {...uploadProps}
-                    fileList={mainImageFileList}
-                    onChange={handleMainImageUpload}
-                    className="main-image-upload"
-                  >
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                    <p className="ant-upload-hint">
-                      Support for JPG, PNG, GIF. Recommended: 1080px × 1080px. Max 10MB
-                    </p>
-                  </Dragger>
+                  <ImageUpload
+                    currentImageUrl={mainImageUrl || undefined}
+                    onImageChange={handleMainImageChange}
+                    title="Upload Beneficiary Main Image"
+                    description="Click or drag an image file to upload. Recommended: 1080px × 1080px. Max 5MB"
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -544,7 +498,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             >
               <div className="upload-section">
                 <Input placeholder="Select Form-990 file" />
-                <Button className="upload-btn" icon={<UploadOutlined />}>
+                <Button className="upload-btn">
                   Upload Document
                 </Button>
               </div>
@@ -617,31 +571,64 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         return (
           <div className="step-content">
             <Title level={4}>Upload Images</Title>
-            <Row gutter={[24, 16]}>
-              <Col span={12}>
-                <div className="upload-logo-section">
-                  <Title level={5}>Upload Logo*</Title>
-                  <div className="upload-placeholder">
-                    <div className="placeholder-icon">👤</div>
-                    <Text>Recommended size image (1080px X 1080px)</Text>
-                  </div>
-                  <Button className="upload-btn" icon={<UploadOutlined />}>
-                    Upload Logo
-                  </Button>
-                </div>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
+              Upload a logo and additional images to showcase your beneficiary organization
+            </Text>
+            
+            <Row gutter={[24, 24]}>
+              <Col span={24}>
+                <Card title="Organization Logo" style={{ marginBottom: '16px' }}>
+                  <Form.Item
+                    name="logo"
+                    label="Upload Logo *"
+                    rules={[{ required: false, message: 'Please upload a logo' }]}
+                  >
+                    <ImageUpload
+                      currentImageUrl={logoUrl || undefined}
+                      onImageChange={handleLogoChange}
+                      title="Upload Organization Logo"
+                      description="Recommended: 1080px × 1080px. Max 5MB"
+                    />
+                  </Form.Item>
+                </Card>
               </Col>
-              <Col span={12}>
-                <div className="upload-images-section">
-                  <Title level={5}>Upload Beneficiary Images</Title>
-                  <Text>Upload min of 3 additional images</Text>
-                  <div className="upload-placeholder large">
-                    <div className="placeholder-icon">🏔️</div>
-                    <Text>Upload or drag images</Text>
-                  </div>
-                  <Button className="upload-btn" icon={<UploadOutlined />}>
-                    Upload Images
-                  </Button>
-                </div>
+              
+              <Col span={24}>
+                <Card title="Additional Images (Optional)">
+                  <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+                    Upload up to 3 additional images showcasing your programs and impact
+                  </Text>
+                  
+                  <Row gutter={[16, 16]}>
+                    <Col span={8}>
+                      <Text strong style={{ display: 'block', marginBottom: '8px' }}>Image 1</Text>
+                      <ImageUpload
+                        currentImageUrl={additionalImages[0] || undefined}
+                        onImageChange={(url) => handleAdditionalImageChange(url, 0)}
+                        title="Upload Image"
+                        description="Click or drag"
+                      />
+                    </Col>
+                    <Col span={8}>
+                      <Text strong style={{ display: 'block', marginBottom: '8px' }}>Image 2</Text>
+                      <ImageUpload
+                        currentImageUrl={additionalImages[1] || undefined}
+                        onImageChange={(url) => handleAdditionalImageChange(url, 1)}
+                        title="Upload Image"
+                        description="Click or drag"
+                      />
+                    </Col>
+                    <Col span={8}>
+                      <Text strong style={{ display: 'block', marginBottom: '8px' }}>Image 3</Text>
+                      <ImageUpload
+                        currentImageUrl={additionalImages[2] || undefined}
+                        onImageChange={(url) => handleAdditionalImageChange(url, 2)}
+                        title="Upload Image"
+                        description="Click or drag"
+                      />
+                    </Col>
+                  </Row>
+                </Card>
               </Col>
             </Row>
           </div>
