@@ -276,6 +276,28 @@ export const vendorAPI = {
       console.log('✅ Final vendors array:', vendorsArray);
       console.log('✅ Final vendors array length:', vendorsArray.length);
       
+      // CRITICAL FIX: If vendorsArray is empty but data exists, try alternative extraction
+      if (vendorsArray.length === 0 && data && data.data !== undefined) {
+        console.warn('⚠️ Vendors array empty, trying alternative extraction...');
+        console.warn('⚠️ data.data value:', data.data);
+        console.warn('⚠️ data.data type:', typeof data.data);
+        
+        // Try to extract as array regardless of type
+        if (data.data && typeof data.data === 'object') {
+          // If it's an object but not an array, check if it has array-like properties
+          if (Array.isArray(data.data)) {
+            vendorsArray = data.data;
+          } else if (data.data.length !== undefined) {
+            // Might be an array-like object
+            vendorsArray = Array.from(data.data);
+          } else if (Object.keys(data.data).length > 0) {
+            // Might be an object with vendors, convert to array
+            vendorsArray = Object.values(data.data);
+          }
+        }
+        console.log('✅ After alternative extraction, length:', vendorsArray.length);
+      }
+      
       return {
         success: data?.success !== false, // true unless explicitly false
         data: vendorsArray,
