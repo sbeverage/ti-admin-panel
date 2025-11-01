@@ -83,7 +83,8 @@ const Vendor: React.FC = () => {
             active: true, // Default active status
             enabled: true, // Default enabled status
             status: vendor.status || 'active', // Use vendor status from API, default to active
-            avatar: vendor.name.charAt(0).toUpperCase()
+            avatar: vendor.name.charAt(0).toUpperCase(),
+            logo_url: vendor.logo_url || null // Include logo URL for display
           }));
         console.log('Transformed data:', transformedData);
         console.log('Sample vendor status:', transformedData[0]?.status);
@@ -409,8 +410,13 @@ const Vendor: React.FC = () => {
       key: 'name',
       render: (text: string, record: any) => (
         <Space>
-          <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
-            {record.avatar}
+          <Avatar 
+            size={32} 
+            src={record.logo_url} // Use logo URL if available
+            style={{ backgroundColor: record.logo_url ? 'transparent' : '#DB8633' }}
+            icon={!record.logo_url ? record.avatar : undefined} // Show initial if no logo
+          >
+            {!record.logo_url && record.avatar}
           </Avatar>
           <Text 
             strong 

@@ -333,16 +333,27 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         if (allData.discountName && allData.discountType && allData.discountValue) {
           try {
             // Backend expects camelCase field names
+            // Tags should be an array for JSONB format in Supabase
+            const tagsArray = allData.tags && Array.isArray(allData.tags) 
+              ? allData.tags 
+              : allData.tags 
+              ? [allData.tags] 
+              : [];
+            
             const discountData = {
               vendorId: vendorId,
               title: allData.discountName,
               description: allData.discountOn || allData.discountName,
               discountType: allData.discountType,
               discountValue: parseFloat(allData.discountValue),
+              discountCode: allData.promoCode || null,
+              category: allData.category || null,
+              tags: tagsArray.length > 0 ? tagsArray : null, // Send as array for JSONB
               minPurchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
               maxDiscount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
-              startDate: new Date().toISOString(),
-              endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              terms: allData.additionalTerms || null,
+              startDate: allData.startDate ? new Date(allData.startDate).toISOString() : new Date().toISOString(),
+              endDate: allData.endDate ? new Date(allData.endDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
               isActive: true
             };
             
