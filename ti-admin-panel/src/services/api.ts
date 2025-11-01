@@ -233,11 +233,11 @@ export const vendorAPI = {
       
       const data = await response.json();
       
-      // The backend returns {vendors: [...], pagination: {...}}
-      // Transform to the format the frontend expects
+      // The backend returns {success: true, data: [...], pagination: {...}} OR {vendors: [...], pagination: {...}}
+      // Handle both formats for compatibility
       return {
         success: true,
-        data: data.vendors,
+        data: data.data || data.vendors || [],
         pagination: data.pagination
       };
     } catch (error) {
