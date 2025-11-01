@@ -231,36 +231,55 @@ export const vendorAPI = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      // Get response text first to see what we're actually receiving
+      const responseText = await response.text();
+      console.log('🔍 Raw response text:', responseText.substring(0, 500));
       
-      console.log('🔍 Raw API response:', data);
-      console.log('📋 data.data:', data.data);
-      console.log('📋 data.vendors:', data.vendors);
-      console.log('📋 data.success:', data.success);
-      console.log('📋 data.pagination:', data.pagination);
-      console.log('📋 typeof data.data:', typeof data.data);
-      console.log('📋 Array.isArray(data.data):', Array.isArray(data.data));
+      // Parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        console.error('❌ Response text:', responseText);
+        throw new Error('Failed to parse API response as JSON');
+      }
+      
+      console.log('🔍 Parsed API response:', data);
+      console.log('📋 data:', data);
+      console.log('📋 data.data:', data?.data);
+      console.log('📋 data.vendors:', data?.vendors);
+      console.log('📋 data.success:', data?.success);
+      console.log('📋 data.pagination:', data?.pagination);
+      console.log('📋 typeof data.data:', typeof data?.data);
+      console.log('📋 Array.isArray(data.data):', Array.isArray(data?.data));
+      console.log('📋 data.data === undefined:', data?.data === undefined);
+      console.log('📋 data.data === null:', data?.data === null);
       
       // The backend returns {success: true, data: [...], pagination: {...}} OR {vendors: [...], pagination: {...}}
       // Handle both formats for compatibility
       let vendorsArray = [];
       
-      if (Array.isArray(data.data)) {
+      if (data && Array.isArray(data.data)) {
         vendorsArray = data.data;
-      } else if (Array.isArray(data.vendors)) {
+        console.log('✅ Found vendors in data.data, length:', vendorsArray.length);
+      } else if (data && Array.isArray(data.vendors)) {
         vendorsArray = data.vendors;
-      } else if (data.data !== undefined && data.data !== null) {
-        // Handle case where data might be wrapped or formatted differently
-        vendorsArray = Array.isArray(data.data) ? data.data : [];
+        console.log('✅ Found vendors in data.vendors, length:', vendorsArray.length);
+      } else {
+        console.warn('⚠️ No vendors array found!');
+        console.warn('⚠️ data.data type:', typeof data?.data);
+        console.warn('⚠️ data.data value:', data?.data);
+        vendorsArray = [];
       }
       
-      console.log('✅ Extracted vendors array:', vendorsArray);
-      console.log('✅ Extracted vendors array length:', vendorsArray.length);
+      console.log('✅ Final vendors array:', vendorsArray);
+      console.log('✅ Final vendors array length:', vendorsArray.length);
       
       return {
-        success: data.success !== false, // true unless explicitly false
+        success: data?.success !== false, // true unless explicitly false
         data: vendorsArray,
-        pagination: data.pagination || {}
+        pagination: data?.pagination || {}
       };
     } catch (error) {
       console.log('API call failed:', error);
