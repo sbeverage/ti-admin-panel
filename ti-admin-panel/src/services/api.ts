@@ -233,11 +233,21 @@ export const vendorAPI = {
       
       const data = await response.json();
       
+      console.log('🔍 Raw API response:', data);
+      console.log('📋 data.data:', data.data);
+      console.log('📋 data.vendors:', data.vendors);
+      console.log('📋 data.success:', data.success);
+      console.log('📋 data.pagination:', data.pagination);
+      
       // The backend returns {success: true, data: [...], pagination: {...}} OR {vendors: [...], pagination: {...}}
       // Handle both formats for compatibility
+      const vendorsArray = data.data || data.vendors || [];
+      
+      console.log('✅ Extracted vendors array length:', vendorsArray.length);
+      
       return {
         success: true,
-        data: data.data || data.vendors || [],
+        data: vendorsArray,
         pagination: data.pagination
       };
     } catch (error) {

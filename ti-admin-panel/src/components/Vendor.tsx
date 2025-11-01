@@ -65,11 +65,18 @@ const Vendor: React.FC = () => {
       console.log('📄 Response pagination:', response.pagination);
       console.log('📋 Response data sample:', response.data?.[0]);
       
-      if (response.success && response.data) {
+      // Ensure data is an array before processing
+      const vendorsData = Array.isArray(response.data) ? response.data : [];
+      
+      console.log('📋 Vendors data array:', vendorsData);
+      console.log('📋 Array length:', vendorsData.length);
+      console.log('📋 Is array?', Array.isArray(vendorsData));
+      
+      if (response.success && vendorsData.length > 0) {
         // Transform API data to match our table structure
         console.log('🔄 Transforming vendor data...');
-        console.log('📋 Vendors to transform:', response.data.length);
-        const transformedData = response.data.map((vendor: VendorType) => ({
+        console.log('📋 Vendors to transform:', vendorsData.length);
+        const transformedData = vendorsData.map((vendor: VendorType) => ({
             key: vendor.id.toString(),
             name: vendor.name,
             contactName: vendor.email, // Using email as contact name for now
@@ -93,10 +100,16 @@ const Vendor: React.FC = () => {
         console.log('Sample vendor status:', transformedData[0]?.status);
         console.log('Setting vendors data...');
         setVendorsData(transformedData);
-        setTotalVendors(response.pagination.total);
+        setTotalVendors(response.pagination?.total || 0);
         console.log('Vendors data set successfully');
+      } else if (response.success && vendorsData.length === 0) {
+        // Success but no vendors yet
+        console.log('✅ API call successful, but no vendors found');
+        setVendorsData([]);
+        setTotalVendors(0);
       } else {
-        setError('Failed to load vendors');
+        console.error('❌ Failed to load vendors:', response);
+        setError(response.error || 'Failed to load vendors');
       }
       setLoading(false);
     } catch (error) {
