@@ -65,12 +65,25 @@ const Vendor: React.FC = () => {
       console.log('📄 Response pagination:', response.pagination);
       console.log('📋 Response data sample:', response.data?.[0]);
       
-      // Ensure data is an array before processing
-      const vendorsData = Array.isArray(response.data) ? response.data : [];
+      // Ensure data is an array before processing - handle all cases
+      let vendorsData = [];
+      
+      if (response && response.data) {
+        if (Array.isArray(response.data)) {
+          vendorsData = response.data;
+        } else {
+          console.warn('⚠️ response.data is not an array:', response.data);
+          vendorsData = [];
+        }
+      } else {
+        console.warn('⚠️ response.data is undefined:', response);
+        vendorsData = [];
+      }
       
       console.log('📋 Vendors data array:', vendorsData);
       console.log('📋 Array length:', vendorsData.length);
       console.log('📋 Is array?', Array.isArray(vendorsData));
+      console.log('📋 Full response object:', response);
       
       if (response.success && vendorsData.length > 0) {
         // Transform API data to match our table structure

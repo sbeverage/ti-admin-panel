@@ -238,17 +238,29 @@ export const vendorAPI = {
       console.log('📋 data.vendors:', data.vendors);
       console.log('📋 data.success:', data.success);
       console.log('📋 data.pagination:', data.pagination);
+      console.log('📋 typeof data.data:', typeof data.data);
+      console.log('📋 Array.isArray(data.data):', Array.isArray(data.data));
       
       // The backend returns {success: true, data: [...], pagination: {...}} OR {vendors: [...], pagination: {...}}
       // Handle both formats for compatibility
-      const vendorsArray = data.data || data.vendors || [];
+      let vendorsArray = [];
       
+      if (Array.isArray(data.data)) {
+        vendorsArray = data.data;
+      } else if (Array.isArray(data.vendors)) {
+        vendorsArray = data.vendors;
+      } else if (data.data !== undefined && data.data !== null) {
+        // Handle case where data might be wrapped or formatted differently
+        vendorsArray = Array.isArray(data.data) ? data.data : [];
+      }
+      
+      console.log('✅ Extracted vendors array:', vendorsArray);
       console.log('✅ Extracted vendors array length:', vendorsArray.length);
       
       return {
-        success: true,
+        success: data.success !== false, // true unless explicitly false
         data: vendorsArray,
-        pagination: data.pagination
+        pagination: data.pagination || {}
       };
     } catch (error) {
       console.log('API call failed:', error);
