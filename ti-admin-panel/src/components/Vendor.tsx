@@ -55,17 +55,20 @@ const Vendor: React.FC = () => {
     // No mock data fallback - use real API data only
 
     try {
-      console.log('Loading vendors from API...');
+      console.log('🔄 Loading vendors from API...');
       console.time('API Call'); // Start timing
       const response = await vendorAPI.getVendors(currentPage, pageSize);
       console.timeEnd('API Call'); // End timing
-      console.log('Vendor API response:', response);
-      console.log('Response success:', response.success);
-      console.log('Response data length:', response.data?.length);
-      console.log('Response pagination:', response.pagination);
-      if (response.success) {
+      console.log('📦 Vendor API response:', response);
+      console.log('✅ Response success:', response.success);
+      console.log('📊 Response data length:', response.data?.length);
+      console.log('📄 Response pagination:', response.pagination);
+      console.log('📋 Response data sample:', response.data?.[0]);
+      
+      if (response.success && response.data) {
         // Transform API data to match our table structure
-        console.log('Transforming vendor data...');
+        console.log('🔄 Transforming vendor data...');
+        console.log('📋 Vendors to transform:', response.data.length);
         const transformedData = response.data.map((vendor: VendorType) => ({
             key: vendor.id.toString(),
             name: vendor.name,
@@ -148,8 +151,10 @@ const Vendor: React.FC = () => {
     // The modal already handles vendor creation, we just need to refresh the list
     console.log('Vendor creation completed, refreshing vendor list...');
     setInviteVendorModalVisible(false);
-    // Refresh the vendor list
-    loadVendors();
+    // Refresh the vendor list with a small delay to ensure backend processing is complete
+    setTimeout(() => {
+      loadVendors();
+    }, 500);
   };
 
   const handleVendorClick = (vendorId: string) => {

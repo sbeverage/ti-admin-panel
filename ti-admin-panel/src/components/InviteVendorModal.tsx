@@ -309,8 +309,13 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       console.log('About to call vendorAPI.createVendor with:', vendorDataWithImages);
       const vendorResponse = await vendorAPI.createVendor(vendorDataWithImages);
       console.log('Vendor API response:', vendorResponse);
+      console.log('Response success:', vendorResponse?.success);
+      console.log('Response data:', vendorResponse?.data);
+      console.log('Response error:', vendorResponse?.error);
       
-      if (vendorResponse.success && vendorResponse.data) {
+      // Check if vendor was created (handle both response formats)
+      const vendorCreated = vendorResponse?.success && vendorResponse?.data;
+      if (vendorCreated) {
         const vendorId = vendorResponse.data.id;
         console.log('✅ Vendor created successfully with ID:', vendorId);
         
@@ -390,11 +395,19 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         }
         
         message.success('Vendor created successfully!');
+        // Call onSubmit callback first to trigger parent refresh
         onSubmit(allData);
-        handleCancel();
+        // Small delay to ensure backend has finished processing
+        setTimeout(() => {
+          handleCancel();
+        }, 100);
       } else {
-        console.error('❌ Vendor creation failed:', vendorResponse.error);
-        message.error(`Failed to create vendor: ${vendorResponse.error}`);
+        console.error('❌ Vendor creation failed:', vendorResponse);
+        console.error('Response details:', JSON.stringify(vendorResponse, null, 2));
+        const errorMessage = vendorResponse?.error || vendorResponse?.message || 'Unknown error';
+        message.error(`Failed to create vendor: ${errorMessage}`);
+        setSaving(false);
+        return; // Don't close modal on error
       }
     } catch (error) {
       console.error('Error creating vendor:', error);
