@@ -1,22 +1,22 @@
-// API Configuration - HTTPS Production URL (Build: Oct 21, 2025 - HTTPS Enforced)
-// Force HTTPS and use the correct production URL
+// API Configuration - Supabase Edge Function (Migrated from AWS)
+// Now using Supabase Edge Functions instead of AWS Elastic Beanstalk
 const getBaseURL = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return '/api/admin';
-  }
+  // Supabase Edge Function URL (always use this - backend migrated to Supabase)
+  const SUPABASE_EDGE_FUNCTION_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
   
-  // Always use the secure HTTPS URL - ignore any environment variables pointing to HTTP
-  const secureURL = 'https://api.forpurposetechnologies.com/api/admin';
-  
-  console.log('🔒 Production Mode - Using secure HTTPS URL:', secureURL);
-  return secureURL;
+  // Always use Supabase URL (ignore any environment variable overrides)
+  console.log('🔒 Using Supabase Edge Function URL:', SUPABASE_EDGE_FUNCTION_URL);
+  return SUPABASE_EDGE_FUNCTION_URL;
 };
 
 const API_CONFIG = {
   baseURL: getBaseURL(),
   headers: {
     'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    // Supabase Edge Functions require apikey header
+    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
   }
 };
 
@@ -1075,6 +1075,25 @@ export const settingsAPI = {
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  // Delete user by email (permanently deletes user and all associated data)
+  deleteUserByEmail: async (email: string): Promise<ApiResponse<any>> => {
+    // Use the auth endpoint for deleting users by email
+    // The base URL includes '/admin', so we need to replace it with just the base path
+    const baseUrl = API_CONFIG.baseURL.replace('/functions/v1/api/admin', '/functions/v1/api');
+    const response = await fetch(`${baseUrl}/auth/delete-user`, {
+      method: 'DELETE',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ email })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
     
     return response.json();
