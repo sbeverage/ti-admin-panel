@@ -1,6 +1,8 @@
 {
+  "version": 2,
   "buildCommand": "bash scripts/build.sh",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
-  "outputDirectory": "build"
+  "outputDirectory": "build",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
 }
