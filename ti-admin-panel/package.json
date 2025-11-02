@@ -23,8 +23,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "which react-scripts || npm install react-scripts --legacy-peer-deps",
-    "build": "node node_modules/.bin/react-scripts build || npx react-scripts build || ./node_modules/.bin/react-scripts build",
+    "build": "npm install --legacy-peer-deps && node node_modules/.bin/react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
