@@ -66,7 +66,7 @@ const Vendor: React.FC = () => {
       console.log('📋 Response data sample:', response.data?.[0]);
       
       // Ensure data is an array before processing - handle all cases
-      let vendorsData = [];
+      let vendorsData: VendorType[] = [];
       
       if (response && response.data) {
         if (Array.isArray(response.data)) {
