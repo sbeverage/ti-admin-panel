@@ -122,7 +122,7 @@ const Vendor: React.FC = () => {
         setTotalVendors(0);
       } else {
         console.error('❌ Failed to load vendors:', response);
-        setError(response.error || 'Failed to load vendors');
+        setError((response as any).error || response.message || 'Failed to load vendors');
       }
       setLoading(false);
     } catch (error) {

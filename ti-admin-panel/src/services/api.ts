@@ -190,6 +190,8 @@ export interface PaginatedResponse<T> {
     total: number;
     pages: number;
   };
+  error?: string;
+  message?: string;
 }
 
 // Vendor API functions
