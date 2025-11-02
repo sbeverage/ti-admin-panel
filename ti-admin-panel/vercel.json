@@ -1,7 +1,6 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "buildCommand": "npm install --legacy-peer-deps && npx react-scripts build",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
-  "outputDirectory": "build",
-  "nodeVersion": "18.x"
+  "outputDirectory": "build"
 }
