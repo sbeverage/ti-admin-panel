@@ -315,7 +315,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       
       // Check if vendor was created (handle both response formats)
       const vendorCreated = vendorResponse?.success && vendorResponse?.data;
-      if (vendorCreated) {
+      if (vendorCreated && vendorResponse.data) {
         const vendorId = vendorResponse.data.id;
         console.log('✅ Vendor created successfully with ID:', vendorId);
         
