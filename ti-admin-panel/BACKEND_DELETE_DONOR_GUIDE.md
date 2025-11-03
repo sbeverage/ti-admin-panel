@@ -1,17 +1,22 @@
-# 🗑️ Backend Implementation Guide: Delete Donor & Get Donor Details Endpoints
+# 🔧 Backend Implementation Guide: Delete Donor, Update Donor & Get Donor Details Endpoints
 
-This guide covers implementing both the **Delete Donor** endpoint and the **Get Donor Details** endpoint needed for the comprehensive donor profile view.
+This guide covers implementing the **Delete Donor**, **Update Donor**, and **Get Donor Details** endpoints needed for donor management.
 
 ## Overview
 
-The frontend is calling a `DELETE` endpoint to remove donors from the database. Currently, this endpoint returns a 404 because it hasn't been implemented in your Supabase Edge Function.
+The frontend is calling three endpoints:
+1. `PUT /api/admin/donors/{id}` - Update donor information (returns 404 - not implemented)
+2. `DELETE /api/admin/donors/{id}` - Delete a donor (returns 404 - not implemented)  
+3. `GET /api/admin/donors/{id}/details` - Get comprehensive donor details (✅ implemented)
 
 ---
 
 ## 📋 Frontend Requirements
 
-### Endpoint Details
-- **Method:** `DELETE`
+### 1. Update Donor Endpoint
+
+#### Endpoint Details
+- **Method:** `PUT`
 - **URL Pattern:** `/api/admin/donors/{id}`
 - **Full URL:** `https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/donors/{id}`
 
@@ -27,15 +32,87 @@ The frontend sends these headers - your backend MUST validate them:
 }
 ```
 
-### Request Body
+#### Request Body
+The frontend sends a JSON object with the following structure:
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "555-1234",
+  "beneficiary_name": "United Way",
+  "coworking": true,
+  "total_donations": 500.00,
+  "one_time_donation": 100.00,
+  "last_donation_date": "2025-11-01",
+  "address": {
+    "city": "New York",
+    "state": "NY",
+    "zipCode": "10001"
+  },
+  "is_active": true,
+  "is_enabled": true,
+  "notes": "Regular donor"
+}
+```
+
+#### URL Parameters
+- `{id}` - The numeric ID of the donor to update (e.g., `/donors/24`)
+
+---
+
+### 2. Delete Donor Endpoint
+
+#### Endpoint Details
+- **Method:** `DELETE`
+- **URL Pattern:** `/api/admin/donors/{id}`
+- **Full URL:** `https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/donors/{id}`
+
+#### Request Body
 **None** - The donor ID is passed in the URL path.
 
-### URL Parameters
+#### URL Parameters
 - `{id}` - The numeric ID of the donor to delete (e.g., `/donors/24`)
 
 ---
 
 ## ✅ Expected Response Format
+
+### Update Donor Response
+
+#### Success Response
+```json
+{
+  "success": true,
+  "data": {
+    "id": 24,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "message": "Donor updated successfully"
+  }
+}
+```
+
+OR (simpler):
+```json
+{
+  "success": true,
+  "data": null
+}
+```
+
+#### Error Response
+If the donor doesn't exist or update fails:
+```json
+{
+  "success": false,
+  "error": "Donor not found"
+}
+```
+
+---
+
+### Delete Donor Response
 
 The frontend expects a JSON response in one of these formats:
 
@@ -84,7 +161,95 @@ Find or create the Edge Function file that handles donor operations. It's likely
 - `supabase/functions/api/admin/index.ts` (if using a monolithic structure)
 - `supabase/functions/donors/index.ts` (if using separate functions)
 
-### Step 2: Add the DELETE Route Handler
+### Step 2: Add the PUT Route Handler (Update Donor)
+
+Here's a complete example for updating a donor:
+
+```typescript
+// Handle PUT request for updating donor
+if (method === 'PUT' && donorIdMatch) {
+  const donorId = parseInt(donorIdMatch[1], 10)
+  
+  // Validate admin secret
+  const adminSecret = req.headers.get('x-admin-secret')
+  if (adminSecret !== ADMIN_SECRET) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+    )
+  }
+  
+  // Parse request body
+  const donorData = await req.json()
+  
+  // Create Supabase client with service role key
+  const supabaseClient = createClient(
+    SUPABASE_URL,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  )
+  
+  // Update donor in database
+  // Map frontend field names to database column names
+  const updateData: any = {
+    name: donorData.name,
+    email: donorData.email,
+    phone: donorData.phone,
+    beneficiary_name: donorData.beneficiary_name,
+    coworking: donorData.coworking,
+    total_donations: donorData.total_donations || 0,
+    one_time_donation: donorData.one_time_donation || 0,
+    last_donation_date: donorData.last_donation_date || null,
+    is_active: donorData.is_active !== undefined ? donorData.is_active : true,
+    is_enabled: donorData.is_enabled !== undefined ? donorData.is_enabled : true,
+    notes: donorData.notes || null,
+    updated_at: new Date().toISOString()
+  }
+  
+  // Handle address if provided
+  if (donorData.address) {
+    // If address is stored in a separate table or JSON column
+    // Adjust based on your schema
+    updateData.address = donorData.address
+    // OR if separate columns:
+    // updateData.city = donorData.address.city
+    // updateData.state = donorData.address.state
+    // updateData.zip_code = donorData.address.zipCode
+  }
+  
+  const { data, error } = await supabaseClient
+    .from('donors')  // Change to your actual table name
+    .update(updateData)
+    .eq('id', donorId)
+    .select()
+    .single()
+  
+  if (error) {
+    console.error('Update error:', error)
+    
+    if (error.code === 'PGRST116') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Donor not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      )
+    }
+    
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+    )
+  }
+  
+  return new Response(
+    JSON.stringify({
+      success: true,
+      data: { id: donorId, message: 'Donor updated successfully', ...data }
+    }),
+    { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+  )
+}
+```
+
+### Step 3: Add the DELETE Route Handler
 
 Here's a complete example for a Supabase Edge Function using Deno:
 

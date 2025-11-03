@@ -50,9 +50,14 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
       const city = cityStateParts[0] || '';
       const state = cityStateParts[1] || '';
       
-      // Extract numeric values from donation strings (e.g., "$500" -> "500")
-      const donationAmount = donor.donation?.replace(/[^0-9.]/g, '') || '0';
-      const oneTimeAmount = donor.oneTime?.replace(/[^0-9.]/g, '') || '0';
+              // Extract numeric values from donation strings (e.g., "$500" -> "500")
+              // Handle both formatted strings like "$15" and plain numbers
+              const donationAmount = donor.donation ? 
+                (typeof donor.donation === 'string' ? donor.donation.replace(/[^0-9.]/g, '') : String(donor.donation)) : 
+                '0';
+              const oneTimeAmount = donor.oneTime ? 
+                (typeof donor.oneTime === 'string' ? donor.oneTime.replace(/[^0-9.]/g, '') : String(donor.oneTime)) : 
+                '0';
       
       // Parse last donated date if available
       let lastDonatedDate = null;
