@@ -300,4 +300,34 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Donor Profile Modal Styles */
+.donor-profile-modal .ant-modal-body {
+  padding: 0;
+}
+
+.donor-profile-tabs {
+  padding: 0 24px 24px;
+}
+
+.donor-profile-tabs .ant-tabs-tab {
+  padding: 12px 16px;
+}
+
+.donor-profile-tabs .ant-tabs-content {
+  margin-top: 24px;
+}
+
+.donor-profile-tabs .ant-empty {
+  padding: 40px 20px;
+}
+
+.donor-profile-tabs .ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.donor-profile-tabs .ant-card-small {
+  border-radius: 6px;
 } 
