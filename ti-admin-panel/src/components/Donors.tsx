@@ -255,9 +255,6 @@ const Donors: React.FC = () => {
     },
   ];
 
-  // Debug: Log when columns are defined
-  console.log('🔴🔴🔴 COLUMNS ARRAY BEING CREATED - Line 261 🔴🔴🔴');
-  
   const columns = [
     {
       title: (
@@ -415,15 +412,10 @@ const Donors: React.FC = () => {
       fixed: 'right' as const,
       width: 200,
       render: (text: string, record: any, index: number) => {
-        // CRITICAL: This should execute for every row
-        console.log(`🚨🚨🚨 ROW ${index}: Actions column render function EXECUTED for:`, record?.name || 'unknown');
-        
         if (!record) {
-          console.error('❌ NO RECORD IN ACTIONS RENDER');
-          return <div style={{ color: 'red', padding: '10px', fontSize: '20px' }}>❌ NO RECORD</div>;
+          return <div style={{ color: 'red', padding: '10px' }}>❌ No record</div>;
         }
         
-        // Return SUPER OBVIOUS content
         return (
           <div 
             id={`actions-${record?.key || record?.id}`}
@@ -435,27 +427,15 @@ const Donors: React.FC = () => {
               justifyContent: 'center',
               width: '100%',
               minWidth: '200px',
-              padding: '12px 8px',
-              backgroundColor: '#ffff00', // YELLOW BACKGROUND - CAN'T MISS IT
-              border: '5px solid #ff0000', // RED BORDER - VERY VISIBLE
-              borderRadius: '4px',
-              position: 'relative',
-              zIndex: 9999,
-              fontSize: '16px',
-              fontWeight: 'bold'
+              padding: '8px'
             }}
           >
-            <div style={{ position: 'absolute', top: 0, left: 0, color: 'red', fontSize: '12px', background: 'white', padding: '2px', zIndex: 10000 }}>
-              ACTIONS ROW {index}
-            </div>
             <Button 
               type="primary"
               size="middle"
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅✅✅ EDIT BUTTON CLICKED ✅✅✅');
-                console.log('Record:', record);
                 handleEditDonor(record);
               }}
               className="edit-donor-button"
@@ -470,8 +450,7 @@ const Donors: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px solid blue' // TEMPORARY - to see if button renders
+                cursor: 'pointer'
               }}
             >
               <EditOutlined style={{ marginRight: '6px' }} /> Edit
@@ -483,7 +462,6 @@ const Donors: React.FC = () => {
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ Delete button clicked');
                 handleDeleteUser(record);
               }}
               className="delete-donor-button"
@@ -495,8 +473,7 @@ const Donors: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px solid green' // TEMPORARY - to see if button renders
+                cursor: 'pointer'
               }}
             >
               <DeleteOutlined style={{ marginRight: '6px' }} /> Delete
@@ -506,25 +483,6 @@ const Donors: React.FC = () => {
       },
     },
   ];
-  
-  // IMMEDIATE LOG - This runs every render
-  console.log('🔴🔴🔴 COLUMNS ARRAY CREATED - Length:', columns.length);
-  console.log('🔴 Last column key:', columns[columns.length - 1]?.key);
-  console.log('🔴 Last column title:', columns[columns.length - 1]?.title);
-  const actionsCol = columns.find(c => c.key === 'actions');
-  console.log('🔴 Actions column exists:', !!actionsCol);
-  if (actionsCol) {
-    console.log('🔴 Actions column has render:', typeof actionsCol.render === 'function');
-  }
-  
-  // Debug: Log columns in useEffect too
-  useEffect(() => {
-    const actionsColumn = columns.find(col => col.key === 'actions');
-    console.log('📊 useEffect - Columns defined:', columns.length, 'columns');
-    console.log('📊 useEffect - Actions column found:', !!actionsColumn);
-    console.log('📊 useEffect - Actions column details:', actionsColumn);
-    console.log('📊 useEffect - All column keys:', columns.map(c => c.key));
-  }, [donorsData.length]);
 
   const handlePageChange = (page: number, size?: number) => {
     setCurrentPage(page);
@@ -809,22 +767,6 @@ const Donors: React.FC = () => {
             {/* Donors Table */}
             <div className="donors-table-section">
               <Spin spinning={loading}>
-                {/* Debug Info - VERY VISIBLE */}
-                <div style={{ 
-                  padding: '15px', 
-                  background: '#ffff00', 
-                  border: '3px solid red',
-                  marginBottom: '15px', 
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}>
-                  <Text style={{ color: 'red', fontSize: '16px' }}>
-                    🔴 DEBUG: {donorsData.length} donors | {columns.length} columns | Actions: {columns.find(col => col.key === 'actions')?.key || 'NOT FOUND'}
-                  </Text>
-                  <Text style={{ display: 'block', marginTop: '8px', color: 'blue' }}>
-                    Scroll right to see Actions column with yellow background and red border
-                  </Text>
-                </div>
                 
                 {donorsData.length === 0 && !loading && (
                   <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -843,23 +785,6 @@ const Donors: React.FC = () => {
                   bordered={false}
                   rowKey={(record) => record.key || record.id || 'unknown'}
                   virtual={false}
-                  components={{
-                    header: {
-                      cell: (props: any) => {
-                        console.log('Rendering header cell:', props.children);
-                        return <th {...props} />;
-                      }
-                    },
-                    body: {
-                      cell: (props: any) => {
-                        // Log when rendering the last column (Actions)
-                        if (props.className && props.className.includes('ant-table-cell-last')) {
-                          console.log('Rendering Actions column cell');
-                        }
-                        return <td {...props} />;
-                      }
-                    }
-                  }}
                   onRow={(record, index) => {
                     return {
                       onClick: (event: React.MouseEvent) => {
@@ -918,7 +843,6 @@ const Donors: React.FC = () => {
       />
 
       {/* Edit Donor Modal */}
-      {console.log('Rendering EditDonorModal - visible:', isEditModalVisible, 'donor:', editingDonor)}
       <EditDonorModal
         visible={isEditModalVisible}
         donor={editingDonor}
