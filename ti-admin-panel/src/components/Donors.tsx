@@ -717,7 +717,9 @@ const Donors: React.FC = () => {
         <Header className="donors-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Donors</Title>
-            <Text type="secondary" className="donors-count">300 Donors Found</Text>
+            <Text type="secondary" className="donors-count">
+              {totalDonors} Donor{totalDonors !== 1 ? 's' : ''} Found
+            </Text>
           </div>
           <div className="header-right">
             <Button 
