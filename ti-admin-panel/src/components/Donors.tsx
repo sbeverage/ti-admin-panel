@@ -410,7 +410,7 @@ const Donors: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       fixed: 'right' as const,
-      width: 200,
+      width: 120,
       render: (text: string, record: any, index: number) => {
         if (!record) {
           return <div style={{ color: 'red', padding: '10px' }}>❌ No record</div>;
@@ -422,12 +422,12 @@ const Donors: React.FC = () => {
             className="actions-column-container"
             style={{ 
               display: 'flex', 
-              gap: '8px', 
+              gap: '6px', 
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              minWidth: '200px',
-              padding: '8px'
+              minWidth: '120px',
+              padding: '4px 2px'
             }}
           >
             <Button 
@@ -446,9 +446,10 @@ const Donors: React.FC = () => {
                 borderColor: '#DB8633',
                 color: '#ffffff',
                 fontWeight: 600,
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 padding: 0,
+                minWidth: '32px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -468,9 +469,10 @@ const Donors: React.FC = () => {
               className="delete-donor-button"
               title="Delete Donor"
               style={{ 
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 padding: 0,
+                minWidth: '32px',
                 fontSize: '14px',
                 fontWeight: 600,
                 display: 'inline-flex',
