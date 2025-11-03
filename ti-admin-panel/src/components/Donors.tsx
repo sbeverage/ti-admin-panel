@@ -416,13 +416,14 @@ const Donors: React.FC = () => {
       width: 200,
       render: (text: string, record: any, index: number) => {
         // CRITICAL: This should execute for every row
-        console.log(`🔧🔧🔧 ROW ${index}: Actions column render called for:`, record?.name || 'unknown');
+        console.log(`🚨🚨🚨 ROW ${index}: Actions column render function EXECUTED for:`, record?.name || 'unknown');
         
         if (!record) {
-          return <div style={{ color: 'red', padding: '10px' }}>❌ NO RECORD</div>;
+          console.error('❌ NO RECORD IN ACTIONS RENDER');
+          return <div style={{ color: 'red', padding: '10px', fontSize: '20px' }}>❌ NO RECORD</div>;
         }
         
-        // SUPER SIMPLE TEST FIRST - Just return text to see if render works
+        // Return SUPER OBVIOUS content
         return (
           <div 
             id={`actions-${record?.key || record?.id}`}
