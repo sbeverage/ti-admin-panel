@@ -12,6 +12,7 @@ import './InviteDonorModal.css';
 const { Option } = Select;
 const { TextArea } = Input;
 const { Title, Text } = Typography;
+const { TabPane } = Tabs;
 
 interface EditDonorModalProps {
   visible: boolean;
@@ -193,7 +194,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
           className="donor-profile-tabs"
         >
           {/* Overview Tab */}
-          <Tabs.TabPane tab={<span><InfoCircleOutlined /> Overview</span>} key="overview">
+          <TabPane tab={<span><InfoCircleOutlined /> Overview</span>} key="overview">
             <Form
               form={form}
               layout="vertical"
@@ -423,10 +424,10 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 </Space>
               </div>
             </Form>
-          </Tabs.TabPane>
+          </TabPane>
 
           {/* Payment Methods Tab */}
-          <Tabs.TabPane tab={<span><CreditCardOutlined /> Payment Methods</span>} key="payment">
+          <TabPane tab={<span><CreditCardOutlined /> Payment Methods</span>} key="payment">
             <div style={{ padding: '20px 0' }}>
               {donorDetails?.payment_methods && donorDetails.payment_methods.length > 0 ? (
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -461,10 +462,10 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 />
               )}
             </div>
-          </Tabs.TabPane>
+          </TabPane>
 
           {/* Monthly Donation Tab */}
-          <Tabs.TabPane tab={<span><DollarOutlined /> Monthly Donation</span>} key="monthly">
+          <TabPane tab={<span><DollarOutlined /> Monthly Donation</span>} key="monthly">
             <div style={{ padding: '20px 0' }}>
               <Card>
                 {donorDetails?.monthly_donation ? (
@@ -542,10 +543,10 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 />
               )}
             </div>
-          </Tabs.TabPane>
+          </TabPane>
 
           {/* Donation History Tab */}
-          <Tabs.TabPane tab={<span><HistoryOutlined /> Donation History</span>} key="history">
+          <TabPane tab={<span><HistoryOutlined /> Donation History</span>} key="history">
             <div style={{ padding: '20px 0' }}>
               {donorDetails?.donation_history && donorDetails.donation_history.length > 0 ? (
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -576,10 +577,10 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 />
               )}
             </div>
-          </Tabs.TabPane>
+          </TabPane>
 
           {/* Discount Redemptions Tab */}
-          <Tabs.TabPane tab={<span><GiftOutlined /> Discount Redemptions</span>} key="discounts">
+          <TabPane tab={<span><GiftOutlined /> Discount Redemptions</span>} key="discounts">
             <div style={{ padding: '20px 0' }}>
               {donorDetails?.discount_redemptions && donorDetails.discount_redemptions.length > 0 ? (
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -620,10 +621,10 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 />
               )}
             </div>
-          </Tabs.TabPane>
+          </TabPane>
 
           {/* Leaderboard Tab */}
-          <Tabs.TabPane tab={<span><TrophyOutlined /> Leaderboard</span>} key="leaderboard">
+          <TabPane tab={<span><TrophyOutlined /> Leaderboard</span>} key="leaderboard">
             <div style={{ padding: '20px 0' }}>
               {donorDetails?.leaderboard_position ? (
                 <Card>
@@ -660,7 +661,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 />
               )}
             </div>
-          </Tabs.TabPane>
+          </TabPane>
         </Tabs>
       </Spin>
     </Modal>
