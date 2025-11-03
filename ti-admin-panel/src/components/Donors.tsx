@@ -431,7 +431,6 @@ const Donors: React.FC = () => {
             }}
           >
             <Button 
-              type="primary"
               size="middle"
               icon={<EditOutlined />}
               onClick={(e: React.MouseEvent) => {
@@ -442,9 +441,9 @@ const Donors: React.FC = () => {
               className="edit-donor-button"
               title="Edit Donor"
               style={{
-                backgroundColor: '#DB8633',
-                borderColor: '#DB8633',
-                color: '#ffffff',
+                backgroundColor: '#fff2e8',
+                borderColor: '#ffd591',
+                color: '#DB8633',
                 fontWeight: 600,
                 width: '32px',
                 height: '32px',
@@ -453,12 +452,12 @@ const Donors: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                borderWidth: '1px',
+                borderStyle: 'solid'
               }}
             />
             <Button 
-              type="primary"
-              danger
               size="middle"
               icon={<DeleteOutlined />}
               onClick={(e: React.MouseEvent) => {
@@ -469,6 +468,9 @@ const Donors: React.FC = () => {
               className="delete-donor-button"
               title="Delete Donor"
               style={{ 
+                backgroundColor: '#fff2f0',
+                borderColor: '#ffccc7',
+                color: '#ff4d4f',
                 width: '32px',
                 height: '32px',
                 padding: 0,
@@ -478,7 +480,9 @@ const Donors: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                borderWidth: '1px',
+                borderStyle: 'solid'
               }}
             />
           </div>
