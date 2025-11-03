@@ -256,7 +256,7 @@ const Donors: React.FC = () => {
   ];
 
   // Debug: Log when columns are defined
-  console.log('Columns array length:', 12); // We'll count the columns
+  console.log('🔴🔴🔴 COLUMNS ARRAY BEING CREATED - Line 261 🔴🔴🔴');
   
   const columns = [
     {
@@ -506,19 +506,23 @@ const Donors: React.FC = () => {
     },
   ];
   
-  // Debug: Log columns - This runs on every render
+  // IMMEDIATE LOG - This runs every render
+  console.log('🔴🔴🔴 COLUMNS ARRAY CREATED - Length:', columns.length);
+  console.log('🔴 Last column key:', columns[columns.length - 1]?.key);
+  console.log('🔴 Last column title:', columns[columns.length - 1]?.title);
+  const actionsCol = columns.find(c => c.key === 'actions');
+  console.log('🔴 Actions column exists:', !!actionsCol);
+  if (actionsCol) {
+    console.log('🔴 Actions column has render:', typeof actionsCol.render === 'function');
+  }
+  
+  // Debug: Log columns in useEffect too
   useEffect(() => {
     const actionsColumn = columns.find(col => col.key === 'actions');
-    console.log('📊 Columns defined:', columns.length, 'columns');
-    console.log('📊 Actions column found:', !!actionsColumn);
-    console.log('📊 Actions column details:', actionsColumn);
-    console.log('📊 Last column (Actions):', columns[columns.length - 1]?.key, columns[columns.length - 1]?.title);
-    console.log('📊 Actions column fixed:', columns[columns.length - 1]?.fixed);
-    console.log('📊 Actions column has render function:', typeof columns[columns.length - 1]?.render === 'function');
-    console.log('📊 Donors data count:', donorsData.length);
-    console.log('📊 Sample donor keys:', donorsData.slice(0, 3).map(d => d.key));
-    console.log('📊 Actions column width:', columns[columns.length - 1]?.width);
-    console.log('📊 All column keys:', columns.map(c => c.key));
+    console.log('📊 useEffect - Columns defined:', columns.length, 'columns');
+    console.log('📊 useEffect - Actions column found:', !!actionsColumn);
+    console.log('📊 useEffect - Actions column details:', actionsColumn);
+    console.log('📊 useEffect - All column keys:', columns.map(c => c.key));
   }, [donorsData.length]);
 
   const handlePageChange = (page: number, size?: number) => {
@@ -803,11 +807,20 @@ const Donors: React.FC = () => {
             {/* Donors Table */}
             <div className="donors-table-section">
               <Spin spinning={loading}>
-                {/* Debug Info */}
-                <div style={{ padding: '10px', background: '#f0f0f0', marginBottom: '10px', fontSize: '12px' }}>
-                  <Text>Debug: {donorsData.length} donors loaded. Columns: {columns.length}. Actions column key: {columns.find(col => col.key === 'actions')?.key || 'NOT FOUND'}</Text>
-                  <Text style={{ display: 'block', marginTop: '4px' }}>
-                    Check console for "🔧 Actions column render called" messages
+                {/* Debug Info - VERY VISIBLE */}
+                <div style={{ 
+                  padding: '15px', 
+                  background: '#ffff00', 
+                  border: '3px solid red',
+                  marginBottom: '15px', 
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}>
+                  <Text style={{ color: 'red', fontSize: '16px' }}>
+                    🔴 DEBUG: {donorsData.length} donors | {columns.length} columns | Actions: {columns.find(col => col.key === 'actions')?.key || 'NOT FOUND'}
+                  </Text>
+                  <Text style={{ display: 'block', marginTop: '8px', color: 'blue' }}>
+                    Scroll right to see Actions column with yellow background and red border
                   </Text>
                 </div>
                 
