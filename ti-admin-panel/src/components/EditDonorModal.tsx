@@ -350,20 +350,20 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                       />
                     </Form.Item>
                     
-                    <Form.Item
-                      name="oneTime"
-                      label="One Time Gifts"
-                      rules={[{ required: true, message: 'Please enter one time gift amount' }]}
-                      className="form-item"
-                    >
-                      <Input 
-                        placeholder="Enter one time gift amount"
-                        prefix={<DollarOutlined />}
-                        size="large"
-                        type="number"
-                        min={0}
-                      />
-                    </Form.Item>
+              <Form.Item
+                name="oneTime"
+                label="One Time Gifts"
+                rules={[{ required: false }]}
+                className="form-item"
+              >
+                <Input 
+                  placeholder="Enter one time gift amount (optional)"
+                  prefix={<DollarOutlined />}
+                  size="large"
+                  type="number"
+                  min={0}
+                />
+              </Form.Item>
                   </div>
                   
                   <div className="form-row">
