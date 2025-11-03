@@ -412,22 +412,17 @@ const Donors: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      dataIndex: 'actions',
       fixed: 'right' as const,
       width: 200,
       render: (text: string, record: any, index: number) => {
-        console.log('🔧🔧🔧 Actions column render called for:', record?.name || 'unknown', 'Index:', index);
-        console.log('🔧 Record key:', record?.key, 'Record ID:', record?.id);
-        console.log('🔧 Full record:', record);
+        // CRITICAL: This should execute for every row
+        console.log(`🔧🔧🔧 ROW ${index}: Actions column render called for:`, record?.name || 'unknown');
         
-        // CRITICAL TEST: If this doesn't show, render function isn't being called
         if (!record) {
-          console.error('❌ NO RECORD PROVIDED TO ACTIONS COLUMN RENDER');
-          return <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold', padding: '20px' }}>❌ NO RECORD</div>;
+          return <div style={{ color: 'red', padding: '10px' }}>❌ NO RECORD</div>;
         }
         
-        // VERY VISIBLE TEST - This should appear even if buttons don't
-        // Return something SUPER OBVIOUS first
+        // SUPER SIMPLE TEST FIRST - Just return text to see if render works
         return (
           <div 
             id={`actions-${record?.key || record?.id}`}
@@ -449,9 +444,8 @@ const Donors: React.FC = () => {
               fontWeight: 'bold'
             }}
           >
-            {/* CRITICAL TEST TEXT */}
-            <div style={{ position: 'absolute', top: 0, left: 0, color: 'red', fontSize: '12px', background: 'white', padding: '2px' }}>
-              ACTIONS
+            <div style={{ position: 'absolute', top: 0, left: 0, color: 'red', fontSize: '12px', background: 'white', padding: '2px', zIndex: 10000 }}>
+              ACTIONS ROW {index}
             </div>
             <Button 
               type="primary"
@@ -513,19 +507,19 @@ const Donors: React.FC = () => {
   ];
   
   // Debug: Log columns - This runs on every render
-  const actionsColumn = columns.find(col => col.key === 'actions');
-  console.log('📊 Columns defined:', columns.length, 'columns');
-  console.log('📊 Actions column found:', !!actionsColumn);
-  console.log('📊 Actions column details:', actionsColumn);
-  console.log('📊 Last column (Actions):', columns[columns.length - 1]?.key, columns[columns.length - 1]?.title);
-  console.log('📊 Actions column fixed:', columns[columns.length - 1]?.fixed);
-  console.log('📊 Actions column has render function:', typeof columns[columns.length - 1]?.render === 'function');
-  console.log('📊 Donors data count:', donorsData.length);
-  console.log('📊 Sample donor keys:', donorsData.slice(0, 3).map(d => d.key));
-  console.log('📊 Actions column width:', columns[columns.length - 1]?.width);
-  
-  // Force Actions column to be first in array temporarily for testing
-  // (Actually, let's not do this - it would break the layout)
+  useEffect(() => {
+    const actionsColumn = columns.find(col => col.key === 'actions');
+    console.log('📊 Columns defined:', columns.length, 'columns');
+    console.log('📊 Actions column found:', !!actionsColumn);
+    console.log('📊 Actions column details:', actionsColumn);
+    console.log('📊 Last column (Actions):', columns[columns.length - 1]?.key, columns[columns.length - 1]?.title);
+    console.log('📊 Actions column fixed:', columns[columns.length - 1]?.fixed);
+    console.log('📊 Actions column has render function:', typeof columns[columns.length - 1]?.render === 'function');
+    console.log('📊 Donors data count:', donorsData.length);
+    console.log('📊 Sample donor keys:', donorsData.slice(0, 3).map(d => d.key));
+    console.log('📊 Actions column width:', columns[columns.length - 1]?.width);
+    console.log('📊 All column keys:', columns.map(c => c.key));
+  }, [donorsData.length]);
 
   const handlePageChange = (page: number, size?: number) => {
     setCurrentPage(page);
