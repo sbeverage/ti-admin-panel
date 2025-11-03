@@ -412,8 +412,9 @@ const Donors: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
+      dataIndex: 'actions',
       fixed: 'right' as const,
-      width: 180,
+      width: 200,
       render: (text: string, record: any, index: number) => {
         console.log('🔧🔧🔧 Actions column render called for:', record?.name || 'unknown', 'Index:', index);
         console.log('🔧 Record key:', record?.key, 'Record ID:', record?.id);
@@ -426,6 +427,7 @@ const Donors: React.FC = () => {
         }
         
         // VERY VISIBLE TEST - This should appear even if buttons don't
+        // Return something SUPER OBVIOUS first
         return (
           <div 
             id={`actions-${record?.key || record?.id}`}
@@ -438,13 +440,19 @@ const Donors: React.FC = () => {
               width: '100%',
               minWidth: '200px',
               padding: '12px 8px',
-              backgroundColor: '#fff',
-              border: '3px solid #ff0000', // RED BORDER - VERY VISIBLE
+              backgroundColor: '#ffff00', // YELLOW BACKGROUND - CAN'T MISS IT
+              border: '5px solid #ff0000', // RED BORDER - VERY VISIBLE
               borderRadius: '4px',
               position: 'relative',
-              zIndex: 9999
+              zIndex: 9999,
+              fontSize: '16px',
+              fontWeight: 'bold'
             }}
           >
+            {/* CRITICAL TEST TEXT */}
+            <div style={{ position: 'absolute', top: 0, left: 0, color: 'red', fontSize: '12px', background: 'white', padding: '2px' }}>
+              ACTIONS
+            </div>
             <Button 
               type="primary"
               size="middle"
@@ -505,13 +513,19 @@ const Donors: React.FC = () => {
   ];
   
   // Debug: Log columns - This runs on every render
+  const actionsColumn = columns.find(col => col.key === 'actions');
   console.log('📊 Columns defined:', columns.length, 'columns');
+  console.log('📊 Actions column found:', !!actionsColumn);
+  console.log('📊 Actions column details:', actionsColumn);
   console.log('📊 Last column (Actions):', columns[columns.length - 1]?.key, columns[columns.length - 1]?.title);
   console.log('📊 Actions column fixed:', columns[columns.length - 1]?.fixed);
   console.log('📊 Actions column has render function:', typeof columns[columns.length - 1]?.render === 'function');
   console.log('📊 Donors data count:', donorsData.length);
   console.log('📊 Sample donor keys:', donorsData.slice(0, 3).map(d => d.key));
   console.log('📊 Actions column width:', columns[columns.length - 1]?.width);
+  
+  // Force Actions column to be first in array temporarily for testing
+  // (Actually, let's not do this - it would break the layout)
 
   const handlePageChange = (page: number, size?: number) => {
     setCurrentPage(page);
@@ -816,7 +830,7 @@ const Donors: React.FC = () => {
                   size="middle"
                   className="donors-table"
                   rowClassName="donor-row"
-                  scroll={{ x: 'max-content', y: undefined }}
+                  scroll={{ x: 2140 }}
                   bordered={false}
                   rowKey={(record) => record.key || record.id || 'unknown'}
                   virtual={false}
