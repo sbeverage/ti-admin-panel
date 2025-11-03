@@ -463,6 +463,13 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.donors-table-section .ant-spin-container {
+  position: relative;
+  z-index: 2;
 }
 
 .donors-table {
@@ -482,6 +489,33 @@
   padding: 16px 20px 16px 24px;
   border-bottom: 1px solid #f0f0f0;
   border-right: none !important;
+}
+
+/* Ensure Actions column is always visible */
+.donors-table .ant-table-tbody > tr > td:last-child,
+.donors-table .ant-table-thead > tr > th:last-child {
+  background: #ffffff !important;
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 100 !important;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1) !important;
+  width: 200px !important;
+  min-width: 200px !important;
+  display: table-cell !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Force Actions column container to be visible */
+.donors-table .ant-table-tbody > tr > td:last-child .actions-column-container,
+.donors-table .ant-table-tbody > tr > td:last-child > div {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-width: 200px !important;
+  position: relative !important;
+  z-index: 9999 !important;
 }
 
 .donors-table .ant-table-tbody > tr > td:first-child {
@@ -534,8 +568,28 @@
   display: none !important;
 }
 
+.donor-row {
+  transition: background-color 0.2s ease;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
 .donor-row:hover {
-  background: #fafafa;
+  background: #f5f5f5 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.donor-row:active {
+  background: #ebebeb !important;
+}
+
+.donors-table .ant-table-tbody > tr.donor-row {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.donors-table .ant-table-tbody > tr.donor-row > td {
+  pointer-events: auto !important;
 }
 
 /* Sortable Headers */
@@ -672,14 +726,106 @@
 
 /* Edit Action Button */
 .edit-action-btn {
-  color: #8c8c8c;
-  border: none;
-  padding: 4px 8px;
+  color: #8c8c8c !important;
+  border: none !important;
+  padding: 4px 12px !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 10000 !important;
+  position: relative !important;
+  margin: 0 !important;
 }
 
 .edit-action-btn:hover {
-  color: #DB8633;
-  background: rgba(219, 134, 51, 0.1);
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.1) !important;
+}
+
+.edit-action-btn:active {
+  color: #DB8633 !important;
+  background: rgba(219, 134, 51, 0.2) !important;
+}
+
+.edit-action-btn .anticon {
+  pointer-events: none !important;
+}
+
+/* Ensure action buttons are always clickable */
+.donors-table .ant-table-tbody .ant-btn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 10000 !important;
+  position: relative !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Make Edit button very visible */
+.donors-table .edit-donor-button,
+.donors-table .edit-action-btn {
+  background-color: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  min-width: 100px !important;
+  height: 32px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.donors-table .edit-donor-button:hover,
+.donors-table .edit-action-btn:hover {
+  background-color: #c6762a !important;
+  border-color: #c6762a !important;
+}
+
+.donors-table .delete-donor-button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 100px !important;
+  height: 32px !important;
+}
+
+.donors-table .ant-table-tbody tr td:last-child {
+  position: relative;
+  z-index: 10;
+  background-color: #fff !important;
+  padding: 8px !important;
+  width: 200px !important;
+  min-width: 200px !important;
+}
+
+/* Force Actions column to be visible */
+.donors-table .ant-table-thead > tr > th:last-child {
+  background-color: #324E58 !important;
+  color: #ffffff !important;
+  width: 200px !important;
+  min-width: 200px !important;
+}
+
+/* Ensure buttons are visible in Actions column */
+.donors-table .ant-table-tbody tr td:last-child div {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.donors-table .ant-table-tbody tr td:last-child button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.donors-table .ant-table-tbody tr td:last-child .ant-space {
+  pointer-events: auto !important;
+  z-index: 10000 !important;
+  position: relative !important;
 }
 
 /* Pagination Section */

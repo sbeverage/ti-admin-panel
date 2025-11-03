@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -7,9 +7,10 @@ import {
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined
+  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
+import EditDonorModal from './EditDonorModal';
 import { donorAPI } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -27,6 +28,10 @@ const Donors: React.FC = () => {
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingDonor, setEditingDonor] = useState<any>(null);
+  const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<any>(null);
   const [donorsData, setDonorsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +57,7 @@ const Donors: React.FC = () => {
         // Transform API data to match our table structure
         const transformedData = response.data.map((donor: any) => ({
           key: donor.id.toString(),
+          id: donor.id, // Store original ID for API calls
           name: donor.name || 'Unknown',
           email: donor.email || 'N/A',
           contact: donor.phone || 'N/A',
@@ -63,7 +69,9 @@ const Donors: React.FC = () => {
           cityState: donor.address ? `${donor.address.city}, ${donor.address.state}` : 'N/A',
           active: donor.is_active || false,
           enabled: donor.is_enabled || false,
-          avatar: donor.name ? donor.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'D'
+          avatar: donor.name ? donor.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'D',
+          // Store original data for editing
+          originalData: donor
         }));
         
         setDonorsData(transformedData);
@@ -247,6 +255,9 @@ const Donors: React.FC = () => {
     },
   ];
 
+  // Debug: Log when columns are defined
+  console.log('Columns array length:', 12); // We'll count the columns
+  
   const columns = [
     {
       title: (
@@ -258,11 +269,18 @@ const Donors: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: any) => (
-        <Space>
+        <Space 
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log('Clicked on name column');
+            handleEditDonor(record);
+          }}
+          style={{ cursor: 'pointer', width: '100%' }}
+        >
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.avatar}
           </Avatar>
-          <Text strong>{text}</Text>
+          <Text strong style={{ cursor: 'pointer' }}>{text}</Text>
         </Space>
       ),
       fixed: 'left' as const,
@@ -359,7 +377,13 @@ const Donors: React.FC = () => {
       key: 'active',
       render: (active: boolean, record: any) => (
         <div className="toggle-switch">
-          <div className={`toggle ${active ? 'active' : 'inactive'}`} onClick={() => handleToggleChange(record.key, 'active')}>
+          <div 
+            className={`toggle ${active ? 'active' : 'inactive'}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleChange(record.key, 'active');
+            }}
+          >
             <div className="toggle-slider"></div>
           </div>
         </div>
@@ -372,7 +396,13 @@ const Donors: React.FC = () => {
       key: 'enabled',
       render: (enabled: boolean, record: any) => (
         <div className="toggle-switch">
-          <div className={`toggle ${enabled ? 'active' : 'inactive'}`} onClick={() => handleToggleChange(record.key, 'enabled')}>
+          <div 
+            className={`toggle ${enabled ? 'active' : 'inactive'}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleChange(record.key, 'enabled');
+            }}
+          >
             <div className="toggle-slider"></div>
           </div>
         </div>
@@ -382,13 +412,106 @@ const Donors: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: any) => (
-        <Button type="text" icon={<EditOutlined />} size="small" className="edit-action-btn" />
-      ),
-      width: 100,
       fixed: 'right' as const,
+      width: 180,
+      render: (text: string, record: any, index: number) => {
+        console.log('🔧🔧🔧 Actions column render called for:', record?.name || 'unknown', 'Index:', index);
+        console.log('🔧 Record key:', record?.key, 'Record ID:', record?.id);
+        console.log('🔧 Full record:', record);
+        
+        // CRITICAL TEST: If this doesn't show, render function isn't being called
+        if (!record) {
+          console.error('❌ NO RECORD PROVIDED TO ACTIONS COLUMN RENDER');
+          return <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold', padding: '20px' }}>❌ NO RECORD</div>;
+        }
+        
+        // VERY VISIBLE TEST - This should appear even if buttons don't
+        return (
+          <div 
+            id={`actions-${record?.key || record?.id}`}
+            className="actions-column-container"
+            style={{ 
+              display: 'flex', 
+              gap: '8px', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              minWidth: '200px',
+              padding: '12px 8px',
+              backgroundColor: '#fff',
+              border: '3px solid #ff0000', // RED BORDER - VERY VISIBLE
+              borderRadius: '4px',
+              position: 'relative',
+              zIndex: 9999
+            }}
+          >
+            <Button 
+              type="primary"
+              size="middle"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('✅✅✅ EDIT BUTTON CLICKED ✅✅✅');
+                console.log('Record:', record);
+                handleEditDonor(record);
+              }}
+              className="edit-donor-button"
+              style={{
+                backgroundColor: '#DB8633',
+                borderColor: '#DB8633',
+                color: '#ffffff',
+                fontWeight: 600,
+                minWidth: '100px',
+                height: '36px',
+                fontSize: '14px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                border: '2px solid blue' // TEMPORARY - to see if button renders
+              }}
+            >
+              <EditOutlined style={{ marginRight: '6px' }} /> Edit
+            </Button>
+            <Button 
+              type="primary"
+              danger
+              size="middle"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('✅ Delete button clicked');
+                handleDeleteUser(record);
+              }}
+              className="delete-donor-button"
+              style={{ 
+                minWidth: '100px',
+                height: '36px',
+                fontSize: '14px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                border: '2px solid green' // TEMPORARY - to see if button renders
+              }}
+            >
+              <DeleteOutlined style={{ marginRight: '6px' }} /> Delete
+            </Button>
+          </div>
+        );
+      },
     },
   ];
+  
+  // Debug: Log columns - This runs on every render
+  console.log('📊 Columns defined:', columns.length, 'columns');
+  console.log('📊 Last column (Actions):', columns[columns.length - 1]?.key, columns[columns.length - 1]?.title);
+  console.log('📊 Actions column fixed:', columns[columns.length - 1]?.fixed);
+  console.log('📊 Actions column has render function:', typeof columns[columns.length - 1]?.render === 'function');
+  console.log('📊 Donors data count:', donorsData.length);
+  console.log('📊 Sample donor keys:', donorsData.slice(0, 3).map(d => d.key));
+  console.log('📊 Actions column width:', columns[columns.length - 1]?.width);
 
   const handlePageChange = (page: number, size?: number) => {
     setCurrentPage(page);
@@ -426,6 +549,124 @@ const Donors: React.FC = () => {
     } catch (error) {
       console.error('Error creating donor:', error);
       message.error('Failed to create donor. Please try again.');
+    }
+  };
+
+  const handleEditDonor = (record: any) => {
+    console.log('=== handleEditDonor CALLED ===');
+    console.log('Opening edit modal for donor:', record);
+    console.log('Record keys:', record ? Object.keys(record) : 'NO RECORD');
+    console.log('Record data:', JSON.stringify(record, null, 2));
+    
+    if (!record) {
+      console.error('No record provided to handleEditDonor');
+      message.error('Cannot edit: No donor selected');
+      return;
+    }
+    
+    if (!record.id && !record.key) {
+      console.error('Record missing ID:', record);
+      message.error('Cannot edit: Donor ID missing');
+      return;
+    }
+    
+    console.log('Setting editingDonor and opening modal...');
+    console.log('Before: isEditModalVisible =', isEditModalVisible, 'editingDonor =', editingDonor);
+    
+    setEditingDonor(record);
+    setIsEditModalVisible(true);
+    
+    // Force a re-render check
+    setTimeout(() => {
+      console.log('After (delayed): isEditModalVisible should be true now');
+    }, 100);
+    
+    console.log('Modal state set to visible');
+  };
+
+  const handleUpdateDonor = async (values: any) => {
+    if (!editingDonor || !editingDonor.id) {
+      message.error('Cannot update donor: missing donor ID');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Parse city and state from cityState
+      const cityStateParts = values.cityState?.split(', ') || [values.city || '', values.state || ''];
+      const city = cityStateParts[0] || values.city || '';
+      const state = cityStateParts[1] || values.state || '';
+      
+      // Prepare donor data for API
+      const donorData = {
+        name: values.name,
+        email: values.email,
+        phone: values.contact,
+        beneficiary_name: values.beneficiary,
+        coworking: values.coworking === 'Yes',
+        total_donations: parseFloat(values.donation) || 0,
+        one_time_donation: parseFloat(values.oneTime) || 0,
+        last_donation_date: values.lastDonated || null,
+        address: {
+          city: city,
+          state: state,
+          zipCode: values.zipCode || ''
+        },
+        is_active: editingDonor.active !== undefined ? editingDonor.active : true,
+        is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true,
+        notes: values.notes || ''
+      };
+      
+      console.log('Updating donor:', editingDonor.id, donorData);
+      const response = await donorAPI.updateDonor(editingDonor.id, donorData);
+      
+      if (response.success || response.data) {
+        message.success('Donor updated successfully!');
+        setIsEditModalVisible(false);
+        setEditingDonor(null);
+        // Refresh the donors list
+        await loadDonors();
+      } else {
+        message.error(response.message || 'Failed to update donor');
+      }
+    } catch (error: any) {
+      console.error('Error updating donor:', error);
+      message.error(error.message || 'Failed to update donor. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = (record: any) => {
+    setDeletingUser(record);
+    setIsDeleteUserModalVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deletingUser || !deletingUser.id) {
+      message.error('Cannot delete donor: missing donor ID');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await donorAPI.deleteDonor(deletingUser.id);
+      
+      if (response.success || response.data) {
+        message.success(`Donor ${deletingUser.name || deletingUser.email} deleted successfully`);
+        setIsDeleteUserModalVisible(false);
+        setDeletingUser(null);
+        // Refresh donors list
+        await loadDonors();
+      } else {
+        message.error(response.message || 'Failed to delete donor');
+      }
+    } catch (error: any) {
+      console.error('Error deleting donor:', error);
+      message.error(error.message || 'Failed to delete donor. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -554,6 +795,20 @@ const Donors: React.FC = () => {
             {/* Donors Table */}
             <div className="donors-table-section">
               <Spin spinning={loading}>
+                {/* Debug Info */}
+                <div style={{ padding: '10px', background: '#f0f0f0', marginBottom: '10px', fontSize: '12px' }}>
+                  <Text>Debug: {donorsData.length} donors loaded. Columns: {columns.length}. Actions column key: {columns.find(col => col.key === 'actions')?.key || 'NOT FOUND'}</Text>
+                  <Text style={{ display: 'block', marginTop: '4px' }}>
+                    Check console for "🔧 Actions column render called" messages
+                  </Text>
+                </div>
+                
+                {donorsData.length === 0 && !loading && (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <Text>No donors found. Use "Invite A Donor" button to add one.</Text>
+                  </div>
+                )}
+                
                 <Table
                   dataSource={donorsData}
                   columns={columns}
@@ -561,8 +816,54 @@ const Donors: React.FC = () => {
                   size="middle"
                   className="donors-table"
                   rowClassName="donor-row"
-                  scroll={{ x: 1800 }}
+                  scroll={{ x: 'max-content', y: undefined }}
                   bordered={false}
+                  rowKey={(record) => record.key || record.id || 'unknown'}
+                  virtual={false}
+                  components={{
+                    header: {
+                      cell: (props: any) => {
+                        console.log('Rendering header cell:', props.children);
+                        return <th {...props} />;
+                      }
+                    },
+                    body: {
+                      cell: (props: any) => {
+                        // Log when rendering the last column (Actions)
+                        if (props.className && props.className.includes('ant-table-cell-last')) {
+                          console.log('Rendering Actions column cell');
+                        }
+                        return <td {...props} />;
+                      }
+                    }
+                  }}
+                  onRow={(record, index) => {
+                    return {
+                      onClick: (event: React.MouseEvent) => {
+                        // Check if clicking on buttons or other interactive elements
+                        const target = event.target as HTMLElement;
+                        if (!target) return;
+                        
+                        // Don't open modal if clicking on buttons, toggles, or action column
+                        const isButton = target.closest('button') !== null;
+                        const isToggle = target.closest('.toggle') !== null || target.closest('.toggle-switch') !== null;
+                        const isAntBtn = target.closest('.ant-btn') !== null;
+                        const isSpace = target.closest('.ant-space') !== null;
+                        const isActionsColumn = target.closest('.ant-table-cell')?.querySelector('.ant-space') !== null;
+                        
+                        if (isButton || isToggle || isAntBtn || isSpace || isActionsColumn) {
+                          return; // Let the button handle its own click
+                        }
+                        
+                        // Otherwise, open edit modal
+                        handleEditDonor(record);
+                      },
+                      style: { 
+                        cursor: 'pointer',
+                        userSelect: 'none'
+                      }
+                    };
+                  }}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No donors found'
                   }}
@@ -592,6 +893,68 @@ const Donors: React.FC = () => {
         onCancel={() => setIsInviteModalVisible(false)}
         onSubmit={handleInviteDonor}
       />
+
+      {/* Edit Donor Modal */}
+      {console.log('Rendering EditDonorModal - visible:', isEditModalVisible, 'donor:', editingDonor)}
+      <EditDonorModal
+        visible={isEditModalVisible}
+        donor={editingDonor}
+        onCancel={() => {
+          console.log('Edit modal cancelled');
+          setIsEditModalVisible(false);
+          setEditingDonor(null);
+        }}
+        onSubmit={handleUpdateDonor}
+      />
+
+      {/* Delete User Confirmation Modal */}
+      <Modal
+        title="Delete Donor"
+        open={isDeleteUserModalVisible}
+        onOk={confirmDeleteUser}
+        onCancel={() => {
+          setIsDeleteUserModalVisible(false);
+          setDeletingUser(null);
+        }}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={loading}
+      >
+        {deletingUser && (
+          <div>
+            <p>Are you sure you want to permanently delete this donor?</p>
+            <div style={{ 
+              padding: '16px', 
+              background: '#fff7e6', 
+              borderRadius: '4px',
+              marginTop: '16px',
+              marginBottom: '16px'
+            }}>
+              <Text strong>Donor Details:</Text>
+              <br />
+              <Text>Name: {deletingUser.name}</Text>
+              <br />
+              <Text>Email: {deletingUser.email}</Text>
+              {deletingUser.beneficiary && (
+                <>
+                  <br />
+                  <Text>Beneficiary: {deletingUser.beneficiary}</Text>
+                </>
+              )}
+              {deletingUser.donation && (
+                <>
+                  <br />
+                  <Text>Total Donations: {deletingUser.donation}</Text>
+                </>
+              )}
+            </div>
+            <p style={{ color: '#ff4d4f', marginBottom: 0 }}>
+              <Text strong>Warning:</Text> This action cannot be undone. All donor data including donations, profile picture, and other associated information will be permanently deleted.
+            </p>
+          </div>
+        )}
+      </Modal>
     </Layout>
   );
 };
