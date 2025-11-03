@@ -129,7 +129,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
         layout="vertical"
         className="invite-donor-form"
         initialValues={{
-          coworking: donor.coworking || 'No',
+          coworking: donor?.coworking || 'No',
         }}
       >
         <div className="form-sections">
