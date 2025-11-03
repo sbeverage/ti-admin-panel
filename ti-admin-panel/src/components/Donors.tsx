@@ -7,7 +7,8 @@ import {
   CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined
+  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
@@ -36,6 +37,7 @@ const Donors: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDonors, setTotalDonors] = useState(0);
+  const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -410,12 +412,14 @@ const Donors: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       fixed: 'right' as const,
-      width: 140,
+      width: 180,
       align: 'center' as const,
       render: (text: string, record: any, index: number) => {
         if (!record) {
           return <div style={{ color: 'red', padding: '10px' }}>❌ No record</div>;
         }
+        
+        const isResending = resendingInvitation === record.id;
         
         return (
           <div 
@@ -423,7 +427,7 @@ const Donors: React.FC = () => {
             className="actions-column-container"
             style={{ 
               display: 'flex', 
-              gap: '8px', 
+              gap: '6px', 
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
@@ -460,6 +464,39 @@ const Donors: React.FC = () => {
                 borderWidth: '1.5px',
                 borderStyle: 'solid',
                 flexShrink: 0
+              }}
+            />
+            <Button 
+              size="middle"
+              icon={<MailOutlined />}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleResendInvitation(record);
+              }}
+              className="resend-invitation-button"
+              title="Resend Invitation Email"
+              loading={isResending}
+              disabled={isResending}
+              style={{
+                backgroundColor: '#e6f7ff',
+                borderColor: '#1890ff',
+                color: '#1890ff',
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                minWidth: '32px',
+                maxWidth: '32px',
+                fontSize: '14px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isResending ? 'not-allowed' : 'pointer',
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0,
+                opacity: isResending ? 0.6 : 1
               }}
             />
             <Button 
@@ -637,6 +674,32 @@ const Donors: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendInvitation = async (record: any) => {
+    if (!record || !record.id) {
+      message.error('Cannot resend invitation: missing donor ID');
+      return;
+    }
+
+    setResendingInvitation(record.id);
+
+    try {
+      const response = await donorAPI.resendInvitation(record.id);
+      
+      if (response.success || response.data) {
+        message.success(`Invitation email resent successfully to ${record.email || record.name}`);
+        // Optionally refresh the donor list
+        await loadDonors();
+      } else {
+        message.error(response.error || 'Failed to resend invitation email');
+      }
+    } catch (error: any) {
+      console.error('Error resending invitation:', error);
+      message.error(error.message || 'Failed to resend invitation. Please try again.');
+    } finally {
+      setResendingInvitation(null);
     }
   };
 

@@ -499,9 +499,9 @@
   right: 0 !important;
   z-index: 100 !important;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1) !important;
-  width: 140px !important;
-  min-width: 140px !important;
-  max-width: 140px !important;
+  width: 180px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
   display: table-cell !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -837,14 +837,58 @@
   color: #ff7875 !important;
 }
 
+/* Resend Invitation Button Styles */
+.donors-table .resend-invitation-button {
+  background-color: #e6f7ff !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.donors-table .resend-invitation-button:hover {
+  background-color: #bae7ff !important;
+  border-color: #40a9ff !important;
+  color: #40a9ff !important;
+  transform: scale(1.05);
+}
+
+.donors-table .resend-invitation-button .anticon {
+  color: #1890ff !important;
+  font-size: 14px !important;
+  transition: color 0.2s ease !important;
+}
+
+.donors-table .resend-invitation-button:hover .anticon {
+  color: #40a9ff !important;
+}
+
+.donors-table .resend-invitation-button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
 .donors-table .ant-table-tbody tr td:last-child {
   position: relative;
   z-index: 10;
   background-color: #fff !important;
   padding: 4px 0 !important;
-  width: 140px !important;
-  min-width: 140px !important;
-  max-width: 140px !important;
+  width: 180px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
   text-align: center !important;
@@ -867,9 +911,9 @@
 .donors-table .ant-table-thead > tr > th:last-child {
   background-color: #324E58 !important;
   color: #ffffff !important;
-  width: 140px !important;
-  min-width: 140px !important;
-  max-width: 140px !important;
+  width: 180px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
   padding: 8px !important;
   box-sizing: border-box !important;
   text-align: center !important;

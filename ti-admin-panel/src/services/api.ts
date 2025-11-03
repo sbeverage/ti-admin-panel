@@ -764,6 +764,29 @@ export const donorAPI = {
     }
     
     return response.json();
+  },
+
+  // Resend invitation email to a donor
+  resendInvitation: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/donors/${id}/resend-invitation`, {
+      method: 'POST',
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      // Try to get error details from response
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // If response isn't JSON, use status message
+        errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    return response.json();
   }
 };
 
