@@ -249,41 +249,116 @@ override fun onCreate(savedInstanceState: Bundle?) {
 }
 ```
 
-**React Native:**
+**React Native (Recommended Approach):**
 
 ```javascript
-// Install: npm install react-native-deep-linking
-import { Linking } from 'react-native';
-import DeepLinking from 'react-native-deep-linking';
-
 // In App.js or App.tsx
-useEffect(() => {
-  // Handle deep links when app is already open
-  const subscription = Linking.addEventListener('url', handleDeepLink);
-  
-  // Handle deep links when app is opened from closed state
-  Linking.getInitialURL().then(url => {
-    if (url) handleDeepLink({ url });
-  });
-  
-  // Configure deep link routes
-  DeepLinking.addScheme('yourapp://');
-  DeepLinking.addRoute('/verify/:token', (response) => {
-    navigateToVerificationScreen(response.token);
-  });
-  
-  return () => subscription.remove();
-}, []);
+import React, { useEffect, useState } from 'react';
+import { Linking } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-const handleDeepLink = ({ url }) => {
-  if (url.includes('verify')) {
-    const token = extractTokenFromUrl(url);
-    navigateToVerificationScreen(token);
-  }
-};
+const Stack = createStackNavigator();
+
+export default function App() {
+  const [initialUrl, setInitialUrl] = useState(null);
+  
+  useEffect(() => {
+    // Handle deep links when app is opened from closed state
+    Linking.getInitialURL().then(url => {
+      if (url) {
+        setInitialUrl(url);
+        handleDeepLink(url);
+      }
+    });
+    
+    // Handle deep links when app is already open
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
+    });
+    
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+  
+  const handleDeepLink = (url) => {
+    console.log('Deep link received:', url);
+    
+    // Parse URL: yourapp://verify?token=abc123
+    // OR: https://yourapp.com/verify-email?token=abc123 (Universal Links)
+    try {
+      const parsedUrl = new URL(url);
+      const token = parsedUrl.searchParams.get('token');
+      
+      if (parsedUrl.pathname.includes('verify') && token) {
+        // Navigate to verification screen with token
+        navigationRef.current?.navigate('EmailVerification', { token });
+      }
+    } catch (error) {
+      console.error('Error parsing deep link:', error);
+    }
+  };
+  
+  // Create navigation ref for navigation from outside component
+  const navigationRef = React.useRef(null);
+  
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        // Handle initial URL after navigation is ready
+        if (initialUrl) {
+          handleDeepLink(initialUrl);
+        }
+      }}
+    >
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen 
+          name="EmailVerification" 
+          component={EmailVerificationScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 ```
 
-#### 2.2 Email Verification Screen
+**Alternative: Using react-navigation with Linking**
+
+```javascript
+// Using React Navigation's built-in deep linking
+import { NavigationContainer } from '@react-navigation/native';
+
+const linking = {
+  prefixes: ['yourapp://', 'https://yourapp.com'],
+  config: {
+    screens: {
+      EmailVerification: {
+        path: 'verify-email',
+        parse: {
+          token: (token) => token,
+        },
+      },
+    },
+  },
+};
+
+export default function App() {
+  return (
+    <NavigationContainer linking={linking}>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+```
+
+#### 2.2 Email Verification Screen (React Native)
 
 Create a new screen in your mobile app that:
 
@@ -293,54 +368,105 @@ Create a new screen in your mobile app that:
 4. **Asks for password and other required info**
 5. **Creates the authenticated account**
 
-**Example Flow (React Native):**
+**Complete React Native Implementation:**
 
 ```typescript
 // screens/EmailVerificationScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
+import { API_BASE_URL } from '../config';
+
+interface RouteParams {
+  token?: string;
+}
 
 export default function EmailVerificationScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const token = route.params?.token;
+  const { token } = route.params as RouteParams;
   
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(true);
+  const [verifying, setVerifying] = useState(!!token);
+  const [verified, setVerified] = useState(false);
+  const [error, setError] = useState('');
   
   useEffect(() => {
     if (token) {
       verifyToken(token);
+    } else {
+      setError('No verification token provided');
+      setVerifying(false);
     }
   }, [token]);
   
   const verifyToken = async (verificationToken: string) => {
     try {
+      setVerifying(true);
+      setError('');
+      
       // Call your backend to verify token and get user info
       const response = await fetch(
-        `https://your-api.com/auth/verify-email?token=${verificationToken}`
+        `${API_BASE_URL}/auth/verify-email?token=${verificationToken}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
       );
+      
       const data = await response.json();
       
-      if (data.success) {
-        setEmail(data.email); // Pre-fill email from backend
+      if (data.success && data.user) {
+        setEmail(data.user.email);
+        setName(data.user.name || '');
+        setVerified(true);
         setVerifying(false);
       } else {
-        Alert.alert('Error', 'Invalid or expired verification link');
-        navigation.navigate('Login');
+        setError(data.error || 'Invalid or expired verification link');
+        setVerifying(false);
+        Alert.alert(
+          'Verification Failed',
+          'This verification link is invalid or has expired. Please contact support.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('Login' as never)
+            }
+          ]
+        );
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to verify email');
-      navigation.navigate('Login');
+    } catch (error: any) {
+      console.error('Token verification error:', error);
+      setError('Failed to verify email. Please check your connection.');
+      setVerifying(false);
+      Alert.alert('Error', 'Failed to verify email. Please try again.');
     }
   };
   
   const completeSignup = async () => {
+    // Validation
+    if (!password || !confirmPassword) {
+      Alert.alert('Error', 'Please enter a password');
+      return;
+    }
+    
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
@@ -352,6 +478,7 @@ export default function EmailVerificationScreen() {
     }
     
     setLoading(true);
+    setError('');
     
     try {
       // 1. Create Supabase auth user
@@ -359,25 +486,37 @@ export default function EmailVerificationScreen() {
         email: email,
         password: password,
         options: {
-          emailRedirectTo: undefined // We've already verified email
+          emailRedirectTo: undefined, // We've already verified email
+          data: {
+            name: name,
+            role: 'donor'
+          }
         }
       });
       
       if (authError) throw authError;
       
-      // 2. Update user record with auth user ID
+      if (!authData.user) {
+        throw new Error('Failed to create user account');
+      }
+      
+      // 2. Update user record with auth user ID and mark as active
       const { error: updateError } = await supabase
         .from('users')
         .update({
-          auth_user_id: authData.user?.id,
+          auth_user_id: authData.user.id,
           status: 'active',
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
+          email_verified_at: new Date().toISOString()
         })
         .eq('email', email);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
       
-      // 3. Sign in the user
+      // 3. Sign in the user automatically
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
@@ -385,14 +524,16 @@ export default function EmailVerificationScreen() {
       
       if (signInError) throw signInError;
       
-      // 4. Navigate to main app
+      // 4. Navigate to main app (reset navigation stack)
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }]
+        routes: [{ name: 'Home' as never }]
       });
       
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to complete signup');
+      console.error('Signup error:', error);
+      setError(error.message || 'Failed to complete signup');
+      Alert.alert('Error', error.message || 'Failed to complete signup. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -400,39 +541,187 @@ export default function EmailVerificationScreen() {
   
   if (verifying) {
     return (
-      <View>
-        <Text>Verifying your email...</Text>
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#DB8633" />
+        <Text style={styles.loadingText}>Verifying your email...</Text>
+      </View>
+    );
+  }
+  
+  if (!verified) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error || 'Verification failed'}</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Login' as never)}
+        >
+          <Text style={styles.buttonText}>Go to Login</Text>
+        </TouchableOpacity>
       </View>
     );
   }
   
   return (
-    <View>
-      <Text>Complete Your Signup</Text>
-      <Text>Email: {email}</Text>
-      
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      
-      <TextInput
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-      
-      <Button
-        title="Complete Signup"
-        onPress={completeSignup}
-        disabled={loading}
-      />
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Complete Your Signup</Text>
+          <Text style={styles.subtitle}>Your email has been verified!</Text>
+        </View>
+        
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              value={email}
+              editable={false}
+              placeholder="Email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          
+          {name && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Name</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={name}
+                editable={false}
+                placeholder="Name"
+              />
+            </View>
+          )}
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter password (min 8 characters)"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+            />
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Password *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm password"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              autoCapitalize="none"
+            />
+          </View>
+          
+          {error && (
+            <Text style={styles.errorText}>{error}</Text>
+          )}
+          
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={completeSignup}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>Complete Signup</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 400,
+  },
+  header: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#324E58',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#8c8c8c',
+  },
+  form: {
+    width: '100%',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#324E58',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d9d9d9',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#ffffff',
+  },
+  disabledInput: {
+    backgroundColor: '#f5f5f5',
+    color: '#8c8c8c',
+  },
+  button: {
+    backgroundColor: '#DB8633',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: '#ff4d4f',
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#8c8c8c',
+  },
+});
 ```
 
 #### 2.3 Universal Links / App Links (Advanced)
@@ -592,14 +881,218 @@ Need help? Contact support@yourapp.com
 
 ---
 
+## 📱 React Native Specific Setup
+
+### Required Packages
+
+```bash
+# Install React Navigation
+npm install @react-navigation/native @react-navigation/stack
+npm install react-native-screens react-native-safe-area-context
+
+# For deep linking (optional - React Navigation has built-in support)
+npm install react-native-linking  # Usually already included
+
+# Supabase client
+npm install @supabase/supabase-js
+
+# For forms and validation (optional but recommended)
+npm install react-hook-form yup @hookform/resolvers
+```
+
+### Configuration Files
+
+#### 1. app.json / app.config.js (Expo) or AndroidManifest.xml & Info.plist
+
+**For Expo:**
+```json
+{
+  "expo": {
+    "scheme": "yourapp",
+    "ios": {
+      "bundleIdentifier": "com.yourapp.app",
+      "associatedDomains": ["applinks:yourapp.com"]
+    },
+    "android": {
+      "package": "com.yourapp.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "yourapp.com",
+              "pathPrefix": "/verify-email"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    }
+  }
+}
+```
+
+**For React Native CLI - AndroidManifest.xml:**
+```xml
+<manifest>
+  <application>
+    <activity android:name=".MainActivity">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+          android:scheme="https"
+          android:host="yourapp.com"
+          android:pathPrefix="/verify-email" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="yourapp" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>
+```
+
+**For React Native CLI - Info.plist (iOS):**
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>yourapp</string>
+    </array>
+  </dict>
+</array>
+```
+
+### Navigation Setup Example
+
+```typescript
+// navigation/AppNavigator.tsx
+import React from 'react';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import EmailVerificationScreen from '../screens/EmailVerificationScreen';
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+
+const Stack = createStackNavigator();
+
+const linking: LinkingOptions = {
+  prefixes: ['yourapp://', 'https://yourapp.com'],
+  config: {
+    screens: {
+      EmailVerification: {
+        path: 'verify-email/:token?',
+        parse: {
+          token: (token: string) => token,
+        },
+      },
+      Home: 'home',
+      Login: 'login',
+    },
+  },
+};
+
+export default function AppNavigator() {
+  return (
+    <NavigationContainer linking={linking}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+```
+
+### Supabase Service Example
+
+```typescript
+// services/supabase.ts
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co';
+const SUPABASE_ANON_KEY = 'your-anon-key';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false, // Important for React Native
+  },
+});
+```
+
+### API Config Example
+
+```typescript
+// config/api.ts
+export const API_BASE_URL = __DEV__
+  ? 'http://localhost:3000/api' // Development
+  : 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api'; // Production
+
+export const API_CONFIG = {
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+};
+```
+
+---
+
+## 🧪 Testing the Flow
+
+### 1. Test Deep Linking (iOS Simulator)
+
+```bash
+# In terminal
+xcrun simctl openurl booted "yourapp://verify-email?token=test-token-123"
+```
+
+### 2. Test Deep Linking (Android Emulator)
+
+```bash
+# In terminal
+adb shell am start -W -a android.intent.action.VIEW -d "yourapp://verify-email?token=test-token-123" com.yourapp.app
+```
+
+### 3. Test Universal Links (iOS - requires device)
+
+1. Send test email with verification link
+2. Open email on iOS device
+3. Tap link → Should open app directly
+
+### 4. Test App Links (Android - requires device)
+
+1. Send test email with verification link
+2. Open email on Android device
+3. Tap link → Should open app directly
+
+---
+
 ## 📞 Support & Questions
 
 If you need help implementing any part of this flow:
 - Backend API endpoints
-- Mobile app deep linking
-- Email service setup
+- React Native deep linking setup
+- Email service configuration
 - Token generation and validation
-- User authentication flow
+- Supabase authentication integration
+- Navigation flow implementation
 
 Let me know which part you'd like to start with!
 
