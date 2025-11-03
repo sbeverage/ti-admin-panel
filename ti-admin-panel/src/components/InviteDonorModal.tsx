@@ -236,13 +236,15 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               <Form.Item
                 name="oneTime"
                 label="One Time Gifts"
-                rules={[{ required: true, message: 'Please enter one time gift amount' }]}
+                rules={[{ required: false }]}
                 className="form-item"
               >
                 <Input 
-                  placeholder="Enter one time gift amount"
+                  placeholder="Enter one time gift amount (optional)"
                   prefix={<DollarOutlined />}
                   size="large"
+                  type="number"
+                  min={0}
                 />
               </Form.Item>
             </div>
