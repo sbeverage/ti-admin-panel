@@ -724,7 +724,16 @@ export const donorAPI = {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to get error details from response
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // If response isn't JSON, use status message
+        errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
     
     return response.json();

@@ -604,6 +604,7 @@ const Donors: React.FC = () => {
       };
       
       console.log('Updating donor:', editingDonor.id, donorData);
+      console.log('Donor data payload:', JSON.stringify(donorData, null, 2));
       const response = await donorAPI.updateDonor(editingDonor.id, donorData);
       
       if (response.success || response.data) {
@@ -617,10 +618,15 @@ const Donors: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error updating donor:', error);
+      console.error('Error details:', error.message);
       
-      // Check if it's a 404 error (donor not found)
+      // Check error type and show appropriate message
       if (error.message && error.message.includes('404')) {
         message.error('Donor not found. Please verify the donor ID.');
+      } else if (error.message && error.message.includes('500')) {
+        message.error(`Server error: ${error.message}. Please check the backend logs.`);
+      } else if (error.message && error.message.includes('400')) {
+        message.error(`Invalid data: ${error.message}`);
       } else {
         message.error(error.message || 'Failed to update donor. Please try again.');
       }
