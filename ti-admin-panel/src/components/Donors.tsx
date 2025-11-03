@@ -411,6 +411,7 @@ const Donors: React.FC = () => {
       key: 'actions',
       fixed: 'right' as const,
       width: 140,
+      align: 'center' as const,
       render: (text: string, record: any, index: number) => {
         if (!record) {
           return <div style={{ color: 'red', padding: '10px' }}>❌ No record</div>;

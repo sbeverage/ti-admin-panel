@@ -499,11 +499,13 @@
   right: 0 !important;
   z-index: 100 !important;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1) !important;
-  width: 200px !important;
-  min-width: 200px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
   display: table-cell !important;
   visibility: visible !important;
   opacity: 1 !important;
+  text-align: center !important;
 }
 
 /* Force Actions column container to be visible */
@@ -513,9 +515,12 @@
   visibility: visible !important;
   opacity: 1 !important;
   width: 100% !important;
-  min-width: 200px !important;
+  max-width: 100% !important;
   position: relative !important;
   z-index: 9999 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
 }
 
 .donors-table .ant-table-tbody > tr > td:first-child {
@@ -867,6 +872,7 @@
   max-width: 140px !important;
   padding: 8px !important;
   box-sizing: border-box !important;
+  text-align: center !important;
 }
 
 /* Ensure buttons are visible in Actions column */
