@@ -784,6 +784,32 @@ export const donorAPI = {
           errorMessage = errorData.error || errorData.message || errorData.details || errorMessage;
           errorDetails = errorData.details || errorData.error || null;
           
+          // Parse nested error details if they exist (common with email services)
+          if (errorData.details) {
+            try {
+              // Check if details is a JSON string that needs parsing
+              let parsedDetails = errorData.details;
+              if (typeof parsedDetails === 'string' && parsedDetails.startsWith('{')) {
+                parsedDetails = JSON.parse(parsedDetails);
+              }
+              
+              // Extract more specific error messages from nested errors
+              if (parsedDetails && typeof parsedDetails === 'object') {
+                if (parsedDetails.message) {
+                  errorDetails = parsedDetails.message;
+                } else if (parsedDetails.error) {
+                  errorDetails = parsedDetails.error;
+                } else if (parsedDetails.statusCode) {
+                  // For Resend API errors
+                  errorDetails = `Email service error (${parsedDetails.statusCode}): ${parsedDetails.message || errorData.details}`;
+                }
+              }
+            } catch (parseError) {
+              // If parsing fails, use the details as-is
+              errorDetails = errorData.details;
+            }
+          }
+          
           // Log error details for debugging
           console.error('❌ Resend invitation error:', {
             status: response.status,
@@ -791,6 +817,7 @@ export const donorAPI = {
             error: errorData.error,
             message: errorData.message,
             details: errorData.details,
+            parsedDetails: errorDetails,
             fullResponse: errorData
           });
         } catch (parseError) {

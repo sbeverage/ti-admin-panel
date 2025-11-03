@@ -699,26 +699,27 @@ const Donors: React.FC = () => {
     } catch (error: any) {
       console.error('Error resending invitation:', error);
       
-      // Extract error message
+      // Extract error message - prefer details if available as it's more specific
       let errorMessage = 'Failed to resend invitation. Please try again.';
       
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.details) {
+      if (error.details) {
+        // Use the parsed details which should contain the actual error from email service
         errorMessage = error.details;
+      } else if (error.message) {
+        errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
       
-      // Show more detailed error for 500 errors
+      // Show more detailed error for 500 errors with extended duration
       if (error.status === 500) {
         errorMessage = errorMessage || 'Server error. Please contact support if this issue persists.';
         message.error({
-          content: errorMessage,
-          duration: 6,
+          content: `❌ ${errorMessage}`,
+          duration: 8, // Extended duration for detailed errors
         });
       } else {
-        message.error(errorMessage);
+        message.error(`❌ ${errorMessage}`);
       }
     } finally {
       setResendingInvitation(null);
