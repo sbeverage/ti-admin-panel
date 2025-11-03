@@ -586,7 +586,7 @@ const Donors: React.FC = () => {
       // Prepare donor data for API
       // Note: Fields like beneficiary_name, coworking, total_donations are typically calculated
       // from related tables and may be ignored by the backend during updates
-      const donorData = {
+      const donorData: any = {
         name: values.name,
         email: values.email,
         phone: values.contact,
@@ -597,11 +597,16 @@ const Donors: React.FC = () => {
           street: '' // Street address not currently in form, but backend expects it
         },
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
-        is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true,
-        notes: values.notes || ''
+        is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true
+        // Note: 'notes' field removed - column doesn't exist in users table
         // Note: beneficiary_name, coworking, total_donations, one_time_donation, 
         // last_donation_date are typically calculated fields and may be ignored by backend
       };
+      
+      // Only include notes if the column exists (check with backend team first)
+      // if (values.notes) {
+      //   donorData.notes = values.notes;
+      // }
       
       console.log('Updating donor:', editingDonor.id, donorData);
       console.log('Donor data payload:', JSON.stringify(donorData, null, 2));
