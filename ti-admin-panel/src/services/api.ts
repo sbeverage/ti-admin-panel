@@ -768,25 +768,67 @@ export const donorAPI = {
 
   // Resend invitation email to a donor
   resendInvitation: async (id: number): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/donors/${id}/resend-invitation`, {
-      method: 'POST',
-      headers: API_CONFIG.headers
-    });
-    
-    if (!response.ok) {
-      // Try to get error details from response
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || errorMessage;
-      } catch {
-        // If response isn't JSON, use status message
-        errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/donors/${id}/resend-invitation`, {
+        method: 'POST',
+        headers: API_CONFIG.headers
+      });
+      
+      if (!response.ok) {
+        // Try to get error details from response
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        let errorDetails = null;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorData.details || errorMessage;
+          errorDetails = errorData.details || errorData.error || null;
+          
+          // Log error details for debugging
+          console.error('❌ Resend invitation error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData.error,
+            message: errorData.message,
+            details: errorData.details,
+            fullResponse: errorData
+          });
+        } catch (parseError) {
+          // If response isn't JSON, try to get text
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || `HTTP error! status: ${response.status} ${response.statusText}`;
+            console.error('❌ Resend invitation error (non-JSON):', errorText);
+          } catch {
+            // If response isn't JSON, use status message
+            errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
+          }
+        }
+        
+        // Throw error with message
+        const error = new Error(errorMessage);
+        (error as any).status = response.status;
+        (error as any).details = errorDetails;
+        throw error;
       }
-      throw new Error(errorMessage);
+      
+      const data = await response.json();
+      
+      // Log success for debugging
+      console.log('✅ Resend invitation success:', data);
+      
+      return data;
+    } catch (error: any) {
+      console.error('❌ Resend invitation network error:', error);
+      
+      // If it's already our formatted error, re-throw it
+      if (error.message && error.status) {
+        throw error;
+      }
+      
+      // Otherwise, create a formatted error
+      throw new Error(error.message || 'Network error. Please check your connection and try again.');
     }
-    
-    return response.json();
   }
 };
 

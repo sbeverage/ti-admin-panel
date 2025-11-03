@@ -693,11 +693,33 @@ const Donors: React.FC = () => {
         // Optionally refresh the donor list
         await loadDonors();
       } else {
-        message.error(response.error || 'Failed to resend invitation email');
+        const errorMsg = response.error || response.message || 'Failed to resend invitation email';
+        message.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error resending invitation:', error);
-      message.error(error.message || 'Failed to resend invitation. Please try again.');
+      
+      // Extract error message
+      let errorMessage = 'Failed to resend invitation. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.details) {
+        errorMessage = error.details;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      // Show more detailed error for 500 errors
+      if (error.status === 500) {
+        errorMessage = errorMessage || 'Server error. Please contact support if this issue persists.';
+        message.error({
+          content: errorMessage,
+          duration: 6,
+        });
+      } else {
+        message.error(errorMessage);
+      }
     } finally {
       setResendingInvitation(null);
     }
