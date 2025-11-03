@@ -433,41 +433,44 @@ const Donors: React.FC = () => {
             <Button 
               type="primary"
               size="middle"
+              icon={<EditOutlined />}
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleEditDonor(record);
               }}
               className="edit-donor-button"
+              title="Edit Donor"
               style={{
                 backgroundColor: '#DB8633',
                 borderColor: '#DB8633',
                 color: '#ffffff',
                 fontWeight: 600,
-                minWidth: '100px',
+                width: '36px',
                 height: '36px',
-                fontSize: '14px',
+                padding: 0,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer'
               }}
-            >
-              <EditOutlined style={{ marginRight: '6px' }} /> Edit
-            </Button>
+            />
             <Button 
               type="primary"
               danger
               size="middle"
+              icon={<DeleteOutlined />}
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleDeleteUser(record);
               }}
               className="delete-donor-button"
+              title="Delete Donor"
               style={{ 
-                minWidth: '100px',
+                width: '36px',
                 height: '36px',
+                padding: 0,
                 fontSize: '14px',
                 fontWeight: 600,
                 display: 'inline-flex',
@@ -475,9 +478,7 @@ const Donors: React.FC = () => {
                 justifyContent: 'center',
                 cursor: 'pointer'
               }}
-            >
-              <DeleteOutlined style={{ marginRight: '6px' }} /> Delete
-            </Button>
+            />
           </div>
         );
       },
