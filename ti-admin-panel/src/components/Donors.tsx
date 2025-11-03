@@ -582,23 +582,23 @@ const Donors: React.FC = () => {
       const state = cityStateParts[1] || values.state || '';
       
       // Prepare donor data for API
+      // Note: Fields like beneficiary_name, coworking, total_donations are typically calculated
+      // from related tables and may be ignored by the backend during updates
       const donorData = {
         name: values.name,
         email: values.email,
         phone: values.contact,
-        beneficiary_name: values.beneficiary,
-        coworking: values.coworking === 'Yes',
-        total_donations: parseFloat(values.donation) || 0,
-        one_time_donation: parseFloat(values.oneTime) || 0,
-        last_donation_date: values.lastDonated || null,
         address: {
           city: city,
           state: state,
-          zipCode: values.zipCode || ''
+          zipCode: values.zipCode || '',
+          street: '' // Street address not currently in form, but backend expects it
         },
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
         is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true,
         notes: values.notes || ''
+        // Note: beneficiary_name, coworking, total_donations, one_time_donation, 
+        // last_donation_date are typically calculated fields and may be ignored by backend
       };
       
       console.log('Updating donor:', editingDonor.id, donorData);
@@ -616,9 +616,9 @@ const Donors: React.FC = () => {
     } catch (error: any) {
       console.error('Error updating donor:', error);
       
-      // Check if it's a 404 error (endpoint not implemented)
+      // Check if it's a 404 error (donor not found)
       if (error.message && error.message.includes('404')) {
-        message.error('Update endpoint not yet implemented. Please implement PUT /api/admin/donors/{id} on the backend. See BACKEND_DELETE_DONOR_GUIDE.md for details.');
+        message.error('Donor not found. Please verify the donor ID.');
       } else {
         message.error(error.message || 'Failed to update donor. Please try again.');
       }
