@@ -427,8 +427,9 @@ const Donors: React.FC = () => {
               justifyContent: 'center',
               width: '100%',
               maxWidth: '100%',
-              padding: '8px',
-              boxSizing: 'border-box'
+              padding: '4px 0',
+              boxSizing: 'border-box',
+              margin: '0 auto'
             }}
           >
             <Button 

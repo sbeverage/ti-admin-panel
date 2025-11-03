@@ -836,19 +836,26 @@
   position: relative;
   z-index: 10;
   background-color: #fff !important;
-  padding: 8px !important;
+  padding: 4px 0 !important;
   width: 140px !important;
   min-width: 140px !important;
   max-width: 140px !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   box-sizing: border-box !important;
+  text-align: center !important;
 }
 
 .donors-table .ant-table-tbody tr td:last-child .actions-column-container {
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
 }
 
 /* Force Actions column to be visible */
@@ -863,17 +870,21 @@
 }
 
 /* Ensure buttons are visible in Actions column */
-.donors-table .ant-table-tbody tr td:last-child div {
+.donors-table .ant-table-tbody tr td:last-child .actions-column-container {
   display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   visibility: visible !important;
   opacity: 1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .donors-table .ant-table-tbody tr td:last-child button {
   display: inline-flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  width: auto !important;
+  flex-shrink: 0 !important;
   height: auto !important;
 }
 
