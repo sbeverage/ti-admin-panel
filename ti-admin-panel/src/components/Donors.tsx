@@ -615,7 +615,13 @@ const Donors: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error updating donor:', error);
-      message.error(error.message || 'Failed to update donor. Please try again.');
+      
+      // Check if it's a 404 error (endpoint not implemented)
+      if (error.message && error.message.includes('404')) {
+        message.error('Update endpoint not yet implemented. Please implement PUT /api/admin/donors/{id} on the backend. See BACKEND_DELETE_DONOR_GUIDE.md for details.');
+      } else {
+        message.error(error.message || 'Failed to update donor. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
