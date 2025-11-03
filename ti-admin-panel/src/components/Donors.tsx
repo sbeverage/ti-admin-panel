@@ -685,15 +685,16 @@ const Donors: React.FC = () => {
 
   return (
     <Layout className="donors-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
-      />
+      <>
+        {/* Mobile Menu Button - Right Side */}
+        <Button
+          className="mobile-menu-btn-right"
+          icon={<MenuOutlined />}
+          onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+        />
 
-      {/* Sidebar */}
-      <Sider
+        {/* Sidebar */}
+        <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         breakpoint="lg"
@@ -977,6 +978,7 @@ const Donors: React.FC = () => {
           </div>
         )}
       </Modal>
+      </>
     </Layout>
   );
 };
