@@ -764,35 +764,39 @@
 /* Make Edit button very visible - Subtle orange pill style */
 .donors-table .edit-donor-button,
 .donors-table .edit-action-btn {
-  background-color: #fff2e8 !important;
-  border-color: #ffd591 !important;
+  background-color: #fff7e6 !important;
+  border-color: #DB8633 !important;
   color: #DB8633 !important;
   width: 32px !important;
   height: 32px !important;
   min-width: 32px !important;
+  max-width: 32px !important;
   padding: 0 !important;
   font-weight: 600 !important;
   font-size: 14px !important;
   display: inline-flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  border-width: 1px !important;
+  border-width: 1.5px !important;
   border-style: solid !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .donors-table .edit-donor-button:hover,
 .donors-table .edit-action-btn:hover {
-  background-color: #ffe7d3 !important;
-  border-color: #DB8633 !important;
-  color: #DB8633 !important;
+  background-color: #fff2d9 !important;
+  border-color: #C6762A !important;
+  color: #C6762A !important;
 }
 
 .donors-table .edit-donor-button .anticon {
   color: #DB8633 !important;
+  font-size: 14px !important;
 }
 
 .donors-table .edit-donor-button:hover .anticon {
-  color: #DB8633 !important;
+  color: #C6762A !important;
 }
 
 .donors-table .delete-donor-button {
@@ -802,44 +806,60 @@
   width: 32px !important;
   height: 32px !important;
   min-width: 32px !important;
+  max-width: 32px !important;
   padding: 0 !important;
-  background-color: #fff2f0 !important;
-  border-color: #ffccc7 !important;
+  background-color: #fff1f0 !important;
+  border-color: #ff4d4f !important;
   color: #ff4d4f !important;
-  border-width: 1px !important;
+  border-width: 1.5px !important;
   border-style: solid !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .donors-table .delete-donor-button:hover {
-  background-color: #ffe7e6 !important;
-  border-color: #ff4d4f !important;
-  color: #ff4d4f !important;
+  background-color: #ffe6e6 !important;
+  border-color: #ff7875 !important;
+  color: #ff7875 !important;
 }
 
 .donors-table .delete-donor-button .anticon {
   color: #ff4d4f !important;
+  font-size: 14px !important;
 }
 
 .donors-table .delete-donor-button:hover .anticon {
-  color: #ff4d4f !important;
+  color: #ff7875 !important;
 }
 
 .donors-table .ant-table-tbody tr td:last-child {
   position: relative;
   z-index: 10;
   background-color: #fff !important;
-  padding: 4px 2px !important;
-  width: 120px !important;
-  min-width: 120px !important;
+  padding: 8px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.donors-table .ant-table-tbody tr td:last-child .actions-column-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 /* Force Actions column to be visible */
 .donors-table .ant-table-thead > tr > th:last-child {
   background-color: #324E58 !important;
   color: #ffffff !important;
-  width: 120px !important;
-  min-width: 120px !important;
-  padding: 8px 4px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
 }
 
 /* Ensure buttons are visible in Actions column */

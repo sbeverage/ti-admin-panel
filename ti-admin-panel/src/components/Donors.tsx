@@ -410,7 +410,7 @@ const Donors: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       fixed: 'right' as const,
-      width: 120,
+      width: 140,
       render: (text: string, record: any, index: number) => {
         if (!record) {
           return <div style={{ color: 'red', padding: '10px' }}>❌ No record</div>;
@@ -422,12 +422,13 @@ const Donors: React.FC = () => {
             className="actions-column-container"
             style={{ 
               display: 'flex', 
-              gap: '6px', 
+              gap: '8px', 
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              minWidth: '120px',
-              padding: '4px 2px'
+              maxWidth: '100%',
+              padding: '8px',
+              boxSizing: 'border-box'
             }}
           >
             <Button 
@@ -441,20 +442,22 @@ const Donors: React.FC = () => {
               className="edit-donor-button"
               title="Edit Donor"
               style={{
-                backgroundColor: '#fff2e8',
-                borderColor: '#ffd591',
+                backgroundColor: '#fff7e6',
+                borderColor: '#DB8633',
                 color: '#DB8633',
                 fontWeight: 600,
                 width: '32px',
                 height: '32px',
                 padding: 0,
                 minWidth: '32px',
+                maxWidth: '32px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                borderWidth: '1px',
-                borderStyle: 'solid'
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0
               }}
             />
             <Button 
@@ -468,21 +471,23 @@ const Donors: React.FC = () => {
               className="delete-donor-button"
               title="Delete Donor"
               style={{ 
-                backgroundColor: '#fff2f0',
-                borderColor: '#ffccc7',
+                backgroundColor: '#fff1f0',
+                borderColor: '#ff4d4f',
                 color: '#ff4d4f',
                 width: '32px',
                 height: '32px',
                 padding: 0,
                 minWidth: '32px',
+                maxWidth: '32px',
                 fontSize: '14px',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                borderWidth: '1px',
-                borderStyle: 'solid'
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0
               }}
             />
           </div>
