@@ -742,6 +742,19 @@ export const donorAPI = {
     }
     
     return response.json();
+  },
+
+  // Get detailed donor information (for profile view)
+  getDonorDetails: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/donors/${id}/details`, {
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 
