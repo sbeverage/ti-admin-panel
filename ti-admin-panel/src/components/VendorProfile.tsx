@@ -700,19 +700,41 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const renderDiscountsInfo = () => (
     <Card 
       title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Discounts & Offers</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <span style={{ fontSize: '18px', fontWeight: 600 }}>Discounts & Offers</span>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAddDiscount}
-            size="small"
+            size="large"
+            style={{ 
+              height: '40px',
+              fontSize: '14px',
+              fontWeight: 600,
+              boxShadow: '0 2px 8px rgba(219, 134, 51, 0.3)'
+            }}
           >
-            Add Discount
+            <PlusOutlined /> Add New Discount
           </Button>
         </div>
       }
       className="profile-section-card"
+      extra={
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleAddDiscount}
+          size="large"
+          style={{ 
+            height: '40px',
+            fontSize: '14px',
+            fontWeight: 600,
+            boxShadow: '0 2px 8px rgba(219, 134, 51, 0.3)'
+          }}
+        >
+          <PlusOutlined /> Add Discount
+        </Button>
+      }
     >
       <div className="form-field">
         <label>Current Discounts</label>
