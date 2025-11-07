@@ -845,18 +845,45 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '24px', fontSize: '16px' }}>
               No discounts configured yet.
             </Text>
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleAddDiscount}
+              size="large"
+              style={{ 
+                height: '48px',
+                fontSize: '16px',
+                fontWeight: 600,
+                padding: '0 32px',
+                boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)'
+              }}
             >
-              Add Your First Discount
+              <PlusOutlined /> Add Your First Discount
             </Button>
           </div>
         )}
+      </div>
+      
+      {/* Always show Add Discount button at bottom */}
+      <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleAddDiscount}
+          size="large"
+          block
+          style={{ 
+            height: '48px',
+            fontSize: '16px',
+            fontWeight: 600,
+            boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)'
+          }}
+        >
+          <PlusOutlined /> Add New Discount
+        </Button>
       </div>
     </Card>
   );
