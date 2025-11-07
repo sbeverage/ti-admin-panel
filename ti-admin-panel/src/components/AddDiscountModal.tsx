@@ -342,7 +342,13 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
               prefix={discountType === 'percentage' ? <PercentageOutlined /> : <DollarOutlined />}
               style={{ width: '100%' }}
               formatter={discountType === 'percentage' ? (value) => `${value}%` : (value) => `$${value}`}
-              parser={discountType === 'percentage' ? (value) => parseFloat(value!.replace('%', '')) || 0 : (value) => parseFloat(value!.replace('$', '')) || 0}
+              parser={(value) => {
+                if (!value) return 0;
+                const cleaned = discountType === 'percentage' 
+                  ? value.replace('%', '') 
+                  : value.replace('$', '');
+                return parseFloat(cleaned) || 0;
+              }}
             />
           </Form.Item>
         )}
