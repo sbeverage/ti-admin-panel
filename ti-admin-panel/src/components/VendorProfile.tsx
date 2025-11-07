@@ -714,26 +714,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         title="Discounts & Offers"
         className="profile-section-card"
       >
-        {/* DEBUG: Add Discount button at top */}
-        <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#fff7e6', borderRadius: '8px', border: '2px solid #DB8633' }}>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddDiscount}
-            size="large"
-            block
-            style={{ 
-              height: '50px',
-              fontSize: '18px',
-              fontWeight: 700,
-              backgroundColor: '#DB8633',
-              borderColor: '#DB8633'
-            }}
-          >
-            <PlusOutlined /> ADD DISCOUNT (Top)
-          </Button>
-        </div>
-        
         <div className="form-field">
           <label>Current Discounts</label>
           {discounts.length > 0 ? (
@@ -865,14 +845,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         )}
       </div>
       
-        {/* Always show Add Discount button at bottom - OUTSIDE form-field div */}
+        {/* Add Discount button at bottom */}
         <div style={{ 
           marginTop: '24px', 
           paddingTop: '24px', 
-          borderTop: '2px solid #f0f0f0',
-          backgroundColor: '#fafafa',
-          padding: '20px',
-          borderRadius: '8px'
+          borderTop: '2px solid #f0f0f0'
         }}>
           <Button
             type="primary"
@@ -881,9 +858,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             size="large"
             block
             style={{ 
-              height: '50px',
-              fontSize: '18px',
-              fontWeight: 700,
+              height: '48px',
+              fontSize: '16px',
+              fontWeight: 600,
               boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)',
               backgroundColor: '#DB8633',
               borderColor: '#DB8633'
