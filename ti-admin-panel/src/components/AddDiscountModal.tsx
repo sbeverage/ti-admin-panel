@@ -134,6 +134,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       setLoading(true);
 
       // Format data for backend
+      // Only include fields that exist in the database schema
       const discountData: any = {
         vendorId: vendorId,
         title: values.title,
@@ -144,6 +145,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         isActive: true,
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year from now
+        // Note: Not including minPurchase, maxDiscount as they don't exist in the database schema
       };
 
       // Set discount value based on type
