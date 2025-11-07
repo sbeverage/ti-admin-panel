@@ -697,50 +697,28 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     await loadVendorData(); // Reload vendor data to refresh discounts
   };
 
-  const renderDiscountsInfo = () => (
-    <Card 
-      title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <span style={{ fontSize: '18px', fontWeight: 600 }}>Discounts & Offers</span>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddDiscount}
-            size="large"
-            style={{ 
-              height: '40px',
-              fontSize: '14px',
-              fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(219, 134, 51, 0.3)'
-            }}
-          >
-            <PlusOutlined /> Add New Discount
-          </Button>
-        </div>
-      }
-      className="profile-section-card"
-      extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddDiscount}
-          size="large"
-          style={{ 
-            height: '40px',
-            fontSize: '14px',
-            fontWeight: 600,
-            boxShadow: '0 2px 8px rgba(219, 134, 51, 0.3)'
-          }}
-        >
-          <PlusOutlined /> Add Discount
-        </Button>
-      }
-    >
-      <div className="form-field">
-        <label>Current Discounts</label>
-        {vendorData.discounts && vendorData.discounts.length > 0 ? (
+  const renderDiscountsInfo = () => {
+    // Safety check
+    if (!vendorData) {
+      return (
+        <Card title="Discounts & Offers" className="profile-section-card">
+          <Spin />
+        </Card>
+      );
+    }
+
+    const discounts = vendorData.discounts || [];
+    
+    return (
+      <Card 
+        title="Discounts & Offers"
+        className="profile-section-card"
+      >
+        <div className="form-field">
+          <label>Current Discounts</label>
+          {discounts.length > 0 ? (
           <div className="discounts-list">
-            {vendorData.discounts.map((discount) => (
+            {discounts.map((discount) => (
               <Card 
                 key={discount.id} 
                 size="small" 
@@ -867,26 +845,36 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         )}
       </div>
       
-      {/* Always show Add Discount button at bottom */}
-      <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddDiscount}
-          size="large"
-          block
-          style={{ 
-            height: '48px',
-            fontSize: '16px',
-            fontWeight: 600,
-            boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)'
-          }}
-        >
-          <PlusOutlined /> Add New Discount
-        </Button>
-      </div>
-    </Card>
-  );
+        {/* Always show Add Discount button at bottom - OUTSIDE form-field div */}
+        <div style={{ 
+          marginTop: '24px', 
+          paddingTop: '24px', 
+          borderTop: '2px solid #f0f0f0',
+          backgroundColor: '#fafafa',
+          padding: '20px',
+          borderRadius: '8px'
+        }}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddDiscount}
+            size="large"
+            block
+            style={{ 
+              height: '50px',
+              fontSize: '18px',
+              fontWeight: 700,
+              boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)',
+              backgroundColor: '#DB8633',
+              borderColor: '#DB8633'
+            }}
+          >
+            <PlusOutlined /> Add New Discount
+          </Button>
+        </div>
+      </Card>
+    );
+  };
 
 
 
