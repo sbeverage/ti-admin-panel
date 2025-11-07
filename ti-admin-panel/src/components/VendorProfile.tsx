@@ -714,6 +714,26 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         title="Discounts & Offers"
         className="profile-section-card"
       >
+        {/* DEBUG: Add Discount button at top */}
+        <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#fff7e6', borderRadius: '8px', border: '2px solid #DB8633' }}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddDiscount}
+            size="large"
+            block
+            style={{ 
+              height: '50px',
+              fontSize: '18px',
+              fontWeight: 700,
+              backgroundColor: '#DB8633',
+              borderColor: '#DB8633'
+            }}
+          >
+            <PlusOutlined /> ADD DISCOUNT (Top)
+          </Button>
+        </div>
+        
         <div className="form-field">
           <label>Current Discounts</label>
           {discounts.length > 0 ? (
