@@ -19,7 +19,8 @@ import {
   Statistic,
   Divider,
   Upload,
-  Image
+  Image,
+  Modal
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -45,10 +46,12 @@ import {
   PictureOutlined,
   UploadOutlined,
   DeleteOutlined,
-  EyeOutlined
+  EyeOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI, Vendor as VendorType, Discount as DiscountType } from '../services/api';
 import ImageUpload from './ImageUpload';
+import AddDiscountModal from './AddDiscountModal';
 import './VendorProfile.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -126,6 +129,8 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const [logoFileList, setLogoFileList] = useState<any[]>([]);
   const [productImagesFileList, setProductImagesFileList] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [isAddDiscountModalVisible, setIsAddDiscountModalVisible] = useState(false);
+  const [editingDiscount, setEditingDiscount] = useState<any>(null);
 
   // Predefined tags for each category (same as InviteVendorModal)
   const getTagsForCategory = (category: string) => {
@@ -297,12 +302,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           // Discount information (from discounts API)
           discounts: discounts.map((discount: DiscountType) => ({
             id: discount.id,
-            discountName: discount.name,
+            discountName: discount.title || discount.name,
             discountType: discount.discount_type as 'free' | 'percentage' | 'dollar' | 'bogo',
             discountValue: discount.discount_value.toString(),
             discountOn: discount.description,
-            frequency: 'unlimited', // This would come from discount data
-            promoCode: `PROMO${discount.id}`, // This would come from discount data
+            frequency: discount.usage_limit || 'unlimited',
+            promoCode: discount.discount_code || discount.pos_code || `PROMO${discount.id}`,
             additionalTerms: discount.description,
             approvedBy: 'Admin', // This would come from discount data
             approvalDate: new Date(discount.created_at).toLocaleDateString(),
@@ -653,8 +658,62 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     </Card>
   );
 
+  const handleAddDiscount = () => {
+    setEditingDiscount(null);
+    setIsAddDiscountModalVisible(true);
+  };
+
+  const handleEditDiscount = (discount: any) => {
+    // Map the discount to the format expected by AddDiscountModal
+    const discountToEdit = {
+      id: discount.id,
+      title: discount.discountName,
+      discountType: discount.discountType === 'dollar' ? 'fixed' : discount.discountType,
+      discountValue: parseFloat(discount.discountValue),
+      posCode: discount.promoCode,
+      usageLimit: discount.frequency,
+      description: discount.additionalTerms || discount.discountOn
+    };
+    setEditingDiscount(discountToEdit);
+    setIsAddDiscountModalVisible(true);
+  };
+
+  const handleDeleteDiscount = async (discountId: number) => {
+    try {
+      const response = await discountAPI.deleteDiscount(discountId);
+      if (response.success) {
+        message.success('Discount deleted successfully');
+        await loadVendorData(); // Reload vendor data to refresh discounts
+      } else {
+        message.error('Failed to delete discount');
+      }
+    } catch (error: any) {
+      console.error('Error deleting discount:', error);
+      message.error(error.message || 'Failed to delete discount');
+    }
+  };
+
+  const handleDiscountSuccess = async () => {
+    await loadVendorData(); // Reload vendor data to refresh discounts
+  };
+
   const renderDiscountsInfo = () => (
-    <Card title="Discounts & Offers" className="profile-section-card">
+    <Card 
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Discounts & Offers</span>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddDiscount}
+            size="small"
+          >
+            Add Discount
+          </Button>
+        </div>
+      }
+      className="profile-section-card"
+    >
       <div className="form-field">
         <label>Current Discounts</label>
         {vendorData.discounts && vendorData.discounts.length > 0 ? (
@@ -728,11 +787,53 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                     <Text>{discount.approvalDate}</Text>
                   </Col>
                 </Row>
+
+                <Row gutter={[16, 8]} style={{ marginTop: '12px' }}>
+                  <Col span={24}>
+                    <Space>
+                      <Button
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() => handleEditDiscount(discount)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => {
+                          Modal.confirm({
+                            title: 'Delete Discount',
+                            content: `Are you sure you want to delete "${discount.discountName}"?`,
+                            okText: 'Delete',
+                            okType: 'danger',
+                            cancelText: 'Cancel',
+                            onOk: () => handleDeleteDiscount(discount.id)
+                          });
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </Space>
+                  </Col>
+                </Row>
               </Card>
             ))}
           </div>
         ) : (
-          <Text type="secondary">No discounts configured yet.</Text>
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+              No discounts configured yet.
+            </Text>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddDiscount}
+            >
+              Add Your First Discount
+            </Button>
+          </div>
         )}
       </div>
     </Card>
@@ -931,6 +1032,19 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           />
         </div>
       </div>
+
+      {/* Add/Edit Discount Modal */}
+      <AddDiscountModal
+        visible={isAddDiscountModalVisible}
+        vendorId={parseInt(vendorId)}
+        vendorName={vendorData?.vendorName}
+        onCancel={() => {
+          setIsAddDiscountModalVisible(false);
+          setEditingDiscount(null);
+        }}
+        onSuccess={handleDiscountSuccess}
+        editingDiscount={editingDiscount}
+      />
     </div>
   );
 };

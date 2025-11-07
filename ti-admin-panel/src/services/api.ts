@@ -162,9 +162,13 @@ export interface Discount {
   id: number;
   vendor_id: number;
   name: string;
+  title?: string; // Display title for the discount
   description: string;
-  discount_type: 'percentage' | 'fixed' | 'bogo';
+  discount_type: 'percentage' | 'fixed' | 'bogo' | 'free';
   discount_value: number;
+  discount_code?: string; // POS/Discount code
+  pos_code?: string; // Alternative field name for POS code
+  usage_limit?: string; // Usage limit (e.g., '1', '5', 'unlimited')
   min_purchase?: number;
   max_discount?: number;
   start_date: string;

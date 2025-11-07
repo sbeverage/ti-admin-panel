@@ -1,0 +1,61 @@
+.add-discount-modal .ant-modal-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.add-discount-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.discount-form {
+  margin-top: 8px;
+}
+
+.discount-preview-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.discount-preview-card .ant-card-body {
+  padding: 20px;
+}
+
+.add-discount-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #324E58;
+}
+
+.add-discount-modal .ant-input-affix-wrapper,
+.add-discount-modal .ant-select-selector,
+.add-discount-modal .ant-input-number {
+  border-radius: 6px;
+}
+
+.add-discount-modal .ant-input-affix-wrapper:hover,
+.add-discount-modal .ant-select-selector:hover {
+  border-color: #DB8633;
+}
+
+.add-discount-modal .ant-input-affix-wrapper-focused,
+.add-discount-modal .ant-select-focused .ant-select-selector {
+  border-color: #DB8633;
+  box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.1);
+}
+
+.add-discount-modal .ant-btn-primary {
+  background-color: #DB8633;
+  border-color: #DB8633;
+  border-radius: 6px;
+}
+
+.add-discount-modal .ant-btn-primary:hover {
+  background-color: #c6752a;
+  border-color: #c6752a;
+}
+
+.add-discount-modal .ant-btn {
+  border-radius: 6px;
+  height: 40px;
+  padding: 0 24px;
+}
+
