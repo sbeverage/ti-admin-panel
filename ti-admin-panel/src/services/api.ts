@@ -169,8 +169,8 @@ export interface Discount {
   discount_code?: string; // POS/Discount code
   pos_code?: string; // Alternative field name for POS code
   usage_limit?: string; // Usage limit (e.g., '1', '5', 'unlimited')
-  min_purchase?: number;
-  max_discount?: number;
+  // NOTE: min_purchase and max_discount do NOT exist in the database schema
+  // Do not include these fields when creating/updating discounts
   start_date: string;
   end_date: string;
   is_active: boolean;
@@ -572,6 +572,7 @@ export const discountAPI = {
   },
 
   // Get discounts by vendor ID
+  // Falls back to fetching all discounts and filtering client-side if vendor-specific endpoint doesn't exist
   getDiscountsByVendor: async (vendorId: number): Promise<ApiResponse<Discount[]>> => {
     // Create a timeout promise that rejects after 3 seconds
     const timeoutPromise = new Promise((_, reject) => {
@@ -579,6 +580,7 @@ export const discountAPI = {
     });
 
     try {
+      // First, try the vendor-specific endpoint (if it exists)
       const response = await Promise.race([
         fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}/discounts`, {
           headers: API_CONFIG.headers
@@ -586,13 +588,160 @@ export const discountAPI = {
         timeoutPromise
       ]) as Response;
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Check if response is actually a Response object (not an error from timeout)
+      if (!(response instanceof Response)) {
+        throw response; // Re-throw timeout or other errors
       }
       
-      return response.json();
+      if (response.ok) {
+        // Vendor-specific endpoint exists and works
+        return response.json();
+      } else if (response.status === 404) {
+        // Vendor-specific endpoint doesn't exist, fall back to fetching all discounts
+        console.log(`🔄 Vendor-specific discounts endpoint not found (404), fetching all discounts and filtering by vendor_id=${vendorId}`);
+        
+        // Fetch all discounts (with a reasonable limit)
+        const allDiscountsResponse = await Promise.race([
+          fetch(`${API_CONFIG.baseURL}/discounts?page=1&limit=1000`, {
+            headers: API_CONFIG.headers
+          }),
+          timeoutPromise
+        ]) as Response;
+        
+        if (!(allDiscountsResponse instanceof Response)) {
+          throw allDiscountsResponse; // Re-throw timeout or other errors
+        }
+        
+        if (!allDiscountsResponse.ok) {
+          throw new Error(`HTTP error! status: ${allDiscountsResponse.status}`);
+        }
+        
+        const allDiscountsData = await allDiscountsResponse.json();
+        console.log('📦 All discounts response:', allDiscountsData);
+        
+        // Handle different response structures
+        let allDiscounts: Discount[] = [];
+        if (Array.isArray(allDiscountsData)) {
+          allDiscounts = allDiscountsData;
+        } else if (allDiscountsData.data && Array.isArray(allDiscountsData.data)) {
+          allDiscounts = allDiscountsData.data;
+        } else if (allDiscountsData.discounts && Array.isArray(allDiscountsData.discounts)) {
+          allDiscounts = allDiscountsData.discounts;
+        }
+        
+        console.log(`📊 Found ${allDiscounts.length} total discounts`);
+        console.log('🔍 Filtering for vendor_id:', vendorId, 'type:', typeof vendorId);
+        
+        // Filter discounts by vendor_id (handle both string and number types)
+        const vendorDiscounts = allDiscounts.filter((discount: Discount) => {
+          const discountVendorId = discount.vendor_id;
+          const matches = discountVendorId === vendorId || 
+                        discountVendorId === Number(vendorId) || 
+                        Number(discountVendorId) === vendorId ||
+                        String(discountVendorId) === String(vendorId);
+          
+          if (matches) {
+            console.log('✅ Matched discount:', discount.id, 'vendor_id:', discountVendorId, 'type:', typeof discountVendorId);
+          }
+          
+          return matches;
+        });
+        
+        console.log(`✅ Found ${vendorDiscounts.length} discounts for vendor ${vendorId}`);
+        
+        return {
+          success: true,
+          data: vendorDiscounts
+        };
+      } else {
+        // Other error - but don't throw, try fallback instead
+        console.log(`⚠️ Vendor-specific endpoint returned ${response.status}, falling back to fetching all discounts`);
+        
+        // Fall back to fetching all discounts
+        const allDiscountsResponse = await Promise.race([
+          fetch(`${API_CONFIG.baseURL}/discounts?page=1&limit=1000`, {
+            headers: API_CONFIG.headers
+          }),
+          timeoutPromise
+        ]) as Response;
+        
+        if (!(allDiscountsResponse instanceof Response)) {
+          throw allDiscountsResponse;
+        }
+        
+        if (!allDiscountsResponse.ok) {
+          throw new Error(`HTTP error! status: ${allDiscountsResponse.status}`);
+        }
+        
+        const allDiscountsData = await allDiscountsResponse.json();
+        
+        // Handle different response structures
+        let allDiscounts: Discount[] = [];
+        if (Array.isArray(allDiscountsData)) {
+          allDiscounts = allDiscountsData;
+        } else if (allDiscountsData.data && Array.isArray(allDiscountsData.data)) {
+          allDiscounts = allDiscountsData.data;
+        } else if (allDiscountsData.discounts && Array.isArray(allDiscountsData.discounts)) {
+          allDiscounts = allDiscountsData.discounts;
+        }
+        
+        // Filter discounts by vendor_id
+        const vendorDiscounts = allDiscounts.filter((discount: Discount) => {
+          const discountVendorId = discount.vendor_id;
+          return discountVendorId === vendorId || 
+                 discountVendorId === Number(vendorId) || 
+                 Number(discountVendorId) === vendorId ||
+                 String(discountVendorId) === String(vendorId);
+        });
+        
+        return {
+          success: true,
+          data: vendorDiscounts
+        };
+      }
     } catch (error) {
-      console.log('API call failed for discounts:', error);
+      // If it's a 404 or network error, try fallback
+      if (error instanceof Error && error.message.includes('404')) {
+        console.log('🔄 Caught 404 error, trying fallback to fetch all discounts');
+        try {
+          const allDiscountsResponse = await fetch(`${API_CONFIG.baseURL}/discounts?page=1&limit=1000`, {
+            headers: API_CONFIG.headers
+          });
+          
+          if (!allDiscountsResponse.ok) {
+            throw new Error(`HTTP error! status: ${allDiscountsResponse.status}`);
+          }
+          
+          const allDiscountsData = await allDiscountsResponse.json();
+          
+          let allDiscounts: Discount[] = [];
+          if (Array.isArray(allDiscountsData)) {
+            allDiscounts = allDiscountsData;
+          } else if (allDiscountsData.data && Array.isArray(allDiscountsData.data)) {
+            allDiscounts = allDiscountsData.data;
+          } else if (allDiscountsData.discounts && Array.isArray(allDiscountsData.discounts)) {
+            allDiscounts = allDiscountsData.discounts;
+          }
+          
+          const vendorDiscounts = allDiscounts.filter((discount: Discount) => {
+            const discountVendorId = discount.vendor_id;
+            return discountVendorId === vendorId || 
+                   discountVendorId === Number(vendorId) || 
+                   Number(discountVendorId) === vendorId ||
+                   String(discountVendorId) === String(vendorId);
+          });
+          
+          return {
+            success: true,
+            data: vendorDiscounts
+          };
+        } catch (fallbackError) {
+          console.log('❌ Fallback also failed:', fallbackError);
+          throw error; // Throw original error
+        }
+      }
+      
+      console.log('❌ API call failed for discounts:', error);
       throw error;
     }
   },
@@ -1110,6 +1259,23 @@ export const analyticsAPI = {
     }
     
     return response.json();
+  },
+
+  // Get referral invitations
+  getReferralInvitations: async (period = '30d', status?: string): Promise<ApiResponse<any>> => {
+    const url = status 
+      ? `${API_CONFIG.baseURL}/analytics/referrals/invitations?period=${period}&status=${status}`
+      : `${API_CONFIG.baseURL}/analytics/referrals/invitations?period=${period}`;
+    
+    const response = await fetch(url, {
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 
@@ -1220,11 +1386,12 @@ export const settingsAPI = {
   }
 };
 
-// Beneficiary API functions (for future use)
+// Beneficiary/Charity API functions
+// Uses /admin/charities endpoints (backend uses 'charities' table)
 export const beneficiaryAPI = {
-  // Get all beneficiaries
+  // Get all beneficiaries/charities
   getBeneficiaries: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/beneficiaries?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_CONFIG.baseURL}/charities?page=${page}&limit=${limit}`, {
       headers: API_CONFIG.headers
     });
     
@@ -1232,48 +1399,97 @@ export const beneficiaryAPI = {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return response.json();
+    const data = await response.json();
+    
+    // Handle different response structures
+    // Backend might return {success: true, data: [...], pagination: {...}} or {charities: [...]}
+    if (data.success && data.data) {
+      return {
+        success: true,
+        data: Array.isArray(data.data) ? data.data : [],
+        pagination: data.pagination || { page, limit, total: data.data?.length || 0, pages: 1 }
+      };
+    } else if (data.charities && Array.isArray(data.charities)) {
+      return {
+        success: true,
+        data: data.charities,
+        pagination: { page, limit, total: data.charities.length, pages: 1 }
+      };
+    } else if (Array.isArray(data)) {
+      return {
+        success: true,
+        data: data,
+        pagination: { page, limit, total: data.length, pages: 1 }
+      };
+    }
+    
+    return data;
   },
 
-  // Create new beneficiary
+  // Get single beneficiary/charity by ID
+  getBeneficiary: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/charities/${id}`, {
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Handle different response structures
+    if (data.success && data.data) {
+      return { success: true, data: data.data };
+    } else if (data.id) {
+      return { success: true, data: data };
+    }
+    
+    return data;
+  },
+
+  // Create new beneficiary/charity
   createBeneficiary: async (beneficiaryData: any): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/beneficiaries`, {
+    const response = await fetch(`${API_CONFIG.baseURL}/charities`, {
       method: 'POST',
       headers: API_CONFIG.headers,
       body: JSON.stringify(beneficiaryData)
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
     
     return response.json();
   },
 
-  // Update beneficiary
+  // Update beneficiary/charity
   updateBeneficiary: async (id: number, beneficiaryData: any): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/beneficiaries/${id}`, {
+    const response = await fetch(`${API_CONFIG.baseURL}/charities/${id}`, {
       method: 'PUT',
       headers: API_CONFIG.headers,
       body: JSON.stringify(beneficiaryData)
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
     
     return response.json();
   },
 
-  // Delete beneficiary
+  // Delete beneficiary/charity (soft delete)
   deleteBeneficiary: async (id: number): Promise<ApiResponse<null>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/beneficiaries/${id}`, {
+    const response = await fetch(`${API_CONFIG.baseURL}/charities/${id}`, {
       method: 'DELETE',
       headers: API_CONFIG.headers
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
     
     return response.json();

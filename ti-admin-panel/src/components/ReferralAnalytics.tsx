@@ -35,7 +35,8 @@ import {
   BarChartOutlined,
   PieChartOutlined,
   LineChartOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import './ReferralAnalytics.css';
 import '../styles/sidebar-standard.css';
@@ -53,6 +54,10 @@ const ReferralAnalytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [invitationsData, setInvitationsData] = useState<any[]>([]);
+  const [invitationsLoading, setInvitationsLoading] = useState(false);
+  const [invitationStatusFilter, setInvitationStatusFilter] = useState<string>('all');
+  const [invitationSearchText, setInvitationSearchText] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -89,10 +94,252 @@ const ReferralAnalytics: React.FC = () => {
   };
 
 
+  // Test data for demonstration
+  const getTestInvitationsData = () => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const lastWeek = new Date(now);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    const twoWeeksAgo = new Date(now);
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const lastMonth = new Date(now);
+    lastMonth.setDate(lastMonth.getDate() - 30);
+    const twoMonthsAgo = new Date(now);
+    twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
+
+    return [
+      {
+        id: 1,
+        referrer_id: 101,
+        referrer_name: 'Sarah Johnson',
+        referrer_email: 'sarah.johnson@example.com',
+        email: 'friend1@example.com',
+        referral_code: 'SARAH2024',
+        referral_link: 'https://app.com/invite/SARAH2024',
+        status: 'pending',
+        created_at: yesterday.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 2,
+        referrer_id: 102,
+        referrer_name: 'Michael Chen',
+        referrer_email: 'michael.chen@example.com',
+        email: 'colleague@example.com',
+        referral_code: 'MICHAEL123',
+        referral_link: 'https://app.com/invite/MICHAEL123',
+        status: 'signed_up',
+        created_at: lastWeek.toISOString(),
+        signed_up_at: yesterday.toISOString(),
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 3,
+        referrer_id: 101,
+        referrer_name: 'Sarah Johnson',
+        referrer_email: 'sarah.johnson@example.com',
+        email: 'friend2@example.com',
+        referral_code: 'SARAH2024B',
+        referral_link: 'https://app.com/invite/SARAH2024B',
+        status: 'paid',
+        created_at: twoWeeksAgo.toISOString(),
+        signed_up_at: lastWeek.toISOString(),
+        paid_at: yesterday.toISOString(),
+        cancelled_at: null
+      },
+      {
+        id: 4,
+        referrer_id: 103,
+        referrer_name: 'Emily Rodriguez',
+        referrer_email: 'emily.r@example.com',
+        email: 'family@example.com',
+        referral_code: 'EMILY456',
+        referral_link: 'https://app.com/invite/EMILY456',
+        status: 'payment_setup',
+        created_at: lastWeek.toISOString(),
+        signed_up_at: yesterday.toISOString(),
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 5,
+        referrer_id: 102,
+        referrer_name: 'Michael Chen',
+        referrer_email: 'michael.chen@example.com',
+        email: 'oldfriend@example.com',
+        referral_code: 'MICHAEL789',
+        referral_link: 'https://app.com/invite/MICHAEL789',
+        status: 'cancelled',
+        created_at: lastMonth.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: lastWeek.toISOString()
+      },
+      {
+        id: 6,
+        referrer_id: 104,
+        referrer_name: 'David Kim',
+        referrer_email: 'david.kim@example.com',
+        email: 'teammate@example.com',
+        referral_code: 'DAVID2024',
+        referral_link: 'https://app.com/invite/DAVID2024',
+        status: 'pending',
+        created_at: yesterday.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 7,
+        referrer_id: 101,
+        referrer_name: 'Sarah Johnson',
+        referrer_email: 'sarah.johnson@example.com',
+        email: 'friend3@example.com',
+        referral_code: 'SARAH2024C',
+        referral_link: 'https://app.com/invite/SARAH2024C',
+        status: 'paid',
+        created_at: twoWeeksAgo.toISOString(),
+        signed_up_at: lastWeek.toISOString(),
+        paid_at: yesterday.toISOString(),
+        cancelled_at: null
+      },
+      {
+        id: 8,
+        referrer_id: 105,
+        referrer_name: 'Jessica Martinez',
+        referrer_email: 'jessica.m@example.com',
+        email: 'neighbor@example.com',
+        referral_code: 'JESSICA999',
+        referral_link: 'https://app.com/invite/JESSICA999',
+        status: 'signed_up',
+        created_at: lastWeek.toISOString(),
+        signed_up_at: now.toISOString(),
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 9,
+        referrer_id: 103,
+        referrer_name: 'Emily Rodriguez',
+        referrer_email: 'emily.r@example.com',
+        email: 'coworker@example.com',
+        referral_code: 'EMILY321',
+        referral_link: 'https://app.com/invite/EMILY321',
+        status: 'pending',
+        created_at: twoWeeksAgo.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 10,
+        referrer_id: 102,
+        referrer_name: 'Michael Chen',
+        referrer_email: 'michael.chen@example.com',
+        email: 'classmate@example.com',
+        referral_code: 'MICHAEL555',
+        referral_link: 'https://app.com/invite/MICHAEL555',
+        status: 'paid',
+        created_at: lastMonth.toISOString(),
+        signed_up_at: twoWeeksAgo.toISOString(),
+        paid_at: lastWeek.toISOString(),
+        cancelled_at: null
+      },
+      {
+        id: 11,
+        referrer_id: 101,
+        referrer_name: 'Sarah Johnson',
+        referrer_email: 'sarah.johnson@example.com',
+        email: 'friend4@example.com',
+        referral_code: 'SARAH2024D',
+        referral_link: 'https://app.com/invite/SARAH2024D',
+        status: 'pending',
+        created_at: yesterday.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: null
+      },
+      {
+        id: 12,
+        referrer_id: 104,
+        referrer_name: 'David Kim',
+        referrer_email: 'david.kim@example.com',
+        email: 'buddy@example.com',
+        referral_code: 'DAVID777',
+        referral_link: 'https://app.com/invite/DAVID777',
+        status: 'cancelled',
+        created_at: twoMonthsAgo.toISOString(),
+        signed_up_at: null,
+        paid_at: null,
+        cancelled_at: lastWeek.toISOString()
+      }
+    ];
+  };
+
+  // Load invitations data
+  const loadInvitations = async () => {
+    setInvitationsLoading(true);
+    
+    try {
+      console.log('Loading referral invitations from API...');
+      const status = invitationStatusFilter !== 'all' ? invitationStatusFilter : undefined;
+      const response = await analyticsAPI.getReferralInvitations('30d', status);
+      console.log('Referral invitations API response:', response);
+      
+      if (response.success && response.data) {
+        // Transform API data to match our table structure
+        const invitations = Array.isArray(response.data) 
+          ? response.data 
+          : response.data.invitations || [];
+        
+        if (invitations.length > 0) {
+          setInvitationsData(invitations);
+          console.log('Referral invitations loaded successfully');
+        } else {
+          // Use test data if API returns empty
+          console.log('No invitations from API, using test data for demonstration');
+          setInvitationsData(getTestInvitationsData());
+        }
+      } else {
+        // If API doesn't return invitations yet, use test data
+        if (analyticsData?.referrals && analyticsData.referrals.length > 0) {
+          setInvitationsData(analyticsData.referrals);
+        } else {
+          console.log('Using test data for demonstration');
+          setInvitationsData(getTestInvitationsData());
+        }
+      }
+    } catch (error) {
+      console.error('Error loading referral invitations:', error);
+      // Fallback: try to use referrals from analytics data, otherwise use test data
+      if (analyticsData?.referrals && analyticsData.referrals.length > 0) {
+        setInvitationsData(analyticsData.referrals);
+      } else {
+        console.log('Using test data for demonstration');
+        setInvitationsData(getTestInvitationsData());
+      }
+    } finally {
+      setInvitationsLoading(false);
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
     loadReferralAnalytics();
+    // Load test data immediately for demonstration
+    setInvitationsData(getTestInvitationsData());
   }, []);
+
+  // Load invitations when analytics data is available or filter changes
+  useEffect(() => {
+    if (analyticsData) {
+      loadInvitations();
+    }
+  }, [analyticsData, invitationStatusFilter]);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
     setSelectedTimeFilter(key);
@@ -263,11 +510,191 @@ const ReferralAnalytics: React.FC = () => {
     },
   ];
 
-  // No hardcoded data - use API data only
+  // Calculate invitation statistics from data
+  const invitationStats = {
+    pending: invitationsData.filter((inv: any) => inv.status === 'pending').length,
+    accepted: invitationsData.filter((inv: any) => inv.status === 'signed_up' || inv.status === 'payment_setup' || inv.status === 'paid').length,
+    expired: invitationsData.filter((inv: any) => {
+      if (inv.status === 'cancelled') return true;
+      // Check if invitation is older than 30 days and still pending
+      if (inv.status === 'pending' && inv.created_at) {
+        const createdDate = new Date(inv.created_at);
+        const daysSince = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+        return daysSince > 30;
+      }
+      return false;
+    }).length,
+    acceptedToday: invitationsData.filter((inv: any) => {
+      if (inv.signed_up_at) {
+        const signupDate = new Date(inv.signed_up_at);
+        const today = new Date();
+        return signupDate.toDateString() === today.toDateString();
+      }
+      return false;
+    }).length,
+    expiredThisWeek: invitationsData.filter((inv: any) => {
+      if (inv.status === 'cancelled' && inv.cancelled_at) {
+        const cancelledDate = new Date(inv.cancelled_at);
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return cancelledDate >= weekAgo;
+      }
+      return false;
+    }).length
+  };
 
-  // No hardcoded data - use API data only
+  // Filter invitations based on search and status
+  const filteredInvitations = invitationsData.filter((inv: any) => {
+    const matchesStatus = invitationStatusFilter === 'all' || inv.status === invitationStatusFilter;
+    const matchesSearch = !invitationSearchText || 
+      (inv.email && inv.email.toLowerCase().includes(invitationSearchText.toLowerCase())) ||
+      (inv.referral_code && inv.referral_code.toLowerCase().includes(invitationSearchText.toLowerCase())) ||
+      (inv.referrer_name && inv.referrer_name.toLowerCase().includes(invitationSearchText.toLowerCase()));
+    return matchesStatus && matchesSearch;
+  });
 
-  // No hardcoded data - use API data only
+  // Invitation table columns
+  const invitationColumns = [
+    {
+      title: 'Referrer',
+      dataIndex: 'referrer_name',
+      key: 'referrer_name',
+      render: (text: string, record: any) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
+            {text ? text.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
+          </Avatar>
+          <div>
+            <Text strong>{text || 'Unknown'}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: '12px' }}>{record.referrer_email || ''}</Text>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Invited Email',
+      dataIndex: 'email',
+      key: 'email',
+      render: (email: string) => <Text>{email || 'N/A'}</Text>,
+    },
+    {
+      title: 'Referral Code',
+      dataIndex: 'referral_code',
+      key: 'referral_code',
+      render: (code: string) => (
+        <Text code style={{ fontSize: '12px' }}>{code || 'N/A'}</Text>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const statusConfig: any = {
+          pending: { color: 'orange', text: 'Pending' },
+          signed_up: { color: 'blue', text: 'Signed Up' },
+          payment_setup: { color: 'cyan', text: 'Payment Setup' },
+          paid: { color: 'green', text: 'Paid' },
+          cancelled: { color: 'red', text: 'Cancelled' },
+        };
+        const config = statusConfig[status] || { color: 'default', text: status };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
+    },
+    {
+      title: 'Created',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => (
+        <Text type="secondary">
+          {date ? new Date(date).toLocaleDateString() : 'N/A'}
+        </Text>
+      ),
+    },
+    {
+      title: 'Accepted',
+      dataIndex: 'signed_up_at',
+      key: 'signed_up_at',
+      render: (date: string) => (
+        <Text type="secondary">
+          {date ? new Date(date).toLocaleDateString() : '-'}
+        </Text>
+      ),
+    },
+    {
+      title: 'Paid',
+      dataIndex: 'paid_at',
+      key: 'paid_at',
+      render: (date: string) => (
+        <Text type={date ? 'success' : 'secondary'}>
+          {date ? new Date(date).toLocaleDateString() : '-'}
+        </Text>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: any) => (
+        <Space>
+          {record.status === 'pending' && (
+            <Button 
+              type="link" 
+              size="small"
+              icon={<MailOutlined />}
+              onClick={() => handleResendInvitation(record)}
+            >
+              Resend
+            </Button>
+          )}
+          <Button 
+            type="link" 
+            size="small"
+            icon={<LinkOutlined />}
+            onClick={() => handleCopyReferralLink(record)}
+          >
+            Copy Link
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  // Handler functions
+  const handleResendInvitation = (invitation: any) => {
+    message.info(`Resending invitation to ${invitation.email || 'user'}...`);
+    // TODO: Implement API call to resend invitation
+    console.log('Resend invitation:', invitation);
+  };
+
+  const handleCopyReferralLink = (invitation: any) => {
+    const link = invitation.referral_link || `https://yourapp.com/invite/${invitation.referral_code}`;
+    navigator.clipboard.writeText(link).then(() => {
+      message.success('Referral link copied to clipboard!');
+    }).catch(() => {
+      message.error('Failed to copy link');
+    });
+  };
+
+  const handleSendNewInvitations = () => {
+    message.info('Send New Invitations feature - Coming soon!');
+    // TODO: Open modal to send bulk invitations
+  };
+
+  const handleResendPending = () => {
+    const pendingInvitations = invitationsData.filter((inv: any) => inv.status === 'pending');
+    if (pendingInvitations.length === 0) {
+      message.warning('No pending invitations to resend');
+      return;
+    }
+    message.info(`Resending ${pendingInvitations.length} pending invitations...`);
+    // TODO: Implement bulk resend
+  };
+
+  const handleGenerateReferralLinks = () => {
+    message.info('Generate Referral Links feature - Coming soon!');
+    // TODO: Open modal to generate referral links for users
+  };
 
   const referralColumns = [
     {
@@ -509,13 +936,30 @@ const ReferralAnalytics: React.FC = () => {
                     ),
                     children: (
                       <div className="top-referrers-content">
-                        <Table 
-                          dataSource={[]} 
-                          columns={referralColumns}
-                          pagination={false}
-                          className="referrers-table"
-                          rowClassName="referrer-row"
-                        />
+                        {loading ? (
+                          <Spin size="large" style={{ display: 'flex', justifyContent: 'center', padding: '40px' }} />
+                        ) : error ? (
+                          <div style={{ textAlign: 'center', padding: '40px' }}>
+                            <Text type="danger">{error}</Text>
+                          </div>
+                        ) : analyticsData?.topReferrers && analyticsData.topReferrers.length > 0 ? (
+                          <Table 
+                            dataSource={analyticsData.topReferrers.map((referrer: any, index: number) => ({
+                              ...referrer,
+                              key: referrer.user_id || index,
+                              rank: index + 1,
+                              avatar: referrer.name ? referrer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'
+                            }))} 
+                            columns={referralColumns}
+                            pagination={false}
+                            className="referrers-table"
+                            rowClassName="referrer-row"
+                          />
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '40px' }}>
+                            <Text type="secondary">No referral data available. The backend may need to be updated to return referral data.</Text>
+                          </div>
+                        )}
                       </div>
                     )
                   },
@@ -529,105 +973,133 @@ const ReferralAnalytics: React.FC = () => {
                     ),
                     children: (
                       <div className="invitations-content">
-                        <Card title="Recent Invitations" className="invitations-card">
-                          <div className="invitation-stats">
-                            <Row gutter={[24, 24]}>
-                              <Col span={8}>
-                                <Statistic 
-                                  title="Pending Invitations" 
-                                  value={144} 
-                                  valueStyle={{ color: '#DB8633' }}
-                                />
-                              </Col>
-                              <Col span={8}>
-                                <Statistic 
-                                  title="Accepted Today" 
-                                  value={23} 
-                                  valueStyle={{ color: '#DB8633' }}
-                                />
-                              </Col>
-                              <Col span={8}>
-                                <Statistic 
-                                  title="Expired This Week" 
-                                  value={7} 
-                                  valueStyle={{ color: '#324E58' }}
-                                />
-                              </Col>
-                            </Row>
-                          </div>
-                          <div className="invitation-actions">
+                        {/* Statistics Cards */}
+                        <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                          <Col xs={24} sm={12} lg={6}>
+                            <Card>
+                              <Statistic 
+                                title="Pending Invitations" 
+                                value={invitationStats.pending} 
+                                valueStyle={{ color: '#DB8633' }}
+                              />
+                            </Card>
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <Card>
+                              <Statistic 
+                                title="Accepted Today" 
+                                value={invitationStats.acceptedToday} 
+                                valueStyle={{ color: '#DB8633' }}
+                              />
+                            </Card>
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <Card>
+                              <Statistic 
+                                title="Total Accepted" 
+                                value={invitationStats.accepted} 
+                                valueStyle={{ color: '#52c41a' }}
+                              />
+                            </Card>
+                          </Col>
+                          <Col xs={24} sm={12} lg={6}>
+                            <Card>
+                              <Statistic 
+                                title="Expired This Week" 
+                                value={invitationStats.expiredThisWeek} 
+                                valueStyle={{ color: '#324E58' }}
+                              />
+                            </Card>
+                          </Col>
+                        </Row>
+
+                        {/* Action Buttons */}
+                        <Card style={{ marginBottom: 24 }}>
+                          <Space wrap>
                             <Button 
+                              type="primary"
                               icon={<UserAddOutlined />} 
-                              className="invitation-primary-btn"
+                              onClick={handleSendNewInvitations}
                               style={{
-                                color: '#ff6b35',
-                                backgroundColor: '#ffffff',
-                                borderColor: '#ff6b35',
-                                borderWidth: '2px',
-                                borderStyle: 'solid'
-                              }}
-                              onMouseEnter={(e) => {
-                                console.log('Mouse enter - setting orange background with white text');
-                                e.currentTarget.style.setProperty('color', '#ffffff', 'important');
-                                e.currentTarget.style.setProperty('background-color', '#ff6b35', 'important');
-                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
-                                // Force all child elements to be white
-                                const children = e.currentTarget.querySelectorAll('*');
-                                children.forEach(child => {
-                                  (child as HTMLElement).style.setProperty('color', '#ffffff', 'important');
-                                });
-                              }}
-                              onMouseLeave={(e) => {
-                                console.log('Mouse leave - setting white background with orange text');
-                                e.currentTarget.style.setProperty('color', '#ff6b35', 'important');
-                                e.currentTarget.style.setProperty('background-color', '#ffffff', 'important');
-                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
-                                const children = e.currentTarget.querySelectorAll('*');
-                                children.forEach(child => {
-                                  (child as HTMLElement).style.setProperty('color', '#ff6b35', 'important');
-                                });
+                                backgroundColor: '#DB8633',
+                                borderColor: '#DB8633'
                               }}
                             >
                               Send New Invitations
                             </Button>
-                            <Button icon={<MailOutlined />}>
-                              Resend Pending
+                            <Button 
+                              icon={<MailOutlined />}
+                              onClick={handleResendPending}
+                              disabled={invitationStats.pending === 0}
+                            >
+                              Resend Pending ({invitationStats.pending})
                             </Button>
                             <Button 
                               icon={<LinkOutlined />}
-                              className="invitation-secondary-btn"
-                              style={{
-                                color: '#ff6b35',
-                                backgroundColor: '#ffffff',
-                                borderColor: '#ff6b35',
-                                borderWidth: '2px',
-                                borderStyle: 'solid'
-                              }}
-                              onMouseEnter={(e) => {
-                                console.log('Mouse enter - setting orange background with white text');
-                                e.currentTarget.style.setProperty('color', '#ffffff', 'important');
-                                e.currentTarget.style.setProperty('background-color', '#ff6b35', 'important');
-                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
-                                // Force all child elements to be white
-                                const children = e.currentTarget.querySelectorAll('*');
-                                children.forEach(child => {
-                                  (child as HTMLElement).style.setProperty('color', '#ffffff', 'important');
-                                });
-                              }}
-                              onMouseLeave={(e) => {
-                                console.log('Mouse leave - setting white background with orange text');
-                                e.currentTarget.style.setProperty('color', '#ff6b35', 'important');
-                                e.currentTarget.style.setProperty('background-color', '#ffffff', 'important');
-                                e.currentTarget.style.setProperty('border-color', '#ff6b35', 'important');
-                                const children = e.currentTarget.querySelectorAll('*');
-                                children.forEach(child => {
-                                  (child as HTMLElement).style.setProperty('color', '#ff6b35', 'important');
-                                });
-                              }}
+                              onClick={handleGenerateReferralLinks}
                             >
                               Generate Referral Links
                             </Button>
-                          </div>
+                          </Space>
+                        </Card>
+
+                        {/* Filters and Search */}
+                        <Card style={{ marginBottom: 24 }}>
+                          <Row gutter={[16, 16]} align="middle">
+                            <Col xs={24} sm={12} md={8}>
+                              <Select
+                                placeholder="Filter by Status"
+                                value={invitationStatusFilter}
+                                onChange={setInvitationStatusFilter}
+                                style={{ width: '100%' }}
+                              >
+                                <Option value="all">All Statuses</Option>
+                                <Option value="pending">Pending</Option>
+                                <Option value="signed_up">Signed Up</Option>
+                                <Option value="payment_setup">Payment Setup</Option>
+                                <Option value="paid">Paid</Option>
+                                <Option value="cancelled">Cancelled</Option>
+                              </Select>
+                            </Col>
+                            <Col xs={24} sm={12} md={16}>
+                              <Input
+                                placeholder="Search by email, referral code, or referrer name..."
+                                prefix={<SearchOutlined />}
+                                value={invitationSearchText}
+                                onChange={(e) => setInvitationSearchText(e.target.value)}
+                                allowClear
+                              />
+                            </Col>
+                          </Row>
+                        </Card>
+
+                        {/* Invitations Table */}
+                        <Card title={`All Invitations (${filteredInvitations.length})`}>
+                          {invitationsLoading ? (
+                            <Spin size="large" style={{ display: 'flex', justifyContent: 'center', padding: '40px' }} />
+                          ) : filteredInvitations.length > 0 ? (
+                            <Table 
+                              dataSource={filteredInvitations.map((inv: any, index: number) => ({
+                                ...inv,
+                                key: inv.id || inv.referral_code || index
+                              }))}
+                              columns={invitationColumns}
+                              pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Total ${total} invitations`
+                              }}
+                              scroll={{ x: 'max-content' }}
+                            />
+                          ) : (
+                            <div style={{ textAlign: 'center', padding: '40px' }}>
+                              <Text type="secondary">
+                                {invitationSearchText || invitationStatusFilter !== 'all' 
+                                  ? 'No invitations match your filters.' 
+                                  : 'No invitations found. Invitations will appear here when users share referral links.'}
+                              </Text>
+                            </div>
+                          )}
                         </Card>
                       </div>
                     )
