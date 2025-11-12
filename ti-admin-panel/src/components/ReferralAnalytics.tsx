@@ -42,6 +42,7 @@ const ReferralAnalytics: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeTab, setActiveTab] = useState('overview');
+  const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [invitationsData, setInvitationsData] = useState<any[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
