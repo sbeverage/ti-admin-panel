@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Dropdown, Spin, message } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
 import {
@@ -11,30 +11,18 @@ import {
   SettingOutlined,
   CalendarOutlined,
   CrownOutlined,
-  FileTextOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
-  BellOutlined,
-  PictureOutlined,
-  LikeOutlined,
   MessageOutlined,
   ShareAltOutlined,
-  MoreOutlined,
-  ShoppingOutlined,
-  BankOutlined,
-  GiftOutlined,
-  DollarOutlined,
   CheckCircleFilled,
   DownOutlined,
-  FallOutlined,
   TeamOutlined,
   TrophyOutlined,
   UserAddOutlined,
   MailOutlined,
   LinkOutlined,
   BarChartOutlined,
-  PieChartOutlined,
-  LineChartOutlined,
   GlobalOutlined,
   SearchOutlined
 } from '@ant-design/icons';
@@ -52,7 +40,6 @@ const ReferralAnalytics: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeTab, setActiveTab] = useState('overview');
-  const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [invitationsData, setInvitationsData] = useState<any[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
@@ -61,11 +48,6 @@ const ReferralAnalytics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   // Load referral analytics from API
   const loadReferralAnalytics = async () => {
@@ -339,6 +321,7 @@ const ReferralAnalytics: React.FC = () => {
     if (analyticsData) {
       loadInvitations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analyticsData, invitationStatusFilter]);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
