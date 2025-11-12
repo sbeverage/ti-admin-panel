@@ -24,7 +24,9 @@ import {
   LinkOutlined,
   BarChartOutlined,
   GlobalOutlined,
-  SearchOutlined
+  SearchOutlined,
+  GiftOutlined,
+  BankOutlined
 } from '@ant-design/icons';
 import './ReferralAnalytics.css';
 import '../styles/sidebar-standard.css';
