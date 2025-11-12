@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress, Tooltip } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
@@ -746,30 +746,67 @@ const ReferralAnalytics: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 150,
+      width: 120,
       fixed: 'right' as const,
+      align: 'center' as const,
       render: (_: any, record: any) => (
-        <Space size="small" wrap>
+        <Space size="small" style={{ display: 'flex', justifyContent: 'center' }}>
           {record.status === 'pending' && (
-            <Button 
-              type="link" 
-              size="small"
-              icon={<MailOutlined />}
-              onClick={() => handleResendInvitation(record)}
-              style={{ color: '#DB8633', padding: '0 4px' }}
-            >
-              Resend
-            </Button>
+            <Tooltip title="Resend Invitation">
+              <Button 
+                type="default"
+                shape="circle"
+                size="middle"
+                icon={<MailOutlined />}
+                onClick={() => handleResendInvitation(record)}
+                style={{ 
+                  backgroundColor: '#fff7e6',
+                  borderColor: '#DB8633',
+                  color: '#DB8633',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#DB8633';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fff7e6';
+                  e.currentTarget.style.color = '#DB8633';
+                }}
+              />
+            </Tooltip>
           )}
-          <Button 
-            type="link" 
-            size="small"
-            icon={<LinkOutlined />}
-            onClick={() => handleCopyReferralLink(record)}
-            style={{ color: '#DB8633', padding: '0 4px' }}
-          >
-            Copy Link
-          </Button>
+          <Tooltip title="Copy Referral Link">
+            <Button 
+              type="default"
+              shape="circle"
+              size="middle"
+              icon={<LinkOutlined />}
+              onClick={() => handleCopyReferralLink(record)}
+              style={{ 
+                backgroundColor: '#f0f9ff',
+                borderColor: '#DB8633',
+                color: '#DB8633',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#DB8633';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0f9ff';
+                e.currentTarget.style.color = '#DB8633';
+              }}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -816,26 +853,84 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Rank',
       dataIndex: 'rank',
       key: 'rank',
-      width: 80,
-      render: (rank: number) => (
-        <div className="rank-badge">
-                  {rank === 1 && <CrownOutlined style={{ color: '#DB8633' }} />}
-        {rank === 2 && <TrophyOutlined style={{ color: '#8c8c8c' }} />}
-        {rank === 3 && <TrophyOutlined style={{ color: '#DB8633' }} />}
-          <span className="rank-number">{rank}</span>
-        </div>
-      ),
+      width: 100,
+      render: (rank: number) => {
+        const getRankStyle = () => {
+          if (rank === 1) {
+            return {
+              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+              color: '#ffffff',
+              border: '2px solid #FFD700',
+              boxShadow: '0 4px 12px rgba(255, 215, 0, 0.3)'
+            };
+          } else if (rank === 2) {
+            return {
+              background: 'linear-gradient(135deg, #C0C0C0 0%, #A0A0A0 100%)',
+              color: '#ffffff',
+              border: '2px solid #C0C0C0',
+              boxShadow: '0 4px 12px rgba(192, 192, 192, 0.3)'
+            };
+          } else if (rank === 3) {
+            return {
+              background: 'linear-gradient(135deg, #CD7F32 0%, #8B4513 100%)',
+              color: '#ffffff',
+              border: '2px solid #CD7F32',
+              boxShadow: '0 4px 12px rgba(205, 127, 50, 0.3)'
+            };
+          } else {
+            return {
+              background: '#f5f5f5',
+              color: '#324E58',
+              border: '2px solid #e8e8e8'
+            };
+          }
+        };
+        
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            width: '60px',
+            height: '60px',
+            borderRadius: '12px',
+            ...getRankStyle(),
+            fontWeight: 'bold',
+            fontSize: '18px',
+            position: 'relative'
+          }}>
+            {rank === 1 && <CrownOutlined style={{ fontSize: '20px' }} />}
+            {(rank === 2 || rank === 3) && <TrophyOutlined style={{ fontSize: '18px' }} />}
+            <span>{rank}</span>
+          </div>
+        );
+      },
     },
     {
       title: 'Referrer',
       dataIndex: 'name',
       key: 'name',
+      width: 220,
       render: (text: string, record: any) => (
-        <div className="referrer-info">
-          <Avatar size={40} className="referrer-avatar">{record.avatar}</Avatar>
-          <div className="referrer-details">
-            <Text strong>{text}</Text>
-            <Text type="secondary" className="referrer-email">{record.email}</Text>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Avatar 
+            size={48} 
+            style={{ 
+              backgroundColor: '#DB8633',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
+            {record.avatar}
+          </Avatar>
+          <div>
+            <Text strong style={{ fontSize: '15px', display: 'block', marginBottom: '4px' }}>
+              {text}
+            </Text>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {record.email}
+            </Text>
           </div>
         </div>
       ),
@@ -844,30 +939,74 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Total Referrals',
       dataIndex: 'referrals',
       key: 'referrals',
-      render: (referrals: number) => <Text strong>{referrals}</Text>,
+      width: 140,
+      align: 'center' as const,
+      render: (referrals: number) => (
+        <div style={{ textAlign: 'center' }}>
+          <Text strong style={{ fontSize: '20px', color: '#324E58', display: 'block' }}>
+            {referrals}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '11px' }}>referrals</Text>
+        </div>
+      ),
     },
     {
       title: 'Successful',
       dataIndex: 'successful',
       key: 'successful',
-      render: (successful: number) => <Text type="success">{successful}</Text>,
+      width: 140,
+      align: 'center' as const,
+      render: (successful: number) => (
+        <div style={{ textAlign: 'center' }}>
+          <Text strong style={{ fontSize: '20px', color: '#52c41a', display: 'block' }}>
+            {successful}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '11px' }}>converted</Text>
+        </div>
+      ),
     },
     {
       title: 'Conversion Rate',
       dataIndex: 'conversionRate',
       key: 'conversionRate',
+      width: 140,
+      align: 'center' as const,
       render: (rate: string) => (
-        <Tag color="blue" className="conversion-tag">{rate}</Tag>
+        <div style={{
+          display: 'inline-block',
+          padding: '6px 16px',
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #DB8633 0%, #ff9a56 100%)',
+          color: '#ffffff',
+          fontWeight: '600',
+          fontSize: '14px',
+          boxShadow: '0 2px 8px rgba(219, 134, 51, 0.2)'
+        }}>
+          {rate}
+        </div>
       ),
     },
     {
       title: 'Points Earned',
       dataIndex: 'pointsEarned',
       key: 'pointsEarned',
+      width: 160,
+      align: 'center' as const,
       render: (points: number) => (
-        <div className="points-display">
-          <TrophyOutlined style={{ color: '#DB8633', marginRight: 8 }} />
-          <Text strong>{points.toLocaleString()}</Text>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '8px 12px',
+          background: '#fff7e6',
+          borderRadius: '8px',
+          border: '1px solid #ffe7ba'
+        }}>
+          <TrophyOutlined style={{ color: '#DB8633', fontSize: '18px' }} />
+          <Text strong style={{ fontSize: '16px', color: '#DB8633' }}>
+            {points.toLocaleString()}
+          </Text>
         </div>
       ),
     },
@@ -875,17 +1014,15 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Total Value',
       dataIndex: 'totalValue',
       key: 'totalValue',
-      render: (value: string) => <Text strong style={{ color: '#DB8633' }}>{value}</Text>,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'default'} 
-          text={status === 'active' ? 'Active' : 'Inactive'} 
-        />
+      width: 140,
+      align: 'center' as const,
+      render: (value: string) => (
+        <div style={{ textAlign: 'center' }}>
+          <Text strong style={{ fontSize: '18px', color: '#DB8633', display: 'block' }}>
+            {value}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '11px' }}>generated</Text>
+        </div>
       ),
     }
   ];
