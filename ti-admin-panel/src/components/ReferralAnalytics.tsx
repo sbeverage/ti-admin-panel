@@ -662,15 +662,17 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Referrer',
       dataIndex: 'referrer_name',
       key: 'referrer_name',
+      width: 180,
+      fixed: 'left' as const,
       render: (text: string, record: any) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {text ? text.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
           </Avatar>
           <div>
-            <Text strong>{text || 'Unknown'}</Text>
+            <Text strong style={{ fontSize: '14px' }}>{text || 'Unknown'}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>{record.referrer_email || ''}</Text>
+            <Text type="secondary" style={{ fontSize: '11px' }}>{record.referrer_email || ''}</Text>
           </div>
         </div>
       ),
@@ -679,12 +681,14 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Invited Email',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <Text>{email || 'N/A'}</Text>,
+      width: 180,
+      render: (email: string) => <Text style={{ fontSize: '13px' }}>{email || 'N/A'}</Text>,
     },
     {
       title: 'Referral Code',
       dataIndex: 'referral_code',
       key: 'referral_code',
+      width: 120,
       render: (code: string) => (
         <Text code style={{ fontSize: '12px' }}>{code || 'N/A'}</Text>
       ),
@@ -693,6 +697,7 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 120,
       render: (status: string) => {
         const statusConfig: any = {
           pending: { color: 'orange', text: 'Pending' },
@@ -709,8 +714,9 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Created',
       dataIndex: 'created_at',
       key: 'created_at',
+      width: 100,
       render: (date: string) => (
-        <Text type="secondary">
+        <Text type="secondary" style={{ fontSize: '12px' }}>
           {date ? new Date(date).toLocaleDateString() : 'N/A'}
         </Text>
       ),
@@ -719,8 +725,9 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Accepted',
       dataIndex: 'signed_up_at',
       key: 'signed_up_at',
+      width: 100,
       render: (date: string) => (
-        <Text type="secondary">
+        <Text type="secondary" style={{ fontSize: '12px' }}>
           {date ? new Date(date).toLocaleDateString() : '-'}
         </Text>
       ),
@@ -729,8 +736,9 @@ const ReferralAnalytics: React.FC = () => {
       title: 'Paid',
       dataIndex: 'paid_at',
       key: 'paid_at',
+      width: 100,
       render: (date: string) => (
-        <Text type={date ? 'success' : 'secondary'}>
+        <Text type={date ? 'success' : 'secondary'} style={{ fontSize: '12px' }}>
           {date ? new Date(date).toLocaleDateString() : '-'}
         </Text>
       ),
@@ -738,15 +746,17 @@ const ReferralAnalytics: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 150,
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
-        <Space>
+        <Space size="small" wrap>
           {record.status === 'pending' && (
             <Button 
               type="link" 
               size="small"
               icon={<MailOutlined />}
               onClick={() => handleResendInvitation(record)}
-              style={{ color: '#DB8633' }}
+              style={{ color: '#DB8633', padding: '0 4px' }}
             >
               Resend
             </Button>
@@ -756,7 +766,7 @@ const ReferralAnalytics: React.FC = () => {
             size="small"
             icon={<LinkOutlined />}
             onClick={() => handleCopyReferralLink(record)}
-            style={{ color: '#DB8633' }}
+            style={{ color: '#DB8633', padding: '0 4px' }}
           >
             Copy Link
           </Button>
@@ -1253,7 +1263,8 @@ const ReferralAnalytics: React.FC = () => {
                                 showSizeChanger: true,
                                 showTotal: (total) => `Total ${total} invitations`
                               }}
-                              scroll={{ x: 'max-content' }}
+                              scroll={{ x: 1200 }}
+                              size="small"
                             />
                           ) : (
                             <div style={{ textAlign: 'center', padding: '40px' }}>
