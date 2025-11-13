@@ -1,0 +1,133 @@
+/* One-Time Gifts Layout */
+.standard-layout {
+  min-height: 100vh;
+  background: #F5F5FA;
+}
+
+/* Header Styling - Match Dashboard branding */
+.standard-header .header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.standard-header .header-left .ant-typography {
+  color: #324E58;
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+.standard-header .page-title {
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.standard-header .page-subtitle {
+  margin: 0 !important;
+  margin-top: 4px !important;
+}
+
+/* Ensure page title and subtitle are left-aligned */
+.standard-header .page-title {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+.standard-header .page-subtitle {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+.standard-header .ant-typography {
+  color: #324E58 !important;
+}
+
+.standard-header .ant-typography.ant-typography-h2,
+.standard-header .ant-typography.ant-typography-h1,
+.standard-header .ant-typography.ant-typography-h3,
+.standard-header .ant-typography.ant-typography-h4,
+.standard-header .ant-typography.ant-typography-h5 {
+  color: #324E58 !important;
+}
+
+/* Content Styling */
+.standard-content {
+  padding: 24px;
+  background: #F5F5FA;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  overflow: visible;
+}
+
+/* Summary Cards */
+.ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Table Styling */
+.ant-table {
+  background: #ffffff;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #324E58;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+/* Status Tags */
+.ant-tag {
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.ant-btn-circle {
+  transition: all 0.3s ease;
+}
+
+.ant-btn-circle:hover {
+  transform: scale(1.1);
+}
+
+/* Modal Styling */
+.ant-modal-header {
+  border-bottom: 2px solid #DB8633;
+}
+
+.ant-modal-title {
+  color: #324E58;
+  font-weight: 600;
+}
+
+/* Filter Card */
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .standard-content {
+    padding: 16px;
+  }
+  
+  .ant-table {
+    font-size: 12px;
+  }
+}
+

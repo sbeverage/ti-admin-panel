@@ -1388,6 +1388,149 @@ export const settingsAPI = {
 
 // Beneficiary/Charity API functions
 // Uses /admin/charities endpoints (backend uses 'charities' table)
+// One-Time Gifts API functions
+export const oneTimeGiftsAPI = {
+  // Get all one-time gifts with filters
+  getOneTimeGifts: async (
+    page = 1,
+    limit = 20,
+    filters?: {
+      beneficiary_id?: string;
+      status?: string;
+      start_date?: string;
+      end_date?: string;
+      min_amount?: number;
+      max_amount?: number;
+      search?: string;
+    }
+  ): Promise<ApiResponse<any>> => {
+    let url = `${API_CONFIG.baseURL}/one-time-gifts?page=${page}&limit=${limit}`;
+    
+    if (filters) {
+      if (filters.beneficiary_id) url += `&beneficiary_id=${filters.beneficiary_id}`;
+      if (filters.status) url += `&status=${filters.status}`;
+      if (filters.start_date) url += `&start_date=${filters.start_date}`;
+      if (filters.end_date) url += `&end_date=${filters.end_date}`;
+      if (filters.min_amount) url += `&min_amount=${filters.min_amount}`;
+      if (filters.max_amount) url += `&max_amount=${filters.max_amount}`;
+      if (filters.search) url += `&search=${encodeURIComponent(filters.search)}`;
+    }
+
+    const response = await fetch(url, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get one-time gift by ID
+  getOneTimeGift: async (id: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/one-time-gifts/${id}`, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get summary statistics
+  getOneTimeGiftsStats: async (filters?: {
+    beneficiary_id?: string;
+    start_date?: string;
+    end_date?: string;
+  }): Promise<ApiResponse<any>> => {
+    let url = `${API_CONFIG.baseURL}/one-time-gifts/stats`;
+    
+    if (filters) {
+      const params = new URLSearchParams();
+      if (filters.beneficiary_id) params.append('beneficiary_id', filters.beneficiary_id);
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetch(url, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Refund one-time gift
+  refundOneTimeGift: async (
+    id: string,
+    data: {
+      amount?: number;
+      reason?: string;
+      admin_notes?: string;
+    }
+  ): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/one-time-gifts/${id}/refund`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Update admin notes
+  updateAdminNotes: async (id: string, admin_notes: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/one-time-gifts/${id}/admin-notes`, {
+      method: 'PATCH',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ admin_notes })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get beneficiary one-time gift stats
+  getBeneficiaryOneTimeGiftStats: async (beneficiaryId: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/beneficiaries/${beneficiaryId}/one-time-gifts/stats`, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get user one-time gift history (admin view)
+  getUserOneTimeGiftHistory: async (userId: string, page = 1, limit = 20): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/users/${userId}/one-time-gifts?page=${page}&limit=${limit}`, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+};
+
 export const beneficiaryAPI = {
   // Get all beneficiaries/charities
   getBeneficiaries: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {

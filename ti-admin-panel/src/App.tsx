@@ -16,6 +16,7 @@ import PendingApprovals from './components/PendingApprovals';
 import ReferralAnalytics from './components/ReferralAnalytics';
 import GeographicAnalytics from './components/GeographicAnalytics';
 import ApiRateLimiting from './components/ApiRateLimiting';
+import OneTimeGifts from './components/OneTimeGifts';
 
 import './App.css';
 
@@ -73,6 +74,7 @@ function App() {
           <Route path="/referral-analytics" element={<ReferralAnalytics />} />
           <Route path="/geographic-analytics" element={<GeographicAnalytics />} />
           <Route path="/api-rate-limiting" element={<ApiRateLimiting />} />
+          <Route path="/one-time-gifts" element={<OneTimeGifts />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
