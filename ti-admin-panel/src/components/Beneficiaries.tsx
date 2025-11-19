@@ -66,6 +66,7 @@ const Beneficiaries: React.FC = () => {
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null);
+  const [selectedBeneficiaryData, setSelectedBeneficiaryData] = useState<any | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
   const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,23 +87,40 @@ const Beneficiaries: React.FC = () => {
       
       if (response.success) {
         // Transform API data to match our table structure
-        const transformedData = response.data.map((beneficiary: any) => ({
-          key: beneficiary.id.toString(),
-          beneficiaryName: beneficiary.name || 'Unknown',
-          contactName: beneficiary.contact_name || 'N/A',
-          email: beneficiary.email || 'N/A',
-          contactNumber: beneficiary.phone || 'N/A',
-          bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 'N/A',
-          donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : '$0',
-          dateOfJoin: beneficiary.created_at ? new Date(beneficiary.created_at).toLocaleDateString() : 'N/A',
-          cityState: beneficiary.address ? `${beneficiary.address.city}, ${beneficiary.address.state}` : 'N/A',
-          beneficiaryCause: beneficiary.cause || 'General',
-          beneficiaryType: beneficiary.type || 'Local',
-          donors: beneficiary.donor_count || 0,
-          active: beneficiary.is_active || false,
-          enabled: beneficiary.is_enabled || false,
-          avatar: beneficiary.name ? beneficiary.name.charAt(0).toUpperCase() : 'B'
-        }));
+        // Handle both new charity structure and legacy beneficiary structure
+        const transformedData = response.data.map((beneficiary: any) => {
+          // New charity structure uses camelCase and different field names
+          const name = beneficiary.name || 'Unknown';
+          const category = beneficiary.category || beneficiary.cause || 'General';
+          const type = beneficiary.type || 'Local'; // Large, Medium, Small, or Local
+          const location = beneficiary.location || 
+                          (beneficiary.address ? `${beneficiary.address.city || ''}, ${beneficiary.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : 'N/A');
+          const phone = beneficiary.phone || beneficiary.contactNumber || 'N/A';
+          const email = beneficiary.email || 'N/A';
+          const createdAt = beneficiary.createdAt || beneficiary.created_at;
+          const isActive = beneficiary.isActive !== undefined ? beneficiary.isActive : 
+                          (beneficiary.is_active !== undefined ? beneficiary.is_active : true);
+          
+          return {
+            key: beneficiary.id.toString(),
+            beneficiaryName: name,
+            contactName: email, // Use email as contact name
+            email: email,
+            contactNumber: phone,
+            bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 'N/A',
+            donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : '$0',
+            dateOfJoin: createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A',
+            cityState: location,
+            beneficiaryCause: category,
+            beneficiaryType: type,
+            donors: beneficiary.donor_count || beneficiary.mutual || 0,
+            active: isActive,
+            enabled: isActive, // Use isActive for enabled status
+            avatar: name ? name.charAt(0).toUpperCase() : 'B',
+            // Store full beneficiary data for profile view
+            rawData: beneficiary
+          };
+        });
         
         setBeneficiariesData(transformedData);
         setTotalBeneficiaries(response.pagination?.total || transformedData.length);
@@ -185,14 +203,16 @@ const Beneficiaries: React.FC = () => {
     }
   };
 
-  const handleBeneficiaryClick = (beneficiaryId: string) => {
+  const handleBeneficiaryClick = (beneficiaryId: string, record: any) => {
     setSelectedBeneficiaryId(beneficiaryId);
+    setSelectedBeneficiaryData(record.rawData || record);
     setProfileVisible(true);
   };
 
   const handleProfileClose = () => {
     setProfileVisible(false);
     setSelectedBeneficiaryId(null);
+    setSelectedBeneficiaryData(null);
   };
 
   const handleBeneficiaryUpdate = (updatedData: any) => {
@@ -279,7 +299,7 @@ const Beneficiaries: React.FC = () => {
           <Text 
             strong 
             className="clickable-beneficiary-name"
-            onClick={() => handleBeneficiaryClick(record.key)}
+            onClick={() => handleBeneficiaryClick(record.key, record)}
             style={{ cursor: 'pointer', color: '#DB8633' }}
           >
             {text}
@@ -647,9 +667,10 @@ const Beneficiaries: React.FC = () => {
       />
 
       {/* Beneficiary Profile Modal */}
-      {profileVisible && selectedBeneficiaryId && (
+      {profileVisible && selectedBeneficiaryId && selectedBeneficiaryData && (
         <BeneficiaryProfile
           beneficiaryId={selectedBeneficiaryId}
+          beneficiaryData={selectedBeneficiaryData}
           onClose={handleProfileClose}
           onUpdate={handleBeneficiaryUpdate}
         />

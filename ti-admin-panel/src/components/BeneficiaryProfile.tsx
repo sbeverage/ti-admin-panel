@@ -41,6 +41,7 @@ const { Option } = Select;
 
 interface BeneficiaryProfileProps {
   beneficiaryId: string;
+  beneficiaryData?: any; // Raw beneficiary data from API
   onClose: () => void;
   onUpdate: (updatedData: any) => void;
 }
@@ -75,26 +76,82 @@ interface BeneficiaryData {
   website?: string;
   verificationStatus?: boolean;
   volunteerInfo?: string;
+  // Fields from spec
+  latitude?: number | string;
+  longitude?: number | string;
+  location?: string;
+  likes?: number;
+  mutual?: number;
+  social?: string;
+  isActive?: boolean;
 }
 
 const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   beneficiaryId,
+  beneficiaryData: rawBeneficiaryData,
   onClose,
   onUpdate
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // Load data from API
+  // Map raw API data to display format
   useEffect(() => {
-    // TODO: Implement API call to load beneficiary data
-    setBeneficiaryData(null);
-    setFormData({});
-    setLoading(false);
-  }, [beneficiaryId]);
+    if (rawBeneficiaryData) {
+      // Transform API data to match our interface
+      const transformed: BeneficiaryData = {
+        id: rawBeneficiaryData.id?.toString() || beneficiaryId,
+        beneficiaryName: rawBeneficiaryData.name || rawBeneficiaryData.beneficiaryName || 'Unknown',
+        contactName: rawBeneficiaryData.contact_name || rawBeneficiaryData.contactName || '',
+        email: rawBeneficiaryData.email || '',
+        contactNumber: rawBeneficiaryData.phone || rawBeneficiaryData.contactNumber || rawBeneficiaryData.phoneNumber || '',
+        bankAccount: rawBeneficiaryData.bank_account || rawBeneficiaryData.bankAccount || '',
+        donation: rawBeneficiaryData.total_donations ? `$${rawBeneficiaryData.total_donations.toLocaleString()}` : rawBeneficiaryData.donation || '$0',
+        dateOfJoin: rawBeneficiaryData.createdAt || rawBeneficiaryData.created_at || rawBeneficiaryData.dateOfJoin || '',
+        cityState: rawBeneficiaryData.location || 
+                   (rawBeneficiaryData.address ? `${rawBeneficiaryData.address.city || ''}, ${rawBeneficiaryData.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
+                   rawBeneficiaryData.cityState || '',
+        beneficiaryCause: rawBeneficiaryData.category || rawBeneficiaryData.cause || rawBeneficiaryData.beneficiaryCause || '',
+        beneficiaryType: rawBeneficiaryData.type || rawBeneficiaryData.beneficiaryType || '',
+        donors: rawBeneficiaryData.donor_count || rawBeneficiaryData.mutual || rawBeneficiaryData.donors || 0,
+        active: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
+                (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
+        enabled: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
+                 (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
+        // Additional fields
+        about: rawBeneficiaryData.about || rawBeneficiaryData.description || '',
+        mainImageUrl: rawBeneficiaryData.imageUrl || rawBeneficiaryData.main_image || rawBeneficiaryData.main_image_url || rawBeneficiaryData.mainImageUrl || '',
+        whyThisMatters: rawBeneficiaryData.why_this_matters || rawBeneficiaryData.mission || rawBeneficiaryData.whyThisMatters || '',
+        successStory: rawBeneficiaryData.success_story || rawBeneficiaryData.successStory || '',
+        storyAuthor: rawBeneficiaryData.story_author || rawBeneficiaryData.storyAuthor || '',
+        familiesHelped: rawBeneficiaryData.families_helped || rawBeneficiaryData.familiesHelped || '',
+        communitiesServed: rawBeneficiaryData.communities_served || rawBeneficiaryData.communitiesServed || 0,
+        directToPrograms: rawBeneficiaryData.direct_to_programs || rawBeneficiaryData.directToPrograms || 0,
+        impactStatement1: rawBeneficiaryData.impact_statement_1 || rawBeneficiaryData.impactStatement1 || '',
+        impactStatement2: rawBeneficiaryData.impact_statement_2 || rawBeneficiaryData.impactStatement2 || '',
+        ein: rawBeneficiaryData.ein || '',
+        website: rawBeneficiaryData.website || '',
+        verificationStatus: rawBeneficiaryData.verification_status || rawBeneficiaryData.verificationStatus || false,
+        volunteerInfo: rawBeneficiaryData.volunteer_info || rawBeneficiaryData.volunteerInfo || '',
+        // New fields from spec
+        latitude: rawBeneficiaryData.latitude || '',
+        longitude: rawBeneficiaryData.longitude || '',
+        location: rawBeneficiaryData.location || '',
+        likes: rawBeneficiaryData.likes || 0,
+        mutual: rawBeneficiaryData.mutual || 0,
+        social: rawBeneficiaryData.social || '',
+        isActive: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
+                  (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
+      };
+      setBeneficiaryData(transformed);
+      setFormData(transformed);
+    } else {
+      setLoading(false);
+    }
+  }, [rawBeneficiaryData, beneficiaryId]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -175,14 +232,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Select category"
                 style={{ width: '100%' }}
               >
-                <Option value="healthcare">Healthcare</Option>
-                <Option value="education">Education</Option>
-                <Option value="housing">Housing</Option>
-                <Option value="hunger">Hunger Relief</Option>
-                <Option value="environment">Environment</Option>
-                <Option value="children">Children & Youth</Option>
-                <Option value="social-services">Social Services</Option>
-                <Option value="arts-culture">Arts & Culture</Option>
+                <Option value="Childhood Illness">Childhood Illness</Option>
+                <Option value="Animal Welfare">Animal Welfare</Option>
+                <Option value="Low Income Families">Low Income Families</Option>
+                <Option value="Education">Education</Option>
+                <Option value="Environment">Environment</Option>
+                <Option value="Disabilities">Disabilities</Option>
               </Select>
             ) : (
               <Tag color="blue">{beneficiaryData.beneficiaryCause}</Tag>
@@ -197,12 +252,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Location</label>
             {isEditing ? (
               <Input
-                value={formData.cityState}
-                onChange={(e) => handleInputChange('cityState', e.target.value)}
+                value={formData.location || formData.cityState}
+                onChange={(e) => handleInputChange('location', e.target.value)}
                 placeholder="City, State"
               />
             ) : (
-              <Text>{beneficiaryData.cityState}</Text>
+              <Text>{beneficiaryData.location || beneficiaryData.cityState}</Text>
             )}
           </div>
         </Col>
@@ -216,12 +271,121 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Select type"
                 style={{ width: '100%' }}
               >
-                <Option value="local">Local</Option>
-                <Option value="national">National</Option>
-                <Option value="international">International</Option>
+                <Option value="Large">Large</Option>
+                <Option value="Medium">Medium</Option>
+                <Option value="Small">Small</Option>
               </Select>
             ) : (
               <Tag color="green">{beneficiaryData.beneficiaryType}</Tag>
+            )}
+          </div>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 16]}>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Latitude</label>
+            {isEditing ? (
+              <InputNumber
+                value={formData.latitude}
+                onChange={(value) => handleInputChange('latitude', value)}
+                placeholder="e.g., 33.7490"
+                style={{ width: '100%' }}
+                precision={8}
+                min={-90}
+                max={90}
+              />
+            ) : (
+              <Text>{beneficiaryData.latitude || 'N/A'}</Text>
+            )}
+          </div>
+        </Col>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Longitude</label>
+            {isEditing ? (
+              <InputNumber
+                value={formData.longitude}
+                onChange={(value) => handleInputChange('longitude', value)}
+                placeholder="e.g., -84.3880"
+                style={{ width: '100%' }}
+                precision={8}
+                min={-180}
+                max={180}
+              />
+            ) : (
+              <Text>{beneficiaryData.longitude || 'N/A'}</Text>
+            )}
+          </div>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 16]}>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Likes</label>
+            {isEditing ? (
+              <InputNumber
+                value={formData.likes}
+                onChange={(value) => handleInputChange('likes', value)}
+                placeholder="0"
+                style={{ width: '100%' }}
+                min={0}
+              />
+            ) : (
+              <Text>{beneficiaryData.likes || 0}</Text>
+            )}
+          </div>
+        </Col>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Mutual Connections</label>
+            {isEditing ? (
+              <InputNumber
+                value={formData.mutual}
+                onChange={(value) => handleInputChange('mutual', value)}
+                placeholder="0"
+                style={{ width: '100%' }}
+                min={0}
+              />
+            ) : (
+              <Text>{beneficiaryData.mutual || 0}</Text>
+            )}
+          </div>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 16]}>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Social Media</label>
+            {isEditing ? (
+              <Input
+                value={formData.social}
+                onChange={(e) => handleInputChange('social', e.target.value)}
+                placeholder="@organizationname"
+                maxLength={100}
+              />
+            ) : (
+              <Text>{beneficiaryData.social || 'N/A'}</Text>
+            )}
+          </div>
+        </Col>
+        <Col span={12}>
+          <div className="form-field">
+            <label>Active Status</label>
+            {isEditing ? (
+              <Checkbox
+                checked={formData.isActive !== false}
+                onChange={(e) => handleInputChange('isActive', e.target.checked)}
+              >
+                Active (show in app)
+              </Checkbox>
+            ) : (
+              <Tag color={beneficiaryData.isActive !== false ? 'success' : 'default'}>
+                {beneficiaryData.isActive !== false ? 'Active' : 'Inactive'}
+              </Tag>
             )}
           </div>
         </Col>

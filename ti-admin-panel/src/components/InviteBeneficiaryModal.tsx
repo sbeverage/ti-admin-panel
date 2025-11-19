@@ -151,10 +151,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       const beneficiaryData = {
         name: allData.beneficiaryName,
         category: allData.category,
+        type: allData.type, // Large, Medium, or Small
         city: allData.city,
         state: allData.state,
         zip_code: allData.zipCode || '',
-        location: `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Combined for display
+        location: allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Use location field if provided, otherwise combine
+        latitude: allData.latitude,
+        longitude: allData.longitude,
         email: allData.primaryEmail,
         phone: allData.phoneNumber,
         contact_name: allData.primaryContact,
@@ -164,6 +167,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         transparency_rating: allData.transparencyRating || 0,
         ein: allData.ein || '',
         website: allData.website || '',
+        social: allData.social || '',
+        likes: allData.likes || 0,
+        mutual: allData.mutual || 0,
+        isActive: allData.isActive !== undefined ? allData.isActive : true,
         volunteer_info: allData.volunteerInfo || '',
         // Images uploaded to S3
         main_image: mainImageUrl || '',
@@ -242,16 +249,40 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
                   <Select placeholder="Select category">
-                    <Option value="healthcare">Healthcare</Option>
-                    <Option value="education">Education</Option>
-                    <Option value="housing">Housing</Option>
-                    <Option value="hunger">Hunger Relief</Option>
-                    <Option value="environment">Environment</Option>
-                    <Option value="children">Children & Youth</Option>
-                    <Option value="social-services">Social Services</Option>
-                    <Option value="arts-culture">Arts & Culture</Option>
-                    <Option value="other">Other</Option>
+                    <Option value="Childhood Illness">Childhood Illness</Option>
+                    <Option value="Animal Welfare">Animal Welfare</Option>
+                    <Option value="Low Income Families">Low Income Families</Option>
+                    <Option value="Education">Education</Option>
+                    <Option value="Environment">Environment</Option>
+                    <Option value="Disabilities">Disabilities</Option>
                   </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="type"
+                  label="Type *"
+                  rules={[{ required: true, message: 'Please select type' }]}
+                >
+                  <Select placeholder="Select type">
+                    <Option value="Large">Large</Option>
+                    <Option value="Medium">Medium</Option>
+                    <Option value="Small">Small</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={24}>
+                <Form.Item
+                  name="location"
+                  label="Location *"
+                  rules={[{ required: true, message: 'Please enter location (City, State)' }]}
+                  tooltip="Enter location as 'City, State' format (e.g., 'Atlanta, GA')"
+                >
+                  <Input placeholder="Atlanta, GA" />
                 </Form.Item>
               </Col>
             </Row>
@@ -287,6 +318,46 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
+                  name="latitude"
+                  label="Latitude *"
+                  rules={[
+                    { required: true, message: 'Please enter latitude' },
+                    { type: 'number', min: -90, max: 90, message: 'Latitude must be between -90 and 90' }
+                  ]}
+                  tooltip="GPS latitude coordinate (e.g., 33.7490)"
+                >
+                  <InputNumber
+                    placeholder="33.7490"
+                    style={{ width: '100%' }}
+                    precision={8}
+                    min={-90}
+                    max={90}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="longitude"
+                  label="Longitude *"
+                  rules={[
+                    { required: true, message: 'Please enter longitude' },
+                    { type: 'number', min: -180, max: 180, message: 'Longitude must be between -180 and 180' }
+                  ]}
+                  tooltip="GPS longitude coordinate (e.g., -84.3880)"
+                >
+                  <InputNumber
+                    placeholder="-84.3880"
+                    style={{ width: '100%' }}
+                    precision={8}
+                    min={-180}
+                    max={180}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
                   name="primaryContact"
                   label="Primary Contact"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
@@ -308,8 +379,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
-                  label="Primary Contact Email"
-                  rules={[{ required: true, message: 'Please enter email' }]}
+                  label="Primary Contact Email *"
+                  rules={[{ required: true, message: 'Please enter email' }, { type: 'email', message: 'Please enter a valid email' }]}
                 >
                   <Input placeholder="Enter email address" />
                 </Form.Item>
@@ -318,9 +389,59 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 <Form.Item
                   name="phoneNumber"
                   label="Phone Number"
-                  rules={[{ required: true, message: 'Please enter phone number' }]}
+                  rules={[{ required: false }]}
                 >
                   <Input placeholder="Enter phone number" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="social"
+                  label="Social Media"
+                  rules={[{ max: 100, message: 'Social media handle must be 100 characters or less' }]}
+                  tooltip="Social media handle (e.g., @organizationname)"
+                >
+                  <Input placeholder="@organizationname" maxLength={100} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="likes"
+                  label="Likes"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    placeholder="0"
+                    style={{ width: '100%' }}
+                    min={0}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  name="mutual"
+                  label="Mutual Connections"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    placeholder="0"
+                    style={{ width: '100%' }}
+                    min={0}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="isActive"
+                  label="Active Status"
+                  valuePropName="checked"
+                  initialValue={true}
+                >
+                  <Checkbox>Active (show in app)</Checkbox>
                 </Form.Item>
               </Col>
             </Row>
