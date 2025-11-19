@@ -86,38 +86,53 @@ const Beneficiaries: React.FC = () => {
       console.log('Beneficiary API response:', response);
       
       if (response.success) {
+        // Log the actual API response structure for debugging
+        console.log('📊 Raw API response data:', response.data);
+        if (response.data && response.data.length > 0) {
+          console.log('📋 Sample beneficiary object:', response.data[0]);
+          console.log('📋 All keys in beneficiary object:', Object.keys(response.data[0]));
+        }
+        
         // Transform API data to match our table structure
         // Handle both new charity structure and legacy beneficiary structure
         const transformedData = response.data.map((beneficiary: any) => {
-          // New charity structure uses camelCase and different field names
-          const name = beneficiary.name || 'Unknown';
-          const category = beneficiary.category || beneficiary.cause || 'General';
-          const type = beneficiary.type || 'Local'; // Large, Medium, Small, or Local
+          // Extract all possible field variations from API
+          const name = beneficiary.name || beneficiary.beneficiaryName || 'Unknown';
+          const category = beneficiary.category || beneficiary.cause || beneficiary.beneficiaryCause || 'General';
+          const type = beneficiary.type || beneficiary.beneficiaryType || 'Medium';
           const location = beneficiary.location || 
-                          (beneficiary.address ? `${beneficiary.address.city || ''}, ${beneficiary.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : 'N/A');
-          const phone = beneficiary.phone || beneficiary.contactNumber || 'N/A';
-          const email = beneficiary.email || 'N/A';
-          const createdAt = beneficiary.createdAt || beneficiary.created_at;
+                          (beneficiary.address ? `${beneficiary.address.city || ''}, ${beneficiary.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
+                          (beneficiary.city && beneficiary.state ? `${beneficiary.city}, ${beneficiary.state}` : '') ||
+                          beneficiary.cityState || 'N/A';
+          const phone = beneficiary.phone || beneficiary.phoneNumber || beneficiary.contactNumber || beneficiary.contact_number || 'N/A';
+          const email = beneficiary.email || beneficiary.primaryEmail || beneficiary.primary_email || 'N/A';
+          const contactName = beneficiary.contact_name || beneficiary.contactName || beneficiary.primaryContact || beneficiary.primary_contact || email;
+          const createdAt = beneficiary.createdAt || beneficiary.created_at || beneficiary.dateOfJoin || beneficiary.date_of_join;
           const isActive = beneficiary.isActive !== undefined ? beneficiary.isActive : 
-                          (beneficiary.is_active !== undefined ? beneficiary.is_active : true);
+                          (beneficiary.is_active !== undefined ? beneficiary.is_active : 
+                          (beneficiary.active !== undefined ? beneficiary.active : true));
           
+          // Extract all available fields from the API response
           return {
-            key: beneficiary.id.toString(),
+            key: beneficiary.id?.toString() || beneficiary.key || Math.random().toString(),
             beneficiaryName: name,
-            contactName: email, // Use email as contact name
+            contactName: contactName,
             email: email,
             contactNumber: phone,
-            bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 'N/A',
-            donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : '$0',
+            bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 
+                        (beneficiary.bankAccount ? `****${beneficiary.bankAccount.slice(-4)}` : 'N/A'),
+            donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : 
+                     (beneficiary.totalDonations ? `$${beneficiary.totalDonations.toLocaleString()}` :
+                     (beneficiary.donation || '$0')),
             dateOfJoin: createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A',
             cityState: location,
             beneficiaryCause: category,
             beneficiaryType: type,
-            donors: beneficiary.donor_count || beneficiary.mutual || 0,
+            donors: beneficiary.donor_count || beneficiary.donorCount || beneficiary.mutual || beneficiary.donors || 0,
             active: isActive,
-            enabled: isActive, // Use isActive for enabled status
+            enabled: isActive,
             avatar: name ? name.charAt(0).toUpperCase() : 'B',
-            // Store full beneficiary data for profile view
+            // Store full beneficiary data for profile view - preserve ALL fields from API
             rawData: beneficiary
           };
         });
@@ -313,7 +328,7 @@ const Beneficiaries: React.FC = () => {
       title: 'Contact name', 
       dataIndex: 'contactName', 
       key: 'contactName', 
-      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      render: (text: string) => <Text type="secondary">{text || 'N/A'}</Text>, 
       width: 150 
     },
     { 
@@ -370,10 +385,11 @@ const Beneficiaries: React.FC = () => {
       dataIndex: 'beneficiaryType',
       key: 'beneficiaryType',
       render: (text: string) => {
+        if (!text) return <Tag>N/A</Tag>;
         let color = 'default';
-        if (text === 'International') color = 'blue';
-        else if (text === 'National') color = 'green';
-        else if (text === 'Local') color = 'orange';
+        if (text === 'Large' || text === 'International') color = 'blue';
+        else if (text === 'Medium' || text === 'National') color = 'green';
+        else if (text === 'Small' || text === 'Local') color = 'orange';
         return <Tag color={color}>{text}</Tag>;
       },
       width: 150,
