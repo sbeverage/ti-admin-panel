@@ -98,8 +98,9 @@ const OneTimeGifts: React.FC = () => {
 
       const response = await oneTimeGiftsAPI.getOneTimeGifts(page, pageSize, filters);
       if (response.success) {
-        setGifts(response.data?.gifts || response.data || []);
-        setTotal(response.data?.pagination?.total || response.pagination?.total || 0);
+        const data = response.data as any;
+        setGifts(data?.gifts || data || []);
+        setTotal(data?.pagination?.total || 0);
       }
     } catch (error) {
       console.error('Error loading gifts:', error);
@@ -897,4 +898,5 @@ const OneTimeGifts: React.FC = () => {
 };
 
 export default OneTimeGifts;
+
 
