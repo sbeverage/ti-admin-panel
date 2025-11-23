@@ -1,5 +1,5 @@
 // Supabase Storage Service for Image Uploads
-// Uses Supabase Storage instead of AWS S3
+// Uses Supabase Storage REST API directly
 
 export interface UploadResult {
   success: boolean;
@@ -7,15 +7,11 @@ export interface UploadResult {
   error?: string;
 }
 
-// Get Supabase client configuration from environment
-const getSupabaseConfig = () => {
-  const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://mdqgndyhzlnwojtubouh.supabase.co';
-  const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A';
-  
-  return { supabaseUrl, supabaseAnonKey };
-};
+// Supabase configuration
+const SUPABASE_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A';
 
-// Upload image to Supabase Storage via backend API
+// Upload image to Supabase Storage using REST API
 export const uploadToSupabase = async (
   file: File,
   bucketName: string = 'beneficiary-images',
@@ -30,75 +26,58 @@ export const uploadToSupabase = async (
       folder
     });
 
-    // Use the backend API to handle Supabase Storage upload
-    // This is more secure as it keeps Supabase credentials on the server
-    const API_CONFIG = {
-      baseURL: 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',
-      headers: {
-        'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
-      }
-    };
-
-    // Convert file to base64 for API upload
-    const reader = new FileReader();
-    const base64Promise = new Promise<string>((resolve, reject) => {
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove data URL prefix (data:image/jpeg;base64,)
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-    });
-    reader.readAsDataURL(file);
-
-    const base64Data = await base64Promise;
-
     // Generate unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const fileExtension = file.name.split('.').pop();
     const fileName = `${folder}/${timestamp}-${randomString}.${fileExtension}`;
+    const filePath = `${bucketName}/${fileName}`;
 
-    // Upload via backend API
-    const response = await fetch(`${API_CONFIG.baseURL}/upload-image`, {
+    // Upload to Supabase Storage using REST API
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${filePath}`;
+    
+    const response = await fetch(uploadUrl, {
       method: 'POST',
-      headers: API_CONFIG.headers,
-      body: JSON.stringify({
-        bucket: bucketName,
-        path: fileName,
-        file: base64Data,
-        contentType: file.type,
-        fileName: file.name
-      })
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': file.type,
+        'x-upsert': 'true' // Allow overwriting if file exists
+      },
+      body: file
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Supabase Storage upload failed:', errorText);
+      console.error('Supabase Storage upload failed:', response.status, errorText);
+      
+      // If bucket doesn't exist or access denied, provide helpful error
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: `Storage bucket '${bucketName}' not found. Please create it in Supabase Dashboard.`
+        };
+      } else if (response.status === 401 || response.status === 403) {
+        return {
+          success: false,
+          error: 'Access denied. Please check Supabase Storage bucket permissions.'
+        };
+      }
+      
       return {
         success: false,
         error: `Upload failed: ${response.status} ${errorText}`
       };
     }
 
-    const result = await response.json();
+    // Construct public URL
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${filePath}`;
     
-    if (result.success && result.url) {
-      console.log('Supabase Storage upload successful:', result.url);
-      return {
-        success: true,
-        url: result.url
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || 'Upload failed'
-      };
-    }
+    console.log('Supabase Storage upload successful:', publicUrl);
+    return {
+      success: true,
+      url: publicUrl
+    };
   } catch (error) {
     console.error('Supabase Storage upload error:', error);
     return {
@@ -108,7 +87,7 @@ export const uploadToSupabase = async (
   }
 };
 
-// Delete image from Supabase Storage via backend API
+// Delete image from Supabase Storage using REST API
 export const deleteFromSupabase = async (
   url: string,
   bucketName: string = 'beneficiary-images'
@@ -116,52 +95,41 @@ export const deleteFromSupabase = async (
   try {
     console.log('Supabase Storage: Deleting image...', { url, bucketName });
 
-    const API_CONFIG = {
-      baseURL: 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',
-      headers: {
-        'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
-      }
-    };
-
     // Extract path from URL
     // Supabase Storage URLs look like: https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/bucket-name/path/to/file.jpg
-    const urlParts = url.split('/storage/v1/object/public/');
-    const path = urlParts.length > 1 ? urlParts[1] : url;
+    let filePath = '';
+    if (url.includes('/storage/v1/object/public/')) {
+      filePath = url.split('/storage/v1/object/public/')[1];
+    } else if (url.includes('/storage/v1/object/')) {
+      filePath = url.split('/storage/v1/object/')[1];
+    } else {
+      // Assume it's just the path
+      filePath = url;
+    }
 
-    const response = await fetch(`${API_CONFIG.baseURL}/delete-image`, {
-      method: 'POST',
-      headers: API_CONFIG.headers,
-      body: JSON.stringify({
-        bucket: bucketName,
-        path: path
-      })
+    const deleteUrl = `${SUPABASE_URL}/storage/v1/object/${filePath}`;
+
+    const response = await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY
+      }
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Supabase Storage delete failed:', errorText);
+      console.error('Supabase Storage delete failed:', response.status, errorText);
       return {
         success: false,
         error: `Delete failed: ${response.status} ${errorText}`
       };
     }
 
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log('Supabase Storage delete successful');
-      return {
-        success: true
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || 'Delete failed'
-      };
-    }
+    console.log('Supabase Storage delete successful');
+    return {
+      success: true
+    };
   } catch (error) {
     console.error('Supabase Storage delete error:', error);
     return {

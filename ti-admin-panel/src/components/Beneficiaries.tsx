@@ -123,15 +123,8 @@ const Beneficiaries: React.FC = () => {
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
                           (beneficiary.active !== undefined ? beneficiary.active : true));
           
-          // Extract image URL from various possible field names
-          const imageUrl = beneficiary.imageUrl || 
-                          beneficiary.image_url || 
-                          beneficiary.main_image || 
-                          beneficiary.main_image_url || 
-                          beneficiary.logo || 
-                          beneficiary.logo_url ||
-                          beneficiary.image || 
-                          '';
+          // Extract image URL - API uses 'imageUrl' field
+          const imageUrl = beneficiary.imageUrl || '';
           
           // Extract all available fields from the API response
           return {
@@ -332,14 +325,13 @@ const Beneficiaries: React.FC = () => {
         <Space>
           <Avatar 
             size={32} 
-            src={record.imageUrl || record.rawData?.imageUrl || record.rawData?.image_url || record.rawData?.main_image || record.rawData?.main_image_url || record.rawData?.logo || record.rawData?.logo_url}
+            src={record.imageUrl || record.rawData?.imageUrl}
             style={{ 
-              backgroundColor: record.imageUrl ? 'transparent' : '#DB8633',
-              border: record.imageUrl ? 'none' : 'none'
+              backgroundColor: (record.imageUrl || record.rawData?.imageUrl) ? 'transparent' : '#DB8633',
+              border: 'none'
             }}
-            icon={!record.imageUrl && !record.rawData?.imageUrl && !record.rawData?.image_url && !record.rawData?.main_image && !record.rawData?.main_image_url && !record.rawData?.logo && !record.rawData?.logo_url ? record.beneficiaryName.charAt(0) : undefined}
           >
-            {!record.imageUrl && !record.rawData?.imageUrl && !record.rawData?.image_url && !record.rawData?.main_image && !record.rawData?.main_image_url && !record.rawData?.logo && !record.rawData?.logo_url && record.beneficiaryName.charAt(0)}
+            {!(record.imageUrl || record.rawData?.imageUrl) && record.beneficiaryName.charAt(0)}
           </Avatar>
           <Text 
             strong 
