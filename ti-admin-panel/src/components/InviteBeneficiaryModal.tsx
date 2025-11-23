@@ -436,23 +436,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 maxLength={1000}
               />
             </Form.Item>
-            <Divider />
-            <Row gutter={[24, 16]}>
-              <Col span={24}>
-                <Form.Item
-                  name="mainImage"
-                  label="Upload Main Image"
-                  rules={[{ required: false, message: 'Please upload a main image' }]}
-                >
-                  <ImageUpload
-                    currentImageUrl={mainImageUrl || undefined}
-                    onImageChange={handleMainImageChange}
-                    title="Upload Beneficiary Main Image"
-                    description="Click or drag an image file to upload. Recommended: 1080px × 1080px. Max 5MB"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
           </div>
         );
 
@@ -685,22 +668,39 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           <div className="step-content">
             <Title level={4}>Upload Images</Title>
             <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
-              Upload a logo and additional images to showcase your beneficiary organization
+              Upload images to showcase your beneficiary organization. All images are optional but recommended.
             </Text>
             
             <Row gutter={[24, 24]}>
               <Col span={24}>
+                <Card title="Main Image" style={{ marginBottom: '16px' }}>
+                  <Form.Item
+                    name="mainImage"
+                    label="Upload Main Image (Optional)"
+                    rules={[{ required: false }]}
+                  >
+                    <ImageUpload
+                      currentImageUrl={mainImageUrl || undefined}
+                      onImageChange={handleMainImageChange}
+                      title="Upload Beneficiary Main Image"
+                      description="Main image displayed on beneficiary profile. Recommended: 1080px × 1080px. Max 5MB"
+                    />
+                  </Form.Item>
+                </Card>
+              </Col>
+              
+              <Col span={24}>
                 <Card title="Organization Logo" style={{ marginBottom: '16px' }}>
                   <Form.Item
                     name="logo"
-                    label="Upload Logo *"
-                    rules={[{ required: false, message: 'Please upload a logo' }]}
+                    label="Upload Logo (Optional)"
+                    rules={[{ required: false }]}
                   >
                     <ImageUpload
                       currentImageUrl={logoUrl || undefined}
                       onImageChange={handleLogoChange}
                       title="Upload Organization Logo"
-                      description="Recommended: 1080px × 1080px. Max 5MB"
+                      description="Logo displayed in beneficiary listings. Recommended: 1080px × 1080px. Max 5MB"
                     />
                   </Form.Item>
                 </Card>
