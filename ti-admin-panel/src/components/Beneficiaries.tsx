@@ -784,6 +784,59 @@ const Beneficiaries: React.FC = () => {
           onUpdate={handleBeneficiaryUpdate}
         />
       )}
+
+      {/* Delete Beneficiary Confirmation Modal */}
+      <Modal
+        title="Delete Beneficiary"
+        open={isDeleteBeneficiaryModalVisible}
+        onOk={confirmDeleteBeneficiary}
+        onCancel={() => {
+          setIsDeleteBeneficiaryModalVisible(false);
+          setDeletingBeneficiary(null);
+        }}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={loading}
+      >
+        {deletingBeneficiary && (
+          <div>
+            <p>Are you sure you want to permanently delete this beneficiary?</p>
+            <div style={{ 
+              padding: '16px', 
+              background: '#fff7e6', 
+              borderRadius: '4px',
+              marginTop: '16px',
+              marginBottom: '16px'
+            }}>
+              <Text strong>Beneficiary Details:</Text>
+              <br />
+              <Text>Name: {deletingBeneficiary.beneficiaryName || deletingBeneficiary.name}</Text>
+              {deletingBeneficiary.cityState && (
+                <>
+                  <br />
+                  <Text>Location: {deletingBeneficiary.cityState}</Text>
+                </>
+              )}
+              {deletingBeneficiary.beneficiaryCause && (
+                <>
+                  <br />
+                  <Text>Category: {deletingBeneficiary.beneficiaryCause}</Text>
+                </>
+              )}
+              {deletingBeneficiary.donation && (
+                <>
+                  <br />
+                  <Text>Total Donations: {deletingBeneficiary.donation}</Text>
+                </>
+              )}
+            </div>
+            <p style={{ color: '#ff4d4f', marginBottom: 0 }}>
+              <Text strong>Warning:</Text> This action cannot be undone. All beneficiary data including donations, images, and other associated information will be permanently deleted.
+            </p>
+          </div>
+        )}
+      </Modal>
     </Layout>
   );
 };
