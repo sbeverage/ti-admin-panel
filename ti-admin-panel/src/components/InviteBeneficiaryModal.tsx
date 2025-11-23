@@ -182,11 +182,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         longitude: longitude,
         phone: allData.phoneNumber || '',
         contact_name: allData.primaryContact || '',
-        // Send both field names to support different backend implementations
-        about: allData.about,
-        description: allData.about, // Backend might use 'description' field
+        // Use exact database field names (snake_case)
+        about: allData.about || '',
         why_this_matters: allData.whyThisMatters || '',
-        mission: allData.whyThisMatters || '', // Backend might use 'mission' field
         // Impact & Story fields
         success_story: allData.successStory || '',
         story_author: allData.storyAuthor || '',
@@ -195,8 +193,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         direct_to_programs: allData.directToPrograms || 0,
         impact_statement_1: allData.impactStatement1 || '',
         impact_statement_2: allData.impactStatement2 || '',
-        // Legacy field for backward compatibility
-        impact_statement: allData.impactStatement || allData.impactStatement1 || '',
+        // Note: impact_statement is legacy, using impact_statement_1 and impact_statement_2 instead
         transparency_rating: allData.transparencyRating || 0,
         verification_status: allData.verificationStatus || false,
         ein: allData.ein || '',
@@ -204,10 +201,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         social: allData.social || '',
         likes: allData.likes || 0,
         mutual: allData.mutual || 0,
-        isActive: allData.isActive !== undefined ? allData.isActive : true,
+        is_active: allData.isActive !== undefined ? allData.isActive : true,
+        isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
         // Images uploaded to Supabase
         main_image: mainImageUrl || '',
+        main_image_url: mainImageUrl || '', // Send both for compatibility
         logo: logoUrl || '',
+        logo_url: logoUrl || '', // Send both for compatibility
         additional_images: additionalImages.filter(img => img), // Filter out empty slots
         // Profile links (social media)
         profile_links: allData.profileLinks ? allData.profileLinks.filter((link: any) => link.channel && link.username) : []

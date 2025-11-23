@@ -123,8 +123,13 @@ const Beneficiaries: React.FC = () => {
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
                           (beneficiary.active !== undefined ? beneficiary.active : true));
           
-          // Extract image URL - API uses 'imageUrl' field
-          const imageUrl = beneficiary.imageUrl || '';
+          // Extract image URL - check all possible field names
+          const imageUrl = beneficiary.imageUrl || 
+                          beneficiary.main_image || 
+                          beneficiary.main_image_url || 
+                          beneficiary.logo || 
+                          beneficiary.logo_url || 
+                          '';
           
           // Extract all available fields from the API response
           return {

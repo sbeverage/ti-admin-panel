@@ -217,11 +217,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         longitude: formData.longitude || null,
         phone: formData.contactNumber || '',
         contact_name: formData.contactName || '',
-        // Send both field names for backend compatibility
+        // Use exact database field names (snake_case)
         about: formData.about || '',
-        description: formData.about || '', // Backend might use 'description'
         why_this_matters: formData.whyThisMatters || '',
-        mission: formData.whyThisMatters || '', // Backend might use 'mission'
         success_story: formData.successStory || '',
         story_author: formData.storyAuthor || '',
         families_helped: formData.familiesHelped || '',
@@ -229,17 +227,18 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         direct_to_programs: formData.directToPrograms || 0,
         impact_statement_1: formData.impactStatement1 || '',
         impact_statement_2: formData.impactStatement2 || '',
-        impact_statement: formData.impactStatement1 || '', // Legacy field
-        transparency_rating: 0, // Default if not in form
         verification_status: formData.verificationStatus || false,
         ein: formData.ein || '',
         website: formData.website || '',
         social: formData.social || '',
         likes: formData.likes || 0,
         mutual: formData.mutual || 0,
-        isActive: formData.isActive !== undefined ? formData.isActive : true,
+        is_active: formData.isActive !== undefined ? formData.isActive : true,
+        isActive: formData.isActive !== undefined ? formData.isActive : true, // Send both for compatibility
         main_image: formData.mainImageUrl || '',
-        logo: formData.logoUrl || '', // If we have logo field
+        main_image_url: formData.mainImageUrl || '', // Send both for compatibility
+        logo: formData.logoUrl || '',
+        logo_url: formData.logoUrl || '', // Send both for compatibility
         volunteer_info: formData.volunteerInfo || ''
       };
 
