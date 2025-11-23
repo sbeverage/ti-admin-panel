@@ -246,16 +246,59 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         // Load discounts for this vendor with timeout (optional - don't fail if endpoint doesn't exist)
         let discounts = [];
         try {
-          const discountsResponse = await Promise.race([
-            discountAPI.getDiscountsByVendor(vendorIdNum),
-            timeoutPromise
-          ]) as any;
-          discounts = discountsResponse.success ? discountsResponse.data : [];
-          console.log('Discounts loaded:', discounts);
+          console.log('🔍 Fetching discounts for vendor ID:', vendorIdNum);
+          
+          // First, try to fetch all discounts directly to see what we get
+          try {
+            const allDiscountsTest = await discountAPI.getDiscounts(1, 1000);
+            console.log('🧪 TEST: All discounts response:', allDiscountsTest);
+            console.log('🧪 TEST: All discounts data:', allDiscountsTest.data);
+            console.log('🧪 TEST: Total discounts found:', allDiscountsTest.data?.length || 0);
+            
+            if (allDiscountsTest.data && Array.isArray(allDiscountsTest.data)) {
+              const vendorDiscounts = allDiscountsTest.data.filter((d: any) => {
+                const vid = d.vendor_id || d.vendorId;
+                const matches = vid === vendorIdNum || vid === Number(vendorIdNum) || String(vid) === String(vendorIdNum);
+                if (matches) {
+                  console.log('✅ TEST: Found matching discount:', d.id, 'vendor_id:', vid);
+                }
+                return matches;
+              });
+              console.log('🧪 TEST: Filtered discounts for vendor:', vendorDiscounts);
+              if (vendorDiscounts.length > 0) {
+                discounts = vendorDiscounts;
+                console.log(`✅ TEST: Using ${discounts.length} discounts from direct fetch`);
+              }
+            }
+          } catch (testError) {
+            console.log('🧪 TEST: Direct fetch failed, trying vendor-specific endpoint:', testError);
+          }
+          
+          // If we didn't get discounts from direct fetch, try the vendor-specific endpoint
+          if (discounts.length === 0) {
+            const discountsResponse = await Promise.race([
+              discountAPI.getDiscountsByVendor(vendorIdNum),
+              timeoutPromise
+            ]) as any;
+            
+            console.log('📦 Discounts API response:', discountsResponse);
+            
+            if (discountsResponse && discountsResponse.success) {
+              discounts = Array.isArray(discountsResponse.data) ? discountsResponse.data : [];
+              console.log(`✅ Loaded ${discounts.length} discounts:`, discounts);
+            } else {
+              console.log('⚠️ Discounts response not successful:', discountsResponse);
+              discounts = [];
+            }
+          }
         } catch (discountError) {
+          console.error('❌ Error loading discounts:', discountError);
           console.log('Discounts endpoint not available, continuing without discounts:', discountError);
           discounts = [];
         }
+        
+        console.log(`🎯 Final discounts array for vendor ${vendorIdNum}:`, discounts);
+        console.log(`🎯 Final discounts count:`, discounts.length);
         
         // Parse form data from description field (stored as JSON)
         let formData: any = {};
@@ -300,19 +343,28 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           phoneNumber: vendor.phone,
           category: vendor.category || 'Uncategorized',
           // Discount information (from discounts API)
-          discounts: discounts.map((discount: DiscountType) => ({
-            id: discount.id,
-            discountName: discount.title || discount.name,
-            discountType: discount.discount_type as 'free' | 'percentage' | 'dollar' | 'bogo',
-            discountValue: discount.discount_value.toString(),
-            discountOn: discount.description,
-            frequency: discount.usage_limit || 'unlimited',
-            promoCode: discount.discount_code || discount.pos_code || `PROMO${discount.id}`,
-            additionalTerms: discount.description,
-            approvedBy: 'Admin', // This would come from discount data
-            approvalDate: new Date(discount.created_at).toLocaleDateString(),
-            pricingTier: 'Not Set'
-          })),
+          discounts: (Array.isArray(discounts) ? discounts : []).map((discount: DiscountType) => {
+            // Map API discount_type to UI format
+            // API uses 'fixed' but UI expects 'dollar' for display
+            let displayType: 'free' | 'percentage' | 'dollar' | 'bogo' = discount.discount_type as any;
+            if (discount.discount_type === 'fixed') {
+              displayType = 'dollar';
+            }
+            
+            return {
+              id: discount.id,
+              discountName: discount.title || discount.name,
+              discountType: displayType,
+              discountValue: discount.discount_value.toString(),
+              discountOn: discount.description,
+              frequency: discount.usage_limit || 'unlimited',
+              promoCode: discount.discount_code || discount.pos_code || `PROMO${discount.id}`,
+              additionalTerms: discount.description,
+              approvedBy: 'Admin', // This would come from discount data
+              approvalDate: new Date(discount.created_at).toLocaleDateString(),
+              pricingTier: 'Not Set'
+            };
+          }),
           // Work schedule (from vendor data)
           workSchedule: vendor.hours,
           // Images from vendor data
