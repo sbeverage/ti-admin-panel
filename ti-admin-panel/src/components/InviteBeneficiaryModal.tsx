@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Steps, Form, Input, Select, Button, Row, Col, Typography, Divider, Checkbox, InputNumber, message, Card } from 'antd';
+import { Modal, Steps, Form, Input, Select, Button, Row, Col, Typography, Divider, Checkbox, InputNumber, message, Card, Upload } from 'antd';
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -13,7 +13,9 @@ import {
   BookOutlined,
   TeamOutlined,
   SafetyOutlined,
-  UserOutlined
+  UserOutlined,
+  UploadOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
 import ImageUpload from './ImageUpload';
@@ -39,13 +41,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const [basicDetails, setBasicDetails] = useState<any>({});
   const [impactStory, setImpactStory] = useState<any>({});
   const [trustTransparency, setTrustTransparency] = useState<any>({});
-  const [volunteerInfo, setVolunteerInfo] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
   // Image URLs from S3 uploads
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+  // Form 990 file
+  const [form990File, setForm990File] = useState<any>(null);
+  // Profile links
+  const [profileLinks, setProfileLinks] = useState<Array<{ channel: string; username: string }>>([{ channel: '', username: '' }]);
 
   const steps = [
     {
@@ -62,11 +67,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       title: 'Trust & Transparency',
       icon: <SafetyOutlined style={{ color: '#324E58' }} />,
       description: trustTransparency.ein || 'Trust info here'
-    },
-    {
-      title: 'Get Involved',
-      icon: <TeamOutlined style={{ color: '#324E58' }} />,
-      description: volunteerInfo.volunteerInfo ? 'Volunteer info added' : 'Volunteer info here'
     },
     {
       title: 'Upload Images',
@@ -123,18 +123,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         console.log('✅ Step 2 validated:', values);
         setTrustTransparency(values);
         setCurrentStep(3);
-      } else if (currentStep === 3) {
-        const values = await form.validateFields();
-        console.log('✅ Step 3 validated:', values);
-        setVolunteerInfo(values);
-        setCurrentStep(4);
       } else {
         const values = await form.validateFields();
-        console.log('✅ Step 4 validated:', values);
+        console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
         // Submit to API
-        await handleSubmit({ ...basicDetails, ...impactStory, ...trustTransparency, ...volunteerInfo, ...values });
+        await handleSubmit({ ...basicDetails, ...impactStory, ...trustTransparency, ...values });
       }
     } catch (error) {
       console.error('❌ Validation failed:', error);
@@ -142,44 +137,23 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   };
 
-  // Geocode address to get latitude and longitude
-  const geocodeAddress = async (city: string, state: string, zipCode?: string): Promise<{ latitude: number; longitude: number } | null> => {
-    try {
-      // Build address string for geocoding
-      const addressParts = [city, state];
-      if (zipCode) {
-        addressParts.push(zipCode);
-      }
-      const address = addressParts.join(', ');
+  // Add profile link
+  const addProfileLink = () => {
+    setProfileLinks([...profileLinks, { channel: '', username: '' }]);
+  };
 
-      // Use OpenStreetMap Nominatim (free, no API key required)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
-        {
-          headers: {
-            'User-Agent': 'TI-Admin-Panel/1.0' // Required by Nominatim
-          }
-        }
-      );
+  // Remove profile link
+  const removeProfileLink = (index: number) => {
+    const newLinks = profileLinks.filter((_, i) => i !== index);
+    setProfileLinks(newLinks);
+  };
 
-      if (!response.ok) {
-        console.warn('Geocoding failed:', response.status);
-        return null;
-      }
-
-      const data = await response.json();
-      if (data && data.length > 0 && data[0].lat && data[0].lon) {
-        return {
-          latitude: parseFloat(data[0].lat),
-          longitude: parseFloat(data[0].lon)
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      return null;
-    }
+  // Update profile link
+  const updateProfileLink = (index: number, field: 'channel' | 'username', value: string) => {
+    const newLinks = [...profileLinks];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setProfileLinks(newLinks);
+    form.setFieldsValue({ profileLinks: newLinks });
   };
 
   const handleSubmit = async (allData: any) => {
@@ -187,24 +161,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setSaving(true);
     
     try {
-      // Geocode address to get latitude and longitude automatically
-      let latitude: number | undefined;
-      let longitude: number | undefined;
-      
-      if (allData.city && allData.state) {
-        message.loading({ content: 'Getting location coordinates...', key: 'geocoding', duration: 0 });
-        const coords = await geocodeAddress(allData.city, allData.state, allData.zipCode);
-        message.destroy('geocoding');
-        
-        if (coords) {
-          latitude = coords.latitude;
-          longitude = coords.longitude;
-          console.log('✅ Geocoded coordinates:', { latitude, longitude });
-        } else {
-          console.warn('⚠️ Could not geocode address, coordinates will be null');
-          message.warning('Could not automatically determine location coordinates. They can be added later in the profile.');
-        }
-      }
+      // Latitude and longitude will be set to null - can be geocoded on backend if needed
+      // Frontend geocoding has CORS issues, so we'll let backend handle it
+      const latitude: number | undefined = undefined;
+      const longitude: number | undefined = undefined;
 
       // Transform data to API format
       const beneficiaryData = {
@@ -217,9 +177,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         location: allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Use location field if provided, otherwise combine
         latitude: latitude,
         longitude: longitude,
-        email: allData.primaryEmail,
-        phone: allData.phoneNumber,
-        contact_name: allData.primaryContact,
+        // Note: Backend doesn't have 'email' column, using contact_name for contact info
+        phone: allData.phoneNumber || '',
+        contact_name: allData.primaryContact || '',
         description: allData.about,
         mission: allData.whyThisMatters || '',
         impact_statement: allData.impactStatement || '',
@@ -230,8 +190,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         likes: allData.likes || 0,
         mutual: allData.mutual || 0,
         isActive: allData.isActive !== undefined ? allData.isActive : true,
-        volunteer_info: allData.volunteerInfo || '',
-        // Images uploaded to S3
+        // Images uploaded to Supabase
         main_image: mainImageUrl || '',
         logo: logoUrl || '',
         additional_images: additionalImages.filter(img => img) // Filter out empty slots
@@ -248,19 +207,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         onSubmit(allData);
         handleCancel();
       } else {
-        // Backend endpoint might not be ready yet
-        console.warn('⚠️ Backend not ready, showing user-friendly message');
-        message.warning('Beneficiary form submitted! Backend endpoint is being prepared.');
-        onSubmit(allData);
-        handleCancel();
+        const errorMsg = response.error || 'Failed to create beneficiary';
+        console.error('❌ Backend error:', errorMsg);
+        message.error(`Failed to create beneficiary: ${errorMsg}`);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error creating beneficiary:', error);
-      // Show friendly message instead of error since backend might not be ready
-      message.warning('Beneficiary form completed! Backend endpoint is being set up.');
-      onSubmit(allData);
-      handleCancel();
+      const errorMsg = error?.message || 'Failed to create beneficiary. Please try again.';
+      message.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -276,12 +231,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setBasicDetails({});
     setImpactStory({});
     setTrustTransparency({});
-    setVolunteerInfo({});
     setUploadImages({});
     // Reset image states
     setMainImageUrl(null);
     setLogoUrl(null);
     setAdditionalImages([]);
+    setForm990File(null);
+    setProfileLinks([{ channel: '', username: '' }]);
     onCancel();
   };
 
@@ -378,23 +334,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact"
+                  label="Primary Contact *"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="website"
-                  label="Website"
-                  rules={[{ required: false }]}
-                >
-                  <Input placeholder="https://..." />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
@@ -404,6 +349,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   <Input placeholder="Enter email address" />
                 </Form.Item>
               </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="phoneNumber"
@@ -411,6 +358,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   rules={[{ required: false }]}
                 >
                   <Input placeholder="Enter phone number" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="website"
+                  label="Website"
+                  rules={[{ required: false }]}
+                >
+                  <Input placeholder="https://..." />
                 </Form.Item>
               </Col>
             </Row>
@@ -427,6 +383,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               </Col>
               <Col span={12}>
                 <Form.Item
+                  name="isActive"
+                  label="Active Status"
+                  valuePropName="checked"
+                  initialValue={true}
+                  style={{ marginTop: 30 }}
+                >
+                  <Checkbox>Active (show in app)</Checkbox>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
                   name="likes"
                   label="Likes"
                   initialValue={0}
@@ -438,8 +407,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   />
                 </Form.Item>
               </Col>
-            </Row>
-            <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="mutual"
@@ -451,16 +418,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                     style={{ width: '100%' }}
                     min={0}
                   />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="isActive"
-                  label="Active Status"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Checkbox>Active (show in app)</Checkbox>
                 </Form.Item>
               </Col>
             </Row>
@@ -634,47 +591,89 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             
             <Form.Item
               name="form990"
-              label="Upload Form-990"
+              label="Upload Form-990 (Optional)"
             >
-              <div className="upload-section">
-                <Input placeholder="Select Form-990 file" />
-                <Button className="upload-btn">
-                  Upload Document
+              <Upload
+                beforeUpload={(file) => {
+                  setForm990File(file);
+                  form.setFieldsValue({ form990: file });
+                  return false; // Prevent auto upload
+                }}
+                onRemove={() => {
+                  setForm990File(null);
+                  form.setFieldsValue({ form990: null });
+                }}
+                maxCount={1}
+                accept=".pdf,.doc,.docx"
+              >
+                <Button icon={<UploadOutlined />} className="upload-btn">
+                  Select Form-990 File
                 </Button>
-              </div>
+              </Upload>
+              {form990File && (
+                <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                  Selected: {form990File.name}
+                </Text>
+              )}
             </Form.Item>
 
             <Divider>Profile Links</Divider>
             
             <div className="profile-links-section">
-              <Title level={5}>Enter your profile link for all of the following: *At least one is required</Title>
-              <Row gutter={[24, 16]}>
-                <Col span={12}>
-                  <Form.Item
-                    name="channel"
-                    label="Select Channel"
-                    rules={[{ required: true, message: 'Please select channel' }]}
-                  >
-                    <Select placeholder="Select channel">
-                      <Option value="facebook">Facebook</Option>
-                      <Option value="twitter">Twitter</Option>
-                      <Option value="instagram">Instagram</Option>
-                      <Option value="linkedin">LinkedIn</Option>
-                      <Option value="website">Website</Option>
-                      <Option value="other">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="username"
-                    label="Enter User Name"
-                  >
-                    <Input placeholder="Enter username" />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Button className="add-profile-link-btn" icon={<PlusOutlined />}>
+              <Title level={5} style={{ marginBottom: 16 }}>Enter your profile links (Optional)</Title>
+              {profileLinks.map((link, index) => (
+                <Row gutter={[16, 16]} key={index} style={{ marginBottom: 16, alignItems: 'flex-start' }}>
+                  <Col span={10}>
+                    <Form.Item
+                      label={index === 0 ? 'Select Channel' : ''}
+                      rules={index === 0 ? [{ required: false }] : []}
+                    >
+                      <Select
+                        placeholder="Select channel"
+                        value={link.channel}
+                        onChange={(value) => updateProfileLink(index, 'channel', value)}
+                      >
+                        <Option value="facebook">Facebook</Option>
+                        <Option value="twitter">Twitter</Option>
+                        <Option value="instagram">Instagram</Option>
+                        <Option value="linkedin">LinkedIn</Option>
+                        <Option value="website">Website</Option>
+                        <Option value="other">Other</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={10}>
+                    <Form.Item
+                      label={index === 0 ? 'Enter Username/URL' : ''}
+                      rules={index === 0 ? [{ required: false }] : []}
+                    >
+                      <Input
+                        placeholder="Enter username or URL"
+                        value={link.username}
+                        onChange={(e) => updateProfileLink(index, 'username', e.target.value)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={4} style={{ paddingTop: index === 0 ? 30 : 0 }}>
+                    {profileLinks.length > 1 && (
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => removeProfileLink(index)}
+                        style={{ marginTop: index === 0 ? 0 : 0 }}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </Col>
+                </Row>
+              ))}
+              <Button
+                className="add-profile-link-btn"
+                icon={<PlusOutlined />}
+                onClick={addProfileLink}
+              >
                 Add New Profile Link
               </Button>
             </div>
@@ -682,32 +681,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         );
 
       case 3:
-        return (
-          <div className="step-content">
-            <Title level={4}>Get Involved</Title>
-            <Form.Item
-              name="volunteerInfo"
-              label="Volunteer Information *"
-              rules={[
-                { required: true, message: 'Please provide volunteer information' },
-                { min: 100, message: 'Must be at least 100 characters' }
-              ]}
-            >
-              <TextArea 
-                rows={4} 
-                placeholder="Information about volunteer opportunities and ways to get involved..." 
-                showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
-                maxLength={500}
-              />
-            </Form.Item>
-            
-            <Text type="secondary">
-              This information will be displayed in the "Get Involved" tab to help potential volunteers understand how they can contribute beyond financial donations.
-            </Text>
-          </div>
-        );
-
-      case 4:
         return (
           <div className="step-content">
             <Title level={4}>Upload Images</Title>
@@ -846,4 +819,5 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   );
 };
 
+export default InviteBeneficiaryModal; 
 export default InviteBeneficiaryModal; 

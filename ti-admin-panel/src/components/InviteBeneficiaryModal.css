@@ -205,6 +205,18 @@
   color: #ffffff !important;
 }
 
+/* Form 990 Upload */
+.ant-upload.ant-upload-select {
+  width: 100%;
+}
+
+.ant-upload.ant-upload-select .ant-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Profile Links Section */
 .profile-links-section {
   background: #f8f9fa;
@@ -216,6 +228,14 @@
 .profile-links-section .ant-typography {
   margin-bottom: 16px !important;
   color: #324E58;
+}
+
+.profile-links-section .ant-form-item {
+  margin-bottom: 0;
+}
+
+.profile-links-section .ant-form-item-label {
+  padding-bottom: 4px;
 }
 
 .add-profile-link-btn {
