@@ -132,13 +132,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             impact_statement_1: apiData.impact_statement_1,
             impact_statement_2: apiData.impact_statement_2,
             verification_status: apiData.verification_status,
+            verificationStatus: apiData.verificationStatus,
+            is_active: apiData.is_active,
+            isActive: apiData.isActive,
             ein: apiData.ein,
             website: apiData.website,
             social: apiData.social,
             main_image: apiData.main_image,
             main_image_url: apiData.main_image_url,
             logo: apiData.logo,
-            logo_url: apiData.logo_url
+            logo_url: apiData.logo_url,
+            location: apiData.location,
+            phone: apiData.phone,
+            contact_name: apiData.contact_name
           });
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
@@ -248,7 +254,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         direct_to_programs: formData.directToPrograms || 0,
         impact_statement_1: formData.impactStatement1 || '',
         impact_statement_2: formData.impactStatement2 || '',
-        verification_status: formData.verificationStatus || false,
+        verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // Default to true so it shows in app
         ein: formData.ein || '',
         website: formData.website || '',
         social: formData.social || '',

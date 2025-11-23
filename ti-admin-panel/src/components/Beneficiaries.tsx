@@ -224,10 +224,11 @@ const Beneficiaries: React.FC = () => {
     setSelectedBeneficiaryData(null);
   };
 
-  const handleBeneficiaryUpdate = (updatedData: any) => {
+  const handleBeneficiaryUpdate = async (updatedData: any) => {
     console.log('Beneficiary updated:', updatedData);
-    // Here you would typically update the local state or refresh the data
-    // For now, we'll just close the profile
+    // Refresh the beneficiaries list to show updated data
+    await loadBeneficiaries();
+    // Close the profile
     setProfileVisible(false);
     setSelectedBeneficiaryId(null);
   };
