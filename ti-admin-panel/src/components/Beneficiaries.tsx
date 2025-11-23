@@ -237,6 +237,39 @@ const Beneficiaries: React.FC = () => {
     setSelectedBeneficiaryId(null);
   };
 
+  const handleDeleteBeneficiary = (record: any) => {
+    setDeletingBeneficiary(record);
+    setIsDeleteBeneficiaryModalVisible(true);
+  };
+
+  const confirmDeleteBeneficiary = async () => {
+    if (!deletingBeneficiary || !deletingBeneficiary.id) {
+      message.error('Cannot delete beneficiary: missing beneficiary ID');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const beneficiaryId = deletingBeneficiary.id || deletingBeneficiary.key;
+      const response = await beneficiaryAPI.deleteBeneficiary(parseInt(beneficiaryId));
+      
+      if (response.success || response.data) {
+        message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
+        setIsDeleteBeneficiaryModalVisible(false);
+        setDeletingBeneficiary(null);
+        // Refresh beneficiaries list
+        await loadBeneficiaries();
+      } else {
+        message.error(response.error || response.message || 'Failed to delete beneficiary');
+      }
+    } catch (error: any) {
+      console.error('Error deleting beneficiary:', error);
+      message.error(error.message || 'Failed to delete beneficiary. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePageChange = (page: number, size?: number) => {
     setCurrentPage(page);
     if (size) setPageSize(size);
