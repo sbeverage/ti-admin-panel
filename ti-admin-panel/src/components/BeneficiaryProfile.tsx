@@ -65,6 +65,7 @@ interface BeneficiaryData {
   // New fields
   about?: string;
   mainImageUrl?: string;
+  logoUrl?: string;
   whyThisMatters?: string;
   successStory?: string;
   storyAuthor?: string;
