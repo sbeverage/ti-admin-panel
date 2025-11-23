@@ -195,7 +195,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         impact_statement_2: allData.impactStatement2 || '',
         // Note: impact_statement is legacy, using impact_statement_1 and impact_statement_2 instead
         transparency_rating: allData.transparencyRating || 0,
-        verification_status: allData.verificationStatus || false,
+        verification_status: allData.verificationStatus !== undefined ? allData.verificationStatus : true, // Default to true so it shows in app
         ein: allData.ein || '',
         website: allData.website || '',
         social: allData.social || '',
