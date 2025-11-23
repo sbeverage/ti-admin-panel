@@ -243,15 +243,29 @@ const Beneficiaries: React.FC = () => {
   };
 
   const confirmDeleteBeneficiary = async () => {
-    if (!deletingBeneficiary || !deletingBeneficiary.id) {
+    if (!deletingBeneficiary) {
+      message.error('Cannot delete beneficiary: missing beneficiary data');
+      return;
+    }
+
+    // Try to get ID from multiple possible locations
+    const beneficiaryId = deletingBeneficiary.rawData?.id || 
+                         deletingBeneficiary.id || 
+                         deletingBeneficiary.key ||
+                         (deletingBeneficiary.rawData && deletingBeneficiary.rawData.id);
+    
+    if (!beneficiaryId) {
+      console.error('Beneficiary record structure:', deletingBeneficiary);
       message.error('Cannot delete beneficiary: missing beneficiary ID');
       return;
     }
 
     try {
       setLoading(true);
-      const beneficiaryId = deletingBeneficiary.id || deletingBeneficiary.key;
-      const response = await beneficiaryAPI.deleteBeneficiary(parseInt(beneficiaryId));
+      // Convert to number if it's a string
+      const idToDelete = typeof beneficiaryId === 'string' ? parseInt(beneficiaryId) : beneficiaryId;
+      console.log('Deleting beneficiary with ID:', idToDelete);
+      const response = await beneficiaryAPI.deleteBeneficiary(idToDelete);
       
       if (response.success || response.data) {
         message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
