@@ -142,11 +142,70 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   };
 
+  // Geocode address to get latitude and longitude
+  const geocodeAddress = async (city: string, state: string, zipCode?: string): Promise<{ latitude: number; longitude: number } | null> => {
+    try {
+      // Build address string for geocoding
+      const addressParts = [city, state];
+      if (zipCode) {
+        addressParts.push(zipCode);
+      }
+      const address = addressParts.join(', ');
+
+      // Use OpenStreetMap Nominatim (free, no API key required)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'TI-Admin-Panel/1.0' // Required by Nominatim
+          }
+        }
+      );
+
+      if (!response.ok) {
+        console.warn('Geocoding failed:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      if (data && data.length > 0 && data[0].lat && data[0].lon) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (allData: any) => {
     console.log('🚀 Submitting beneficiary data:', allData);
     setSaving(true);
     
     try {
+      // Geocode address to get latitude and longitude automatically
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      
+      if (allData.city && allData.state) {
+        message.loading({ content: 'Getting location coordinates...', key: 'geocoding', duration: 0 });
+        const coords = await geocodeAddress(allData.city, allData.state, allData.zipCode);
+        message.destroy('geocoding');
+        
+        if (coords) {
+          latitude = coords.latitude;
+          longitude = coords.longitude;
+          console.log('✅ Geocoded coordinates:', { latitude, longitude });
+        } else {
+          console.warn('⚠️ Could not geocode address, coordinates will be null');
+          message.warning('Could not automatically determine location coordinates. They can be added later in the profile.');
+        }
+      }
+
       // Transform data to API format
       const beneficiaryData = {
         name: allData.beneficiaryName,
@@ -156,8 +215,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         state: allData.state,
         zip_code: allData.zipCode || '',
         location: allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Use location field if provided, otherwise combine
-        latitude: allData.latitude,
-        longitude: allData.longitude,
+        latitude: latitude,
+        longitude: longitude,
         email: allData.primaryEmail,
         phone: allData.phoneNumber,
         contact_name: allData.primaryContact,
@@ -312,46 +371,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   rules={[{ required: false }]}
                 >
                   <Input placeholder="Enter ZIP code" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={[24, 16]}>
-              <Col span={12}>
-                <Form.Item
-                  name="latitude"
-                  label="Latitude *"
-                  rules={[
-                    { required: true, message: 'Please enter latitude' },
-                    { type: 'number', min: -90, max: 90, message: 'Latitude must be between -90 and 90' }
-                  ]}
-                  tooltip="GPS latitude coordinate (e.g., 33.7490)"
-                >
-                  <InputNumber
-                    placeholder="33.7490"
-                    style={{ width: '100%' }}
-                    precision={8}
-                    min={-90}
-                    max={90}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="longitude"
-                  label="Longitude *"
-                  rules={[
-                    { required: true, message: 'Please enter longitude' },
-                    { type: 'number', min: -180, max: 180, message: 'Longitude must be between -180 and 180' }
-                  ]}
-                  tooltip="GPS longitude coordinate (e.g., -84.3880)"
-                >
-                  <InputNumber
-                    placeholder="-84.3880"
-                    style={{ width: '100%' }}
-                    precision={8}
-                    min={-180}
-                    max={180}
-                  />
                 </Form.Item>
               </Col>
             </Row>
