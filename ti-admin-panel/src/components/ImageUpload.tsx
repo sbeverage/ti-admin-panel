@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Button, message, Image, Spin } from 'antd';
 import { UploadOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { uploadToS3, deleteFromS3, validateImageFile } from '../services/aws';
+import { uploadToSupabase, deleteFromSupabase, validateImageFile } from '../services/supabaseStorage';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -38,7 +38,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploading(true);
     
     try {
-      const result = await uploadToS3(file);
+      const result = await uploadToSupabase(file);
       console.log('ImageUpload: Upload result:', result);
       
       if (result.success && result.url) {
@@ -61,14 +61,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const handleRemove = async () => {
-    if (currentImageUrl && currentImageUrl.includes('amazonaws.com')) {
+    if (currentImageUrl && (currentImageUrl.includes('supabase.co') || currentImageUrl.includes('amazonaws.com'))) {
       try {
-        const result = await deleteFromS3(currentImageUrl);
+        const result = await deleteFromSupabase(currentImageUrl);
         if (!result.success) {
-          console.warn('Failed to delete from S3:', result.error);
+          console.warn('Failed to delete from Supabase Storage:', result.error);
         }
       } catch (error) {
-        console.warn('Error deleting from S3:', error);
+        console.warn('Error deleting from Supabase Storage:', error);
       }
     }
     
