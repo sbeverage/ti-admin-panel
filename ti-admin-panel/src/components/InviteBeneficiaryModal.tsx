@@ -167,7 +167,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       const longitude: number | undefined = undefined;
 
       // Transform data to API format
-      const beneficiaryData = {
+      // NOTE: Backend 'charities' table does NOT have an 'email' column
+      // The backend code needs to be updated to remove any references to 'email' column
+      // We collect primaryEmail in the form but do NOT send it to backend
+      const beneficiaryData: any = {
         name: allData.beneficiaryName,
         category: allData.category,
         type: allData.type, // Large, Medium, or Small
@@ -177,7 +180,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         location: allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Use location field if provided, otherwise combine
         latitude: latitude,
         longitude: longitude,
-        // Note: Backend doesn't have 'email' column, using contact_name for contact info
         phone: allData.phoneNumber || '',
         contact_name: allData.primaryContact || '',
         description: allData.about,
@@ -195,6 +197,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         logo: logoUrl || '',
         additional_images: additionalImages.filter(img => img) // Filter out empty slots
       };
+      
+      // Explicitly ensure email is NOT in the payload
+      // Backend error: "Could not find the 'email' column of 'charities' in the schema cache"
+      // This means backend code is trying to access email column that doesn't exist
+      delete beneficiaryData.email;
+      delete beneficiaryData.primaryEmail;
       
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       
