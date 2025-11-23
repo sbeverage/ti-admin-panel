@@ -11,7 +11,8 @@ export interface UploadResult {
 const SUPABASE_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A';
 
-// Upload image to Supabase Storage using REST API
+// Upload image to Supabase Storage via backend API
+// Backend uses service role key for secure uploads
 export const uploadToSupabase = async (
   file: File,
   bucketName: string = 'beneficiary-images',
@@ -31,36 +32,59 @@ export const uploadToSupabase = async (
     const randomString = Math.random().toString(36).substring(2, 15);
     const fileExtension = file.name.split('.').pop();
     const fileName = `${folder}/${timestamp}-${randomString}.${fileExtension}`;
-    const filePath = `${bucketName}/${fileName}`;
 
-    // Upload to Supabase Storage using REST API
-    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${filePath}`;
-    
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
+    // Convert file to base64 for API upload
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix (data:image/jpeg;base64,)
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+    });
+    reader.readAsDataURL(file);
+
+    const base64Data = await base64Promise;
+
+    // Upload via backend API (uses service role key for secure uploads)
+    const API_CONFIG = {
+      baseURL: 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': file.type,
-        'x-upsert': 'true' // Allow overwriting if file exists
-      },
-      body: file
+        'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
+      }
+    };
+
+    const response = await fetch(`${API_CONFIG.baseURL}/storage/upload`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({
+        bucket: bucketName,
+        path: fileName,
+        file: base64Data,
+        contentType: file.type,
+        fileName: file.name
+      })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Supabase Storage upload failed:', response.status, errorText);
       
-      // If bucket doesn't exist or access denied, provide helpful error
+      // Provide helpful error messages
       if (response.status === 404) {
         return {
           success: false,
-          error: `Storage bucket '${bucketName}' not found. Please create it in Supabase Dashboard.`
+          error: 'Upload endpoint not found. Backend needs to implement /storage/upload endpoint.'
         };
       } else if (response.status === 401 || response.status === 403) {
         return {
           success: false,
-          error: 'Access denied. Please check Supabase Storage bucket permissions.'
+          error: 'Access denied. Please check backend authentication.'
         };
       }
       
@@ -70,14 +94,20 @@ export const uploadToSupabase = async (
       };
     }
 
-    // Construct public URL
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${filePath}`;
+    const result = await response.json();
     
-    console.log('Supabase Storage upload successful:', publicUrl);
-    return {
-      success: true,
-      url: publicUrl
-    };
+    if (result.success && result.url) {
+      console.log('Supabase Storage upload successful:', result.url);
+      return {
+        success: true,
+        url: result.url
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Upload failed'
+      };
+    }
   } catch (error) {
     console.error('Supabase Storage upload error:', error);
     return {
@@ -87,7 +117,7 @@ export const uploadToSupabase = async (
   }
 };
 
-// Delete image from Supabase Storage using REST API
+// Delete image from Supabase Storage via backend API
 export const deleteFromSupabase = async (
   url: string,
   bucketName: string = 'beneficiary-images'
@@ -107,14 +137,24 @@ export const deleteFromSupabase = async (
       filePath = url;
     }
 
-    const deleteUrl = `${SUPABASE_URL}/storage/v1/object/${filePath}`;
-
-    const response = await fetch(deleteUrl, {
-      method: 'DELETE',
+    // Delete via backend API
+    const API_CONFIG = {
+      baseURL: 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY
+        'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
       }
+    };
+
+    const response = await fetch(`${API_CONFIG.baseURL}/storage/delete`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({
+        bucket: bucketName,
+        path: filePath
+      })
     });
 
     if (!response.ok) {
@@ -126,10 +166,19 @@ export const deleteFromSupabase = async (
       };
     }
 
-    console.log('Supabase Storage delete successful');
-    return {
-      success: true
-    };
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('Supabase Storage delete successful');
+      return {
+        success: true
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Delete failed'
+      };
+    }
   } catch (error) {
     console.error('Supabase Storage delete error:', error);
     return {
