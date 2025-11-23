@@ -166,6 +166,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         // Additional fields
         about: apiData.about || apiData.description || '',
         mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
+        logoUrl: apiData.logo || apiData.logo_url || apiData.logoUrl || '',
         whyThisMatters: apiData.why_this_matters || apiData.mission || apiData.whyThisMatters || '',
         successStory: apiData.success_story || apiData.successStory || '',
         storyAuthor: apiData.story_author || apiData.storyAuthor || '',
@@ -205,15 +206,73 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Here you would make an API call to update the beneficiary
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Transform form data to match backend API format
+      const updateData: any = {
+        name: formData.beneficiaryName,
+        category: formData.beneficiaryCause,
+        type: formData.beneficiaryType,
+        location: formData.location || formData.cityState,
+        latitude: formData.latitude || null,
+        longitude: formData.longitude || null,
+        phone: formData.contactNumber || '',
+        contact_name: formData.contactName || '',
+        // Send both field names for backend compatibility
+        about: formData.about || '',
+        description: formData.about || '', // Backend might use 'description'
+        why_this_matters: formData.whyThisMatters || '',
+        mission: formData.whyThisMatters || '', // Backend might use 'mission'
+        success_story: formData.successStory || '',
+        story_author: formData.storyAuthor || '',
+        families_helped: formData.familiesHelped || '',
+        communities_served: formData.communitiesServed || 0,
+        direct_to_programs: formData.directToPrograms || 0,
+        impact_statement_1: formData.impactStatement1 || '',
+        impact_statement_2: formData.impactStatement2 || '',
+        impact_statement: formData.impactStatement1 || '', // Legacy field
+        transparency_rating: 0, // Default if not in form
+        verification_status: formData.verificationStatus || false,
+        ein: formData.ein || '',
+        website: formData.website || '',
+        social: formData.social || '',
+        likes: formData.likes || 0,
+        mutual: formData.mutual || 0,
+        isActive: formData.isActive !== undefined ? formData.isActive : true,
+        main_image: formData.mainImageUrl || '',
+        logo: formData.logoUrl || '', // If we have logo field
+        volunteer_info: formData.volunteerInfo || ''
+      };
+
+      console.log('💾 Updating beneficiary:', beneficiaryId);
+      console.log('💾 Update payload:', updateData);
+      console.log('💾 All keys being sent:', Object.keys(updateData));
+
+      // Call API to update beneficiary
+      const response = await beneficiaryAPI.updateBeneficiary(parseInt(beneficiaryId), updateData);
       
-      setBeneficiaryData(formData);
-      setIsEditing(false);
-      onUpdate(formData);
-      message.success('Beneficiary updated successfully!');
-    } catch (error) {
-      message.error('Failed to update beneficiary. Please try again.');
+      console.log('📡 Update API response:', response);
+
+      if (response.success) {
+        // Refresh the data by fetching again
+        const fetchResponse = await beneficiaryAPI.getBeneficiary(parseInt(beneficiaryId));
+        if (fetchResponse.success && fetchResponse.data) {
+          transformAndSetData(fetchResponse.data);
+        } else {
+          // Fallback: update local state
+          setBeneficiaryData(formData);
+        }
+        
+        setIsEditing(false);
+        onUpdate(formData);
+        message.success('Beneficiary updated successfully!');
+      } else {
+        const errorMsg = response.error || 'Failed to update beneficiary';
+        console.error('❌ Update error:', errorMsg);
+        message.error(`Failed to update beneficiary: ${errorMsg}`);
+      }
+    } catch (error: any) {
+      console.error('❌ Error updating beneficiary:', error);
+      const errorMsg = error?.message || 'Failed to update beneficiary. Please try again.';
+      message.error(errorMsg);
     } finally {
       setSaving(false);
     }
