@@ -112,6 +112,16 @@ const Beneficiaries: React.FC = () => {
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
                           (beneficiary.active !== undefined ? beneficiary.active : true));
           
+          // Extract image URL from various possible field names
+          const imageUrl = beneficiary.imageUrl || 
+                          beneficiary.image_url || 
+                          beneficiary.main_image || 
+                          beneficiary.main_image_url || 
+                          beneficiary.logo || 
+                          beneficiary.logo_url ||
+                          beneficiary.image || 
+                          '';
+          
           // Extract all available fields from the API response
           return {
             key: beneficiary.id?.toString() || beneficiary.key || Math.random().toString(),
@@ -132,6 +142,7 @@ const Beneficiaries: React.FC = () => {
             active: isActive,
             enabled: isActive,
             avatar: name ? name.charAt(0).toUpperCase() : 'B',
+            imageUrl: imageUrl, // Store image URL for avatar
             // Store full beneficiary data for profile view - preserve ALL fields from API
             rawData: beneficiary
           };
@@ -308,8 +319,16 @@ const Beneficiaries: React.FC = () => {
       key: 'beneficiaryName',
       render: (text: string, record: any) => (
         <Space>
-          <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
-            {record.beneficiaryName.charAt(0)}
+          <Avatar 
+            size={32} 
+            src={record.imageUrl || record.rawData?.imageUrl || record.rawData?.image_url || record.rawData?.main_image || record.rawData?.main_image_url || record.rawData?.logo || record.rawData?.logo_url}
+            style={{ 
+              backgroundColor: record.imageUrl ? 'transparent' : '#DB8633',
+              border: record.imageUrl ? 'none' : 'none'
+            }}
+            icon={!record.imageUrl && !record.rawData?.imageUrl && !record.rawData?.image_url && !record.rawData?.main_image && !record.rawData?.main_image_url && !record.rawData?.logo && !record.rawData?.logo_url ? record.beneficiaryName.charAt(0) : undefined}
+          >
+            {!record.imageUrl && !record.rawData?.imageUrl && !record.rawData?.image_url && !record.rawData?.main_image && !record.rawData?.main_image_url && !record.rawData?.logo && !record.rawData?.logo_url && record.beneficiaryName.charAt(0)}
           </Avatar>
           <Text 
             strong 
