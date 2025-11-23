@@ -277,11 +277,18 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       const response = await beneficiaryAPI.updateBeneficiary(parseInt(beneficiaryId), updateData);
       
       console.log('📡 Update API response:', response);
+      console.log('📡 Update response data:', response.data);
+      if (response.data) {
+        console.log('📡 Updated beneficiary verification_status:', response.data.verification_status || response.data.verificationStatus);
+        console.log('📡 Updated beneficiary is_active:', response.data.is_active || response.data.isActive);
+      }
 
       if (response.success) {
         // Refresh the data by fetching again
         const fetchResponse = await beneficiaryAPI.getBeneficiary(parseInt(beneficiaryId));
+        console.log('🔄 Refetch response:', fetchResponse);
         if (fetchResponse.success && fetchResponse.data) {
+          console.log('🔄 Refetched data:', fetchResponse.data);
           transformAndSetData(fetchResponse.data);
         } else {
           // Fallback: update local state
