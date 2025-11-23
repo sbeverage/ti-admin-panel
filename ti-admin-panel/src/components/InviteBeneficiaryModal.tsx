@@ -222,6 +222,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
+      console.log('📦 is_active value:', beneficiaryData.is_active);
+      console.log('📦 isActive value:', beneficiaryData.isActive);
+      console.log('📦 verification_status value:', beneficiaryData.verification_status);
       
       // Call API
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
@@ -229,6 +232,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       console.log('📡 API response data:', response.data);
       if (response.data) {
         console.log('📡 Created beneficiary ID:', response.data.id || response.data);
+        console.log('📡 Created beneficiary is_active:', response.data.is_active || response.data.isActive);
+        console.log('📡 Created beneficiary verification_status:', response.data.verification_status || response.data.verificationStatus);
       }
       
       if (response.success) {
