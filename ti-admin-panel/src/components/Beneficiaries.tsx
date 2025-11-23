@@ -89,8 +89,19 @@ const Beneficiaries: React.FC = () => {
         // Log the actual API response structure for debugging
         console.log('📊 Raw API response data:', response.data);
         if (response.data && response.data.length > 0) {
-          console.log('📋 Sample beneficiary object:', response.data[0]);
-          console.log('📋 All keys in beneficiary object:', Object.keys(response.data[0]));
+          const sample = response.data[0];
+          console.log('📋 Sample beneficiary object:', sample);
+          console.log('📋 All keys in beneficiary object:', Object.keys(sample));
+          console.log('📋 Full beneficiary data structure:', JSON.stringify(sample, null, 2));
+          console.log('📋 Image fields:', {
+            imageUrl: sample.imageUrl,
+            image_url: sample.image_url,
+            main_image: sample.main_image,
+            main_image_url: sample.main_image_url,
+            logo: sample.logo,
+            logo_url: sample.logo_url,
+            image: sample.image
+          });
         }
         
         // Transform API data to match our table structure
