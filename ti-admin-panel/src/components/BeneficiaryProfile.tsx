@@ -116,6 +116,8 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           // Use the fetched data instead of rawBeneficiaryData
           const apiData = response.data;
           console.log('📋 BeneficiaryProfile: Fetched beneficiary data:', apiData);
+          console.log('📋 BeneficiaryProfile: All keys in response:', Object.keys(apiData));
+          console.log('📋 BeneficiaryProfile: Full response structure:', JSON.stringify(apiData, null, 2));
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
           // Fallback to passed data if API call fails

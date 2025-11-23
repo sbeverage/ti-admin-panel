@@ -182,8 +182,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         longitude: longitude,
         phone: allData.phoneNumber || '',
         contact_name: allData.primaryContact || '',
-        description: allData.about,
-        mission: allData.whyThisMatters || '',
+        // Send both field names to support different backend implementations
+        about: allData.about,
+        description: allData.about, // Backend might use 'description' field
+        why_this_matters: allData.whyThisMatters || '',
+        mission: allData.whyThisMatters || '', // Backend might use 'mission' field
         // Impact & Story fields
         success_story: allData.successStory || '',
         story_author: allData.storyAuthor || '',
@@ -217,10 +220,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       delete beneficiaryData.primaryEmail;
       
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
+      console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
+      console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
       
       // Call API
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
       console.log('📡 API response:', response);
+      console.log('📡 API response data:', response.data);
+      if (response.data) {
+        console.log('📡 Created beneficiary ID:', response.data.id || response.data);
+      }
       
       if (response.success) {
         message.success('Beneficiary created successfully!');
