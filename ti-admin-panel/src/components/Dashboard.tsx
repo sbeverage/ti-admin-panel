@@ -86,7 +86,6 @@ const Dashboard: React.FC = () => {
         totalRevenue: 0, // Would need a separate endpoint
         pendingApprovals: 0, // Would need a separate endpoint
         activeDiscounts: 0, // Would need a separate endpoint
-        upcomingEvents: 0 // Would need a separate endpoint
       };
       
       console.log('📊 Calculated dashboard stats:', stats);
@@ -103,7 +102,6 @@ const Dashboard: React.FC = () => {
         totalRevenue: 0,
         pendingApprovals: 0,
         activeDiscounts: 0,
-        upcomingEvents: 0
       });
     } finally {
       setLoading(false);
@@ -174,8 +172,6 @@ const Dashboard: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    } else if (key === 'events') {
-      navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
     } else if (key === 'pending-approvals') {
@@ -242,12 +238,6 @@ const Dashboard: React.FC = () => {
       icon: <BankOutlined />,
       label: 'Tenants',
       title: 'Tenant Management'
-    },
-    {
-      key: 'events',
-      icon: <CalendarOutlined />,
-      label: 'Events',
-      title: 'Event Management'
     },
     {
       key: 'leaderboard',
@@ -642,23 +632,6 @@ const Dashboard: React.FC = () => {
               </Row>
 
               <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Events"
-                      value={dashboardStats?.totalEvents || '--'}
-                      prefix={<CalendarOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+67.8%</span>
-                          </div>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </Col>
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic

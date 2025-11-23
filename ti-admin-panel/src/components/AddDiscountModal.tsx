@@ -134,29 +134,43 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       setLoading(true);
 
       // Format data for backend
+      // Backend expects snake_case field names (per database schema)
       // Only include fields that exist in the database schema
       // IMPORTANT: Do NOT include minPurchase, maxDiscount - these columns don't exist in the database
       const discountData: any = {
-        vendorId: vendorId,
+        vendor_id: vendorId,
+        vendorId: vendorId, // Send both for compatibility
         title: values.title,
+        name: values.title, // Send both for compatibility (some backends use 'name')
         description: values.description || values.title,
-        discountType: values.discountType,
-        discountCode: values.posCode,
-        usageLimit: values.usageLimit,
-        isActive: true,
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year from now
+        discount_type: values.discountType,
+        discountType: values.discountType, // Send both for compatibility
+        discount_code: values.posCode,
+        pos_code: values.posCode, // Send both for compatibility
+        discountCode: values.posCode, // Send both for compatibility
+        usage_limit: values.usageLimit,
+        usageLimit: values.usageLimit, // Send both for compatibility
+        is_active: true,
+        isActive: true, // Send both for compatibility
+        start_date: new Date().toISOString(),
+        startDate: new Date().toISOString(), // Send both for compatibility
+        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // Send both for compatibility
       };
 
-      // Set discount value based on type
+      // Set discount value based on type (send both snake_case and camelCase)
       if (values.discountType === 'percentage') {
+        discountData.discount_value = values.discountValue;
         discountData.discountValue = values.discountValue;
       } else if (values.discountType === 'fixed') {
+        discountData.discount_value = values.discountValue;
         discountData.discountValue = values.discountValue;
       } else if (values.discountType === 'bogo') {
-        discountData.discountValue = 50; // BOGO is 50% off second item
+        discountData.discount_value = 50; // BOGO is 50% off second item
+        discountData.discountValue = 50;
       } else if (values.discountType === 'free') {
-        discountData.discountValue = 100; // FREE is 100% off
+        discountData.discount_value = 100; // FREE is 100% off
+        discountData.discountValue = 100;
       }
 
       // Explicitly exclude fields that don't exist in the database schema

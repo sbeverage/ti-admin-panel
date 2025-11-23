@@ -116,8 +116,6 @@ const GeographicAnalytics: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    } else if (key === 'events') {
-      navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
     } else if (key === 'pending-approvals') {
@@ -182,12 +180,6 @@ const GeographicAnalytics: React.FC = () => {
       icon: <BankOutlined />,
       label: 'Tenants',
       title: 'Tenant Management'
-    },
-    {
-      key: 'events',
-      icon: <CalendarOutlined />,
-      label: 'Events',
-      title: 'Event Management'
     },
     {
       key: 'leaderboard',

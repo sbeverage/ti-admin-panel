@@ -9,7 +9,6 @@ import Beneficiaries from './components/Beneficiaries';
 import Tenants from './components/Tenants';
 import Discounts from './components/Discounts';
 import Leaderboard from './components/Leaderboard';
-import Events from './components/Events';
 import Settings from './components/Settings';
 import NewsfeedManagement from './components/NewsfeedManagement';
 import PendingApprovals from './components/PendingApprovals';
@@ -68,7 +67,6 @@ function App() {
           <Route path="/tenants" element={<Tenants />} />
           <Route path="/discounts" element={<Discounts />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/events" element={<Events />} />
           <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
           <Route path="/pending-approvals" element={<PendingApprovals />} />
           <Route path="/referral-analytics" element={<ReferralAnalytics />} />

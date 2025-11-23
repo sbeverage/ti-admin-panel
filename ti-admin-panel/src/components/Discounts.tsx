@@ -11,7 +11,12 @@ import {
   Select,
   Card,
   Row,
-  Col
+  Col,
+  Table,
+  Tag,
+  message,
+  Spin,
+  Popconfirm
 } from 'antd';
 import {
   DashboardOutlined,
@@ -25,37 +30,144 @@ import {
   BankOutlined,
   UserAddOutlined,
   RiseOutlined,
-  CalendarOutlined,
   CrownOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
   TeamOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  DollarOutlined,
+  PercentageOutlined,
+  ShoppingOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { discountAPI, vendorAPI } from '../services/api';
+import AddDiscountModal from './AddDiscountModal';
+import '../styles/sidebar-standard.css';
+import '../styles/menu-hover-overrides.css';
 import './Discounts.css';
 
+const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
-
-const { Sider, Content } = Layout;
 
 const Discounts: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+  const [discountsData, setDiscountsData] = useState<any[]>([]);
+  const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalDiscounts, setTotalDiscounts] = useState(0);
+  const [searchText, setSearchText] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState<string | undefined>(undefined);
+  const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [editingDiscount, setEditingDiscount] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Load discounts from API
+  const loadDiscounts = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Loading discounts from API...');
+      const response = await discountAPI.getDiscounts(currentPage, pageSize);
+      console.log('Discount API response:', response);
+      
+      if (response.success) {
+        // Transform API data to match our table structure
+        const transformedData = response.data.map((discount: any) => ({
+          key: discount.id.toString(),
+          id: discount.id,
+          title: discount.title || discount.name || 'Untitled Discount',
+          vendorId: discount.vendor_id || discount.vendorId,
+          vendorName: discount.vendor_name || discount.vendorName || 'Unknown Vendor',
+          description: discount.description || '',
+          discountType: discount.discount_type || discount.discountType,
+          discountValue: discount.discount_value || discount.discountValue,
+          discountCode: discount.discount_code || discount.pos_code || discount.discountCode || 'N/A',
+          usageLimit: discount.usage_limit || discount.usageLimit || 'unlimited',
+          isActive: discount.is_active !== undefined ? discount.is_active : (discount.isActive !== undefined ? discount.isActive : true),
+          startDate: discount.start_date || discount.startDate,
+          endDate: discount.end_date || discount.endDate,
+          createdAt: discount.created_at || discount.createdAt,
+          // Store raw data for editing
+          rawData: discount
+        }));
+        
+        // Apply filters
+        let filteredData = transformedData;
+        if (searchText) {
+          filteredData = filteredData.filter((d: any) => 
+            d.title.toLowerCase().includes(searchText.toLowerCase()) ||
+            d.description.toLowerCase().includes(searchText.toLowerCase()) ||
+            d.discountCode.toLowerCase().includes(searchText.toLowerCase())
+          );
+        }
+        if (selectedVendor) {
+          filteredData = filteredData.filter((d: any) => 
+            d.vendorId.toString() === selectedVendor || 
+            d.vendorName.toLowerCase().includes(selectedVendor.toLowerCase())
+          );
+        }
+        if (selectedType) {
+          filteredData = filteredData.filter((d: any) => d.discountType === selectedType);
+        }
+        
+        setDiscountsData(filteredData);
+        setTotalDiscounts(response.pagination?.total || filteredData.length);
+        console.log('Discounts loaded successfully');
+      } else {
+        setError('Failed to load discounts');
+        setDiscountsData([]);
+        setTotalDiscounts(0);
+      }
+    } catch (error: any) {
+      console.error('Error loading discounts:', error);
+      setError('Failed to load discounts');
+      setDiscountsData([]);
+      setTotalDiscounts(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load vendors for filter dropdown
+  const loadVendors = async () => {
+    try {
+      const response = await vendorAPI.getVendors(1, 1000);
+      if (response.success && response.data) {
+        setVendorsData(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+    }
+  };
+
+  // Load data on component mount and when filters change
   useEffect(() => {
-    console.log('Discounts component mounted');
-  }, []);
+    loadDiscounts();
+    loadVendors();
+  }, [currentPage, pageSize]);
+
+  // Reload when filters change
+  useEffect(() => {
+    if (currentPage === 1) {
+      loadDiscounts();
+    } else {
+      setCurrentPage(1);
+    }
+  }, [searchText, selectedVendor, selectedType]);
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    console.log('Menu clicked:', key); // Debug log
     if (key === 'dashboard') {
       navigate('/dashboard');
     } else if (key === 'donors') {
@@ -73,18 +185,97 @@ const Discounts: React.FC = () => {
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
     } else if (key === 'discounts') {
-      console.log('Navigating to discounts...'); // Debug log
       navigate('/discounts');
-    } else if (key === 'events') {
-      navigate('/events');
     } else if (key === 'leaderboard') {
       navigate('/leaderboard');
     } else if (key === 'settings') {
       navigate('/settings');
-       }
+    }
   };
 
-  // No hardcoded data - use API data only
+  const handleDeleteDiscount = async (discountId: number) => {
+    try {
+      const response = await discountAPI.deleteDiscount(discountId);
+      if (response.success) {
+        message.success('Discount deleted successfully');
+        loadDiscounts();
+      } else {
+        message.error('Failed to delete discount');
+      }
+    } catch (error: any) {
+      console.error('Error deleting discount:', error);
+      message.error(error.message || 'Failed to delete discount');
+    }
+  };
+
+  const handleEditDiscount = (discount: any) => {
+    setEditingDiscount({
+      id: discount.id,
+      title: discount.title,
+      discountType: discount.discountType,
+      discountValue: discount.discountValue,
+      posCode: discount.discountCode,
+      usageLimit: discount.usageLimit,
+      description: discount.description
+    });
+    setIsAddModalVisible(true);
+  };
+
+  const handleAddDiscount = () => {
+    setEditingDiscount(null);
+    setIsAddModalVisible(true);
+  };
+
+  const handleDiscountSuccess = () => {
+    loadDiscounts();
+    setIsAddModalVisible(false);
+    setEditingDiscount(null);
+  };
+
+  const getDiscountTypeIcon = (type: string) => {
+    switch (type) {
+      case 'percentage':
+        return <PercentageOutlined />;
+      case 'fixed':
+        return <DollarOutlined />;
+      case 'bogo':
+        return <ShoppingOutlined />;
+      case 'free':
+        return <GiftOutlined />;
+      default:
+        return <GiftOutlined />;
+    }
+  };
+
+  const getDiscountTypeColor = (type: string) => {
+    switch (type) {
+      case 'percentage':
+        return 'green';
+      case 'fixed':
+        return 'blue';
+      case 'bogo':
+        return 'purple';
+      case 'free':
+        return 'gold';
+      default:
+        return 'default';
+    }
+  };
+
+  const formatDiscountValue = (type: string, value: number) => {
+    switch (type) {
+      case 'percentage':
+        return `${value}%`;
+      case 'fixed':
+        return `$${value}`;
+      case 'bogo':
+        return 'BOGO';
+      case 'free':
+        return 'FREE';
+      default:
+        return value.toString();
+    }
+  };
 
   const menuItems = [
     {
@@ -124,12 +315,6 @@ const Discounts: React.FC = () => {
       title: 'Tenant Management'
     },
     {
-      key: 'events',
-      icon: <CalendarOutlined />,
-      label: 'Events',
-      title: 'Event Management'
-    },
-    {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
@@ -161,9 +346,112 @@ const Discounts: React.FC = () => {
     },
   ];
 
+  const columns = [
+    {
+      title: 'Discount Title',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text: string, record: any) => (
+        <Space>
+          {getDiscountTypeIcon(record.discountType)}
+          <Text strong>{text}</Text>
+        </Space>
+      ),
+      width: 250,
+    },
+    {
+      title: 'Vendor',
+      dataIndex: 'vendorName',
+      key: 'vendorName',
+      render: (text: string) => <Text>{text}</Text>,
+      width: 200,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'discountType',
+      key: 'discountType',
+      render: (type: string) => (
+        <Tag color={getDiscountTypeColor(type)}>
+          {type === 'fixed' ? 'Fixed Amount' : type === 'percentage' ? 'Percentage' : type === 'bogo' ? 'BOGO' : 'Free'}
+        </Tag>
+      ),
+      width: 120,
+    },
+    {
+      title: 'Value',
+      dataIndex: 'discountValue',
+      key: 'discountValue',
+      render: (value: number, record: any) => (
+        <Text strong style={{ color: '#DB8633' }}>
+          {formatDiscountValue(record.discountType, value)}
+        </Text>
+      ),
+      width: 100,
+    },
+    {
+      title: 'Code',
+      dataIndex: 'discountCode',
+      key: 'discountCode',
+      render: (code: string) => (
+        <Tag color="blue">{code}</Tag>
+      ),
+      width: 120,
+    },
+    {
+      title: 'Usage Limit',
+      dataIndex: 'usageLimit',
+      key: 'usageLimit',
+      render: (limit: string) => (
+        <Text>{limit === 'unlimited' ? 'Unlimited' : `${limit}x/month`}</Text>
+      ),
+      width: 120,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (active: boolean) => (
+        <Tag color={active ? 'success' : 'default'}>
+          {active ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
+      width: 100,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: any) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEditDiscount(record)}
+            size="small"
+          />
+          <Popconfirm
+            title="Delete Discount"
+            description={`Are you sure you want to delete "${record.title}"?`}
+            onConfirm={() => handleDeleteDiscount(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+            />
+          </Popconfirm>
+        </Space>
+      ),
+      width: 120,
+      fixed: 'right' as const,
+    },
+  ];
+
   return (
     <Layout className="discounts-layout">
-      {/* Mobile Menu Button - Right Side */}
+      {/* Mobile Menu Button */}
       <Button
         className="mobile-menu-btn-right"
         icon={<MenuOutlined />}
@@ -183,7 +471,6 @@ const Discounts: React.FC = () => {
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           backgroundColor: 'transparent'
         }}>
-          {/* Simplified logo section with large centered logo */}
           <div className="logo-container" style={{
             position: 'relative',
             marginBottom: '12px',
@@ -227,87 +514,127 @@ const Discounts: React.FC = () => {
       </Sider>
 
       <Layout className="main-content">
-        <div className="discounts-header">
-          <div className="header-left">
-            <Title level={2} style={{ margin: 0 }}>Discounts</Title>
-            <Text type="secondary" className="discounts-count">200 Discounts Found</Text>
+        <Header className="discounts-header" style={{ background: '#fff', padding: '16px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <Title level={2} style={{ margin: 0 }}>Discounts</Title>
+              <Text type="secondary">{totalDiscounts} Discounts Found</Text>
+            </div>
+            <Button
+              type="primary"
+              icon={<GiftOutlined />}
+              onClick={handleAddDiscount}
+              style={{
+                backgroundColor: '#DB8633',
+                borderColor: '#DB8633',
+                color: '#ffffff'
+              }}
+            >
+              Add Discount
+            </Button>
           </div>
-        </div>
+        </Header>
 
-        <Content className="discounts-content">
-          <div className="content-wrapper">
-            {/* Search and Filter Bar */}
-            <div className="search-filter-bar">
-              <div className="search-section">
+        <Content className="discounts-content" style={{ padding: '24px', background: '#f0f2f5' }}>
+          {/* Search and Filter Bar */}
+          <Card style={{ marginBottom: '24px' }}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={8}>
                 <Search
-                  placeholder="Search Discount Name"
+                  placeholder="Search Discount Name or Code"
                   allowClear
                   enterButton={<SearchOutlined />}
                   size="large"
-                  className="discount-search"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onSearch={() => loadDiscounts()}
                 />
-              </div>
-              <div className="filter-section">
-                <Text strong className="filter-label">Filters</Text>
-                <div className="filter-dropdowns">
-                  <Select
-                    placeholder="Select Discount vendor"
-                    size="large"
-                    className="filter-dropdown"
-                  >
-                    <Option value="nike">Nike</Option>
-                    <Option value="apple">Apple</Option>
-                    <Option value="samsung">Samsung</Option>
-                    <Option value="amazon">Amazon</Option>
-                  </Select>
-                  <Select
-                    placeholder="Select Discount Options"
-                    size="large"
-                    className="filter-dropdown"
-                  >
-                    <Option value="percentage">Percentage</Option>
-                    <Option value="fixed">Fixed Amount</Option>
-                    <Option value="bogo">Buy 1 Get 1</Option>
-                    <Option value="free">Free Product/Service</Option>
-                  </Select>
-                  <Select
-                    placeholder="Select Frequency"
-                    size="large"
-                    className="filter-dropdown"
-                  >
-                    <Option value="daily">Daily</Option>
-                    <Option value="weekly">Weekly</Option>
-                    <Option value="monthly">Monthly</Option>
-                    <Option value="yearly">Yearly</Option>
-                  </Select>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Select
+                  placeholder="Filter by Vendor"
+                  size="large"
+                  style={{ width: '100%' }}
+                  allowClear
+                  value={selectedVendor}
+                  onChange={(value) => setSelectedVendor(value)}
+                >
+                  {vendorsData.map((vendor: any) => (
+                    <Option key={vendor.id} value={vendor.id.toString()}>
+                      {vendor.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Select
+                  placeholder="Filter by Type"
+                  size="large"
+                  style={{ width: '100%' }}
+                  allowClear
+                  value={selectedType}
+                  onChange={(value) => setSelectedType(value)}
+                >
+                  <Option value="percentage">Percentage</Option>
+                  <Option value="fixed">Fixed Amount</Option>
+                  <Option value="bogo">Buy 1 Get 1</Option>
+                  <Option value="free">Free</Option>
+                </Select>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Discounts Table */}
+          <Card>
+            <Spin spinning={loading}>
+              {error ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <Text type="danger">{error}</Text>
                 </div>
-              </div>
-            </div>
-
-            {/* Discounts Grid */}
-            <div className="discounts-grid-section">
-              <Row gutter={[16, 16]} className="discounts-grid">
-                {/* No data available */}
-              </Row>
-            </div>
-
-            {/* Pagination */}
-            <div className="pagination-section">
-              <Pagination
-                current={currentPage}
-                total={200}
-                pageSize={pageSize}
-                onChange={(page) => setCurrentPage(page)}
-                showSizeChanger={false}
-                showQuickJumper
-                className="discounts-pagination"
-              />
-            </div>
-          </div>
+              ) : (
+                <>
+                  <Table
+                    columns={columns}
+                    dataSource={discountsData}
+                    pagination={false}
+                    scroll={{ x: 1200 }}
+                    rowKey="key"
+                  />
+                  <div style={{ marginTop: '16px', textAlign: 'right' }}>
+                    <Pagination
+                      current={currentPage}
+                      total={totalDiscounts}
+                      pageSize={pageSize}
+                      onChange={(page, size) => {
+                        setCurrentPage(page);
+                        if (size) setPageSize(size);
+                      }}
+                      showSizeChanger
+                      showQuickJumper
+                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} discounts`}
+                    />
+                  </div>
+                </>
+              )}
+            </Spin>
+          </Card>
         </Content>
       </Layout>
+
+      {/* Add/Edit Discount Modal */}
+      <AddDiscountModal
+        visible={isAddModalVisible}
+        vendorId={editingDiscount?.vendorId || (selectedVendor ? parseInt(selectedVendor) : 0)}
+        vendorName={editingDiscount?.vendorName}
+        onCancel={() => {
+          setIsAddModalVisible(false);
+          setEditingDiscount(null);
+        }}
+        onSuccess={handleDiscountSuccess}
+        editingDiscount={editingDiscount}
+      />
     </Layout>
   );
 };
 
-export default Discounts; 
+export default Discounts;

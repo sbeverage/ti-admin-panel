@@ -388,12 +388,6 @@ const OneTimeGifts: React.FC = () => {
       title: 'Tenant Management'
     },
     {
-      key: 'events',
-      icon: <CalendarOutlined />,
-      label: 'Events',
-      title: 'Event Management'
-    },
-    {
       key: 'leaderboard',
       icon: <CrownOutlined />,
       label: 'Leaderboard',
