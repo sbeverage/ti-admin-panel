@@ -35,6 +35,7 @@ import {
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
+import { beneficiaryAPI } from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -93,65 +94,101 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   onUpdate
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // Map raw API data to display format
+  // Fetch full beneficiary details by ID
   useEffect(() => {
-    if (rawBeneficiaryData) {
-      // Transform API data to match our interface
-      const transformed: BeneficiaryData = {
-        id: rawBeneficiaryData.id?.toString() || beneficiaryId,
-        beneficiaryName: rawBeneficiaryData.name || rawBeneficiaryData.beneficiaryName || 'Unknown',
-        contactName: rawBeneficiaryData.contact_name || rawBeneficiaryData.contactName || '',
-        email: rawBeneficiaryData.email || '',
-        contactNumber: rawBeneficiaryData.phone || rawBeneficiaryData.contactNumber || rawBeneficiaryData.phoneNumber || '',
-        bankAccount: rawBeneficiaryData.bank_account || rawBeneficiaryData.bankAccount || '',
-        donation: rawBeneficiaryData.total_donations ? `$${rawBeneficiaryData.total_donations.toLocaleString()}` : rawBeneficiaryData.donation || '$0',
-        dateOfJoin: rawBeneficiaryData.createdAt || rawBeneficiaryData.created_at || rawBeneficiaryData.dateOfJoin || '',
-        cityState: rawBeneficiaryData.location || 
-                   (rawBeneficiaryData.address ? `${rawBeneficiaryData.address.city || ''}, ${rawBeneficiaryData.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
-                   rawBeneficiaryData.cityState || '',
-        beneficiaryCause: rawBeneficiaryData.category || rawBeneficiaryData.cause || rawBeneficiaryData.beneficiaryCause || '',
-        beneficiaryType: rawBeneficiaryData.type || rawBeneficiaryData.beneficiaryType || '',
-        donors: rawBeneficiaryData.donor_count || rawBeneficiaryData.mutual || rawBeneficiaryData.donors || 0,
-        active: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
-                (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
-        enabled: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
-                 (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
+    const fetchBeneficiary = async () => {
+      if (!beneficiaryId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        // Always fetch fresh data from API to ensure we have all fields
+        const response = await beneficiaryAPI.getBeneficiary(parseInt(beneficiaryId));
+        
+        if (response.success && response.data) {
+          // Use the fetched data instead of rawBeneficiaryData
+          const apiData = response.data;
+          console.log('📋 BeneficiaryProfile: Fetched beneficiary data:', apiData);
+          transformAndSetData(apiData);
+        } else if (rawBeneficiaryData) {
+          // Fallback to passed data if API call fails
+          transformAndSetData(rawBeneficiaryData);
+        } else {
+          message.error('Failed to load beneficiary details');
+        }
+      } catch (error) {
+        console.error('Error fetching beneficiary:', error);
+        // Fallback to passed data if available
+        if (rawBeneficiaryData) {
+          transformAndSetData(rawBeneficiaryData);
+        } else {
+          message.error('Failed to load beneficiary details');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBeneficiary();
+  }, [beneficiaryId]); // Only depend on beneficiaryId, not rawBeneficiaryData
+
+  // Transform API data to display format
+  const transformAndSetData = (apiData: any) => {
+    // Transform API data to match our interface
+    const transformed: BeneficiaryData = {
+        id: apiData.id?.toString() || beneficiaryId,
+        beneficiaryName: apiData.name || apiData.beneficiaryName || 'Unknown',
+        contactName: apiData.contact_name || apiData.contactName || '',
+        email: apiData.email || '',
+        contactNumber: apiData.phone || apiData.contactNumber || apiData.phoneNumber || '',
+        bankAccount: apiData.bank_account || apiData.bankAccount || '',
+        donation: apiData.total_donations ? `$${apiData.total_donations.toLocaleString()}` : apiData.donation || '$0',
+        dateOfJoin: apiData.createdAt || apiData.created_at || apiData.dateOfJoin || '',
+        cityState: apiData.location || 
+                   (apiData.address ? `${apiData.address.city || ''}, ${apiData.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
+                   apiData.cityState || '',
+        beneficiaryCause: apiData.category || apiData.cause || apiData.beneficiaryCause || '',
+        beneficiaryType: apiData.type || apiData.beneficiaryType || '',
+        donors: apiData.donor_count || apiData.mutual || apiData.donors || 0,
+        active: apiData.isActive !== undefined ? apiData.isActive : 
+                (apiData.is_active !== undefined ? apiData.is_active : true),
+        enabled: apiData.isActive !== undefined ? apiData.isActive : 
+                 (apiData.is_active !== undefined ? apiData.is_active : true),
         // Additional fields
-        about: rawBeneficiaryData.about || rawBeneficiaryData.description || '',
-        mainImageUrl: rawBeneficiaryData.imageUrl || rawBeneficiaryData.main_image || rawBeneficiaryData.main_image_url || rawBeneficiaryData.mainImageUrl || '',
-        whyThisMatters: rawBeneficiaryData.why_this_matters || rawBeneficiaryData.mission || rawBeneficiaryData.whyThisMatters || '',
-        successStory: rawBeneficiaryData.success_story || rawBeneficiaryData.successStory || '',
-        storyAuthor: rawBeneficiaryData.story_author || rawBeneficiaryData.storyAuthor || '',
-        familiesHelped: rawBeneficiaryData.families_helped || rawBeneficiaryData.familiesHelped || '',
-        communitiesServed: rawBeneficiaryData.communities_served || rawBeneficiaryData.communitiesServed || 0,
-        directToPrograms: rawBeneficiaryData.direct_to_programs || rawBeneficiaryData.directToPrograms || 0,
-        impactStatement1: rawBeneficiaryData.impact_statement_1 || rawBeneficiaryData.impactStatement1 || '',
-        impactStatement2: rawBeneficiaryData.impact_statement_2 || rawBeneficiaryData.impactStatement2 || '',
-        ein: rawBeneficiaryData.ein || '',
-        website: rawBeneficiaryData.website || '',
-        verificationStatus: rawBeneficiaryData.verification_status || rawBeneficiaryData.verificationStatus || false,
-        volunteerInfo: rawBeneficiaryData.volunteer_info || rawBeneficiaryData.volunteerInfo || '',
+        about: apiData.about || apiData.description || '',
+        mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
+        whyThisMatters: apiData.why_this_matters || apiData.mission || apiData.whyThisMatters || '',
+        successStory: apiData.success_story || apiData.successStory || '',
+        storyAuthor: apiData.story_author || apiData.storyAuthor || '',
+        familiesHelped: apiData.families_helped || apiData.familiesHelped || '',
+        communitiesServed: apiData.communities_served || apiData.communitiesServed || 0,
+        directToPrograms: apiData.direct_to_programs || apiData.directToPrograms || 0,
+        impactStatement1: apiData.impact_statement_1 || apiData.impactStatement1 || '',
+        impactStatement2: apiData.impact_statement_2 || apiData.impactStatement2 || '',
+        ein: apiData.ein || '',
+        website: apiData.website || '',
+        verificationStatus: apiData.verification_status || apiData.verificationStatus || false,
+        volunteerInfo: apiData.volunteer_info || apiData.volunteerInfo || '',
         // New fields from spec
-        latitude: rawBeneficiaryData.latitude || '',
-        longitude: rawBeneficiaryData.longitude || '',
-        location: rawBeneficiaryData.location || '',
-        likes: rawBeneficiaryData.likes || 0,
-        mutual: rawBeneficiaryData.mutual || 0,
-        social: rawBeneficiaryData.social || '',
-        isActive: rawBeneficiaryData.isActive !== undefined ? rawBeneficiaryData.isActive : 
-                  (rawBeneficiaryData.is_active !== undefined ? rawBeneficiaryData.is_active : true),
+        latitude: apiData.latitude || '',
+        longitude: apiData.longitude || '',
+        location: apiData.location || '',
+        likes: apiData.likes || 0,
+        mutual: apiData.mutual || 0,
+        social: apiData.social || '',
+        isActive: apiData.isActive !== undefined ? apiData.isActive : 
+                  (apiData.is_active !== undefined ? apiData.is_active : true),
       };
       setBeneficiaryData(transformed);
       setFormData(transformed);
-    } else {
-      setLoading(false);
-    }
-  }, [rawBeneficiaryData, beneficiaryId]);
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
