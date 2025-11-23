@@ -128,8 +128,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
-        // Submit to API
-        await handleSubmit({ ...basicDetails, ...impactStory, ...trustTransparency, ...values });
+        // Submit to API - include profileLinks from state
+        await handleSubmit({ ...basicDetails, ...impactStory, ...trustTransparency, ...values, profileLinks });
       }
     } catch (error) {
       console.error('❌ Validation failed:', error);
@@ -184,8 +184,18 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         contact_name: allData.primaryContact || '',
         description: allData.about,
         mission: allData.whyThisMatters || '',
-        impact_statement: allData.impactStatement || '',
+        // Impact & Story fields
+        success_story: allData.successStory || '',
+        story_author: allData.storyAuthor || '',
+        families_helped: allData.familiesHelped || '',
+        communities_served: allData.communitiesServed || 0,
+        direct_to_programs: allData.directToPrograms || 0,
+        impact_statement_1: allData.impactStatement1 || '',
+        impact_statement_2: allData.impactStatement2 || '',
+        // Legacy field for backward compatibility
+        impact_statement: allData.impactStatement || allData.impactStatement1 || '',
         transparency_rating: allData.transparencyRating || 0,
+        verification_status: allData.verificationStatus || false,
         ein: allData.ein || '',
         website: allData.website || '',
         social: allData.social || '',
@@ -195,7 +205,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Images uploaded to Supabase
         main_image: mainImageUrl || '',
         logo: logoUrl || '',
-        additional_images: additionalImages.filter(img => img) // Filter out empty slots
+        additional_images: additionalImages.filter(img => img), // Filter out empty slots
+        // Profile links (social media)
+        profile_links: allData.profileLinks ? allData.profileLinks.filter((link: any) => link.channel && link.username) : []
       };
       
       // Explicitly ensure email is NOT in the payload
@@ -212,8 +224,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       if (response.success) {
         message.success('Beneficiary created successfully!');
+        // Call onSubmit callback (which should refresh the beneficiaries list)
         onSubmit(allData);
         handleCancel();
+        // Note: The parent component (Beneficiaries) should refresh the list
+        // in its onSubmit handler to show the newly created beneficiary
       } else {
         const errorMsg = response.error || 'Failed to create beneficiary';
         console.error('❌ Backend error:', errorMsg);

@@ -199,38 +199,12 @@ const Beneficiaries: React.FC = () => {
   };
 
   const handleInviteModalSubmit = async (values: any) => {
-    try {
-      console.log('Creating new beneficiary:', values);
-      
-      const beneficiaryData = {
-        name: values.beneficiaryName,
-        contact_name: values.contactName,
-        email: values.email,
-        phone: values.contactNumber,
-        address: {
-          city: values.cityState?.split(',')[0]?.trim() || '',
-          state: values.cityState?.split(',')[1]?.trim() || ''
-        },
-        cause: values.beneficiaryCause,
-        type: values.beneficiaryType,
-        is_active: true,
-        is_enabled: true
-      };
-      
-      const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
-      
-      if (response.success) {
-        message.success('Beneficiary created successfully!');
-        setInviteModalVisible(false);
-        // Refresh the beneficiaries list
-        loadBeneficiaries();
-      } else {
-        message.error('Failed to create beneficiary');
-      }
-    } catch (error) {
-      console.error('Error creating beneficiary:', error);
-      message.error('Failed to create beneficiary. Please try again.');
-    }
+    // The InviteBeneficiaryModal handles the API call itself
+    // This callback is called after successful creation to refresh the list
+    console.log('Beneficiary created, refreshing list...');
+    setInviteModalVisible(false);
+    // Refresh the beneficiaries list to show the newly created beneficiary with all fields
+    await loadBeneficiaries();
   };
 
   const handleBeneficiaryClick = (beneficiaryId: string, record: any) => {
