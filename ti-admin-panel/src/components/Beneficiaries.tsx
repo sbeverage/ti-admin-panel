@@ -304,13 +304,28 @@ const Beneficiaries: React.FC = () => {
         <Space>
           <Avatar 
             size={32} 
-            src={record.imageUrl || record.rawData?.imageUrl}
+            src={record.imageUrl || 
+                 record.rawData?.imageUrl || 
+                 record.rawData?.main_image || 
+                 record.rawData?.main_image_url || 
+                 record.rawData?.logo || 
+                 record.rawData?.logo_url}
             style={{ 
-              backgroundColor: (record.imageUrl || record.rawData?.imageUrl) ? 'transparent' : '#DB8633',
+              backgroundColor: (record.imageUrl || 
+                               record.rawData?.imageUrl || 
+                               record.rawData?.main_image || 
+                               record.rawData?.main_image_url || 
+                               record.rawData?.logo || 
+                               record.rawData?.logo_url) ? 'transparent' : '#DB8633',
               border: 'none'
             }}
           >
-            {!(record.imageUrl || record.rawData?.imageUrl) && record.beneficiaryName.charAt(0)}
+            {!(record.imageUrl || 
+               record.rawData?.imageUrl || 
+               record.rawData?.main_image || 
+               record.rawData?.main_image_url || 
+               record.rawData?.logo || 
+               record.rawData?.logo_url) && record.beneficiaryName.charAt(0)}
           </Avatar>
           <Text 
             strong 

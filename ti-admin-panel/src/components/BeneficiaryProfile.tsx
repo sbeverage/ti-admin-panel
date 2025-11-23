@@ -119,6 +119,27 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           console.log('📋 BeneficiaryProfile: Fetched beneficiary data:', apiData);
           console.log('📋 BeneficiaryProfile: All keys in response:', Object.keys(apiData));
           console.log('📋 BeneficiaryProfile: Full response structure:', JSON.stringify(apiData, null, 2));
+          console.log('📋 BeneficiaryProfile: Field values check:', {
+            about: apiData.about,
+            description: apiData.description,
+            why_this_matters: apiData.why_this_matters,
+            mission: apiData.mission,
+            success_story: apiData.success_story,
+            story_author: apiData.story_author,
+            families_helped: apiData.families_helped,
+            communities_served: apiData.communities_served,
+            direct_to_programs: apiData.direct_to_programs,
+            impact_statement_1: apiData.impact_statement_1,
+            impact_statement_2: apiData.impact_statement_2,
+            verification_status: apiData.verification_status,
+            ein: apiData.ein,
+            website: apiData.website,
+            social: apiData.social,
+            main_image: apiData.main_image,
+            main_image_url: apiData.main_image_url,
+            logo: apiData.logo,
+            logo_url: apiData.logo_url
+          });
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
           // Fallback to passed data if API call fails
