@@ -820,4 +820,3 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 };
 
 export default InviteBeneficiaryModal; 
-export default InviteBeneficiaryModal; 
