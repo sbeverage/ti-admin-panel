@@ -110,7 +110,17 @@ const Beneficiaries: React.FC = () => {
         
         // Transform API data to match our table structure
         // Handle both new charity structure and legacy beneficiary structure
-        const transformedData = response.data.map((beneficiary: any) => {
+        // Filter out soft-deleted records (if backend returns them)
+        const filteredData = response.data.filter((beneficiary: any) => {
+          // Exclude soft-deleted records
+          return !beneficiary.deleted_at && 
+                 !beneficiary.deletedAt && 
+                 !beneficiary.is_deleted && 
+                 !beneficiary.isDeleted &&
+                 beneficiary.deleted !== true;
+        });
+        
+        const transformedData = filteredData.map((beneficiary: any) => {
           // Extract all possible field variations from API
           const name = beneficiary.name || beneficiary.beneficiaryName || 'Unknown';
           const category = beneficiary.category || beneficiary.cause || beneficiary.beneficiaryCause || 'General';
@@ -270,8 +280,18 @@ const Beneficiaries: React.FC = () => {
       if (response.success || response.data) {
         message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
         setIsDeleteBeneficiaryModalVisible(false);
+        
+        // Immediately remove from local state (in case backend does soft delete)
+        const deletedKey = deletingBeneficiary.key || deletingBeneficiary.id?.toString();
+        setBeneficiariesData(prevData => prevData.filter(item => 
+          item.key !== deletedKey && 
+          item.id?.toString() !== deletedKey &&
+          item.rawData?.id?.toString() !== deletedKey
+        ));
+        setTotalBeneficiaries(prev => Math.max(0, prev - 1));
+        
         setDeletingBeneficiary(null);
-        // Refresh beneficiaries list
+        // Also refresh from API to ensure consistency
         await loadBeneficiaries();
       } else {
         message.error(response.error || response.message || 'Failed to delete beneficiary');
