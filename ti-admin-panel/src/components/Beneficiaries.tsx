@@ -17,7 +17,8 @@ import {
   Badge,
   Tag,
   message,
-  Spin
+  Spin,
+  Modal
 } from 'antd';
 import {
   DashboardOutlined,
@@ -31,6 +32,7 @@ import {
   SearchOutlined,
   DownOutlined,
   EditOutlined,
+  DeleteOutlined,
   CheckCircleFilled,
   UserAddOutlined,
   RiseOutlined,
@@ -72,6 +74,8 @@ const Beneficiaries: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState(0);
+  const [isDeleteBeneficiaryModalVisible, setIsDeleteBeneficiaryModalVisible] = useState(false);
+  const [deletingBeneficiary, setDeletingBeneficiary] = useState<any | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -451,11 +455,91 @@ const Beneficiaries: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: any) => (
-        <Button type="text" icon={<EditOutlined />} size="small" className="edit-action-btn" />
-      ),
-      width: 100,
       fixed: 'right' as const,
+      width: 180,
+      align: 'center' as const,
+      render: (text: string, record: any) => {
+        if (!record) {
+          return null;
+        }
+        
+        return (
+          <div 
+            className="actions-column-container"
+            style={{ 
+              display: 'flex', 
+              gap: '6px', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: '100%',
+              padding: '4px 0',
+              boxSizing: 'border-box',
+              margin: '0 auto'
+            }}
+          >
+            <Button 
+              size="middle"
+              icon={<EditOutlined />}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleBeneficiaryClick(record.key, record);
+              }}
+              className="edit-beneficiary-button"
+              title="Edit Beneficiary"
+              style={{
+                backgroundColor: '#fff7e6',
+                borderColor: '#DB8633',
+                color: '#DB8633',
+                fontWeight: 600,
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                minWidth: '32px',
+                maxWidth: '32px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0
+              }}
+            />
+            <Button 
+              size="middle"
+              icon={<DeleteOutlined />}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDeleteBeneficiary(record);
+              }}
+              className="delete-beneficiary-button"
+              title="Delete Beneficiary"
+              style={{
+                backgroundColor: '#fff1f0',
+                borderColor: '#ff4d4f',
+                color: '#ff4d4f',
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                minWidth: '32px',
+                maxWidth: '32px',
+                fontSize: '14px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0
+              }}
+            />
+          </div>
+        );
+      },
     },
   ];
 
