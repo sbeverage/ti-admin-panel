@@ -262,8 +262,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         mutual: formData.mutual || 0,
         is_active: formData.isActive !== undefined ? formData.isActive : true,
         isActive: formData.isActive !== undefined ? formData.isActive : true, // Send both for compatibility
+        // Backend expects imageUrl (camelCase) which saves to image_url column
+        imageUrl: formData.mainImageUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         main_image: formData.mainImageUrl || '',
         main_image_url: formData.mainImageUrl || '', // Send both for compatibility
+        // Backend expects logoUrl (camelCase) which saves to logo_url column
+        logoUrl: formData.logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         logo: formData.logoUrl || '',
         logo_url: formData.logoUrl || '', // Send both for compatibility
         volunteer_info: formData.volunteerInfo || ''
@@ -272,6 +276,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       console.log('💾 Updating beneficiary:', beneficiaryId);
       console.log('💾 Update payload:', updateData);
       console.log('💾 All keys being sent:', Object.keys(updateData));
+      console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');
+      console.log('📸 logoUrl value:', updateData.logoUrl || 'NOT SET');
+      console.log('📸 formData.mainImageUrl:', formData.mainImageUrl || 'NOT SET');
+      console.log('📸 formData.logoUrl:', formData.logoUrl || 'NOT SET');
 
       // Call API to update beneficiary
       const response = await beneficiaryAPI.updateBeneficiary(parseInt(beneficiaryId), updateData);

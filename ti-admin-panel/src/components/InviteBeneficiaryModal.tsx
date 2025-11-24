@@ -204,8 +204,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
         // Images uploaded to Supabase
+        // Backend expects imageUrl (camelCase) which saves to image_url column
+        imageUrl: mainImageUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         main_image: mainImageUrl || '',
         main_image_url: mainImageUrl || '', // Send both for compatibility
+        // Backend expects logoUrl (camelCase) which saves to logo_url column
+        logoUrl: logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         logo: logoUrl || '',
         logo_url: logoUrl || '', // Send both for compatibility
         additional_images: additionalImages.filter(img => img), // Filter out empty slots
@@ -225,6 +229,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       console.log('📦 is_active value:', beneficiaryData.is_active);
       console.log('📦 isActive value:', beneficiaryData.isActive);
       console.log('📦 verification_status value:', beneficiaryData.verification_status);
+      console.log('📸 imageUrl value:', beneficiaryData.imageUrl || 'NOT SET');
+      console.log('📸 logoUrl value:', beneficiaryData.logoUrl || 'NOT SET');
+      console.log('📸 mainImageUrl state:', mainImageUrl || 'NOT SET');
+      console.log('📸 logoUrl state:', logoUrl || 'NOT SET');
       
       // Call API
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
