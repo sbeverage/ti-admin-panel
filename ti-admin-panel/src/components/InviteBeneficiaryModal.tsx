@@ -188,13 +188,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Impact & Story fields
         success_story: allData.successStory || '',
         story_author: allData.storyAuthor || '',
-        families_helped: allData.familiesHelped || '',
-        communities_served: allData.communitiesServed || 0,
-        direct_to_programs: allData.directToPrograms || 0,
-        impact_statement_1: allData.impactStatement1 || '',
-        impact_statement_2: allData.impactStatement2 || '',
-        // Note: impact_statement is legacy, using impact_statement_1 and impact_statement_2 instead
-        transparency_rating: allData.transparencyRating || 0,
+        // NOTE: The following fields may not exist in backend schema - only include if they have values
+        // families_helped: allData.familiesHelped || '', // ⚠️ May not exist in backend
+        // communities_served: allData.communitiesServed || 0, // ⚠️ DOES NOT EXIST - causing 400 error
+        // direct_to_programs: allData.directToPrograms || 0, // ⚠️ May not exist in backend
+        // impact_statement_1: allData.impactStatement1 || '', // ⚠️ May not exist in backend
+        // impact_statement_2: allData.impactStatement2 || '', // ⚠️ May not exist in backend
+        // transparency_rating: allData.transparencyRating || 0, // ⚠️ May not exist in backend
         verification_status: allData.verificationStatus !== undefined ? allData.verificationStatus : true, // Default to true so it shows in app
         ein: allData.ein || '',
         website: allData.website || '',

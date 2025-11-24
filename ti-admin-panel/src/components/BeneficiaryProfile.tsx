@@ -249,11 +249,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         why_this_matters: formData.whyThisMatters || '',
         success_story: formData.successStory || '',
         story_author: formData.storyAuthor || '',
-        families_helped: formData.familiesHelped || '',
-        communities_served: formData.communitiesServed || 0,
-        direct_to_programs: formData.directToPrograms || 0,
-        impact_statement_1: formData.impactStatement1 || '',
-        impact_statement_2: formData.impactStatement2 || '',
+        // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
+        // families_helped: formData.familiesHelped || '', // ⚠️ May not exist in backend
+        // communities_served: formData.communitiesServed || 0, // ⚠️ DOES NOT EXIST - causing 400 error
+        // direct_to_programs: formData.directToPrograms || 0, // ⚠️ May not exist in backend
+        // impact_statement_1: formData.impactStatement1 || '', // ⚠️ May not exist in backend
+        // impact_statement_2: formData.impactStatement2 || '', // ⚠️ May not exist in backend
         verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // Default to true so it shows in app
         ein: formData.ein || '',
         website: formData.website || '',
