@@ -274,6 +274,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         volunteer_info: formData.volunteerInfo || ''
       };
 
+      // Explicitly remove fields that don't exist in backend schema
+      // These fields cause 400 errors if included
+      delete updateData.communities_served;
+      delete updateData.families_helped;
+      delete updateData.direct_to_programs;
+      delete updateData.impact_statement_1;
+      delete updateData.impact_statement_2;
+      delete updateData.transparency_rating;
+
       console.log('💾 Updating beneficiary:', beneficiaryId);
       console.log('💾 Update payload:', updateData);
       console.log('💾 All keys being sent:', Object.keys(updateData));

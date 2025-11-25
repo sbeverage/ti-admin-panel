@@ -223,6 +223,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       delete beneficiaryData.email;
       delete beneficiaryData.primaryEmail;
       
+      // Explicitly remove fields that don't exist in backend schema
+      // These fields cause 400 errors if included
+      delete beneficiaryData.communities_served;
+      delete beneficiaryData.families_helped;
+      delete beneficiaryData.direct_to_programs;
+      delete beneficiaryData.impact_statement_1;
+      delete beneficiaryData.impact_statement_2;
+      delete beneficiaryData.transparency_rating;
+      
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
