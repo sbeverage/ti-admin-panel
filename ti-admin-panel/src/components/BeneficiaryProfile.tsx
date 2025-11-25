@@ -276,14 +276,35 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
 
       // Explicitly remove fields that don't exist in backend schema
       // These fields cause 400 errors if included
-      delete updateData.communities_served;
-      delete updateData.families_helped;
-      delete updateData.direct_to_programs;
-      delete updateData.impact_statement_1;
-      delete updateData.impact_statement_2;
-      delete updateData.transparency_rating;
+      const fieldsToRemove = [
+        'communities_served',
+        'families_helped', 
+        'direct_to_programs',
+        'impact_statement_1',
+        'impact_statement_2',
+        'transparency_rating',
+        'communitiesServed', // camelCase version
+        'familiesHelped', // camelCase version
+        'directToPrograms', // camelCase version
+        'impactStatement1', // camelCase version
+        'impactStatement2' // camelCase version
+      ];
+      
+      fieldsToRemove.forEach(field => {
+        if (updateData.hasOwnProperty(field)) {
+          console.warn(`⚠️ Removing non-existent field: ${field}`);
+          delete updateData[field];
+        }
+      });
+      
+      // Verify fields are removed
+      const hasRemovedFields = fieldsToRemove.some(field => updateData.hasOwnProperty(field));
+      if (hasRemovedFields) {
+        console.error('❌ CRITICAL: Some removed fields are still in payload!', fieldsToRemove.filter(f => updateData.hasOwnProperty(f)));
+      }
 
       console.log('💾 Updating beneficiary:', beneficiaryId);
+      console.log('✅ Verified: communities_served NOT in payload:', !updateData.hasOwnProperty('communities_served'));
       console.log('💾 Update payload:', updateData);
       console.log('💾 All keys being sent:', Object.keys(updateData));
       console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');

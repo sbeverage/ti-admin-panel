@@ -225,16 +225,38 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       // Explicitly remove fields that don't exist in backend schema
       // These fields cause 400 errors if included
-      delete beneficiaryData.communities_served;
-      delete beneficiaryData.families_helped;
-      delete beneficiaryData.direct_to_programs;
-      delete beneficiaryData.impact_statement_1;
-      delete beneficiaryData.impact_statement_2;
-      delete beneficiaryData.transparency_rating;
+      // Delete them multiple times to be absolutely sure they're removed
+      const fieldsToRemove = [
+        'communities_served',
+        'families_helped', 
+        'direct_to_programs',
+        'impact_statement_1',
+        'impact_statement_2',
+        'transparency_rating',
+        'communitiesServed', // camelCase version
+        'familiesHelped', // camelCase version
+        'directToPrograms', // camelCase version
+        'impactStatement1', // camelCase version
+        'impactStatement2' // camelCase version
+      ];
+      
+      fieldsToRemove.forEach(field => {
+        if (beneficiaryData.hasOwnProperty(field)) {
+          console.warn(`⚠️ Removing non-existent field: ${field}`);
+          delete beneficiaryData[field];
+        }
+      });
+      
+      // Verify fields are removed
+      const hasRemovedFields = fieldsToRemove.some(field => beneficiaryData.hasOwnProperty(field));
+      if (hasRemovedFields) {
+        console.error('❌ CRITICAL: Some removed fields are still in payload!', fieldsToRemove.filter(f => beneficiaryData.hasOwnProperty(f)));
+      }
       
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
+      console.log('✅ Verified: communities_served NOT in payload:', !beneficiaryData.hasOwnProperty('communities_served'));
       console.log('📦 is_active value:', beneficiaryData.is_active);
       console.log('📦 isActive value:', beneficiaryData.isActive);
       console.log('📦 verification_status value:', beneficiaryData.verification_status);
