@@ -199,21 +199,29 @@ const Beneficiaries: React.FC = () => {
             bankAccountDisplay = accountStr.length > 4 ? `****${accountStr.slice(-4)}` : accountStr;
           }
           
+          // Helper function to ensure we never return empty strings or "N/A"
+          const ensureValue = (value: any, fallback: string = 'Not provided'): string => {
+            if (value === null || value === undefined || value === '' || value === 'N/A' || value === 'n/a') {
+              return fallback;
+            }
+            return String(value);
+          };
+          
           // Extract all available fields from the API response
           return {
             key: beneficiary.id?.toString() || beneficiary.key || Math.random().toString(),
-            beneficiaryName: name,
-            contactName: contactName || (email ? email : 'Not provided'),
-            email: email || 'Not provided',
-            contactNumber: phone || 'Not provided',
-            bankAccount: bankAccountDisplay || 'Not provided',
+            beneficiaryName: ensureValue(name, 'Unknown'),
+            contactName: ensureValue(contactName || (email ? email : ''), 'Not provided'),
+            email: ensureValue(email, 'Not provided'),
+            contactNumber: ensureValue(phone, 'Not provided'),
+            bankAccount: ensureValue(bankAccountDisplay, 'Not provided'),
             donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : 
                      (beneficiary.totalDonations ? `$${beneficiary.totalDonations.toLocaleString()}` :
                      (beneficiary.donation || '$0')),
             dateOfJoin: createdAt ? new Date(createdAt).toLocaleDateString() : 'Not provided',
-            cityState: location || 'Not provided',
-            beneficiaryCause: category,
-            beneficiaryType: type,
+            cityState: ensureValue(location, 'Not provided'),
+            beneficiaryCause: ensureValue(category, 'General'),
+            beneficiaryType: ensureValue(type, 'Medium'),
             donors: beneficiary.donor_count || beneficiary.donorCount || beneficiary.mutual || beneficiary.donors || 0,
             active: isActive,
             enabled: isActive,
@@ -467,28 +475,40 @@ const Beneficiaries: React.FC = () => {
       title: 'Contact name', 
       dataIndex: 'contactName', 
       key: 'contactName', 
-      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
+      render: (text: string) => {
+        const displayText = (!text || text === 'N/A' || text === 'n/a') ? 'Not provided' : text;
+        return <Text type="secondary">{displayText}</Text>;
+      }, 
       width: 150 
     },
     { 
       title: 'Emails', 
       dataIndex: 'email', 
       key: 'email', 
-      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
+      render: (text: string) => {
+        const displayText = (!text || text === 'N/A' || text === 'n/a') ? 'Not provided' : text;
+        return <Text type="secondary">{displayText}</Text>;
+      }, 
       width: 200 
     },
     { 
       title: 'Contact number', 
       dataIndex: 'contactNumber', 
       key: 'contactNumber', 
-      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
+      render: (text: string) => {
+        const displayText = (!text || text === 'N/A' || text === 'n/a') ? 'Not provided' : text;
+        return <Text type="secondary">{displayText}</Text>;
+      }, 
       width: 150 
     },
     { 
       title: 'Bank Account', 
       dataIndex: 'bankAccount', 
       key: 'bankAccount', 
-      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
+      render: (text: string) => {
+        const displayText = (!text || text === 'N/A' || text === 'n/a') ? 'Not provided' : text;
+        return <Text type="secondary">{displayText}</Text>;
+      }, 
       width: 150 
     },
     {
@@ -524,7 +544,9 @@ const Beneficiaries: React.FC = () => {
       dataIndex: 'beneficiaryType',
       key: 'beneficiaryType',
       render: (text: string) => {
-        if (!text) return <Tag>N/A</Tag>;
+        if (!text || text === 'N/A' || text === 'n/a' || text === 'Not provided') {
+          return <Tag>Not provided</Tag>;
+        }
         let color = 'default';
         if (text === 'Large' || text === 'International') color = 'blue';
         else if (text === 'Medium' || text === 'National') color = 'green';
