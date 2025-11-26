@@ -357,24 +357,47 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       console.log('📸 formData.logoUrl:', formData.logoUrl || 'NOT SET');
 
       // Call API to update beneficiary
+      console.log('📡 Calling updateBeneficiary API with ID:', beneficiaryId);
+      console.log('📡 Update payload keys:', Object.keys(updateData));
+      console.log('📡 Update payload:', JSON.stringify(updateData, null, 2));
+      
       const response = await beneficiaryAPI.updateBeneficiary(parseInt(beneficiaryId), updateData);
       
       console.log('📡 Update API response:', response);
-      console.log('📡 Update response data:', response.data);
-      if (response.data) {
-        console.log('📡 Updated beneficiary verification_status:', response.data.verification_status || response.data.verificationStatus);
-        console.log('📡 Updated beneficiary is_active:', response.data.is_active || response.data.isActive);
+      console.log('📡 Update response type:', typeof response);
+      console.log('📡 Update response keys:', response ? Object.keys(response) : 'null');
+      
+      // Handle different response formats
+      // Backend might return: { success: true, data: {...} } OR just the data directly OR { id: ... }
+      const responseData = response.data || response;
+      const isSuccess = response.success !== false; // Default to true if not specified
+      
+      console.log('📡 Response success:', isSuccess);
+      console.log('📡 Response data:', responseData);
+      
+      if (responseData) {
+        console.log('📡 Updated beneficiary ID:', responseData.id || responseData);
+        if (typeof responseData === 'object') {
+          console.log('📡 Updated beneficiary is_active:', responseData.is_active || responseData.isActive);
+        }
       }
 
-      if (response.success) {
+      if (isSuccess) {
         // Refresh the data by fetching again
+        console.log('🔄 Refreshing beneficiary data...');
         const fetchResponse = await beneficiaryAPI.getBeneficiary(parseInt(beneficiaryId));
         console.log('🔄 Refetch response:', fetchResponse);
+        
         if (fetchResponse.success && fetchResponse.data) {
           console.log('🔄 Refetched data:', fetchResponse.data);
           transformAndSetData(fetchResponse.data);
+        } else if (fetchResponse.data) {
+          // Handle case where response.data exists but success is not set
+          console.log('🔄 Refetched data (no success field):', fetchResponse.data);
+          transformAndSetData(fetchResponse.data);
         } else {
           // Fallback: update local state
+          console.log('⚠️ Using fallback: updating local state');
           setBeneficiaryData(formData);
         }
         
@@ -382,14 +405,22 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         onUpdate(formData);
         message.success('Beneficiary updated successfully!');
       } else {
-        const errorMsg = response.error || 'Failed to update beneficiary';
+        const errorMsg = response.error || responseData?.error || 'Failed to update beneficiary';
         console.error('❌ Update error:', errorMsg);
         message.error(`Failed to update beneficiary: ${errorMsg}`);
       }
     } catch (error: any) {
       console.error('❌ Error updating beneficiary:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        status: error?.status,
+        response: error?.response,
+        stack: error?.stack
+      });
       const errorMsg = error?.message || 'Failed to update beneficiary. Please try again.';
       message.error(errorMsg);
+      // Don't close editing mode if there's an error - let user try again
+      // setIsEditing(false);
     } finally {
       setSaving(false);
     }
