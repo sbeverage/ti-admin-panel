@@ -1157,6 +1157,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                     e.stopPropagation();
                     console.log('💾 Save button clicked');
                     console.log('💾 Current formData:', formData);
+                    console.log('💾 formData.contactName:', formData.contactName);
+                    console.log('💾 formData.contactNumber:', formData.contactNumber);
+                    console.log('💾 formData keys:', Object.keys(formData));
                     handleSave();
                   }}
                   icon={<SaveOutlined />}
