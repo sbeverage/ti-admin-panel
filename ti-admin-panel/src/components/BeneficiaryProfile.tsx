@@ -232,9 +232,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
         logoUrl: apiData.logo || apiData.logo_url || apiData.logoUrl || '',
         // Additional images - can be array or comma-separated string
-        additionalImages: Array.isArray(apiData.additional_images) 
-          ? apiData.additional_images.filter((img: any) => img) 
-          : (apiData.additional_images ? apiData.additional_images.split(',').filter((img: string) => img.trim()) : []),
+        additionalImages: (() => {
+          if (Array.isArray(apiData.additional_images)) {
+            return apiData.additional_images.filter((img: any) => img);
+          } else if (apiData.additional_images) {
+            return apiData.additional_images.split(',').filter((img: string) => img.trim());
+          }
+          return [];
+        })(),
         whyThisMatters: apiData.why_this_matters || apiData.mission || apiData.whyThisMatters || '',
         successStory: apiData.success_story || apiData.successStory || '',
         storyAuthor: apiData.story_author || apiData.storyAuthor || '',
