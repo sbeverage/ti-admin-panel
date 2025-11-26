@@ -228,8 +228,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // Contact fields (always include, even if empty - these are important fields)
       beneficiaryData.phone = allData.phoneNumber || '';
       beneficiaryData.contact_name = allData.primaryContact || '';
-      // NOTE: Backend doesn't have email column, but we collect it for reference
-      // Don't send email to backend as it causes 400 errors
+      // Try sending email - backend may have added this column
+      beneficiaryData.email = allData.primaryEmail || '';
+      beneficiaryData.primary_email = allData.primaryEmail || ''; // Also try primary_email
       
       // Trust & Transparency fields (always include, even if empty)
       beneficiaryData.ein = allData.ein || '';
@@ -275,9 +276,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // Explicitly remove fields that don't exist in backend schema
       // This is a defensive cleanup to ensure no problematic fields slip through
       const fieldsToRemove = [
-        // Email fields (don't exist)
-        'email',
-        'primaryEmail',
+        // Email fields - REMOVED: Now trying to send email to backend
+        // 'email', // Now trying to send this
+        // 'primaryEmail', // This is the form field name, not backend field
         // Verification status (doesn't exist - confirmed)
         'verification_status',
         'verificationStatus',

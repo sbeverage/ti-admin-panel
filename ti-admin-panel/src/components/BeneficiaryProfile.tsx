@@ -200,7 +200,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       contactName: apiData.contactName,
       phone: apiData.phone,
       contactNumber: apiData.contactNumber,
-      phoneNumber: apiData.phoneNumber
+      phoneNumber: apiData.phoneNumber,
+      email: apiData.email,
+      primary_email: apiData.primary_email,
+      primaryEmail: apiData.primaryEmail,
+      contact_email: apiData.contact_email,
+      contactEmail: apiData.contactEmail
     });
     
     // Transform API data to match our interface
@@ -208,7 +213,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         id: apiData.id?.toString() || beneficiaryId,
         beneficiaryName: apiData.name || apiData.beneficiaryName || 'Unknown',
         contactName: apiData.contact_name || apiData.contactName || '',
-        email: apiData.email || '',
+        email: apiData.email || apiData.primary_email || apiData.primaryEmail || apiData.contact_email || apiData.contactEmail || '',
         contactNumber: apiData.phone || apiData.contactNumber || apiData.phoneNumber || '',
         bankAccount: apiData.bank_account || apiData.bankAccount || '',
         donation: apiData.total_donations ? `$${apiData.total_donations.toLocaleString()}` : apiData.donation || '$0',
@@ -347,7 +352,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         // Backend might ignore empty strings, so we send null to ensure update
         phone: formData.contactNumber && formData.contactNumber.trim() ? formData.contactNumber.trim() : null,
         contact_name: formData.contactName && formData.contactName.trim() ? formData.contactName.trim() : null,
-      // NOTE: Backend doesn't have email column - don't send it
+        // Try sending email - backend may have added this column
+        email: formData.email && formData.email.trim() ? formData.email.trim() : null,
+        primary_email: formData.email && formData.email.trim() ? formData.email.trim() : null, // Also try primary_email
       
       // Log contact fields being sent
       // (temporary logging to debug)
@@ -420,11 +427,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       console.log('💾 Updating beneficiary:', beneficiaryId);
       console.log('💾 Form data contact fields:', {
         contactName: formData.contactName,
-        contactNumber: formData.contactNumber
+        contactNumber: formData.contactNumber,
+        email: formData.email
       });
       console.log('💾 Update payload contact fields:', {
         contact_name: updateData.contact_name,
-        phone: updateData.phone
+        phone: updateData.phone,
+        email: updateData.email,
+        primary_email: updateData.primary_email
       });
       console.log('✅ Verified: communities_served NOT in payload:', !updateData.hasOwnProperty('communities_served'));
       console.log('✅ Verified: verification_status NOT in payload:', !updateData.hasOwnProperty('verification_status'));
@@ -471,7 +481,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           console.log('🔄 Refetched data:', fetchResponse.data);
           console.log('🔄 Refetched contact fields:', {
             contact_name: fetchResponse.data.contact_name,
-            phone: fetchResponse.data.phone
+            phone: fetchResponse.data.phone,
+            email: fetchResponse.data.email,
+            primary_email: fetchResponse.data.primary_email
           });
           transformAndSetData(fetchResponse.data);
         } else if (fetchResponse.data) {
@@ -479,7 +491,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           console.log('🔄 Refetched data (no success field):', fetchResponse.data);
           console.log('🔄 Refetched contact fields:', {
             contact_name: fetchResponse.data.contact_name,
-            phone: fetchResponse.data.phone
+            phone: fetchResponse.data.phone,
+            email: fetchResponse.data.email,
+            primary_email: fetchResponse.data.primary_email
           });
           transformAndSetData(fetchResponse.data);
         } else {

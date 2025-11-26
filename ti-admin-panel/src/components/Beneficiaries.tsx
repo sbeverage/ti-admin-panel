@@ -163,10 +163,12 @@ const Beneficiaries: React.FC = () => {
                        beneficiary.contact_number || 
                        '';
           
-          // Email - NOTE: Backend doesn't have email field, so this will likely be empty
+          // Email - Check all possible field variations
           const email = beneficiary.email || 
                        beneficiary.primaryEmail || 
                        beneficiary.primary_email || 
+                       beneficiary.contact_email ||
+                       beneficiary.contactEmail ||
                        '';
           
           // Contact Name - check all variations
