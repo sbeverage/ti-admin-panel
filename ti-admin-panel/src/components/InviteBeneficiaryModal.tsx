@@ -128,8 +128,26 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
-        // Submit to API - include profileLinks from state
-        await handleSubmit({ ...basicDetails, ...impactStory, ...trustTransparency, ...values, profileLinks });
+        // CRITICAL: Get ALL form values, not just the state variables
+        // The state variables might be incomplete if user went back and changed values
+        const allFormValues = form.getFieldsValue();
+        console.log('📋 All form values from form instance:', allFormValues);
+        console.log('📋 State variables:', { basicDetails, impactStory, trustTransparency, values });
+        
+        // Combine: Use form values as source of truth, but include profileLinks from state
+        const allData = {
+          ...allFormValues,
+          profileLinks: profileLinks.filter(link => link.channel && link.username), // Only include valid links
+          // Ensure image URLs are included
+          mainImageUrl: mainImageUrl,
+          logoUrl: logoUrl,
+          additionalImages: additionalImages.filter(img => img)
+        };
+        
+        console.log('📦 Combined data for submission:', allData);
+        
+        // Submit to API
+        await handleSubmit(allData);
       }
     } catch (error) {
       console.error('❌ Validation failed:', error);
@@ -158,14 +176,31 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 
   const handleSubmit = async (allData: any) => {
     console.log('🚀 Submitting beneficiary data:', allData);
+    console.log('🚀 AllData keys:', Object.keys(allData));
+    console.log('🚀 AllData values:', {
+      beneficiaryName: allData.beneficiaryName,
+      category: allData.category,
+      type: allData.type,
+      city: allData.city,
+      state: allData.state,
+      zipCode: allData.zipCode,
+      location: allData.location,
+      primaryContact: allData.primaryContact,
+      phoneNumber: allData.phoneNumber,
+      primaryEmail: allData.primaryEmail,
+      about: allData.about,
+      whyThisMatters: allData.whyThisMatters,
+      successStory: allData.successStory,
+      storyAuthor: allData.storyAuthor,
+      ein: allData.ein,
+      website: allData.website,
+      isActive: allData.isActive,
+      mainImageUrl: allData.mainImageUrl || mainImageUrl,
+      logoUrl: allData.logoUrl || logoUrl
+    });
     setSaving(true);
     
     try {
-      // Latitude and longitude will be set to null - can be geocoded on backend if needed
-      // Frontend geocoding has CORS issues, so we'll let backend handle it
-      const latitude: number | undefined = undefined;
-      const longitude: number | undefined = undefined;
-
       // Transform data to API format
       // CRITICAL: Only include fields that definitely exist in the backend schema
       // We use a conservative approach to avoid 400 errors
@@ -173,9 +208,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // Build minimal safe payload with only core required fields
       const beneficiaryData: any = {
         // Core required fields (definitely exist)
-        name: allData.beneficiaryName,
-        category: allData.category,
-        type: allData.type, // Large, Medium, or Small
+        name: allData.beneficiaryName || '',
+        category: allData.category || '',
+        type: allData.type || 'Medium', // Large, Medium, or Small
         about: allData.about || '',
         why_this_matters: allData.whyThisMatters || '',
         success_story: allData.successStory || '',
@@ -200,16 +235,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       beneficiaryData.ein = allData.ein || '';
       beneficiaryData.website = allData.website || '';
       
-      // Images (only add if provided)
-      if (mainImageUrl) {
-        beneficiaryData.imageUrl = mainImageUrl; // Backend expects camelCase
-        beneficiaryData.main_image = mainImageUrl;
-        beneficiaryData.main_image_url = mainImageUrl;
+      // Images (use from allData first, then fallback to state)
+      const finalMainImageUrl = allData.mainImageUrl || mainImageUrl;
+      const finalLogoUrl = allData.logoUrl || logoUrl;
+      
+      if (finalMainImageUrl) {
+        beneficiaryData.imageUrl = finalMainImageUrl; // Backend expects camelCase
+        beneficiaryData.main_image = finalMainImageUrl;
+        beneficiaryData.main_image_url = finalMainImageUrl;
       }
-      if (logoUrl) {
-        beneficiaryData.logoUrl = logoUrl; // Backend expects camelCase
-        beneficiaryData.logo = logoUrl;
-        beneficiaryData.logo_url = logoUrl;
+      if (finalLogoUrl) {
+        beneficiaryData.logoUrl = finalLogoUrl; // Backend expects camelCase
+        beneficiaryData.logo = finalLogoUrl;
+        beneficiaryData.logo_url = finalLogoUrl;
       }
       
       // Impact Metrics - Only include if they have values AND backend supports them
