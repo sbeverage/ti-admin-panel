@@ -107,6 +107,8 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   const [saving, setSaving] = useState(false);
   const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryData | null>(null);
   const [formData, setFormData] = useState<any>({});
+  // Additional images state
+  const [additionalImages, setAdditionalImages] = useState<string[]>([]);
 
   // Fetch full beneficiary details by ID
   useEffect(() => {
@@ -229,6 +231,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         about: apiData.about || apiData.description || '',
         mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
         logoUrl: apiData.logo || apiData.logo_url || apiData.logoUrl || '',
+        // Additional images - can be array or comma-separated string
+        additionalImages: Array.isArray(apiData.additional_images) 
+          ? apiData.additional_images.filter((img: any) => img) 
+          : (apiData.additional_images ? apiData.additional_images.split(',').filter((img: string) => img.trim()) : []),
         whyThisMatters: apiData.why_this_matters || apiData.mission || apiData.whyThisMatters || '',
         successStory: apiData.success_story || apiData.successStory || '',
         storyAuthor: apiData.story_author || apiData.storyAuthor || '',
@@ -277,6 +283,28 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   const handleCancel = () => {
     setIsEditing(false);
     setFormData({ ...beneficiaryData });
+    // Reset additional images to original state
+    if (beneficiaryData) {
+      const additionalImgs = Array.isArray(beneficiaryData.additionalImages) 
+        ? beneficiaryData.additionalImages 
+        : [];
+      setAdditionalImages(additionalImgs);
+    }
+  };
+  
+  // Handle additional image changes
+  const handleAdditionalImageChange = (url: string | null, index: number) => {
+    if (url) {
+      const newImages = [...additionalImages];
+      newImages[index] = url;
+      setAdditionalImages(newImages);
+      // Update formData as well
+      handleInputChange('additionalImages', newImages.filter(img => img));
+    } else {
+      const newImages = additionalImages.filter((_, i) => i !== index);
+      setAdditionalImages(newImages);
+      handleInputChange('additionalImages', newImages);
+    }
   };
 
   const handleSave = async () => {
@@ -345,6 +373,8 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         logoUrl: formData.logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         logo: formData.logoUrl || '',
         logo_url: formData.logoUrl || '', // Send both for compatibility
+        // Additional images - send as array, filtered to remove empty slots
+        additional_images: additionalImages.filter(img => img && img.trim()),
         volunteer_info: formData.volunteerInfo || ''
       };
 
@@ -787,7 +817,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               currentImageUrl={formData.mainImageUrl}
               onImageChange={(url) => handleInputChange('mainImageUrl', url)}
               title="Upload Beneficiary Image"
-              description="Upload a main image for the beneficiary organization"
+              description="Upload a main image for the beneficiary organization. Recommended: 1080px × 1080px. Max 5MB"
             />
           ) : (
             beneficiaryData.mainImageUrl ? (
@@ -801,6 +831,78 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             )
           )}
         </div>
+      </div>
+
+      <Divider />
+
+      <div className="form-field">
+        <label>Organization Logo</label>
+        <div style={{ marginTop: '8px' }}>
+          {isEditing ? (
+            <ImageUpload
+              currentImageUrl={formData.logoUrl}
+              onImageChange={(url) => handleInputChange('logoUrl', url)}
+              title="Upload Organization Logo"
+              description="Upload a logo for the beneficiary organization. Recommended: 1080px × 1080px. Max 5MB"
+            />
+          ) : (
+            beneficiaryData.logoUrl ? (
+              <Image
+                src={beneficiaryData.logoUrl}
+                alt="Organization logo"
+                style={{ maxWidth: 300, borderRadius: '8px' }}
+              />
+            ) : (
+              <Text type="secondary">No logo uploaded</Text>
+            )
+          )}
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className="form-field">
+        <label>Additional Images (Optional)</label>
+        <Text type="secondary" style={{ display: 'block', marginBottom: '16px', fontSize: '12px' }}>
+          Upload up to 3 additional images showcasing your programs and impact
+        </Text>
+        {isEditing ? (
+          <Row gutter={[16, 16]}>
+            {[0, 1, 2].map((index) => (
+              <Col span={8} key={index}>
+                <div>
+                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                    Image {index + 1}
+                  </Text>
+                  <ImageUpload
+                    currentImageUrl={additionalImages[index] || undefined}
+                    onImageChange={(url) => handleAdditionalImageChange(url, index)}
+                    title="Upload Image"
+                    description="Click or drag to upload"
+                  />
+                </div>
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Row gutter={[16, 16]}>
+            {beneficiaryData.additionalImages && beneficiaryData.additionalImages.length > 0 ? (
+              beneficiaryData.additionalImages.map((imgUrl: string, index: number) => (
+                <Col span={8} key={index}>
+                  <Image
+                    src={imgUrl}
+                    alt={`Additional image ${index + 1}`}
+                    style={{ width: '100%', borderRadius: '8px' }}
+                  />
+                </Col>
+              ))
+            ) : (
+              <Col span={24}>
+                <Text type="secondary">No additional images uploaded</Text>
+              </Col>
+            )}
+          </Row>
+        )}
       </div>
     </Card>
   );
