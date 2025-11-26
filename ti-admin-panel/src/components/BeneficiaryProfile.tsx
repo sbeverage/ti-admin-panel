@@ -281,21 +281,22 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         type: formData.beneficiaryType || '',
         location: formData.location || formData.cityState || '',
         // Location breakdown - try to extract from location string or use cityState
-        city: (() => {
+        // Also check if we have separate city/state fields in formData
+        city: formData.city || (() => {
           const loc = formData.location || formData.cityState || '';
           if (loc.includes(',')) {
             return loc.split(',')[0]?.trim() || '';
           }
           return '';
         })(),
-        state: (() => {
+        state: formData.state || (() => {
           const loc = formData.location || formData.cityState || '';
           if (loc.includes(',')) {
             return loc.split(',')[1]?.trim() || '';
           }
           return '';
         })(),
-        zip_code: formData.zipCode || '',
+        zip_code: formData.zipCode || formData.zip_code || '',
       // Contact fields - always include even if empty
       phone: formData.contactNumber || '',
       contact_name: formData.contactName || '',
