@@ -19,6 +19,7 @@ import {
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
 import ImageUpload from './ImageUpload';
+import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 import './InviteBeneficiaryModal.css';
 
 const { Title, Text } = Typography;
@@ -438,13 +439,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   label="Category *"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
-                  <Select placeholder="Select category">
-                    <Option value="Childhood Illness">Childhood Illness</Option>
-                    <Option value="Animal Welfare">Animal Welfare</Option>
-                    <Option value="Low Income Families">Low Income Families</Option>
-                    <Option value="Education">Education</Option>
-                    <Option value="Environment">Environment</Option>
-                    <Option value="Disabilities">Disabilities</Option>
+                  <Select placeholder="Select category" showSearch optionFilterProp="children">
+                    {BENEFICIARY_CATEGORIES.map((category) => (
+                      <Option key={category.value} value={category.value} title={category.description}>
+                        {category.label}
+                      </Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>

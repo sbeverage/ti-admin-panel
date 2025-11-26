@@ -36,6 +36,7 @@ import {
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
 import { beneficiaryAPI } from '../services/api';
+import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -609,13 +610,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 onChange={(value) => handleInputChange('beneficiaryCause', value)}
                 placeholder="Select category"
                 style={{ width: '100%' }}
+                showSearch
+                optionFilterProp="children"
               >
-                <Option value="Childhood Illness">Childhood Illness</Option>
-                <Option value="Animal Welfare">Animal Welfare</Option>
-                <Option value="Low Income Families">Low Income Families</Option>
-                <Option value="Education">Education</Option>
-                <Option value="Environment">Environment</Option>
-                <Option value="Disabilities">Disabilities</Option>
+                {BENEFICIARY_CATEGORIES.map((category) => (
+                  <Option key={category.value} value={category.value} title={category.description}>
+                    {category.label}
+                  </Option>
+                ))}
               </Select>
             ) : (
               <Tag color="blue">{beneficiaryData.beneficiaryCause}</Tag>
