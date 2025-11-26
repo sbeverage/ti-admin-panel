@@ -188,6 +188,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
 
   // Transform API data to display format
   const transformAndSetData = (apiData: any) => {
+    console.log('🔄 transformAndSetData called with:', apiData);
+    console.log('🔄 Contact fields in API data:', {
+      contact_name: apiData.contact_name,
+      contactName: apiData.contactName,
+      phone: apiData.phone,
+      contactNumber: apiData.contactNumber,
+      phoneNumber: apiData.phoneNumber
+    });
+    
     // Transform API data to match our interface
     const transformed: BeneficiaryData = {
         id: apiData.id?.toString() || beneficiaryId,
@@ -239,8 +248,17 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         isActive: apiData.isActive !== undefined ? apiData.isActive : 
                   (apiData.is_active !== undefined ? apiData.is_active : true),
       };
+      
+      console.log('🔄 Transformed contact fields:', {
+        contactName: transformed.contactName,
+        contactNumber: transformed.contactNumber
+      });
+      
       setBeneficiaryData(transformed);
       setFormData(transformed);
+      
+      console.log('🔄 Data set in state. beneficiaryData.contactName:', transformed.contactName);
+      console.log('🔄 Data set in state. beneficiaryData.contactNumber:', transformed.contactNumber);
   };
 
   const handleEdit = () => {
@@ -278,10 +296,13 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           return '';
         })(),
         zip_code: formData.zipCode || '',
-        // Contact fields - always include even if empty
-        phone: formData.contactNumber || '',
-        contact_name: formData.contactName || '',
-        // NOTE: Backend doesn't have email column - don't send it
+      // Contact fields - always include even if empty
+      phone: formData.contactNumber || '',
+      contact_name: formData.contactName || '',
+      // NOTE: Backend doesn't have email column - don't send it
+      
+      // Log contact fields being sent
+      // (temporary logging to debug)
         // Use exact database field names (snake_case)
         about: formData.about || '',
         why_this_matters: formData.whyThisMatters || '',
@@ -347,6 +368,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       }
 
       console.log('💾 Updating beneficiary:', beneficiaryId);
+      console.log('💾 Form data contact fields:', {
+        contactName: formData.contactName,
+        contactNumber: formData.contactNumber
+      });
+      console.log('💾 Update payload contact fields:', {
+        contact_name: updateData.contact_name,
+        phone: updateData.phone
+      });
       console.log('✅ Verified: communities_served NOT in payload:', !updateData.hasOwnProperty('communities_served'));
       console.log('✅ Verified: verification_status NOT in payload:', !updateData.hasOwnProperty('verification_status'));
       console.log('💾 Update payload:', updateData);
@@ -390,14 +419,26 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         
         if (fetchResponse.success && fetchResponse.data) {
           console.log('🔄 Refetched data:', fetchResponse.data);
+          console.log('🔄 Refetched contact fields:', {
+            contact_name: fetchResponse.data.contact_name,
+            phone: fetchResponse.data.phone
+          });
           transformAndSetData(fetchResponse.data);
         } else if (fetchResponse.data) {
           // Handle case where response.data exists but success is not set
           console.log('🔄 Refetched data (no success field):', fetchResponse.data);
+          console.log('🔄 Refetched contact fields:', {
+            contact_name: fetchResponse.data.contact_name,
+            phone: fetchResponse.data.phone
+          });
           transformAndSetData(fetchResponse.data);
         } else {
           // Fallback: update local state
           console.log('⚠️ Using fallback: updating local state');
+          console.log('⚠️ Fallback contact fields:', {
+            contactName: formData.contactName,
+            contactNumber: formData.contactNumber
+          });
           setBeneficiaryData(formData);
         }
         
