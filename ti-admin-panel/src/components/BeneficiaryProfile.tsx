@@ -305,9 +305,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           return '';
         })(),
         zip_code: formData.zipCode || formData.zip_code || '',
-      // Contact fields - always include even if empty
-      phone: formData.contactNumber || '',
-      contact_name: formData.contactName || '',
+        // Contact fields - send null instead of empty string if not provided
+        // Backend might ignore empty strings, so we send null to ensure update
+        phone: formData.contactNumber && formData.contactNumber.trim() ? formData.contactNumber.trim() : null,
+        contact_name: formData.contactName && formData.contactName.trim() ? formData.contactName.trim() : null,
       // NOTE: Backend doesn't have email column - don't send it
       
       // Log contact fields being sent
