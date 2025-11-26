@@ -167,120 +167,164 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       const longitude: number | undefined = undefined;
 
       // Transform data to API format
-      // NOTE: Backend 'charities' table does NOT have an 'email' column
-      // The backend code needs to be updated to remove any references to 'email' column
-      // We collect primaryEmail in the form but do NOT send it to backend
+      // CRITICAL: Only include fields that definitely exist in the backend schema
+      // We use a conservative approach to avoid 400 errors
+      
+      // Build minimal safe payload with only core required fields
       const beneficiaryData: any = {
+        // Core required fields (definitely exist)
         name: allData.beneficiaryName,
         category: allData.category,
         type: allData.type, // Large, Medium, or Small
-        city: allData.city,
-        state: allData.state,
-        zip_code: allData.zipCode || '',
-        location: allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`, // Use location field if provided, otherwise combine
-        latitude: latitude,
-        longitude: longitude,
-        phone: allData.phoneNumber || '',
-        contact_name: allData.primaryContact || '',
-        // Use exact database field names (snake_case)
         about: allData.about || '',
         why_this_matters: allData.whyThisMatters || '',
-        // Impact & Story fields
         success_story: allData.successStory || '',
         story_author: allData.storyAuthor || '',
-        // Impact Metrics - NEW fields (optional)
-        // Send both camelCase and snake_case for backend compatibility
-        livesImpacted: allData.livesImpacted || null, // VARCHAR(50) - can include formatting (e.g., "10,000+", "1M+")
-        lives_impacted: allData.livesImpacted || null, // snake_case version
-        programsActive: allData.programsActive || null, // INTEGER - number of active programs
-        programs_active: allData.programsActive || null, // snake_case version
-        directToProgramsPercentage: allData.directToProgramsPercentage || null, // DECIMAL(5,2) - percentage (e.g., 95.00)
-        direct_to_programs_percentage: allData.directToProgramsPercentage || null, // snake_case version
-        // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
-        // verification_status: allData.verificationStatus !== undefined ? allData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
-        // impact_statement_1: allData.impactStatement1 || '', // ⚠️ May not exist in backend
-        // impact_statement_2: allData.impactStatement2 || '', // ⚠️ May not exist in backend
-        // transparency_rating: allData.transparencyRating || 0, // ⚠️ May not exist in backend
-        ein: allData.ein || '',
-        website: allData.website || '',
-        social: allData.social || '',
-        likes: allData.likes || 0,
-        mutual: allData.mutual || 0,
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
-        // Images uploaded to Supabase
-        // Backend expects imageUrl (camelCase) which saves to image_url column
-        imageUrl: mainImageUrl || '', // ⚠️ CRITICAL: Backend expects this field name
-        main_image: mainImageUrl || '',
-        main_image_url: mainImageUrl || '', // Send both for compatibility
-        // Backend expects logoUrl (camelCase) which saves to logo_url column
-        logoUrl: logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
-        logo: logoUrl || '',
-        logo_url: logoUrl || '', // Send both for compatibility
-        additional_images: additionalImages.filter(img => img), // Filter out empty slots
-        // Profile links (social media)
-        profile_links: allData.profileLinks ? allData.profileLinks.filter((link: any) => link.channel && link.username) : []
       };
       
-      // Explicitly ensure email is NOT in the payload
-      // Backend error: "Could not find the 'email' column of 'charities' in the schema cache"
-      // This means backend code is trying to access email column that doesn't exist
-      delete beneficiaryData.email;
-      delete beneficiaryData.primaryEmail;
+      // Location fields (add if provided)
+      if (allData.city) beneficiaryData.city = allData.city;
+      if (allData.state) beneficiaryData.state = allData.state;
+      if (allData.zipCode) beneficiaryData.zip_code = allData.zipCode;
+      if (allData.location || allData.city) {
+        beneficiaryData.location = allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`;
+      }
+      
+      // Optional contact fields (add if provided)
+      if (allData.phoneNumber) beneficiaryData.phone = allData.phoneNumber;
+      if (allData.primaryContact) beneficiaryData.contact_name = allData.primaryContact;
+      if (allData.ein) beneficiaryData.ein = allData.ein;
+      if (allData.website) beneficiaryData.website = allData.website;
+      
+      // Images (only add if provided)
+      if (mainImageUrl) {
+        beneficiaryData.imageUrl = mainImageUrl; // Backend expects camelCase
+        beneficiaryData.main_image = mainImageUrl;
+        beneficiaryData.main_image_url = mainImageUrl;
+      }
+      if (logoUrl) {
+        beneficiaryData.logoUrl = logoUrl; // Backend expects camelCase
+        beneficiaryData.logo = logoUrl;
+        beneficiaryData.logo_url = logoUrl;
+      }
+      
+      // Impact Metrics - Only include if they have values AND backend supports them
+      // These are NEW fields that may not exist yet - comment out if causing errors
+      if (allData.livesImpacted) {
+        beneficiaryData.livesImpacted = allData.livesImpacted;
+        beneficiaryData.lives_impacted = allData.livesImpacted;
+      }
+      if (allData.programsActive !== null && allData.programsActive !== undefined) {
+        beneficiaryData.programsActive = allData.programsActive;
+        beneficiaryData.programs_active = allData.programsActive;
+      }
+      if (allData.directToProgramsPercentage !== null && allData.directToProgramsPercentage !== undefined) {
+        beneficiaryData.directToProgramsPercentage = allData.directToProgramsPercentage;
+        beneficiaryData.direct_to_programs_percentage = allData.directToProgramsPercentage;
+      }
+      
+      // NOTE: The following fields are NOT included as they may not exist in backend:
+      // - verification_status (doesn't exist - confirmed)
+      // - likes, mutual, social (may not exist)
+      // - additional_images (may not exist)
+      // - profile_links (may not exist)
+      // - latitude, longitude (can be null, but may cause issues)
       
       // Explicitly remove fields that don't exist in backend schema
-      // These fields cause 400 errors if included
-      // Delete them multiple times to be absolutely sure they're removed
+      // This is a defensive cleanup to ensure no problematic fields slip through
       const fieldsToRemove = [
-        'verification_status', // ⚠️ DOES NOT EXIST - causing 400 error
-        'verificationStatus', // camelCase version
-        'communities_served', // OLD field - replaced by programs_active
-        'families_helped', // OLD field - replaced by lives_impacted
-        'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
+        // Email fields (don't exist)
+        'email',
+        'primaryEmail',
+        // Verification status (doesn't exist - confirmed)
+        'verification_status',
+        'verificationStatus',
+        // Old impact metrics fields (replaced by new ones)
+        'communities_served',
+        'families_helped',
+        'direct_to_programs',
+        'communitiesServed',
+        'familiesHelped',
+        'directToPrograms',
+        // Impact statements (may not exist)
         'impact_statement_1',
         'impact_statement_2',
+        'impactStatement1',
+        'impactStatement2',
+        // Other potentially problematic fields
         'transparency_rating',
-        'communitiesServed', // OLD camelCase version
-        'familiesHelped', // OLD camelCase version
-        'directToPrograms' // OLD camelCase version (without Percentage suffix)
+        'likes', // May not exist
+        'mutual', // May not exist
+        'social', // May not exist
+        'additional_images', // May not exist
+        'profile_links', // May not exist
+        'latitude', // May cause issues if null
+        'longitude', // May cause issues if null
       ];
       
       fieldsToRemove.forEach(field => {
         if (beneficiaryData.hasOwnProperty(field)) {
-          console.warn(`⚠️ Removing non-existent field: ${field}`);
+          console.warn(`⚠️ Removing potentially problematic field: ${field}`);
           delete beneficiaryData[field];
         }
       });
       
-      // Verify fields are removed
+      // Final verification
       const hasRemovedFields = fieldsToRemove.some(field => beneficiaryData.hasOwnProperty(field));
       if (hasRemovedFields) {
         console.error('❌ CRITICAL: Some removed fields are still in payload!', fieldsToRemove.filter(f => beneficiaryData.hasOwnProperty(f)));
       }
       
+      // Logging for debugging
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
+      console.log('📦 Payload size:', Object.keys(beneficiaryData).length, 'fields');
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
-      console.log('✅ Verified: communities_served NOT in payload:', !beneficiaryData.hasOwnProperty('communities_served'));
-      console.log('✅ Verified: verification_status NOT in payload:', !beneficiaryData.hasOwnProperty('verification_status'));
-      console.log('📦 is_active value:', beneficiaryData.is_active);
-      console.log('📦 isActive value:', beneficiaryData.isActive);
-      console.log('📸 imageUrl value:', beneficiaryData.imageUrl || 'NOT SET');
-      console.log('📸 logoUrl value:', beneficiaryData.logoUrl || 'NOT SET');
-      console.log('📸 mainImageUrl state:', mainImageUrl || 'NOT SET');
-      console.log('📸 logoUrl state:', logoUrl || 'NOT SET');
+      
+      // Verify critical fields are removed
+      const criticalRemovedFields = ['verification_status', 'communities_served', 'email', 'likes', 'mutual'];
+      criticalRemovedFields.forEach(field => {
+        const isRemoved = !beneficiaryData.hasOwnProperty(field);
+        console.log(`✅ Verified: ${field} NOT in payload:`, isRemoved);
+        if (!isRemoved) {
+          console.error(`❌ CRITICAL: ${field} is still in payload!`);
+        }
+      });
+      
+      console.log('📦 Core fields:', {
+        name: beneficiaryData.name,
+        category: beneficiaryData.category,
+        type: beneficiaryData.type,
+        is_active: beneficiaryData.is_active,
+        hasAbout: !!beneficiaryData.about,
+        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
+        hasImage: !!beneficiaryData.imageUrl,
+        hasLogo: !!beneficiaryData.logoUrl
+      });
       
       // Call API
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
       console.log('📡 API response:', response);
-      console.log('📡 API response data:', response.data);
-      if (response.data) {
-        console.log('📡 Created beneficiary ID:', response.data.id || response.data);
-        console.log('📡 Created beneficiary is_active:', response.data.is_active || response.data.isActive);
-        console.log('📡 Created beneficiary verification_status:', response.data.verification_status || response.data.verificationStatus);
+      
+      // Handle different response formats
+      // Backend might return: { success: true, data: {...} } OR just the data directly
+      const responseData = response.data || response;
+      const isSuccess = response.success !== false; // Default to true if not specified
+      
+      console.log('📡 Response success:', isSuccess);
+      console.log('📡 Response data:', responseData);
+      
+      if (responseData) {
+        const beneficiaryId = responseData.id || responseData;
+        console.log('📡 Created beneficiary ID:', beneficiaryId);
+        if (typeof responseData === 'object') {
+          console.log('📡 Created beneficiary is_active:', responseData.is_active || responseData.isActive);
+        }
       }
       
-      if (response.success) {
+      if (isSuccess) {
         message.success('Beneficiary created successfully!');
         // Call onSubmit callback (which should refresh the beneficiaries list)
         onSubmit(allData);
@@ -288,7 +332,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Note: The parent component (Beneficiaries) should refresh the list
         // in its onSubmit handler to show the newly created beneficiary
       } else {
-        const errorMsg = response.error || 'Failed to create beneficiary';
+        const errorMsg = response.error || responseData?.error || 'Failed to create beneficiary';
         console.error('❌ Backend error:', errorMsg);
         message.error(`Failed to create beneficiary: ${errorMsg}`);
       }
