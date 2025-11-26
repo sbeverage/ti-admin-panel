@@ -121,17 +121,61 @@ const Beneficiaries: React.FC = () => {
         });
         
         const transformedData = filteredData.map((beneficiary: any) => {
+          // Log the raw beneficiary data for debugging
+          console.log('🔍 Processing beneficiary:', beneficiary.name || beneficiary.id, {
+            phone: beneficiary.phone,
+            phoneNumber: beneficiary.phoneNumber,
+            contactNumber: beneficiary.contactNumber,
+            contact_number: beneficiary.contact_number,
+            contact_name: beneficiary.contact_name,
+            contactName: beneficiary.contactName,
+            primaryContact: beneficiary.primaryContact,
+            email: beneficiary.email,
+            primaryEmail: beneficiary.primaryEmail,
+            bank_account: beneficiary.bank_account,
+            bankAccount: beneficiary.bankAccount,
+            location: beneficiary.location,
+            city: beneficiary.city,
+            state: beneficiary.state
+          });
+          
           // Extract all possible field variations from API
           const name = beneficiary.name || beneficiary.beneficiaryName || 'Unknown';
           const category = beneficiary.category || beneficiary.cause || beneficiary.beneficiaryCause || 'General';
           const type = beneficiary.type || beneficiary.beneficiaryType || 'Medium';
-          const location = beneficiary.location || 
-                          (beneficiary.address ? `${beneficiary.address.city || ''}, ${beneficiary.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
-                          (beneficiary.city && beneficiary.state ? `${beneficiary.city}, ${beneficiary.state}` : '') ||
-                          beneficiary.cityState || 'N/A';
-          const phone = beneficiary.phone || beneficiary.phoneNumber || beneficiary.contactNumber || beneficiary.contact_number || 'N/A';
-          const email = beneficiary.email || beneficiary.primaryEmail || beneficiary.primary_email || 'N/A';
-          const contactName = beneficiary.contact_name || beneficiary.contactName || beneficiary.primaryContact || beneficiary.primary_contact || email;
+          
+          // Location - build from available fields
+          let location = beneficiary.location || '';
+          if (!location && beneficiary.city && beneficiary.state) {
+            location = `${beneficiary.city}, ${beneficiary.state}`;
+            if (beneficiary.zip_code) {
+              location += ` ${beneficiary.zip_code}`;
+            }
+          } else if (!location && beneficiary.address) {
+            location = `${beneficiary.address.city || ''}, ${beneficiary.address.state || ''}`.replace(/^,\s*|,\s*$/g, '');
+          }
+          if (!location) location = beneficiary.cityState || '';
+          
+          // Phone - check all variations, but don't default to 'N/A' if field exists but is empty
+          const phone = beneficiary.phone || 
+                       beneficiary.phoneNumber || 
+                       beneficiary.contactNumber || 
+                       beneficiary.contact_number || 
+                       '';
+          
+          // Email - NOTE: Backend doesn't have email field, so this will likely be empty
+          const email = beneficiary.email || 
+                       beneficiary.primaryEmail || 
+                       beneficiary.primary_email || 
+                       '';
+          
+          // Contact Name - check all variations
+          const contactName = beneficiary.contact_name || 
+                             beneficiary.contactName || 
+                             beneficiary.primaryContact || 
+                             beneficiary.primary_contact || 
+                             '';
+          
           const createdAt = beneficiary.createdAt || beneficiary.created_at || beneficiary.dateOfJoin || beneficiary.date_of_join;
           const isActive = beneficiary.isActive !== undefined ? beneficiary.isActive : 
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
@@ -145,20 +189,29 @@ const Beneficiaries: React.FC = () => {
                           beneficiary.logo_url || 
                           '';
           
+          // Bank account - format if exists
+          let bankAccountDisplay = '';
+          if (beneficiary.bank_account) {
+            const accountStr = beneficiary.bank_account.toString();
+            bankAccountDisplay = accountStr.length > 4 ? `****${accountStr.slice(-4)}` : accountStr;
+          } else if (beneficiary.bankAccount) {
+            const accountStr = beneficiary.bankAccount.toString();
+            bankAccountDisplay = accountStr.length > 4 ? `****${accountStr.slice(-4)}` : accountStr;
+          }
+          
           // Extract all available fields from the API response
           return {
             key: beneficiary.id?.toString() || beneficiary.key || Math.random().toString(),
             beneficiaryName: name,
-            contactName: contactName,
-            email: email,
-            contactNumber: phone,
-            bankAccount: beneficiary.bank_account ? `****${beneficiary.bank_account.slice(-4)}` : 
-                        (beneficiary.bankAccount ? `****${beneficiary.bankAccount.slice(-4)}` : 'N/A'),
+            contactName: contactName || (email ? email : 'Not provided'),
+            email: email || 'Not provided',
+            contactNumber: phone || 'Not provided',
+            bankAccount: bankAccountDisplay || 'Not provided',
             donation: beneficiary.total_donations ? `$${beneficiary.total_donations.toLocaleString()}` : 
                      (beneficiary.totalDonations ? `$${beneficiary.totalDonations.toLocaleString()}` :
                      (beneficiary.donation || '$0')),
-            dateOfJoin: createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A',
-            cityState: location,
+            dateOfJoin: createdAt ? new Date(createdAt).toLocaleDateString() : 'Not provided',
+            cityState: location || 'Not provided',
             beneficiaryCause: category,
             beneficiaryType: type,
             donors: beneficiary.donor_count || beneficiary.donorCount || beneficiary.mutual || beneficiary.donors || 0,
@@ -414,28 +467,28 @@ const Beneficiaries: React.FC = () => {
       title: 'Contact name', 
       dataIndex: 'contactName', 
       key: 'contactName', 
-      render: (text: string) => <Text type="secondary">{text || 'N/A'}</Text>, 
+      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
       width: 150 
     },
     { 
       title: 'Emails', 
       dataIndex: 'email', 
       key: 'email', 
-      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
       width: 200 
     },
     { 
       title: 'Contact number', 
       dataIndex: 'contactNumber', 
       key: 'contactNumber', 
-      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
       width: 150 
     },
     { 
       title: 'Bank Account', 
       dataIndex: 'bankAccount', 
       key: 'bankAccount', 
-      render: (text: string) => <Text type="secondary">{text}</Text>, 
+      render: (text: string) => <Text type="secondary">{text || 'Not provided'}</Text>, 
       width: 150 
     },
     {

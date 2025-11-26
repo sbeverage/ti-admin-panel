@@ -131,6 +131,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             mission: apiData.mission,
             success_story: apiData.success_story,
             story_author: apiData.story_author,
+            lives_impacted: apiData.lives_impacted,
+            livesImpacted: apiData.livesImpacted,
+            programs_active: apiData.programs_active,
+            programsActive: apiData.programsActive,
+            direct_to_programs_percentage: apiData.direct_to_programs_percentage,
+            directToProgramsPercentage: apiData.directToProgramsPercentage,
             families_helped: apiData.families_helped,
             communities_served: apiData.communities_served,
             direct_to_programs: apiData.direct_to_programs,
@@ -145,11 +151,17 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             social: apiData.social,
             main_image: apiData.main_image,
             main_image_url: apiData.main_image_url,
+            imageUrl: apiData.imageUrl,
             logo: apiData.logo,
             logo_url: apiData.logo_url,
+            logoUrl: apiData.logoUrl,
             location: apiData.location,
+            city: apiData.city,
+            state: apiData.state,
             phone: apiData.phone,
-            contact_name: apiData.contact_name
+            contact_name: apiData.contact_name,
+            bank_account: apiData.bank_account,
+            bankAccount: apiData.bankAccount
           });
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
@@ -589,7 +601,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Enter contact name"
               />
             ) : (
-              <Text>{beneficiaryData.contactName}</Text>
+              <Text>{beneficiaryData.contactName || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
             )}
           </div>
         </Col>
@@ -603,7 +615,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Enter email"
               />
             ) : (
-              <Text>{beneficiaryData.email}</Text>
+              <Text>{beneficiaryData.email || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
             )}
           </div>
         </Col>
@@ -620,7 +632,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Enter phone number"
               />
             ) : (
-              <Text>{beneficiaryData.contactNumber}</Text>
+              <Text>{beneficiaryData.contactNumber || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
             )}
           </div>
         </Col>
@@ -634,7 +646,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 placeholder="Enter bank account"
               />
             ) : (
-              <Text>{beneficiaryData.bankAccount}</Text>
+              <Text>{beneficiaryData.bankAccount || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
             )}
           </div>
         </Col>
@@ -652,7 +664,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             maxLength={1000}
           />
         ) : (
-          <Paragraph>{beneficiaryData.about}</Paragraph>
+          <Paragraph>{beneficiaryData.about || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Paragraph>
         )}
       </div>
 
@@ -698,7 +710,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             maxLength={500}
           />
         ) : (
-          <Paragraph>{beneficiaryData.whyThisMatters}</Paragraph>
+          <Paragraph>{beneficiaryData.whyThisMatters || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Paragraph>
         )}
       </div>
 
@@ -714,7 +726,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             maxLength={500}
           />
         ) : (
-          <Paragraph>{beneficiaryData.successStory}</Paragraph>
+          <Paragraph>{beneficiaryData.successStory || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Paragraph>
         )}
       </div>
 
@@ -728,7 +740,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             maxLength={50}
           />
         ) : (
-          <Text>{beneficiaryData.storyAuthor}</Text>
+          <Text>{beneficiaryData.storyAuthor || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
         )}
       </div>
 
