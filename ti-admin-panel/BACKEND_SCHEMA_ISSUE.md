@@ -1,15 +1,21 @@
-# 🔴 Backend Schema Issue - communities_served
+# 🔴 Backend Schema Issues - Missing Columns
 
 **Date:** 2025-01-23  
-**Status:** Backend Issue - Frontend is NOT sending the field
+**Last Updated:** 2025-01-23  
+**Status:** Backend Issue - Frontend is NOT sending these fields
 
 ---
 
 ## 🔍 Problem Analysis
 
+### Issues Identified
+
+1. **`communities_served`** - Column doesn't exist (FIXED ✅)
+2. **`verification_status`** - Column doesn't exist (FIXED ✅)
+
 ### Frontend Status: ✅ CORRECT
 
-The frontend is **NOT** sending `communities_served` in the payload. Evidence from console logs:
+The frontend is **NOT** sending these fields in the payload. Evidence from console logs:
 
 ```javascript
 📦 All keys being sent: Array(31)
@@ -22,17 +28,19 @@ The frontend is **NOT** sending `communities_served` in the payload. Evidence fr
 ```
 
 **The payload does NOT include:**
-- ❌ `communities_served`
-- ❌ `families_helped`
-- ❌ `direct_to_programs`
-- ❌ `impact_statement_1`
-- ❌ `impact_statement_2`
+- ❌ `communities_served` (removed)
+- ❌ `verification_status` (removed)
+- ❌ `families_helped` (removed)
+- ❌ `direct_to_programs` (removed)
+- ❌ `impact_statement_1` (removed)
+- ❌ `impact_statement_2` (removed)
 
 ### Backend Status: ❌ ISSUE
 
-The backend is returning a 400 error:
+The backend is returning 400 errors:
 ```
 HTTP error! status: 400 - {"error":"Could not find the 'communities_served' column of 'charities' in the schema cache"}
+HTTP error! status: 400 - {"error":"Could not find the 'verification_status' column of 'charities' in the schema cache"}
 ```
 
 **This means:**
@@ -65,19 +73,19 @@ Even though we're not sending the field, we've added defensive code:
 ### Code Added:
 
 ```javascript
-const fieldsToRemove = [
-  'communities_served',
-  'families_helped', 
-  'direct_to_programs',
-  'impact_statement_1',
-  'impact_statement_2',
-  'transparency_rating',
-  'communitiesServed', // camelCase version
-  'familiesHelped', // camelCase version
-  'directToPrograms', // camelCase version
-  'impactStatement1', // camelCase version
-  'impactStatement2' // camelCase version
-];
+      const fieldsToRemove = [
+        'verification_status', // ⚠️ DOES NOT EXIST
+        'verificationStatus', // camelCase version
+        'communities_served', // OLD field - replaced by programs_active
+        'families_helped', // OLD field - replaced by lives_impacted
+        'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
+        'impact_statement_1',
+        'impact_statement_2',
+        'transparency_rating',
+        'communitiesServed', // OLD camelCase version
+        'familiesHelped', // OLD camelCase version
+        'directToPrograms' // OLD camelCase version
+      ];
 
 fieldsToRemove.forEach(field => {
   if (beneficiaryData.hasOwnProperty(field)) {
@@ -86,7 +94,8 @@ fieldsToRemove.forEach(field => {
   }
 });
 
-console.log('✅ Verified: communities_served NOT in payload:', !beneficiaryData.hasOwnProperty('communities_served'));
+      console.log('✅ Verified: communities_served NOT in payload:', !beneficiaryData.hasOwnProperty('communities_served'));
+      console.log('✅ Verified: verification_status NOT in payload:', !beneficiaryData.hasOwnProperty('verification_status'));
 ```
 
 ---
