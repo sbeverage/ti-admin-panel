@@ -333,10 +333,18 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         }
       });
       
-      console.log('📦 Core fields:', {
+      console.log('📦 Core fields being sent:', {
         name: beneficiaryData.name,
         category: beneficiaryData.category,
         type: beneficiaryData.type,
+        city: beneficiaryData.city,
+        state: beneficiaryData.state,
+        zip_code: beneficiaryData.zip_code,
+        location: beneficiaryData.location,
+        phone: beneficiaryData.phone,
+        contact_name: beneficiaryData.contact_name,
+        ein: beneficiaryData.ein,
+        website: beneficiaryData.website,
         is_active: beneficiaryData.is_active,
         hasAbout: !!beneficiaryData.about,
         hasWhyThisMatters: !!beneficiaryData.why_this_matters,
@@ -345,6 +353,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       });
       
       // Call API
+      console.log('📡 Calling API with payload:', beneficiaryData);
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
       console.log('📡 API response:', response);
       
