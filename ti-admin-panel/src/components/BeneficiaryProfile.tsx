@@ -167,7 +167,13 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             phone: apiData.phone,
             contact_name: apiData.contact_name,
             bank_account: apiData.bank_account,
-            bankAccount: apiData.bankAccount
+            bankAccount: apiData.bankAccount,
+            // Email fields - check all variations
+            email: apiData.email,
+            primary_email: apiData.primary_email,
+            primaryEmail: apiData.primaryEmail,
+            contact_email: apiData.contact_email,
+            contactEmail: apiData.contactEmail
           });
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
@@ -276,7 +282,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       
       console.log('🔄 Transformed contact fields:', {
         contactName: transformed.contactName,
-        contactNumber: transformed.contactNumber
+        contactNumber: transformed.contactNumber,
+        email: transformed.email
+      });
+      console.log('🔄 Email extraction result:', {
+        apiDataEmail: apiData.email,
+        apiDataPrimaryEmail: apiData.primary_email,
+        apiDataPrimaryEmailCamel: apiData.primaryEmail,
+        apiDataContactEmail: apiData.contact_email,
+        finalEmail: transformed.email
       });
       
       // Set additional images state before setting formData
@@ -288,11 +302,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       
       console.log('🔄 Data set in state. beneficiaryData.contactName:', transformed.contactName);
       console.log('🔄 Data set in state. beneficiaryData.contactNumber:', transformed.contactNumber);
+      console.log('🔄 Data set in state. beneficiaryData.email:', transformed.email);
+      console.log('🔄 Full transformed object keys:', Object.keys(transformed));
+      console.log('🔄 Full transformed object:', transformed);
   };
 
   const handleEdit = () => {
+    console.log('✏️ Entering edit mode. beneficiaryData:', beneficiaryData);
+    console.log('✏️ beneficiaryData.email:', beneficiaryData?.email);
     setIsEditing(true);
-    setFormData({ ...beneficiaryData });
+    const newFormData = { ...beneficiaryData };
+    setFormData(newFormData);
+    console.log('✏️ formData after edit mode (newFormData):', newFormData);
+    console.log('✏️ newFormData.email:', newFormData.email);
   };
 
   const handleCancel = () => {
@@ -768,14 +790,27 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         <Col span={12}>
           <div className="form-field">
             <label>Email</label>
+            {(() => {
+              console.log('📧 Email display render:', {
+                isEditing,
+                formDataEmail: formData?.email,
+                beneficiaryDataEmail: beneficiaryData?.email,
+                formDataKeys: formData ? Object.keys(formData) : 'formData is null',
+                beneficiaryDataKeys: beneficiaryData ? Object.keys(beneficiaryData) : 'beneficiaryData is null'
+              });
+              return null;
+            })()}
             {isEditing ? (
               <Input
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                value={formData?.email || ''}
+                onChange={(e) => {
+                  console.log('📝 Email input changed:', e.target.value);
+                  handleInputChange('email', e.target.value);
+                }}
                 placeholder="Enter email"
               />
             ) : (
-              <Text>{beneficiaryData.email || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
+              <Text>{beneficiaryData?.email || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not provided</Text>}</Text>
             )}
           </div>
         </Col>
