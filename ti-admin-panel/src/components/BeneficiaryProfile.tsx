@@ -766,7 +766,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 </Text>
               </>
             ) : (
-              <Text>{beneficiaryData.livesImpacted || 'Not set'}</Text>
+              <Text>{beneficiaryData.livesImpacted || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
             )}
           </div>
         </Col>
@@ -788,7 +788,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 </Text>
               </>
             ) : (
-              <Text>{beneficiaryData.programsActive !== null && beneficiaryData.programsActive !== undefined ? beneficiaryData.programsActive : 'Not set'}</Text>
+              <Text>{beneficiaryData.programsActive !== null && beneficiaryData.programsActive !== undefined ? beneficiaryData.programsActive : <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
             )}
           </div>
         </Col>
@@ -812,7 +812,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 </Text>
               </>
             ) : (
-              <Text>{beneficiaryData.directToProgramsPercentage !== null && beneficiaryData.directToProgramsPercentage !== undefined ? `${beneficiaryData.directToProgramsPercentage}%` : 'Not set'}</Text>
+              <Text>{beneficiaryData.directToProgramsPercentage !== null && beneficiaryData.directToProgramsPercentage !== undefined ? `${beneficiaryData.directToProgramsPercentage}%` : <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
             )}
           </div>
         </Col>
