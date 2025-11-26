@@ -66,6 +66,7 @@ interface BeneficiaryData {
   about?: string;
   mainImageUrl?: string;
   logoUrl?: string;
+  additionalImages?: string[];
   whyThisMatters?: string;
   successStory?: string;
   storyAuthor?: string;
