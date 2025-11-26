@@ -188,10 +188,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Impact & Story fields
         success_story: allData.successStory || '',
         story_author: allData.storyAuthor || '',
+        // Impact Metrics - NEW fields (optional)
+        // Send both camelCase and snake_case for backend compatibility
+        livesImpacted: allData.livesImpacted || null, // VARCHAR(50) - can include formatting (e.g., "10,000+", "1M+")
+        lives_impacted: allData.livesImpacted || null, // snake_case version
+        programsActive: allData.programsActive || null, // INTEGER - number of active programs
+        programs_active: allData.programsActive || null, // snake_case version
+        directToProgramsPercentage: allData.directToProgramsPercentage || null, // DECIMAL(5,2) - percentage (e.g., 95.00)
+        direct_to_programs_percentage: allData.directToProgramsPercentage || null, // snake_case version
         // NOTE: The following fields may not exist in backend schema - only include if they have values
-        // families_helped: allData.familiesHelped || '', // ⚠️ May not exist in backend
-        // communities_served: allData.communitiesServed || 0, // ⚠️ DOES NOT EXIST - causing 400 error
-        // direct_to_programs: allData.directToPrograms || 0, // ⚠️ May not exist in backend
         // impact_statement_1: allData.impactStatement1 || '', // ⚠️ May not exist in backend
         // impact_statement_2: allData.impactStatement2 || '', // ⚠️ May not exist in backend
         // transparency_rating: allData.transparencyRating || 0, // ⚠️ May not exist in backend
@@ -227,17 +232,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // These fields cause 400 errors if included
       // Delete them multiple times to be absolutely sure they're removed
       const fieldsToRemove = [
-        'communities_served',
-        'families_helped', 
-        'direct_to_programs',
+        'communities_served', // OLD field - replaced by programs_active
+        'families_helped', // OLD field - replaced by lives_impacted
+        'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
         'impact_statement_1',
         'impact_statement_2',
         'transparency_rating',
-        'communitiesServed', // camelCase version
-        'familiesHelped', // camelCase version
-        'directToPrograms', // camelCase version
-        'impactStatement1', // camelCase version
-        'impactStatement2' // camelCase version
+        'communitiesServed', // OLD camelCase version
+        'familiesHelped', // OLD camelCase version
+        'directToPrograms' // OLD camelCase version (without Percentage suffix)
       ];
       
       fieldsToRemove.forEach(field => {
@@ -559,40 +562,67 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Input placeholder="e.g., Sarah M., Program Director" maxLength={50} />
             </Form.Item>
 
-            <Divider>Impact Metrics</Divider>
+            <Divider>Impact Metrics (Optional)</Divider>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+              These metrics help showcase the impact of the organization. All fields are optional.
+            </Text>
             
             <Row gutter={[24, 16]}>
               <Col span={8}>
-                <Form.Item
-                  name="familiesHelped"
-                  label="Families Helped"
+                  <Form.Item
+                  name="livesImpacted"
+                  label="Lives Impacted"
+                  rules={[
+                    { max: 50, message: 'Must be 50 characters or less' }
+                  ]}
                 >
-                  <Input placeholder="e.g., 10,000+" />
+                  <Input 
+                    placeholder="e.g., 10,000+, 1M+, 50,000" 
+                    maxLength={50}
+                  />
+                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    ℹ️ Can include +, K, M (e.g., 1M+)
+                  </Text>
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item
-                  name="communitiesServed"
-                  label="Communities Served"
+                  name="programsActive"
+                  label="Programs Active"
+                  rules={[
+                    { type: 'number', min: 0, message: 'Must be a positive number' }
+                  ]}
                 >
                   <InputNumber 
                     placeholder="e.g., 25" 
                     min={0}
                     style={{ width: '100%' }}
+                    precision={0}
                   />
+                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    ℹ️ Number of active programs
+                  </Text>
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item
-                  name="directToPrograms"
+                  name="directToProgramsPercentage"
                   label="Direct to Programs (%)"
+                  rules={[
+                    { type: 'number', min: 0, max: 100, message: 'Must be between 0 and 100' }
+                  ]}
                 >
                   <InputNumber 
-                    placeholder="e.g., 95" 
+                    placeholder="e.g., 95.00" 
                     min={0} 
                     max={100}
+                    step={0.01}
+                    precision={2}
                     style={{ width: '100%' }}
                   />
+                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    ℹ️ Percentage (e.g., 95.00 for 95%)
+                  </Text>
                 </Form.Item>
               </Col>
             </Row>

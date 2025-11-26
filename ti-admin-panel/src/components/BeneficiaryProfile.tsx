@@ -69,6 +69,11 @@ interface BeneficiaryData {
   whyThisMatters?: string;
   successStory?: string;
   storyAuthor?: string;
+  // Impact Metrics - NEW fields
+  livesImpacted?: string; // VARCHAR(50) - can include formatting (e.g., "10,000+", "1M+")
+  programsActive?: number; // INTEGER - number of active programs
+  directToProgramsPercentage?: number; // DECIMAL(5,2) - percentage (e.g., 95.00)
+  // Legacy fields (deprecated - replaced by new impact metrics)
   familiesHelped?: string;
   communitiesServed?: number;
   directToPrograms?: number;
@@ -198,6 +203,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         whyThisMatters: apiData.why_this_matters || apiData.mission || apiData.whyThisMatters || '',
         successStory: apiData.success_story || apiData.successStory || '',
         storyAuthor: apiData.story_author || apiData.storyAuthor || '',
+        // Impact Metrics - NEW fields
+        livesImpacted: apiData.lives_impacted || apiData.livesImpacted || null,
+        programsActive: apiData.programs_active || apiData.programsActive || null,
+        directToProgramsPercentage: apiData.direct_to_programs_percentage || apiData.directToProgramsPercentage || null,
+        // Legacy fields (for backward compatibility)
         familiesHelped: apiData.families_helped || apiData.familiesHelped || '',
         communitiesServed: apiData.communities_served || apiData.communitiesServed || 0,
         directToPrograms: apiData.direct_to_programs || apiData.directToPrograms || 0,
@@ -249,10 +259,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         why_this_matters: formData.whyThisMatters || '',
         success_story: formData.successStory || '',
         story_author: formData.storyAuthor || '',
+        // Impact Metrics - NEW fields (optional)
+        // Send both camelCase and snake_case for backend compatibility
+        livesImpacted: formData.livesImpacted || null,
+        lives_impacted: formData.livesImpacted || null,
+        programsActive: formData.programsActive || null,
+        programs_active: formData.programsActive || null,
+        directToProgramsPercentage: formData.directToProgramsPercentage || null,
+        direct_to_programs_percentage: formData.directToProgramsPercentage || null,
         // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
-        // families_helped: formData.familiesHelped || '', // ⚠️ May not exist in backend
-        // communities_served: formData.communitiesServed || 0, // ⚠️ DOES NOT EXIST - causing 400 error
-        // direct_to_programs: formData.directToPrograms || 0, // ⚠️ May not exist in backend
         // impact_statement_1: formData.impactStatement1 || '', // ⚠️ May not exist in backend
         // impact_statement_2: formData.impactStatement2 || '', // ⚠️ May not exist in backend
         verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // Default to true so it shows in app
@@ -277,17 +292,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // Explicitly remove fields that don't exist in backend schema
       // These fields cause 400 errors if included
       const fieldsToRemove = [
-        'communities_served',
-        'families_helped', 
-        'direct_to_programs',
+        'communities_served', // OLD field - replaced by programs_active
+        'families_helped', // OLD field - replaced by lives_impacted
+        'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
         'impact_statement_1',
         'impact_statement_2',
         'transparency_rating',
-        'communitiesServed', // camelCase version
-        'familiesHelped', // camelCase version
-        'directToPrograms', // camelCase version
-        'impactStatement1', // camelCase version
-        'impactStatement2' // camelCase version
+        'communitiesServed', // OLD camelCase version
+        'familiesHelped', // OLD camelCase version
+        'directToPrograms' // OLD camelCase version (without Percentage suffix)
       ];
       
       fieldsToRemove.forEach(field => {
@@ -702,69 +715,89 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         )}
       </div>
 
-      <Row gutter={[24, 16]}>
-        <Col span={12}>
-          <div className="form-field">
-            <label>Story Author</label>
-            {isEditing ? (
-              <Input
-                value={formData.storyAuthor}
-                onChange={(e) => handleInputChange('storyAuthor', e.target.value)}
-                placeholder="e.g., Sarah M., Program Director"
-                maxLength={50}
-              />
-            ) : (
-              <Text>{beneficiaryData.storyAuthor}</Text>
-            )}
-          </div>
-        </Col>
-        <Col span={12}>
-          <div className="form-field">
-            <label>Families Helped</label>
-            {isEditing ? (
-              <Input
-                value={formData.familiesHelped}
-                onChange={(e) => handleInputChange('familiesHelped', e.target.value)}
-                placeholder="e.g., 10,000+"
-              />
-            ) : (
-              <Text>{beneficiaryData.familiesHelped}</Text>
-            )}
-          </div>
-        </Col>
-      </Row>
+      <div className="form-field">
+        <label>Story Author</label>
+        {isEditing ? (
+          <Input
+            value={formData.storyAuthor}
+            onChange={(e) => handleInputChange('storyAuthor', e.target.value)}
+            placeholder="e.g., Sarah M., Program Director"
+            maxLength={50}
+          />
+        ) : (
+          <Text>{beneficiaryData.storyAuthor}</Text>
+        )}
+      </div>
+
+      <Divider>Impact Metrics (Optional)</Divider>
+      <Text type="secondary" style={{ display: 'block', marginBottom: '16px', fontSize: '12px' }}>
+        These metrics help showcase the impact of the organization. All fields are optional.
+      </Text>
 
       <Row gutter={[24, 16]}>
-        <Col span={12}>
+        <Col span={8}>
           <div className="form-field">
-            <label>Communities Served</label>
+            <label>Lives Impacted</label>
             {isEditing ? (
-              <InputNumber
-                value={formData.communitiesServed}
-                onChange={(value) => handleInputChange('communitiesServed', value)}
-                placeholder="e.g., 25"
-                style={{ width: '100%' }}
-                min={0}
-              />
+              <>
+                <Input
+                  value={formData.livesImpacted || ''}
+                  onChange={(e) => handleInputChange('livesImpacted', e.target.value)}
+                  placeholder="e.g., 10,000+, 1M+, 50,000"
+                  maxLength={50}
+                />
+                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  ℹ️ Can include +, K, M (e.g., 1M+)
+                </Text>
+              </>
             ) : (
-              <Text>{beneficiaryData.communitiesServed}</Text>
+              <Text>{beneficiaryData.livesImpacted || 'Not set'}</Text>
             )}
           </div>
         </Col>
-        <Col span={12}>
+        <Col span={8}>
+          <div className="form-field">
+            <label>Programs Active</label>
+            {isEditing ? (
+              <>
+                <InputNumber
+                  value={formData.programsActive || undefined}
+                  onChange={(value) => handleInputChange('programsActive', value)}
+                  placeholder="e.g., 25"
+                  style={{ width: '100%' }}
+                  min={0}
+                  precision={0}
+                />
+                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  ℹ️ Number of active programs
+                </Text>
+              </>
+            ) : (
+              <Text>{beneficiaryData.programsActive !== null && beneficiaryData.programsActive !== undefined ? beneficiaryData.programsActive : 'Not set'}</Text>
+            )}
+          </div>
+        </Col>
+        <Col span={8}>
           <div className="form-field">
             <label>Direct to Programs (%)</label>
             {isEditing ? (
-              <InputNumber
-                value={formData.directToPrograms}
-                onChange={(value) => handleInputChange('directToPrograms', value)}
-                placeholder="e.g., 95"
-                style={{ width: '100%' }}
-                min={0}
-                max={100}
-              />
+              <>
+                <InputNumber
+                  value={formData.directToProgramsPercentage || undefined}
+                  onChange={(value) => handleInputChange('directToProgramsPercentage', value)}
+                  placeholder="e.g., 95.00"
+                  style={{ width: '100%' }}
+                  min={0}
+                  max={100}
+                  step={0.01}
+                  precision={2}
+                />
+                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  ℹ️ Percentage (e.g., 95.00 for 95%)
+                </Text>
+              </>
             ) : (
-              <Text>{beneficiaryData.directToPrograms}%</Text>
+              <Text>{beneficiaryData.directToProgramsPercentage !== null && beneficiaryData.directToProgramsPercentage !== undefined ? `${beneficiaryData.directToProgramsPercentage}%` : 'Not set'}</Text>
             )}
           </div>
         </Col>
