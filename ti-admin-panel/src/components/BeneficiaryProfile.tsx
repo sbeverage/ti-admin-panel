@@ -1090,9 +1090,16 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                 </Button>
                 <Button
                   type="primary"
-                  onClick={handleSave}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('💾 Save button clicked');
+                    console.log('💾 Current formData:', formData);
+                    handleSave();
+                  }}
                   icon={<SaveOutlined />}
                   loading={saving}
+                  disabled={saving}
                 >
                   Save Changes
                 </Button>
