@@ -196,11 +196,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         programs_active: allData.programsActive || null, // snake_case version
         directToProgramsPercentage: allData.directToProgramsPercentage || null, // DECIMAL(5,2) - percentage (e.g., 95.00)
         direct_to_programs_percentage: allData.directToProgramsPercentage || null, // snake_case version
-        // NOTE: The following fields may not exist in backend schema - only include if they have values
+        // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
+        // verification_status: allData.verificationStatus !== undefined ? allData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
         // impact_statement_1: allData.impactStatement1 || '', // ⚠️ May not exist in backend
         // impact_statement_2: allData.impactStatement2 || '', // ⚠️ May not exist in backend
         // transparency_rating: allData.transparencyRating || 0, // ⚠️ May not exist in backend
-        verification_status: allData.verificationStatus !== undefined ? allData.verificationStatus : true, // Default to true so it shows in app
         ein: allData.ein || '',
         website: allData.website || '',
         social: allData.social || '',
@@ -232,6 +232,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // These fields cause 400 errors if included
       // Delete them multiple times to be absolutely sure they're removed
       const fieldsToRemove = [
+        'verification_status', // ⚠️ DOES NOT EXIST - causing 400 error
+        'verificationStatus', // camelCase version
         'communities_served', // OLD field - replaced by programs_active
         'families_helped', // OLD field - replaced by lives_impacted
         'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
@@ -260,9 +262,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
       console.log('✅ Verified: communities_served NOT in payload:', !beneficiaryData.hasOwnProperty('communities_served'));
+      console.log('✅ Verified: verification_status NOT in payload:', !beneficiaryData.hasOwnProperty('verification_status'));
       console.log('📦 is_active value:', beneficiaryData.is_active);
       console.log('📦 isActive value:', beneficiaryData.isActive);
-      console.log('📦 verification_status value:', beneficiaryData.verification_status);
       console.log('📸 imageUrl value:', beneficiaryData.imageUrl || 'NOT SET');
       console.log('📸 logoUrl value:', beneficiaryData.logoUrl || 'NOT SET');
       console.log('📸 mainImageUrl state:', mainImageUrl || 'NOT SET');

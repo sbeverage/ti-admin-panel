@@ -268,9 +268,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         directToProgramsPercentage: formData.directToProgramsPercentage || null,
         direct_to_programs_percentage: formData.directToProgramsPercentage || null,
         // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
+        // verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
         // impact_statement_1: formData.impactStatement1 || '', // ⚠️ May not exist in backend
         // impact_statement_2: formData.impactStatement2 || '', // ⚠️ May not exist in backend
-        verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // Default to true so it shows in app
         ein: formData.ein || '',
         website: formData.website || '',
         social: formData.social || '',
@@ -292,6 +292,8 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // Explicitly remove fields that don't exist in backend schema
       // These fields cause 400 errors if included
       const fieldsToRemove = [
+        'verification_status', // ⚠️ DOES NOT EXIST - causing 400 error
+        'verificationStatus', // camelCase version
         'communities_served', // OLD field - replaced by programs_active
         'families_helped', // OLD field - replaced by lives_impacted
         'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
@@ -318,6 +320,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
 
       console.log('💾 Updating beneficiary:', beneficiaryId);
       console.log('✅ Verified: communities_served NOT in payload:', !updateData.hasOwnProperty('communities_served'));
+      console.log('✅ Verified: verification_status NOT in payload:', !updateData.hasOwnProperty('verification_status'));
       console.log('💾 Update payload:', updateData);
       console.log('💾 All keys being sent:', Object.keys(updateData));
       console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');
