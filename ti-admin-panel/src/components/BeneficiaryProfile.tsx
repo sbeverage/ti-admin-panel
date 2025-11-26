@@ -273,6 +273,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         contactNumber: transformed.contactNumber
       });
       
+      // Set additional images state before setting formData
+      setAdditionalImages(transformed.additionalImages || []);
+      console.log('🔄 Additional images loaded:', transformed.additionalImages);
+      
       setBeneficiaryData(transformed);
       setFormData(transformed);
       
