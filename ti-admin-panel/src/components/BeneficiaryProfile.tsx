@@ -87,6 +87,9 @@ interface BeneficiaryData {
   latitude?: number | string;
   longitude?: number | string;
   location?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
   likes?: number;
   mutual?: number;
   social?: string;
@@ -208,8 +211,13 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         donation: apiData.total_donations ? `$${apiData.total_donations.toLocaleString()}` : apiData.donation || '$0',
         dateOfJoin: apiData.createdAt || apiData.created_at || apiData.dateOfJoin || '',
         cityState: apiData.location || 
+                   (apiData.city && apiData.state ? `${apiData.city}, ${apiData.state}` : '') ||
                    (apiData.address ? `${apiData.address.city || ''}, ${apiData.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') : '') ||
                    apiData.cityState || '',
+        // Store separate city/state for editing
+        city: apiData.city || '',
+        state: apiData.state || '',
+        zipCode: apiData.zip_code || apiData.zipCode || '',
         beneficiaryCause: apiData.category || apiData.cause || apiData.beneficiaryCause || '',
         beneficiaryType: apiData.type || apiData.beneficiaryType || '',
         donors: apiData.donor_count || apiData.mutual || apiData.donors || 0,
