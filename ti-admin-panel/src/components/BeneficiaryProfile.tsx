@@ -258,14 +258,17 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
     try {
       // Transform form data to match backend API format
       const updateData: any = {
-        name: formData.beneficiaryName,
-        category: formData.beneficiaryCause,
-        type: formData.beneficiaryType,
-        location: formData.location || formData.cityState,
-        latitude: formData.latitude || null,
-        longitude: formData.longitude || null,
+        name: formData.beneficiaryName || '',
+        category: formData.beneficiaryCause || '',
+        type: formData.beneficiaryType || '',
+        location: formData.location || formData.cityState || '',
+        // Location breakdown
+        city: formData.cityState?.split(',')[0]?.trim() || '',
+        state: formData.cityState?.split(',')[1]?.trim() || '',
+        // Contact fields - always include even if empty
         phone: formData.contactNumber || '',
         contact_name: formData.contactName || '',
+        // NOTE: Backend doesn't have email column - don't send it
         // Use exact database field names (snake_case)
         about: formData.about || '',
         why_this_matters: formData.whyThisMatters || '',

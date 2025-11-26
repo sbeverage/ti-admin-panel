@@ -184,19 +184,21 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
       
-      // Location fields (add if provided)
-      if (allData.city) beneficiaryData.city = allData.city;
-      if (allData.state) beneficiaryData.state = allData.state;
-      if (allData.zipCode) beneficiaryData.zip_code = allData.zipCode;
-      if (allData.location || allData.city) {
-        beneficiaryData.location = allData.location || `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}`;
-      }
+      // Location fields (always include, even if empty)
+      beneficiaryData.city = allData.city || '';
+      beneficiaryData.state = allData.state || '';
+      beneficiaryData.zip_code = allData.zipCode || '';
+      beneficiaryData.location = allData.location || (allData.city && allData.state ? `${allData.city}, ${allData.state}${allData.zipCode ? ' ' + allData.zipCode : ''}` : '');
       
-      // Optional contact fields (add if provided)
-      if (allData.phoneNumber) beneficiaryData.phone = allData.phoneNumber;
-      if (allData.primaryContact) beneficiaryData.contact_name = allData.primaryContact;
-      if (allData.ein) beneficiaryData.ein = allData.ein;
-      if (allData.website) beneficiaryData.website = allData.website;
+      // Contact fields (always include, even if empty - these are important fields)
+      beneficiaryData.phone = allData.phoneNumber || '';
+      beneficiaryData.contact_name = allData.primaryContact || '';
+      // NOTE: Backend doesn't have email column, but we collect it for reference
+      // Don't send email to backend as it causes 400 errors
+      
+      // Trust & Transparency fields (always include, even if empty)
+      beneficiaryData.ein = allData.ein || '';
+      beneficiaryData.website = allData.website || '';
       
       // Images (only add if provided)
       if (mainImageUrl) {
