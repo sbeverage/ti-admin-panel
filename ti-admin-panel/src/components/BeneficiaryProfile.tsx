@@ -477,10 +477,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`📝 handleInputChange: ${field} =`, value);
+    setFormData((prev: any) => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      console.log(`📝 Updated formData.${field}:`, updated[field]);
+      return updated;
+    });
   };
 
   if (loading) {
@@ -693,8 +698,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Primary Contact</label>
             {isEditing ? (
               <Input
-                value={formData.contactName}
-                onChange={(e) => handleInputChange('contactName', e.target.value)}
+                value={formData.contactName || ''}
+                onChange={(e) => {
+                  console.log('📝 Contact Name input changed:', e.target.value);
+                  handleInputChange('contactName', e.target.value);
+                }}
                 placeholder="Enter contact name"
               />
             ) : (
@@ -724,8 +732,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Phone Number</label>
             {isEditing ? (
               <Input
-                value={formData.contactNumber}
-                onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+                value={formData.contactNumber || ''}
+                onChange={(e) => {
+                  console.log('📝 Contact Number input changed:', e.target.value);
+                  handleInputChange('contactNumber', e.target.value);
+                }}
                 placeholder="Enter phone number"
               />
             ) : (
