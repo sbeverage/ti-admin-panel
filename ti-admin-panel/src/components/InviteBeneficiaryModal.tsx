@@ -112,17 +112,27 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // }
         
         console.log('✅ Step 0 validated:', values);
+        console.log('📝 Step 0 beneficiaryName:', values.beneficiaryName);
+        
+        // CRITICAL: Save to state AND ensure form instance preserves these values
         setBasicDetails(values);
+        // Also set form values to ensure they're preserved even when step is unmounted
+        form.setFieldsValue(values);
+        
         setCurrentStep(1);
       } else if (currentStep === 1) {
         const values = await form.validateFields();
         console.log('✅ Step 1 validated:', values);
         setImpactStory(values);
+        // Preserve form values
+        form.setFieldsValue(values);
         setCurrentStep(2);
       } else if (currentStep === 2) {
         const values = await form.validateFields();
         console.log('✅ Step 2 validated:', values);
         setTrustTransparency(values);
+        // Preserve form values
+        form.setFieldsValue(values);
         setCurrentStep(3);
       } else {
         // Final step - validate current step and collect all data
@@ -131,9 +141,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         setUploadImages(values);
         
         // Get ALL form values from form instance
-        // Note: This only gets fields that are currently mounted (step 3 fields)
-        const allFormValues = form.getFieldsValue();
-        console.log('📋 All form values from form instance:', allFormValues);
+        // Note: getFieldsValue() gets all fields that have been set, even if unmounted
+        // We've been calling form.setFieldsValue() after each step validation to preserve values
+        const allFormValues = form.getFieldsValue(); // Gets all preserved form values
+        console.log('📋 All form values from form instance (all fields):', allFormValues);
         console.log('📋 State variables:', { 
           basicDetails, 
           impactStory, 
@@ -142,18 +153,14 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         });
         
         // CRITICAL FIX: Merge state variables with form values
-        // The state variables (basicDetails, impactStory, trustTransparency) contain
-        // the validated data from each step when the user clicked "Next"
-        // Form values from getFieldsValue() only include currently mounted fields (step 3)
-        // So we merge: state variables (all steps) + form values (current step only)
+        // Priority: form.getFieldsValue() (most current, includes all preserved values) > state variables
         const allData = {
-          // Start with state variables (from previous steps - these are the source of truth)
+          // Start with state variables (backup if form values are missing)
           ...basicDetails,      // Step 0: Basic Information (includes beneficiaryName, category, etc.)
           ...impactStory,       // Step 1: Impact & Story (whyThisMatters, successStory, etc.)
           ...trustTransparency, // Step 2: Trust & Transparency (ein, website, etc.)
-          // Override with current step form values (step 3 - upload images)
-          ...values,
-          // Also include any form values that might have been set (though step 0-2 fields won't be here)
+          ...values,            // Step 3: Upload Images
+          // Override with form values (most current, should include all steps if preserved correctly)
           ...allFormValues,
           // Add non-form state
           profileLinks: profileLinks.filter(link => link.channel && link.username), // Only include valid links
@@ -164,22 +171,52 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         };
         
         console.log('📦 Combined data for submission:', allData);
-        console.log('📦 Beneficiary name check:', {
-          fromBasicDetails: basicDetails.beneficiaryName,
-          fromFormValues: allFormValues.beneficiaryName,
+        console.log('📦 Beneficiary name check (detailed):', {
+          fromBasicDetails: basicDetails?.beneficiaryName,
+          fromImpactStory: impactStory?.beneficiaryName,
+          fromTrustTransparency: trustTransparency?.beneficiaryName,
+          fromStep3Values: values?.beneficiaryName,
+          fromAllFormValues: allFormValues?.beneficiaryName,
           fromAllData: allData.beneficiaryName,
           finalValue: allData.beneficiaryName,
-          basicDetailsKeys: Object.keys(basicDetails || {}),
+          basicDetailsFull: basicDetails,
+          allFormValuesFull: allFormValues,
           allDataKeys: Object.keys(allData)
         });
         
         // Validate that we have the required beneficiaryName before submitting
-        if (!allData.beneficiaryName || !allData.beneficiaryName.trim()) {
-          console.error('❌ Beneficiary name is missing!', {
+        // Try multiple sources and field name variations
+        const charityName = (
+          allData.beneficiaryName?.trim() || 
+          allData.name?.trim() || 
+          allData.charityName?.trim() ||
+          basicDetails?.beneficiaryName?.trim() ||
+          basicDetails?.name?.trim() ||
+          allFormValues?.beneficiaryName?.trim() ||
+          allFormValues?.name?.trim() ||
+          ''
+        );
+        
+        console.log('🔍 Final beneficiary name check before submission:', {
+          allDataBeneficiaryName: allData.beneficiaryName,
+          allDataName: allData.name,
+          basicDetailsBeneficiaryName: basicDetails?.beneficiaryName,
+          basicDetailsName: basicDetails?.name,
+          allFormValuesBeneficiaryName: allFormValues?.beneficiaryName,
+          allFormValuesName: allFormValues?.name,
+          finalCharityName: charityName,
+          isEmpty: !charityName
+        });
+        
+        if (!charityName) {
+          console.error('❌ Beneficiary name is missing from all sources!', {
             basicDetails,
-            allData,
+            impactStory,
+            trustTransparency,
+            step3Values: values,
             allFormValues,
-            currentStep
+            allData,
+            charityName
           });
           message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
           // Navigate back to step 0 so user can enter the name
@@ -187,6 +224,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           setSaving(false);
           return;
         }
+        
+        // Ensure beneficiaryName is set in allData for consistency
+        allData.beneficiaryName = charityName;
         
         // Submit to API
         await handleSubmit(allData);
@@ -249,33 +289,23 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       // Build minimal safe payload with only core required fields
       // CRITICAL: Backend requires name field - send all three variations for compatibility
-      // Try multiple possible field names in case of naming inconsistencies
-      const charityName = (
-        allData.beneficiaryName?.trim() || 
-        allData.name?.trim() || 
-        allData.charityName?.trim() || 
-        ''
-      );
+      // The name should already be validated and set in allData.beneficiaryName above
+      const charityName = allData.beneficiaryName?.trim() || '';
       
-      console.log('📝 Charity name check:', {
+      console.log('📝 Charity name check (in handleSubmit):', {
         rawBeneficiaryName: allData.beneficiaryName,
-        rawName: allData.name,
-        rawCharityName: allData.charityName,
         trimmed: charityName,
         isEmpty: !charityName,
-        allDataKeys: Object.keys(allData),
-        basicDetailsKeys: Object.keys(basicDetails || {}),
-        basicDetailsBeneficiaryName: basicDetails?.beneficiaryName
+        allDataKeys: Object.keys(allData)
       });
       
+      // This should never happen since we validate above, but double-check
       if (!charityName) {
-        console.error('❌ Charity name is missing or empty!', {
-          allDataKeys: Object.keys(allData),
-          allDataValues: allData,
-          basicDetails: basicDetails,
-          impactStory: impactStory,
-          trustTransparency: trustTransparency,
-          formValues: allFormValues
+        console.error('❌ CRITICAL: Charity name is still missing after validation!', {
+          allData,
+          basicDetails,
+          impactStory,
+          trustTransparency
         });
         message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
         setSaving(false);
