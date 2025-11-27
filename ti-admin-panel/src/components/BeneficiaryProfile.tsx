@@ -71,10 +71,10 @@ interface BeneficiaryData {
   whyThisMatters?: string;
   successStory?: string;
   storyAuthor?: string;
-  // Impact Metrics - NEW fields
-  livesImpacted?: string; // VARCHAR(50) - can include formatting (e.g., "10,000+", "1M+")
-  programsActive?: number; // INTEGER - number of active programs
-  directToProgramsPercentage?: number; // DECIMAL(5,2) - percentage (e.g., 95.00)
+  // Impact Metrics - NEW fields (now accept full sentences)
+  livesImpacted?: string; // Text - full sentence describing impact (e.g., "Over 10,000 children have received life-saving treatment")
+  programsActive?: string; // Text - full sentence describing active programs (e.g., "We operate 25 programs across 10 states")
+  directToProgramsPercentage?: string; // Text - full sentence describing percentage (e.g., "95% of all donations go directly to programs")
   // Legacy fields (deprecated - replaced by new impact metrics)
   familiesHelped?: string;
   communitiesServed?: number;
@@ -386,14 +386,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         why_this_matters: formData.whyThisMatters || '',
         success_story: formData.successStory || '',
         story_author: formData.storyAuthor || '',
-        // Impact Metrics - NEW fields (optional)
+        // Impact Metrics - NEW fields (now accept full sentences as text)
         // Send both camelCase and snake_case for backend compatibility
-        livesImpacted: formData.livesImpacted || null,
-        lives_impacted: formData.livesImpacted || null,
-        programsActive: formData.programsActive || null,
-        programs_active: formData.programsActive || null,
-        directToProgramsPercentage: formData.directToProgramsPercentage || null,
-        direct_to_programs_percentage: formData.directToProgramsPercentage || null,
+        // Only send if non-empty strings
+        livesImpacted: formData.livesImpacted && formData.livesImpacted.trim() ? formData.livesImpacted.trim() : null,
+        lives_impacted: formData.livesImpacted && formData.livesImpacted.trim() ? formData.livesImpacted.trim() : null,
+        programsActive: formData.programsActive && formData.programsActive.trim() ? formData.programsActive.trim() : null,
+        programs_active: formData.programsActive && formData.programsActive.trim() ? formData.programsActive.trim() : null,
+        directToProgramsPercentage: formData.directToProgramsPercentage && formData.directToProgramsPercentage.trim() ? formData.directToProgramsPercentage.trim() : null,
+        direct_to_programs_percentage: formData.directToProgramsPercentage && formData.directToProgramsPercentage.trim() ? formData.directToProgramsPercentage.trim() : null,
         // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
         // verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
         // impact_statement_1: formData.impactStatement1 || '', // ⚠️ May not exist in backend
@@ -1027,14 +1028,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Lives Impacted</label>
             {isEditing ? (
               <>
-                <Input
+                <Input.TextArea
                   value={formData.livesImpacted || ''}
                   onChange={(e) => handleInputChange('livesImpacted', e.target.value)}
-                  placeholder="e.g., 10,000+, 1M+, 50,000"
-                  maxLength={50}
+                  placeholder="e.g., Over 10,000 children have received life-saving treatment"
+                  rows={2}
+                  maxLength={500}
                 />
                 <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Can include +, K, M (e.g., 1M+)
+                  ℹ️ Enter a full sentence describing the impact
                 </Text>
               </>
             ) : (
@@ -1047,20 +1049,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Programs Active</label>
             {isEditing ? (
               <>
-                <InputNumber
-                  value={formData.programsActive || undefined}
-                  onChange={(value) => handleInputChange('programsActive', value)}
-                  placeholder="e.g., 25"
-                  style={{ width: '100%' }}
-                  min={0}
-                  precision={0}
+                <Input.TextArea
+                  value={formData.programsActive || ''}
+                  onChange={(e) => handleInputChange('programsActive', e.target.value)}
+                  placeholder="e.g., We operate 25 programs across 10 states"
+                  rows={2}
+                  maxLength={500}
                 />
                 <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Number of active programs
+                  ℹ️ Enter a full sentence describing active programs
                 </Text>
               </>
             ) : (
-              <Text>{beneficiaryData.programsActive !== null && beneficiaryData.programsActive !== undefined ? beneficiaryData.programsActive : <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
+              <Text>{beneficiaryData.programsActive || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
             )}
           </div>
         </Col>
@@ -1069,22 +1070,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             <label>Direct to Programs (%)</label>
             {isEditing ? (
               <>
-                <InputNumber
-                  value={formData.directToProgramsPercentage || undefined}
-                  onChange={(value) => handleInputChange('directToProgramsPercentage', value)}
-                  placeholder="e.g., 95.00"
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={100}
-                  step={0.01}
-                  precision={2}
+                <Input.TextArea
+                  value={formData.directToProgramsPercentage || ''}
+                  onChange={(e) => handleInputChange('directToProgramsPercentage', e.target.value)}
+                  placeholder="e.g., 95% of all donations go directly to programs"
+                  rows={2}
+                  maxLength={500}
                 />
                 <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Percentage (e.g., 95.00 for 95%)
+                  ℹ️ Enter a full sentence describing the percentage
                 </Text>
               </>
             ) : (
-              <Text>{beneficiaryData.directToProgramsPercentage !== null && beneficiaryData.directToProgramsPercentage !== undefined ? `${beneficiaryData.directToProgramsPercentage}%` : <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
+              <Text>{beneficiaryData.directToProgramsPercentage || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
             )}
           </div>
         </Col>

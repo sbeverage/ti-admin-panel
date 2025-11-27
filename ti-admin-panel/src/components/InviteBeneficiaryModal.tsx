@@ -252,19 +252,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         beneficiaryData.logo_url = finalLogoUrl;
       }
       
-      // Impact Metrics - Only include if they have values AND backend supports them
-      // These are NEW fields that may not exist yet - comment out if causing errors
-      if (allData.livesImpacted) {
-        beneficiaryData.livesImpacted = allData.livesImpacted;
-        beneficiaryData.lives_impacted = allData.livesImpacted;
+      // Impact Metrics - Now accept full sentences (text)
+      // Only include if they have values (non-empty strings)
+      if (allData.livesImpacted && allData.livesImpacted.trim()) {
+        beneficiaryData.livesImpacted = allData.livesImpacted.trim();
+        beneficiaryData.lives_impacted = allData.livesImpacted.trim();
       }
-      if (allData.programsActive !== null && allData.programsActive !== undefined) {
-        beneficiaryData.programsActive = allData.programsActive;
-        beneficiaryData.programs_active = allData.programsActive;
+      if (allData.programsActive && allData.programsActive.trim()) {
+        beneficiaryData.programsActive = allData.programsActive.trim();
+        beneficiaryData.programs_active = allData.programsActive.trim();
       }
-      if (allData.directToProgramsPercentage !== null && allData.directToProgramsPercentage !== undefined) {
-        beneficiaryData.directToProgramsPercentage = allData.directToProgramsPercentage;
-        beneficiaryData.direct_to_programs_percentage = allData.directToProgramsPercentage;
+      if (allData.directToProgramsPercentage && allData.directToProgramsPercentage.trim()) {
+        beneficiaryData.directToProgramsPercentage = allData.directToProgramsPercentage.trim();
+        beneficiaryData.direct_to_programs_percentage = allData.directToProgramsPercentage.trim();
       }
       
       // NOTE: The following fields are NOT included as they may not exist in backend:
@@ -669,15 +669,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   name="livesImpacted"
                   label="Lives Impacted"
                   rules={[
-                    { max: 50, message: 'Must be 50 characters or less' }
+                    { max: 500, message: 'Must be 500 characters or less' }
                   ]}
                 >
-                  <Input 
-                    placeholder="e.g., 10,000+, 1M+, 50,000" 
-                    maxLength={50}
+                  <TextArea 
+                    placeholder="e.g., Over 10,000 children have received life-saving treatment" 
+                    rows={2}
+                    maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Can include +, K, M (e.g., 1M+)
+                    ℹ️ Enter a full sentence describing the impact
                   </Text>
                 </Form.Item>
               </Col>
@@ -686,17 +687,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   name="programsActive"
                   label="Programs Active"
                   rules={[
-                    { type: 'number', min: 0, message: 'Must be a positive number' }
+                    { max: 500, message: 'Must be 500 characters or less' }
                   ]}
                 >
-                  <InputNumber 
-                    placeholder="e.g., 25" 
-                    min={0}
-                    style={{ width: '100%' }}
-                    precision={0}
+                  <TextArea 
+                    placeholder="e.g., We operate 25 programs across 10 states" 
+                    rows={2}
+                    maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Number of active programs
+                    ℹ️ Enter a full sentence describing active programs
                   </Text>
                 </Form.Item>
               </Col>
@@ -705,19 +705,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   name="directToProgramsPercentage"
                   label="Direct to Programs (%)"
                   rules={[
-                    { type: 'number', min: 0, max: 100, message: 'Must be between 0 and 100' }
+                    { max: 500, message: 'Must be 500 characters or less' }
                   ]}
                 >
-                  <InputNumber 
-                    placeholder="e.g., 95.00" 
-                    min={0} 
-                    max={100}
-                    step={0.01}
-                    precision={2}
-                    style={{ width: '100%' }}
+                  <TextArea 
+                    placeholder="e.g., 95% of all donations go directly to programs" 
+                    rows={2}
+                    maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Percentage (e.g., 95.00 for 95%)
+                    ℹ️ Enter a full sentence describing the percentage
                   </Text>
                 </Form.Item>
               </Col>
