@@ -118,7 +118,20 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         setBasicDetails(values);
         // Merge with existing form values (don't overwrite)
         const currentFormValues = form.getFieldsValue();
-        form.setFieldsValue({ ...currentFormValues, ...values });
+        const mergedValues = { ...currentFormValues, ...values };
+        form.setFieldsValue(mergedValues);
+        
+        // VERIFY: Double-check the name is preserved
+        const verifyFormValues = form.getFieldsValue();
+        console.log('✅ VERIFIED: Form values after step 0:', verifyFormValues);
+        console.log('✅ VERIFIED: beneficiaryName in form:', verifyFormValues.beneficiaryName);
+        if (!verifyFormValues.beneficiaryName) {
+          console.error('❌ CRITICAL: beneficiaryName NOT in form after setting!', {
+            values,
+            mergedValues,
+            verifyFormValues
+          });
+        }
         
         setCurrentStep(1);
       } else if (currentStep === 1) {
@@ -185,6 +198,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         };
         
         console.log('📦 Combined data for submission:', allData);
+        console.log('🔍 CRITICAL CHECK: beneficiaryName in allData:', {
+          allDataBeneficiaryName: allData.beneficiaryName,
+          allDataName: allData.name,
+          allDataCharityName: allData.charityName,
+          hasBeneficiaryName: !!allData.beneficiaryName,
+          allDataKeys: Object.keys(allData)
+        });
         console.log('📦 Beneficiary name check (detailed):', {
           fromBasicDetails: basicDetails?.beneficiaryName,
           fromImpactStory: impactStory?.beneficiaryName,
