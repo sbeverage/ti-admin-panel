@@ -116,23 +116,26 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         
         // CRITICAL: Save to state AND ensure form instance preserves these values
         setBasicDetails(values);
-        // Also set form values to ensure they're preserved even when step is unmounted
-        form.setFieldsValue(values);
+        // Merge with existing form values (don't overwrite)
+        const currentFormValues = form.getFieldsValue();
+        form.setFieldsValue({ ...currentFormValues, ...values });
         
         setCurrentStep(1);
       } else if (currentStep === 1) {
         const values = await form.validateFields();
         console.log('✅ Step 1 validated:', values);
         setImpactStory(values);
-        // Preserve form values
-        form.setFieldsValue(values);
+        // Merge with existing form values (preserve step 0 data)
+        const currentFormValues = form.getFieldsValue();
+        form.setFieldsValue({ ...currentFormValues, ...values });
         setCurrentStep(2);
       } else if (currentStep === 2) {
         const values = await form.validateFields();
         console.log('✅ Step 2 validated:', values);
         setTrustTransparency(values);
-        // Preserve form values
-        form.setFieldsValue(values);
+        // Merge with existing form values (preserve step 0 and 1 data)
+        const currentFormValues = form.getFieldsValue();
+        form.setFieldsValue({ ...currentFormValues, ...values });
         setCurrentStep(3);
       } else {
         // Final step - validate current step and collect all data
@@ -144,6 +147,17 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Note: getFieldsValue() gets all fields that have been set, even if unmounted
         // We've been calling form.setFieldsValue() after each step validation to preserve values
         const allFormValues = form.getFieldsValue(); // Gets all preserved form values
+        
+        // DEBUG: Check what's actually in the form right now
+        console.log('🔍 DEBUG: Form state check before submission:', {
+          allFormValues,
+          basicDetails,
+          formHasBeneficiaryName: !!allFormValues.beneficiaryName,
+          basicDetailsHasBeneficiaryName: !!basicDetails?.beneficiaryName,
+          allFormValuesKeys: Object.keys(allFormValues || {}),
+          basicDetailsKeys: Object.keys(basicDetails || {})
+        });
+        
         console.log('📋 All form values from form instance (all fields):', allFormValues);
         console.log('📋 State variables:', { 
           basicDetails, 
@@ -519,12 +533,21 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Save current step data to state before moving
         if (currentStep === 0) {
           setBasicDetails(values);
+          // Merge with existing form values
+          const currentFormValues = form.getFieldsValue();
+          form.setFieldsValue({ ...currentFormValues, ...values });
         } else if (currentStep === 1) {
           setImpactStory(values);
+          const currentFormValues = form.getFieldsValue();
+          form.setFieldsValue({ ...currentFormValues, ...values });
         } else if (currentStep === 2) {
           setTrustTransparency(values);
+          const currentFormValues = form.getFieldsValue();
+          form.setFieldsValue({ ...currentFormValues, ...values });
         } else if (currentStep === 3) {
           setUploadImages(values);
+          const currentFormValues = form.getFieldsValue();
+          form.setFieldsValue({ ...currentFormValues, ...values });
         }
         
         setCurrentStep(step);
