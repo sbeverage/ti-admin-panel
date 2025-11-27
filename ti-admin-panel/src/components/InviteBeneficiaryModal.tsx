@@ -125,19 +125,37 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         setTrustTransparency(values);
         setCurrentStep(3);
       } else {
+        // Final step - validate current step and collect all data
         const values = await form.validateFields();
         console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
-        // CRITICAL: Get ALL form values, not just the state variables
-        // The state variables might be incomplete if user went back and changed values
+        // Get ALL form values from form instance
+        // Note: This only gets fields that are currently mounted (step 3 fields)
         const allFormValues = form.getFieldsValue();
         console.log('📋 All form values from form instance:', allFormValues);
-        console.log('📋 State variables:', { basicDetails, impactStory, trustTransparency, values });
+        console.log('📋 State variables:', { 
+          basicDetails, 
+          impactStory, 
+          trustTransparency, 
+          step3Values: values 
+        });
         
-        // Combine: Use form values as source of truth, but include profileLinks from state
+        // CRITICAL FIX: Merge state variables with form values
+        // The state variables (basicDetails, impactStory, trustTransparency) contain
+        // the validated data from each step when the user clicked "Next"
+        // Form values from getFieldsValue() only include currently mounted fields (step 3)
+        // So we merge: state variables (all steps) + form values (current step only)
         const allData = {
+          // Start with state variables (from previous steps - these are the source of truth)
+          ...basicDetails,      // Step 0: Basic Information (includes beneficiaryName, category, etc.)
+          ...impactStory,       // Step 1: Impact & Story (whyThisMatters, successStory, etc.)
+          ...trustTransparency, // Step 2: Trust & Transparency (ein, website, etc.)
+          // Override with current step form values (step 3 - upload images)
+          ...values,
+          // Also include any form values that might have been set (though step 0-2 fields won't be here)
           ...allFormValues,
+          // Add non-form state
           profileLinks: profileLinks.filter(link => link.channel && link.username), // Only include valid links
           // Ensure image URLs are included
           mainImageUrl: mainImageUrl,
@@ -146,6 +164,29 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         };
         
         console.log('📦 Combined data for submission:', allData);
+        console.log('📦 Beneficiary name check:', {
+          fromBasicDetails: basicDetails.beneficiaryName,
+          fromFormValues: allFormValues.beneficiaryName,
+          fromAllData: allData.beneficiaryName,
+          finalValue: allData.beneficiaryName,
+          basicDetailsKeys: Object.keys(basicDetails || {}),
+          allDataKeys: Object.keys(allData)
+        });
+        
+        // Validate that we have the required beneficiaryName before submitting
+        if (!allData.beneficiaryName || !allData.beneficiaryName.trim()) {
+          console.error('❌ Beneficiary name is missing!', {
+            basicDetails,
+            allData,
+            allFormValues,
+            currentStep
+          });
+          message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
+          // Navigate back to step 0 so user can enter the name
+          setCurrentStep(0);
+          setSaving(false);
+          return;
+        }
         
         // Submit to API
         await handleSubmit(allData);
@@ -208,22 +249,35 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       // Build minimal safe payload with only core required fields
       // CRITICAL: Backend requires name field - send all three variations for compatibility
-      const charityName = allData.beneficiaryName?.trim() || '';
+      // Try multiple possible field names in case of naming inconsistencies
+      const charityName = (
+        allData.beneficiaryName?.trim() || 
+        allData.name?.trim() || 
+        allData.charityName?.trim() || 
+        ''
+      );
       
       console.log('📝 Charity name check:', {
-        raw: allData.beneficiaryName,
+        rawBeneficiaryName: allData.beneficiaryName,
+        rawName: allData.name,
+        rawCharityName: allData.charityName,
         trimmed: charityName,
         isEmpty: !charityName,
-        type: typeof allData.beneficiaryName
+        allDataKeys: Object.keys(allData),
+        basicDetailsKeys: Object.keys(basicDetails || {}),
+        basicDetailsBeneficiaryName: basicDetails?.beneficiaryName
       });
       
       if (!charityName) {
         console.error('❌ Charity name is missing or empty!', {
           allDataKeys: Object.keys(allData),
-          beneficiaryName: allData.beneficiaryName,
-          formValues: allData
+          allDataValues: allData,
+          basicDetails: basicDetails,
+          impactStory: impactStory,
+          trustTransparency: trustTransparency,
+          formValues: allFormValues
         });
-        message.error('Charity name is required. Please enter the organization name.');
+        message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
         setSaving(false);
         return;
       }
@@ -423,6 +477,37 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 
   const handlePrev = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  // Handle step changes from the Steps component (when user clicks step indicator)
+  const handleStepChange = async (step: number) => {
+    // If moving forward, validate current step first
+    if (step > currentStep) {
+      try {
+        const values = await form.validateFields();
+        
+        // Save current step data to state before moving
+        if (currentStep === 0) {
+          setBasicDetails(values);
+        } else if (currentStep === 1) {
+          setImpactStory(values);
+        } else if (currentStep === 2) {
+          setTrustTransparency(values);
+        } else if (currentStep === 3) {
+          setUploadImages(values);
+        }
+        
+        setCurrentStep(step);
+      } catch (error) {
+        console.error('❌ Validation failed when changing steps:', error);
+        message.error('Please fill in all required fields before proceeding');
+        // Don't change step if validation fails
+        return;
+      }
+    } else {
+      // Moving backward - no validation needed, just change step
+      setCurrentStep(step);
+    }
   };
 
   const handleCancel = () => {
@@ -1002,7 +1087,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           <Steps
             direction="vertical"
             current={currentStep}
-            onChange={setCurrentStep}
+            onChange={handleStepChange}
             items={steps.map((step, index) => ({
               title: step.title,
               description: step.description,
