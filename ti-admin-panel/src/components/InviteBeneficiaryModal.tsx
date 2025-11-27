@@ -207,9 +207,33 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // We use a conservative approach to avoid 400 errors
       
       // Build minimal safe payload with only core required fields
+      // CRITICAL: Backend requires name field - send all three variations for compatibility
+      const charityName = allData.beneficiaryName?.trim() || '';
+      
+      console.log('📝 Charity name check:', {
+        raw: allData.beneficiaryName,
+        trimmed: charityName,
+        isEmpty: !charityName,
+        type: typeof allData.beneficiaryName
+      });
+      
+      if (!charityName) {
+        console.error('❌ Charity name is missing or empty!', {
+          allDataKeys: Object.keys(allData),
+          beneficiaryName: allData.beneficiaryName,
+          formValues: allData
+        });
+        message.error('Charity name is required. Please enter the organization name.');
+        setSaving(false);
+        return;
+      }
+      
       const beneficiaryData: any = {
         // Core required fields (definitely exist)
-        name: allData.beneficiaryName || '',
+        // CRITICAL: Send name in all three formats backend accepts to ensure compatibility
+        name: charityName,
+        beneficiaryName: charityName,
+        charityName: charityName,
         category: allData.category || '',
         type: allData.type || 'Medium', // Large, Medium, or Small
         about: allData.about || '',

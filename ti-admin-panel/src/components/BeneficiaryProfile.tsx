@@ -349,8 +349,31 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
     setSaving(true);
     try {
       // Transform form data to match backend API format
+      // CRITICAL: Backend requires name field - send all three variations for compatibility
+      const charityName = formData.beneficiaryName?.trim() || '';
+      
+      console.log('📝 Charity name check (update):', {
+        raw: formData.beneficiaryName,
+        trimmed: charityName,
+        isEmpty: !charityName,
+        type: typeof formData.beneficiaryName
+      });
+      
+      if (!charityName) {
+        console.error('❌ Charity name is missing or empty during update!', {
+          formDataKeys: Object.keys(formData),
+          beneficiaryName: formData.beneficiaryName
+        });
+        message.error('Charity name is required. Please enter the organization name.');
+        setSaving(false);
+        return;
+      }
+      
       const updateData: any = {
-        name: formData.beneficiaryName || '',
+        // CRITICAL: Send name in all three formats backend accepts to ensure compatibility
+        name: charityName,
+        beneficiaryName: charityName,
+        charityName: charityName,
         category: formData.beneficiaryCause || '',
         type: formData.beneficiaryType || '',
         location: formData.location || formData.cityState || '',
