@@ -593,6 +593,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         console.log('📡 Updated beneficiary ID:', responseData.id || responseData);
         if (typeof responseData === 'object') {
           console.log('📡 Updated beneficiary is_active:', responseData.is_active || responseData.isActive);
+          // Check if impact statements are in the response
+          console.log('📡 Response impact_statement_1:', responseData.impact_statement_1 || responseData.impactStatement1 || 'NOT IN RESPONSE');
+          console.log('📡 Response impact_statement_2:', responseData.impact_statement_2 || responseData.impactStatement2 || 'NOT IN RESPONSE');
+          console.log('📡 Response has impact_statement_1:', !!(responseData.impact_statement_1 || responseData.impactStatement1));
+          console.log('📡 Response has impact_statement_2:', !!(responseData.impact_statement_2 || responseData.impactStatement2));
         }
       }
 
