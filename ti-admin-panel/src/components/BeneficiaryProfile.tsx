@@ -463,18 +463,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
         // verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
         // Impact Statements - send in both formats for backend compatibility
+        // Only send if they have non-empty values (send null instead of empty string)
         impact_statement_1: (formData.impactStatement1 && formData.impactStatement1.trim()) || 
                             (formData.impact_statement_1 && formData.impact_statement_1.trim()) || 
-                            '',
+                            null,
         impactStatement1: (formData.impactStatement1 && formData.impactStatement1.trim()) || 
                           (formData.impact_statement_1 && formData.impact_statement_1.trim()) || 
-                          '', // Also send camelCase
+                          null, // Also send camelCase
         impact_statement_2: (formData.impactStatement2 && formData.impactStatement2.trim()) || 
                             (formData.impact_statement_2 && formData.impact_statement_2.trim()) || 
-                            '',
+                            null,
         impactStatement2: (formData.impactStatement2 && formData.impactStatement2.trim()) || 
                           (formData.impact_statement_2 && formData.impact_statement_2.trim()) || 
-                          '', // Also send camelCase
+                          null, // Also send camelCase
         ein: formData.ein || '',
         website: formData.website || '',
         social: formData.social || '',

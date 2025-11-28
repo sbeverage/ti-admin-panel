@@ -440,19 +440,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         story_author: allData.storyAuthor || allData.story_author || '',
         storyAuthor: allData.storyAuthor || allData.story_author || '', // Also send camelCase
         // Impact Statements - send in both formats for backend compatibility
-        // Only send if they have values (non-empty strings)
+        // Only send if they have non-empty values (send null instead of empty string)
         impact_statement_1: (allData.impactStatement1 && allData.impactStatement1.trim()) || 
                             (allData.impact_statement_1 && allData.impact_statement_1.trim()) || 
-                            '',
+                            null,
         impactStatement1: (allData.impactStatement1 && allData.impactStatement1.trim()) || 
                           (allData.impact_statement_1 && allData.impact_statement_1.trim()) || 
-                          '', // Also send camelCase
+                          null, // Also send camelCase
         impact_statement_2: (allData.impactStatement2 && allData.impactStatement2.trim()) || 
                             (allData.impact_statement_2 && allData.impact_statement_2.trim()) || 
-                            '',
+                            null,
         impactStatement2: (allData.impactStatement2 && allData.impactStatement2.trim()) || 
                           (allData.impact_statement_2 && allData.impact_statement_2.trim()) || 
-                          '', // Also send camelCase
+                          null, // Also send camelCase
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
