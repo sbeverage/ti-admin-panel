@@ -462,8 +462,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         direct_to_programs_percentage: formData.directToProgramsPercentage && formData.directToProgramsPercentage.trim() ? formData.directToProgramsPercentage.trim() : null,
         // NOTE: The following fields may not exist in backend schema - removed to prevent 400 errors
         // verification_status: formData.verificationStatus !== undefined ? formData.verificationStatus : true, // ⚠️ DOES NOT EXIST - causing 400 error
-        // impact_statement_1: formData.impactStatement1 || '', // ⚠️ May not exist in backend
-        // impact_statement_2: formData.impactStatement2 || '', // ⚠️ May not exist in backend
+        // Impact Statements - send in both formats for backend compatibility
+        impact_statement_1: (formData.impactStatement1 && formData.impactStatement1.trim()) || 
+                            (formData.impact_statement_1 && formData.impact_statement_1.trim()) || 
+                            '',
+        impactStatement1: (formData.impactStatement1 && formData.impactStatement1.trim()) || 
+                          (formData.impact_statement_1 && formData.impact_statement_1.trim()) || 
+                          '', // Also send camelCase
+        impact_statement_2: (formData.impactStatement2 && formData.impactStatement2.trim()) || 
+                            (formData.impact_statement_2 && formData.impact_statement_2.trim()) || 
+                            '',
+        impactStatement2: (formData.impactStatement2 && formData.impactStatement2.trim()) || 
+                          (formData.impact_statement_2 && formData.impact_statement_2.trim()) || 
+                          '', // Also send camelCase
         ein: formData.ein || '',
         website: formData.website || '',
         social: formData.social || '',
@@ -492,8 +503,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         'communities_served', // OLD field - replaced by programs_active
         'families_helped', // OLD field - replaced by lives_impacted
         'direct_to_programs', // OLD field - replaced by direct_to_programs_percentage
-        'impact_statement_1',
-        'impact_statement_2',
+        // Impact statements - REMOVED from removal list (backend now supports them)
+        // 'impact_statement_1', // Now supported
+        // 'impact_statement_2', // Now supported
         'transparency_rating',
         'communitiesServed', // OLD camelCase version
         'familiesHelped', // OLD camelCase version

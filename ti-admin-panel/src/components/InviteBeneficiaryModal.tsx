@@ -423,6 +423,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         successStory: allData.successStory || allData.success_story || '', // Also send camelCase
         story_author: allData.storyAuthor || allData.story_author || '',
         storyAuthor: allData.storyAuthor || allData.story_author || '', // Also send camelCase
+        // Impact Statements - send in both formats for backend compatibility
+        impact_statement_1: allData.impactStatement1 || allData.impact_statement_1 || '',
+        impactStatement1: allData.impactStatement1 || allData.impact_statement_1 || '', // Also send camelCase
+        impact_statement_2: allData.impactStatement2 || allData.impact_statement_2 || '',
+        impactStatement2: allData.impactStatement2 || allData.impact_statement_2 || '', // Also send camelCase
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
@@ -497,11 +502,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         'communitiesServed',
         'familiesHelped',
         'directToPrograms',
-        // Impact statements (may not exist)
-        'impact_statement_1',
-        'impact_statement_2',
-        'impactStatement1',
-        'impactStatement2',
+        // Impact statements - REMOVED from removal list (backend now supports them)
+        // 'impact_statement_1', // Now supported
+        // 'impact_statement_2', // Now supported
+        // 'impactStatement1', // Now supported
+        // 'impactStatement2', // Now supported
         // Other potentially problematic fields
         'transparency_rating',
         'likes', // May not exist
