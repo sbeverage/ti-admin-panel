@@ -211,22 +211,39 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         });
         
         // CRITICAL FIX: Merge state variables with form values
-        // Priority: form.getFieldsValue() (most current, includes all preserved values) > state variables
-        const allData = {
+        // Priority: Non-empty values > form values > state variables
+        // Start with state variables (these are the source of truth for unmounted steps)
+        const allData: any = {
           // Start with state variables (backup if form values are missing)
           ...basicDetails,      // Step 0: Basic Information (includes beneficiaryName, category, etc.)
           ...impactStory,       // Step 1: Impact & Story (whyThisMatters, successStory, etc.)
           ...trustTransparency, // Step 2: Trust & Transparency (ein, website, etc.)
           ...values,            // Step 3: Upload Images
-          // Override with form values (most current, should include all steps if preserved correctly)
-          ...allFormValues,
-          // Add non-form state
-          profileLinks: profileLinks.filter(link => link.channel && link.username), // Only include valid links
-          // Ensure image URLs are included
-          mainImageUrl: mainImageUrl,
-          logoUrl: logoUrl,
-          additionalImages: additionalImages.filter(img => img)
         };
+        
+        // Smart merge: Only override with form values if they're not empty
+        // This prevents empty form values from overwriting valid state values
+        Object.keys(allFormValues).forEach(key => {
+          const formValue = allFormValues[key];
+          const stateValue = allData[key];
+          
+          // Only use form value if:
+          // 1. It's not empty/undefined/null, OR
+          // 2. State value is also empty (form value takes precedence if both empty)
+          if (formValue !== undefined && formValue !== null && formValue !== '') {
+            allData[key] = formValue;
+          } else if (stateValue === undefined || stateValue === null || stateValue === '') {
+            // If state is also empty, use form value (might be intentional empty)
+            allData[key] = formValue;
+          }
+          // Otherwise keep state value (it's non-empty and form value is empty)
+        });
+        
+        // Add non-form state
+        allData.profileLinks = profileLinks.filter(link => link.channel && link.username);
+        allData.mainImageUrl = mainImageUrl;
+        allData.logoUrl = logoUrl;
+        allData.additionalImages = additionalImages.filter(img => img);
         
         console.log('📦 Combined data for submission:', allData);
         console.log('🔍 CRITICAL CHECK: beneficiaryName in allData:', {
