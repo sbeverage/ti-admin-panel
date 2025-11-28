@@ -316,6 +316,18 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
     setFormData(newFormData);
     console.log('✏️ formData after edit mode (newFormData):', newFormData);
     console.log('✏️ newFormData.email:', newFormData.email);
+    
+    // VERIFY Impact & Story data is in formData when entering edit mode
+    console.log('🔍 VERIFY Impact & Story in formData (edit mode):', {
+      whyThisMatters: newFormData.whyThisMatters,
+      successStory: newFormData.successStory,
+      storyAuthor: newFormData.storyAuthor,
+      hasWhyThisMatters: !!newFormData.whyThisMatters,
+      hasSuccessStory: !!newFormData.successStory,
+      hasStoryAuthor: !!newFormData.storyAuthor,
+      whyThisMattersLength: newFormData.whyThisMatters?.length || 0,
+      successStoryLength: newFormData.successStory?.length || 0
+    });
   };
 
   const handleCancel = () => {
