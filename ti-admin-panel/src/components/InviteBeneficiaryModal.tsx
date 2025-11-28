@@ -416,9 +416,13 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         type: allData.type || 'Medium', // Large, Medium, or Small
         about: allData.about || '',
         // Impact & Story fields - CRITICAL: Ensure these are included
+        // Impact & Story fields - send in both formats for backend compatibility
         why_this_matters: allData.whyThisMatters || allData.why_this_matters || '',
+        whyThisMatters: allData.whyThisMatters || allData.why_this_matters || '', // Also send camelCase
         success_story: allData.successStory || allData.success_story || '',
+        successStory: allData.successStory || allData.success_story || '', // Also send camelCase
         story_author: allData.storyAuthor || allData.story_author || '',
+        storyAuthor: allData.storyAuthor || allData.story_author || '', // Also send camelCase
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
