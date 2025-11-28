@@ -431,17 +431,26 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // (temporary logging to debug)
         // Use exact database field names (snake_case)
         about: formData.about || '',
-        // Impact & Story fields - CRITICAL: Send actual values, not empty strings if they exist
-        // Check both camelCase and snake_case variations
+        // Impact & Story fields - CRITICAL: Send in both formats for backend compatibility
+        // Get the value from either camelCase or snake_case form field
         why_this_matters: (formData.whyThisMatters && formData.whyThisMatters.trim()) || 
                           (formData.why_this_matters && formData.why_this_matters.trim()) || 
                           '',
+        whyThisMatters: (formData.whyThisMatters && formData.whyThisMatters.trim()) || 
+                        (formData.why_this_matters && formData.why_this_matters.trim()) || 
+                        '', // Also send camelCase
         success_story: (formData.successStory && formData.successStory.trim()) || 
                        (formData.success_story && formData.success_story.trim()) || 
                        '',
+        successStory: (formData.successStory && formData.successStory.trim()) || 
+                      (formData.success_story && formData.success_story.trim()) || 
+                      '', // Also send camelCase
         story_author: (formData.storyAuthor && formData.storyAuthor.trim()) || 
                       (formData.story_author && formData.story_author.trim()) || 
                       '',
+        storyAuthor: (formData.storyAuthor && formData.storyAuthor.trim()) || 
+                     (formData.story_author && formData.story_author.trim()) || 
+                     '', // Also send camelCase
         // Impact Metrics - NEW fields (now accept full sentences as text)
         // Send both camelCase and snake_case for backend compatibility
         // Only send if non-empty strings
