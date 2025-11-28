@@ -547,13 +547,21 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         why_this_matters: updateData.why_this_matters,
         success_story: updateData.success_story,
         story_author: updateData.story_author,
+        impact_statement_1: updateData.impact_statement_1,
+        impact_statement_2: updateData.impact_statement_2,
         hasWhyThisMatters: !!updateData.why_this_matters,
         hasSuccessStory: !!updateData.success_story,
         hasStoryAuthor: !!updateData.story_author,
+        hasImpactStatement1: !!updateData.impact_statement_1,
+        hasImpactStatement2: !!updateData.impact_statement_2,
         whyThisMattersLength: updateData.why_this_matters?.length || 0,
         successStoryLength: updateData.success_story?.length || 0,
+        impactStatement1Length: updateData.impact_statement_1?.length || 0,
+        impactStatement2Length: updateData.impact_statement_2?.length || 0,
         formDataWhyThisMatters: formData.whyThisMatters,
-        formDataSuccessStory: formData.successStory
+        formDataSuccessStory: formData.successStory,
+        formDataImpactStatement1: formData.impactStatement1,
+        formDataImpactStatement2: formData.impactStatement2
       });
       
       console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');
