@@ -382,6 +382,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       whyThisMatters: allData.whyThisMatters,
       successStory: allData.successStory,
       storyAuthor: allData.storyAuthor,
+      impactStatement1: allData.impactStatement1,
+      impactStatement2: allData.impactStatement2,
       ein: allData.ein,
       website: allData.website,
       isActive: allData.isActive,
@@ -438,10 +440,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         story_author: allData.storyAuthor || allData.story_author || '',
         storyAuthor: allData.storyAuthor || allData.story_author || '', // Also send camelCase
         // Impact Statements - send in both formats for backend compatibility
-        impact_statement_1: allData.impactStatement1 || allData.impact_statement_1 || '',
-        impactStatement1: allData.impactStatement1 || allData.impact_statement_1 || '', // Also send camelCase
-        impact_statement_2: allData.impactStatement2 || allData.impact_statement_2 || '',
-        impactStatement2: allData.impactStatement2 || allData.impact_statement_2 || '', // Also send camelCase
+        // Only send if they have values (non-empty strings)
+        impact_statement_1: (allData.impactStatement1 && allData.impactStatement1.trim()) || 
+                            (allData.impact_statement_1 && allData.impact_statement_1.trim()) || 
+                            '',
+        impactStatement1: (allData.impactStatement1 && allData.impactStatement1.trim()) || 
+                          (allData.impact_statement_1 && allData.impact_statement_1.trim()) || 
+                          '', // Also send camelCase
+        impact_statement_2: (allData.impactStatement2 && allData.impactStatement2.trim()) || 
+                            (allData.impact_statement_2 && allData.impact_statement_2.trim()) || 
+                            '',
+        impactStatement2: (allData.impactStatement2 && allData.impactStatement2.trim()) || 
+                          (allData.impact_statement_2 && allData.impact_statement_2.trim()) || 
+                          '', // Also send camelCase
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
