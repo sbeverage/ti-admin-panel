@@ -143,7 +143,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           storyAuthor: values.storyAuthor,
           livesImpacted: values.livesImpacted,
           programsActive: values.programsActive,
-          directToProgramsPercentage: values.directToProgramsPercentage
+          directToProgramsPercentage: values.directToProgramsPercentage,
+          impactStatement1: values.impactStatement1,
+          impactStatement2: values.impactStatement2,
+          hasImpactStatement1: !!values.impactStatement1,
+          hasImpactStatement2: !!values.impactStatement2
         });
         
         setImpactStory(values);
@@ -206,8 +210,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           hasWhyThisMatters: !!impactStory?.whyThisMatters,
           hasSuccessStory: !!impactStory?.successStory,
           hasStoryAuthor: !!impactStory?.storyAuthor,
+          hasImpactStatement1: !!impactStory?.impactStatement1,
+          hasImpactStatement2: !!impactStory?.impactStatement2,
           whyThisMattersValue: impactStory?.whyThisMatters,
-          successStoryValue: impactStory?.successStory
+          successStoryValue: impactStory?.successStory,
+          impactStatement1Value: impactStory?.impactStatement1,
+          impactStatement2Value: impactStory?.impactStatement2
         });
         
         // CRITICAL FIX: Merge state variables with form values
@@ -259,11 +267,17 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           whyThisMatters: allData.whyThisMatters,
           successStory: allData.successStory,
           storyAuthor: allData.storyAuthor,
+          impactStatement1: allData.impactStatement1,
+          impactStatement2: allData.impactStatement2,
           hasWhyThisMatters: !!allData.whyThisMatters,
           hasSuccessStory: !!allData.successStory,
           hasStoryAuthor: !!allData.storyAuthor,
+          hasImpactStatement1: !!allData.impactStatement1,
+          hasImpactStatement2: !!allData.impactStatement2,
           fromImpactStory: impactStory?.whyThisMatters,
-          fromAllFormValues: allFormValues?.whyThisMatters
+          fromAllFormValues: allFormValues?.whyThisMatters,
+          impactStatement1FromState: impactStory?.impactStatement1,
+          impactStatement1FromForm: allFormValues?.impactStatement1
         });
         console.log('📦 Beneficiary name check (detailed):', {
           fromBasicDetails: basicDetails?.beneficiaryName,
@@ -541,11 +555,17 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         why_this_matters: beneficiaryData.why_this_matters,
         success_story: beneficiaryData.success_story,
         story_author: beneficiaryData.story_author,
+        impact_statement_1: beneficiaryData.impact_statement_1,
+        impact_statement_2: beneficiaryData.impact_statement_2,
         hasWhyThisMatters: !!beneficiaryData.why_this_matters,
         hasSuccessStory: !!beneficiaryData.success_story,
         hasStoryAuthor: !!beneficiaryData.story_author,
+        hasImpactStatement1: !!beneficiaryData.impact_statement_1,
+        hasImpactStatement2: !!beneficiaryData.impact_statement_2,
         whyThisMattersLength: beneficiaryData.why_this_matters?.length || 0,
-        successStoryLength: beneficiaryData.success_story?.length || 0
+        successStoryLength: beneficiaryData.success_story?.length || 0,
+        impactStatement1Length: beneficiaryData.impact_statement_1?.length || 0,
+        impactStatement2Length: beneficiaryData.impact_statement_2?.length || 0
       });
       
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
