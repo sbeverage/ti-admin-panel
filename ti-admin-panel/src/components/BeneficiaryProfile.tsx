@@ -369,6 +369,19 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         return;
       }
       
+      // DEBUG: Log formData before creating updateData
+      console.log('🔍 DEBUG: formData before creating updateData:', {
+        whyThisMatters: formData.whyThisMatters,
+        successStory: formData.successStory,
+        storyAuthor: formData.storyAuthor,
+        hasWhyThisMatters: !!formData.whyThisMatters,
+        hasSuccessStory: !!formData.successStory,
+        hasStoryAuthor: !!formData.storyAuthor,
+        whyThisMattersLength: formData.whyThisMatters?.length || 0,
+        successStoryLength: formData.successStory?.length || 0,
+        allFormDataKeys: Object.keys(formData)
+      });
+      
       const updateData: any = {
         // CRITICAL: Send name in all three formats backend accepts to ensure compatibility
         name: charityName,
@@ -406,10 +419,17 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // (temporary logging to debug)
         // Use exact database field names (snake_case)
         about: formData.about || '',
-        // Impact & Story fields - ensure they're included
-        why_this_matters: formData.whyThisMatters || formData.why_this_matters || '',
-        success_story: formData.successStory || formData.success_story || '',
-        story_author: formData.storyAuthor || formData.story_author || '',
+        // Impact & Story fields - CRITICAL: Send actual values, not empty strings if they exist
+        // Check both camelCase and snake_case variations
+        why_this_matters: (formData.whyThisMatters && formData.whyThisMatters.trim()) || 
+                          (formData.why_this_matters && formData.why_this_matters.trim()) || 
+                          '',
+        success_story: (formData.successStory && formData.successStory.trim()) || 
+                       (formData.success_story && formData.success_story.trim()) || 
+                       '',
+        story_author: (formData.storyAuthor && formData.storyAuthor.trim()) || 
+                      (formData.story_author && formData.story_author.trim()) || 
+                      '',
         // Impact Metrics - NEW fields (now accept full sentences as text)
         // Send both camelCase and snake_case for backend compatibility
         // Only send if non-empty strings
@@ -602,6 +622,22 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         [field]: value
       };
       console.log(`📝 Updated formData.${field}:`, updated[field]);
+      
+      // Special logging for Impact & Story fields
+      if (field === 'whyThisMatters' || field === 'successStory' || field === 'storyAuthor') {
+        console.log(`🔍 Impact & Story field updated:`, {
+          field,
+          value,
+          valueLength: value?.length || 0,
+          hasValue: !!value,
+          updatedFormData: {
+            whyThisMatters: updated.whyThisMatters,
+            successStory: updated.successStory,
+            storyAuthor: updated.storyAuthor
+          }
+        });
+      }
+      
       return updated;
     });
   };
