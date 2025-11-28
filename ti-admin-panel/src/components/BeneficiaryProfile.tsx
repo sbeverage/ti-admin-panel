@@ -406,9 +406,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // (temporary logging to debug)
         // Use exact database field names (snake_case)
         about: formData.about || '',
-        why_this_matters: formData.whyThisMatters || '',
-        success_story: formData.successStory || '',
-        story_author: formData.storyAuthor || '',
+        // Impact & Story fields - ensure they're included
+        why_this_matters: formData.whyThisMatters || formData.why_this_matters || '',
+        success_story: formData.successStory || formData.success_story || '',
+        story_author: formData.storyAuthor || formData.story_author || '',
         // Impact Metrics - NEW fields (now accept full sentences as text)
         // Send both camelCase and snake_case for backend compatibility
         // Only send if non-empty strings
@@ -487,6 +488,21 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       console.log('✅ Verified: verification_status NOT in payload:', !updateData.hasOwnProperty('verification_status'));
       console.log('💾 Update payload:', updateData);
       console.log('💾 All keys being sent:', Object.keys(updateData));
+      
+      // VERIFY Impact & Story fields are in payload
+      console.log('🔍 VERIFY Impact & Story in update payload:', {
+        why_this_matters: updateData.why_this_matters,
+        success_story: updateData.success_story,
+        story_author: updateData.story_author,
+        hasWhyThisMatters: !!updateData.why_this_matters,
+        hasSuccessStory: !!updateData.success_story,
+        hasStoryAuthor: !!updateData.story_author,
+        whyThisMattersLength: updateData.why_this_matters?.length || 0,
+        successStoryLength: updateData.success_story?.length || 0,
+        formDataWhyThisMatters: formData.whyThisMatters,
+        formDataSuccessStory: formData.successStory
+      });
+      
       console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');
       console.log('📸 logoUrl value:', updateData.logoUrl || 'NOT SET');
       console.log('📸 formData.mainImageUrl:', formData.mainImageUrl || 'NOT SET');
