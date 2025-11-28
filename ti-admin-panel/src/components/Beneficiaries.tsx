@@ -183,12 +183,14 @@ const Beneficiaries: React.FC = () => {
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
                           (beneficiary.active !== undefined ? beneficiary.active : true));
           
-          // Extract image URL - check all possible field names
-          const imageUrl = beneficiary.imageUrl || 
+          // Extract logo URL - prioritize logo over main image for table display
+          // Logo should be displayed next to the name in the table
+          const imageUrl = beneficiary.logo || 
+                          beneficiary.logo_url || 
+                          beneficiary.logoUrl ||
+                          beneficiary.imageUrl || 
                           beneficiary.main_image || 
                           beneficiary.main_image_url || 
-                          beneficiary.logo || 
-                          beneficiary.logo_url || 
                           '';
           
           // Bank account - format if exists
@@ -437,28 +439,31 @@ const Beneficiaries: React.FC = () => {
         <Space>
           <Avatar 
             size={32} 
-            src={record.imageUrl || 
+            src={record.rawData?.logo || 
+                 record.rawData?.logo_url || 
+                 record.rawData?.logoUrl ||
+                 record.imageUrl || 
                  record.rawData?.imageUrl || 
                  record.rawData?.main_image || 
-                 record.rawData?.main_image_url || 
-                 record.rawData?.logo || 
-                 record.rawData?.logo_url}
+                 record.rawData?.main_image_url}
             style={{ 
-              backgroundColor: (record.imageUrl || 
+              backgroundColor: (record.rawData?.logo || 
+                               record.rawData?.logo_url || 
+                               record.rawData?.logoUrl ||
+                               record.imageUrl || 
                                record.rawData?.imageUrl || 
                                record.rawData?.main_image || 
-                               record.rawData?.main_image_url || 
-                               record.rawData?.logo || 
-                               record.rawData?.logo_url) ? 'transparent' : '#DB8633',
+                               record.rawData?.main_image_url) ? 'transparent' : '#DB8633',
               border: 'none'
             }}
           >
-            {!(record.imageUrl || 
+            {!(record.rawData?.logo || 
+               record.rawData?.logo_url || 
+               record.rawData?.logoUrl ||
+               record.imageUrl || 
                record.rawData?.imageUrl || 
                record.rawData?.main_image || 
-               record.rawData?.main_image_url || 
-               record.rawData?.logo || 
-               record.rawData?.logo_url) && record.beneficiaryName.charAt(0)}
+               record.rawData?.main_image_url) && record.beneficiaryName.charAt(0)}
           </Avatar>
           <Text 
             strong 
