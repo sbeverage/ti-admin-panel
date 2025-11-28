@@ -137,10 +137,31 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       } else if (currentStep === 1) {
         const values = await form.validateFields();
         console.log('✅ Step 1 validated:', values);
+        console.log('📝 Step 1 Impact & Story fields:', {
+          whyThisMatters: values.whyThisMatters,
+          successStory: values.successStory,
+          storyAuthor: values.storyAuthor,
+          livesImpacted: values.livesImpacted,
+          programsActive: values.programsActive,
+          directToProgramsPercentage: values.directToProgramsPercentage
+        });
+        
         setImpactStory(values);
         // Merge with existing form values (preserve step 0 data)
         const currentFormValues = form.getFieldsValue();
-        form.setFieldsValue({ ...currentFormValues, ...values });
+        const mergedValues = { ...currentFormValues, ...values };
+        form.setFieldsValue(mergedValues);
+        
+        // VERIFY: Double-check the Impact & Story fields are preserved
+        const verifyFormValues = form.getFieldsValue();
+        console.log('✅ VERIFIED: Form values after step 1:', {
+          whyThisMatters: verifyFormValues.whyThisMatters,
+          successStory: verifyFormValues.successStory,
+          storyAuthor: verifyFormValues.storyAuthor,
+          hasWhyThisMatters: !!verifyFormValues.whyThisMatters,
+          hasSuccessStory: !!verifyFormValues.successStory
+        });
+        
         setCurrentStep(2);
       } else if (currentStep === 2) {
         const values = await form.validateFields();
@@ -179,6 +200,16 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           step3Values: values 
         });
         
+        // VERIFY Impact & Story data is in state
+        console.log('🔍 VERIFY Impact & Story in state:', {
+          impactStoryState: impactStory,
+          hasWhyThisMatters: !!impactStory?.whyThisMatters,
+          hasSuccessStory: !!impactStory?.successStory,
+          hasStoryAuthor: !!impactStory?.storyAuthor,
+          whyThisMattersValue: impactStory?.whyThisMatters,
+          successStoryValue: impactStory?.successStory
+        });
+        
         // CRITICAL FIX: Merge state variables with form values
         // Priority: form.getFieldsValue() (most current, includes all preserved values) > state variables
         const allData = {
@@ -204,6 +235,18 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           allDataCharityName: allData.charityName,
           hasBeneficiaryName: !!allData.beneficiaryName,
           allDataKeys: Object.keys(allData)
+        });
+        
+        // VERIFY Impact & Story data is in allData
+        console.log('🔍 VERIFY Impact & Story in allData:', {
+          whyThisMatters: allData.whyThisMatters,
+          successStory: allData.successStory,
+          storyAuthor: allData.storyAuthor,
+          hasWhyThisMatters: !!allData.whyThisMatters,
+          hasSuccessStory: !!allData.successStory,
+          hasStoryAuthor: !!allData.storyAuthor,
+          fromImpactStory: impactStory?.whyThisMatters,
+          fromAllFormValues: allFormValues?.whyThisMatters
         });
         console.log('📦 Beneficiary name check (detailed):', {
           fromBasicDetails: basicDetails?.beneficiaryName,
@@ -355,9 +398,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         category: allData.category || '',
         type: allData.type || 'Medium', // Large, Medium, or Small
         about: allData.about || '',
-        why_this_matters: allData.whyThisMatters || '',
-        success_story: allData.successStory || '',
-        story_author: allData.storyAuthor || '',
+        // Impact & Story fields - CRITICAL: Ensure these are included
+        why_this_matters: allData.whyThisMatters || allData.why_this_matters || '',
+        success_story: allData.successStory || allData.success_story || '',
+        story_author: allData.storyAuthor || allData.story_author || '',
         is_active: allData.isActive !== undefined ? allData.isActive : true,
         isActive: allData.isActive !== undefined ? allData.isActive : true, // Send both for compatibility
       };
@@ -465,6 +509,19 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       console.log('📦 Formatted beneficiary data:', beneficiaryData);
       console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
       console.log('📦 Payload size:', Object.keys(beneficiaryData).length, 'fields');
+      
+      // CRITICAL: Verify Impact & Story fields are in payload
+      console.log('🔍 VERIFY Impact & Story in payload:', {
+        why_this_matters: beneficiaryData.why_this_matters,
+        success_story: beneficiaryData.success_story,
+        story_author: beneficiaryData.story_author,
+        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
+        hasSuccessStory: !!beneficiaryData.success_story,
+        hasStoryAuthor: !!beneficiaryData.story_author,
+        whyThisMattersLength: beneficiaryData.why_this_matters?.length || 0,
+        successStoryLength: beneficiaryData.success_story?.length || 0
+      });
+      
       console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
       
       // Verify critical fields are removed
