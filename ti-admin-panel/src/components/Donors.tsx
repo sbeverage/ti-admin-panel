@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
-import { donorAPI } from '../services/api';
+import { donorAPI, beneficiaryAPI } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Donors.css';
@@ -34,10 +34,19 @@ const Donors: React.FC = () => {
   const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
   const [deletingUser, setDeletingUser] = useState<any>(null);
   const [donorsData, setDonorsData] = useState<any[]>([]);
+  const [filteredDonorsData, setFilteredDonorsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDonors, setTotalDonors] = useState(0);
   const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState<string>('');
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<string | undefined>(undefined);
+  const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
+  const [selectedUserStatus, setSelectedUserStatus] = useState<string | undefined>(undefined);
+  const [selectedCityState, setSelectedCityState] = useState<string | undefined>(undefined);
+  const [selectedCoworking, setSelectedCoworking] = useState<string | undefined>(undefined);
+  const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
+  const [citiesList, setCitiesList] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -77,7 +86,17 @@ const Donors: React.FC = () => {
         }));
         
         setDonorsData(transformedData);
+        setFilteredDonorsData(transformedData);
         setTotalDonors(response.pagination?.total || transformedData.length);
+        
+        // Extract unique cities/states for filter
+        const cities = Array.from(new Set(
+          transformedData
+            .map((d: any) => d.cityState)
+            .filter((cs: string) => cs && cs !== 'N/A')
+        )).sort() as string[];
+        setCitiesList(cities);
+        
         console.log('Donors loaded successfully');
       } else {
         setError('Failed to load donors');
@@ -104,10 +123,112 @@ const Donors: React.FC = () => {
   };
 
 
+  // Load beneficiaries for filter
+  const loadBeneficiaries = async () => {
+    try {
+      const response = await beneficiaryAPI.getBeneficiaries(1, 1000);
+      if (response.success && response.data) {
+        setBeneficiariesList(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading beneficiaries:', error);
+    }
+  };
+
   // Load data on component mount and when page changes
   useEffect(() => {
     loadDonors();
+    loadBeneficiaries();
   }, [currentPage, pageSize]);
+
+  // Apply filters when filter values change
+  useEffect(() => {
+    applyFilters();
+  }, [donorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+
+  const applyFilters = () => {
+    let filtered = [...donorsData];
+
+    // Search filter
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter((donor: any) =>
+        donor.name?.toLowerCase().includes(searchLower) ||
+        donor.email?.toLowerCase().includes(searchLower) ||
+        donor.contact?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Beneficiary filter
+    if (selectedBeneficiary) {
+      const selectedBeneficiaryName = beneficiariesList.find((b: any) => b.id?.toString() === selectedBeneficiary)?.name;
+      filtered = filtered.filter((donor: any) => 
+        donor.beneficiary === selectedBeneficiaryName || 
+        donor.originalData?.beneficiary_id?.toString() === selectedBeneficiary ||
+        donor.originalData?.beneficiary_name === selectedBeneficiaryName
+      );
+    }
+
+    // Duration filter (filter by last donation date)
+    if (selectedDuration) {
+      const now = new Date();
+      let cutoffDate = new Date();
+      
+      switch (selectedDuration) {
+        case '1-week':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case '1-month':
+          cutoffDate.setMonth(now.getMonth() - 1);
+          break;
+        case '3-months':
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+        case '6-months':
+          cutoffDate.setMonth(now.getMonth() - 6);
+          break;
+        case '9-months':
+          cutoffDate.setMonth(now.getMonth() - 9);
+          break;
+        case '12-months':
+          cutoffDate.setMonth(now.getMonth() - 12);
+          break;
+        default:
+          cutoffDate = new Date(0); // All time
+      }
+      
+      filtered = filtered.filter((donor: any) => {
+        if (!donor.lastDonated || donor.lastDonated === 'Never') return false;
+        const lastDonatedDate = new Date(donor.originalData?.last_donation_date || donor.lastDonated);
+        return lastDonatedDate >= cutoffDate;
+      });
+    }
+
+    // User status filter
+    if (selectedUserStatus) {
+      if (selectedUserStatus === 'active') {
+        filtered = filtered.filter((donor: any) => donor.active === true);
+      } else if (selectedUserStatus === 'inactive') {
+        filtered = filtered.filter((donor: any) => donor.active === false);
+      }
+    }
+
+    // City/State filter
+    if (selectedCityState) {
+      filtered = filtered.filter((donor: any) => donor.cityState === selectedCityState);
+    }
+
+    // Coworking filter
+    if (selectedCoworking) {
+      if (selectedCoworking === 'yes') {
+        filtered = filtered.filter((donor: any) => donor.coworking === 'Yes');
+      } else if (selectedCoworking === 'no') {
+        filtered = filtered.filter((donor: any) => donor.coworking === 'No');
+      }
+    }
+
+    setFilteredDonorsData(filtered);
+  };
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     setDonorsData(prevData =>
@@ -788,7 +909,8 @@ const Donors: React.FC = () => {
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Donors</Title>
             <Text type="secondary" className="donors-count">
-              {totalDonors} Donor{totalDonors !== 1 ? 's' : ''} Found
+              {filteredDonorsData.length} Donor{filteredDonorsData.length !== 1 ? 's' : ''} Found
+              {filteredDonorsData.length !== totalDonors && ` (of ${totalDonors} total)`}
             </Text>
           </div>
           <div className="header-right">
@@ -815,6 +937,9 @@ const Donors: React.FC = () => {
                   enterButton={<SearchOutlined />}
                   size="large"
                   className="donor-search"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onSearch={setSearchText}
                 />
               </div>
               
@@ -825,27 +950,44 @@ const Donors: React.FC = () => {
                     placeholder="Select Beneficiary"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedBeneficiary}
+                    onChange={setSelectedBeneficiary}
+                    allowClear
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                    }
                   >
-                    <Option value="united-way">United Way</Option>
-                    <Option value="red-cross">American Red Cross</Option>
-                    <Option value="feeding-america">Feeding America</Option>
+                    {beneficiariesList.map((beneficiary: any) => (
+                      <Option key={beneficiary.id} value={beneficiary.id?.toString()}>
+                        {beneficiary.name || 'Unknown'}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Duration"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedDuration}
+                    onChange={setSelectedDuration}
+                    allowClear
                   >
                     <Option value="1-week">1 Week</Option>
                     <Option value="1-month">1 Month</Option>
                     <Option value="3-months">3 Months</Option>
                     <Option value="6-months">6 Months</Option>
+                    <Option value="9-months">9 Months</Option>
+                    <Option value="12-months">12 Months</Option>
                   </Select>
                   
                   <Select
                     placeholder="All User"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedUserStatus}
+                    onChange={setSelectedUserStatus}
+                    allowClear
                   >
                     <Option value="all">All Users</Option>
                     <Option value="active">Active</Option>
@@ -856,10 +998,31 @@ const Donors: React.FC = () => {
                     placeholder="City, State"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedCityState}
+                    onChange={setSelectedCityState}
+                    allowClear
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                    }
                   >
-                    <Option value="springfield-il">Springfield, IL</Option>
-                    <Option value="portland-or">Portland, OR</Option>
-                    <Option value="charleston-sc">Charleston, SC</Option>
+                    {citiesList.map((cityState: string) => (
+                      <Option key={cityState} value={cityState}>
+                        {cityState}
+                      </Option>
+                    ))}
+                  </Select>
+
+                  <Select
+                    placeholder="Coworking"
+                    className="filter-dropdown"
+                    size="large"
+                    value={selectedCoworking}
+                    onChange={setSelectedCoworking}
+                    allowClear
+                  >
+                    <Option value="yes">Yes</Option>
+                    <Option value="no">No</Option>
                   </Select>
                 </div>
               </div>
@@ -878,7 +1041,7 @@ const Donors: React.FC = () => {
                 )}
                 
                 <Table
-                  dataSource={donorsData}
+                  dataSource={filteredDonorsData}
                   columns={columns}
                   pagination={false}
                   size="middle"

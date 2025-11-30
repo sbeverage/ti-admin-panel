@@ -15,11 +15,6 @@ import {
   ExclamationCircleOutlined,
   MenuOutlined,
   BellOutlined,
-  PictureOutlined,
-  LikeOutlined,
-  MessageOutlined,
-  ShareAltOutlined,
-  MoreOutlined,
   ShoppingOutlined,
   BankOutlined,
   GiftOutlined,
@@ -60,36 +55,81 @@ const Dashboard: React.FC = () => {
       console.log('📊 Loading dashboard data from API...');
       
       // Import API functions
-      const { vendorAPI, donorAPI, beneficiaryAPI, tenantAPI } = await import('../services/api');
+      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI } = await import('../services/api');
       
-      // Load counts from all endpoints in parallel
-      const [vendorsResponse, donorsResponse, beneficiariesResponse, tenantsResponse] = await Promise.all([
-        vendorAPI.getVendors(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        donorAPI.getDonors(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        beneficiaryAPI.getBeneficiaries(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        tenantAPI.getTenants(1, 1).catch(() => ({ success: false, data: [], pagination: { total: 0 } }))
+      // Load dashboard stats and approvals in parallel
+      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse] = await Promise.all([
+        dashboardAPI.getDashboardStats().catch(() => ({ success: false, data: null })),
+        approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } }))
       ]);
       
       console.log('📊 Dashboard responses:', {
+        stats: statsResponse,
+        approvals: approvalsResponse,
         vendors: vendorsResponse,
-        donors: donorsResponse,
-        beneficiaries: beneficiariesResponse,
-        tenants: tenantsResponse
+        beneficiaries: beneficiariesResponse
       });
       
-      // Calculate stats from actual data
-      const stats = {
-        totalVendors: vendorsResponse.pagination?.total || 0,
-        totalDonors: donorsResponse.pagination?.total || 0,
-        totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
-        totalTenants: tenantsResponse.pagination?.total || 0,
-        totalRevenue: 0, // Would need a separate endpoint
-        pendingApprovals: 0, // Would need a separate endpoint
-        activeDiscounts: 0, // Would need a separate endpoint
-      };
+      // Use stats from dashboard API if available, otherwise calculate from individual endpoints
+      let stats: any = {};
       
-      console.log('📊 Calculated dashboard stats:', stats);
+      if (statsResponse.success && statsResponse.data) {
+        // Use data from dashboard stats endpoint
+        stats = {
+          totalVendors: statsResponse.data.totalVendors || vendorsResponse.pagination?.total || 0,
+          totalDonors: statsResponse.data.totalDonors || 0,
+          totalBeneficiaries: statsResponse.data.totalBeneficiaries || beneficiariesResponse.pagination?.total || 0,
+          totalTenants: statsResponse.data.totalTenants || 0,
+          totalRevenue: statsResponse.data.totalRevenue || statsResponse.data.totalDonations || 0,
+          totalDonations: statsResponse.data.totalDonations || statsResponse.data.totalRevenue || 0,
+          totalOneTimeGift: statsResponse.data.totalOneTimeGift || 0,
+          activeDonors: statsResponse.data.activeDonors || 0,
+          pendingApprovals: approvalsResponse.pagination?.total || 0,
+          activeDiscounts: statsResponse.data.activeDiscounts || 0,
+        };
+      } else {
+        // Fallback: calculate from individual endpoints
+        stats = {
+          totalVendors: vendorsResponse.pagination?.total || 0,
+          totalDonors: 0,
+          totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
+          totalTenants: 0,
+          totalRevenue: 0,
+          totalDonations: 0,
+          totalOneTimeGift: 0,
+          activeDonors: 0,
+          pendingApprovals: approvalsResponse.pagination?.total || 0,
+          activeDiscounts: 0,
+        };
+      }
+      
+      console.log('📊 Final dashboard stats:', stats);
       setDashboardStats(stats);
+      
+      // Load recent approvals data
+      const recentBeneficiaries = beneficiariesResponse.data?.slice(0, 5).map((b: any) => ({
+        key: b.id?.toString() || Math.random().toString(),
+        beneficiary: b.name || 'Unknown',
+        email: b.email || 'N/A',
+        cityState: b.address ? `${b.address.city || ''}, ${b.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
+        cause: b.category || 'N/A',
+        active: b.is_active !== false,
+        enabled: b.is_enabled !== false,
+      })) || [];
+      
+      const recentVendors = vendorsResponse.data?.slice(0, 5).map((v: any) => ({
+        key: v.id?.toString() || Math.random().toString(),
+        beneficiary: v.name || 'Unknown',
+        email: v.email || 'N/A',
+        cityState: v.address ? `${v.address.city || ''}, ${v.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
+        cause: v.category || 'N/A',
+        active: v.is_active !== false,
+        enabled: v.is_enabled !== false,
+      })) || [];
+      
+      setApprovalsData(activeApprovalTab === 'beneficiaries' ? recentBeneficiaries : recentVendors);
       
     } catch (error) {
       console.error('❌ Error loading dashboard data:', error);
@@ -100,9 +140,13 @@ const Dashboard: React.FC = () => {
         totalBeneficiaries: 0,
         totalTenants: 0,
         totalRevenue: 0,
+        totalDonations: 0,
+        totalOneTimeGift: 0,
+        activeDonors: 0,
         pendingApprovals: 0,
         activeDiscounts: 0,
       });
+      setApprovalsData([]);
     } finally {
       setLoading(false);
     }
@@ -156,7 +200,52 @@ const Dashboard: React.FC = () => {
   };
 
   const handleViewAllBeneficiaries = () => {
-    setActiveApprovalTab('beneficiaries');
+    navigate('/beneficiaries');
+  };
+
+  // Load approvals data when tab changes
+  useEffect(() => {
+    if (dashboardStats) {
+      loadApprovalsData();
+    }
+  }, [activeApprovalTab]);
+
+  const loadApprovalsData = async () => {
+    try {
+      const { vendorAPI, beneficiaryAPI } = await import('../services/api');
+      
+      if (activeApprovalTab === 'beneficiaries') {
+        const response = await beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [] }));
+        if (response.success && response.data) {
+          const data = response.data.map((b: any) => ({
+            key: b.id?.toString() || Math.random().toString(),
+            beneficiary: b.name || 'Unknown',
+            email: b.email || 'N/A',
+            cityState: b.address ? `${b.address.city || ''}, ${b.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
+            cause: b.category || 'N/A',
+            active: b.is_active !== false,
+            enabled: b.is_enabled !== false,
+          }));
+          setApprovalsData(data);
+        }
+      } else {
+        const response = await vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [] }));
+        if (response.success && response.data) {
+          const data = response.data.map((v: any) => ({
+            key: v.id?.toString() || Math.random().toString(),
+            beneficiary: v.name || 'Unknown',
+            email: v.email || 'N/A',
+            cityState: v.address ? `${v.address.city || ''}, ${v.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
+            cause: v.category || 'N/A',
+            active: v.is_active !== false,
+            enabled: v.is_enabled !== false,
+          }));
+          setApprovalsData(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading approvals data:', error);
+    }
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -416,7 +505,6 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const newsfeedItems: any[] = [];
 
   const columns = [
     {
@@ -568,14 +656,6 @@ const Dashboard: React.FC = () => {
                       title="Total Donors"
                       value={dashboardStats?.totalDonors || '--'}
                       prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+92.3%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
@@ -585,14 +665,6 @@ const Dashboard: React.FC = () => {
                       title="Total Vendors"
                       value={dashboardStats?.totalVendors || '--'}
                       prefix={<ShoppingOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+45.2%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
@@ -602,14 +674,6 @@ const Dashboard: React.FC = () => {
                       title="Total Tenants"
                       value={dashboardStats?.totalTenants || '--'}
                       prefix={<BankOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill negative">
-                            <FallOutlined />
-                            <span>-8.1%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
@@ -619,17 +683,9 @@ const Dashboard: React.FC = () => {
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic
-                      title="Total One Time Gift"
-                      value={dashboardStats?.totalOneTimeGift ? `$${(dashboardStats.totalOneTimeGift / 1000).toFixed(0)}K` : '--'}
-                      prefix={<GiftOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+123.4%</span>
-                          </div>
-                        </div>
-                      }
+                      title="Total Beneficiaries"
+                      value={dashboardStats?.totalBeneficiaries || '--'}
+                      prefix={<StarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
                 </Col>
@@ -639,14 +695,15 @@ const Dashboard: React.FC = () => {
                       title="Total Donation"
                       value={dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--'}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+89.2%</span>
-                          </div>
-                        </div>
-                      }
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                  <Card className="summary-card">
+                    <Statistic
+                      title="Total Revenue"
+                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
+                      prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
                 </Col>
@@ -659,14 +716,6 @@ const Dashboard: React.FC = () => {
                       title="Active Donors"
                       value={dashboardStats?.activeDonors || '--'}
                       prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+15.2%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
@@ -676,14 +725,6 @@ const Dashboard: React.FC = () => {
                       title="Pending Approvals"
                       value={dashboardStats?.pendingApprovals || '--'}
                       prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill negative">
-                            <FallOutlined />
-                            <span>-23.4%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
@@ -693,24 +734,16 @@ const Dashboard: React.FC = () => {
                       title="Total Revenue"
                       value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
-                      suffix={
-                        <div className="stat-status">
-                          <div className="status-pill positive">
-                            <RiseOutlined />
-                            <span>+87.4%</span>
-                          </div>
-                        </div>
-                      }
                     />
                   </Card>
                 </Col>
               </Row>
             </div>
 
-                        {/* Bottom Section - Charts and Newsfeed */}
+                        {/* Bottom Section - Charts */}
             <Row gutter={[24, 24]} className="bottom-section">
-              {/* Left Side - Charts Only */}
-              <Col xs={24} lg={16}>
+              {/* Charts - Full Width */}
+              <Col xs={24}>
                 <Row gutter={[0, 24]}>
                   {/* Charts Row */}
                   <Col span={24}>
@@ -808,68 +841,6 @@ const Dashboard: React.FC = () => {
                   </Col>
                 </Row>
               </Col>
-
-              {/* Right Side - Newsfeed */}
-              <Col xs={24} lg={8}>
-                <Card className="newsfeed-card">
-                  <Typography.Title level={4}>Newsfeed</Typography.Title>
-
-                  <div className="newsfeed-input">
-                    <Input
-                      placeholder="What's on your mind?"
-                      prefix={<PictureOutlined />}
-                      size="large"
-                    />
-                  </div>
-
-                  <div className="newsfeed-list">
-                    {newsfeedItems.map((item, index) => (
-                      <div key={index} className="newsfeed-item">
-                        <div className="newsfeed-header">
-                          <Space>
-                            <Avatar src="https://api.dicebear.com/7.x/avataaars/svg?seed=AppleShop" size={32}>
-                              A
-                            </Avatar>
-                            <div>
-                              <Typography.Text strong>{item.brand}</Typography.Text>
-                              <br />
-                              <Typography.Text type="secondary" className="newsfeed-date">
-                                {item.date}
-                              </Typography.Text>
-                            </div>
-                          </Space>
-                          <Button type="text" icon={<MoreOutlined />} />
-                        </div>
-
-                        <Typography.Text className="newsfeed-description">
-                          {item.description}
-                          <a href="#" className="read-more"> Read more</a>
-                        </Typography.Text>
-
-                        {item.image && (
-                          <div className="newsfeed-image">
-                            <div className="image-placeholder">
-                              📸 {item.image}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="newsfeed-actions">
-                          <Button type="text" icon={<LikeOutlined />} size="small">
-                            {item.likes} Likes
-                          </Button>
-                          <Button type="text" icon={<MessageOutlined />} size="small">
-                            Comment
-                          </Button>
-                          <Button type="text" icon={<ShareAltOutlined />} size="small">
-                            {item.shares} Shares
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </Col>
             </Row>
 
             {/* Recent Approvals - Full Width Section */}
@@ -878,7 +849,11 @@ const Dashboard: React.FC = () => {
                 <Card className="approvals-card">
                   <div className="tab-header">
                     <Typography.Title level={2}>Recent Approvals</Typography.Title>
-                    <Typography.Link onClick={handleViewAllBeneficiaries} className="view-all-link">
+                    <Typography.Link 
+                      onClick={handleViewAllBeneficiaries} 
+                      className="view-all-link"
+                      style={{ color: '#DB8633' }}
+                    >
                       View all Beneficiaries
                     </Typography.Link>
                   </div>
@@ -895,7 +870,14 @@ const Dashboard: React.FC = () => {
                     items={[
                       {
                         key: 'beneficiaries',
-                        label: 'Beneficiaries',
+                        label: (
+                          <span 
+                            onClick={() => navigate('/beneficiaries')}
+                            style={{ color: '#DB8633', cursor: 'pointer' }}
+                          >
+                            Beneficiaries
+                          </span>
+                        ),
                         children: (
                           <Table
                             dataSource={approvalsData}
@@ -908,7 +890,14 @@ const Dashboard: React.FC = () => {
                       },
                       {
                         key: 'vendors', 
-                        label: 'Vendors',
+                        label: (
+                          <span 
+                            onClick={() => navigate('/vendor')}
+                            style={{ color: '#DB8633', cursor: 'pointer' }}
+                          >
+                            Vendors
+                          </span>
+                        ),
                         children: (
                           <Table
                             dataSource={approvalsData}
