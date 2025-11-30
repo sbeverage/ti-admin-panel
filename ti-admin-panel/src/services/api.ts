@@ -457,17 +457,87 @@ export const vendorAPI = {
 
   // Update vendor
   updateVendor: async (id: number, vendorData: Partial<Vendor>): Promise<ApiResponse<Vendor>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/vendors/${id}`, {
-      method: 'PUT',
-      headers: API_CONFIG.headers,
-      body: JSON.stringify(vendorData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      console.log('🌐 API: Updating vendor ID:', id);
+      console.log('🌐 API: Vendor data payload:', JSON.stringify(vendorData, null, 2));
+      console.log('🌐 API: Request URL:', `${API_CONFIG.baseURL}/vendors/${id}`);
+      
+      const response = await fetch(`${API_CONFIG.baseURL}/vendors/${id}`, {
+        method: 'PUT',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify(vendorData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        console.error('Vendor update failed:', errorMessage);
+        return {
+          success: false,
+          error: errorMessage
+        };
+      }
+      
+      const responseText = await response.text();
+      console.log('🌐 API: Vendor update raw response:', responseText);
+      console.log('🌐 API: Response status:', response.status);
+      console.log('🌐 API: Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('🌐 API: Vendor update parsed response:', result);
+      } catch (parseError) {
+        console.error('❌ API: Failed to parse JSON response:', parseError);
+        console.error('❌ API: Response text:', responseText);
+        return {
+          success: false,
+          error: `Invalid response from server: ${responseText.substring(0, 200)}`
+        };
+      }
+      
+      // Handle different response formats
+      if (result.success === false || result.error) {
+        console.error('❌ API: Backend returned error:', result.error || result.message);
+        return {
+          success: false,
+          error: result.error || result.message || 'Update failed'
+        };
+      } else if (result.success === true) {
+        console.log('✅ API: Update successful, data:', result.data || result);
+        return {
+          success: true,
+          data: result.data || result
+        };
+      } else if (result.id) {
+        // Backend returned vendor object directly
+        console.log('✅ API: Update successful (vendor object returned):', result);
+        return {
+          success: true,
+          data: result
+        };
+      } else {
+        // If no success field and no id, check if it's an empty response
+        console.warn('⚠️ API: Ambiguous response format:', result);
+        // Assume success if we got a 200 response
+        return {
+          success: true,
+          data: result
+        };
+      }
+    } catch (error: any) {
+      console.error('Vendor update error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to update vendor'
+      };
     }
-    
-    return response.json();
   },
 
   // Update vendor status (active/inactive)

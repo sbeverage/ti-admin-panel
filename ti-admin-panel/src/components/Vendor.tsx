@@ -194,24 +194,42 @@ const Vendor: React.FC = () => {
   };
 
   const handleVendorUpdate = async (updatedData: any) => {
+    console.log('🔄 Vendor.tsx: handleVendorUpdate called with:', updatedData);
+    
+    // If updateData indicates success, just refresh the list (update was already done in VendorProfile)
+    if (updatedData?.success === true) {
+      console.log('🔄 Vendor.tsx: Update already successful, just refreshing list');
+      loadVendors();
+      return;
+    }
+    
+    // Otherwise, this is a legacy call - try to update (but this shouldn't happen)
     try {
-      if (selectedVendorId) {
+      if (selectedVendorId && updatedData && typeof updatedData === 'object' && !updatedData.success) {
         const vendorId = parseInt(selectedVendorId);
+        console.log('🔄 Vendor.tsx: Legacy update path - Updating vendor ID:', vendorId);
         const result = await vendorAPI.updateVendor(vendorId, updatedData);
-        if (result.success) {
+        console.log('🔄 Vendor.tsx: Update result:', result);
+        if (result.success || result.data) {
           message.success('Vendor updated successfully!');
-          // Refresh the vendor list
           loadVendors();
         } else {
-          message.error('Failed to update vendor. Please try again.');
+          const errorMsg = result.error || 'Failed to update vendor. Please try again.';
+          console.error('🔄 Vendor.tsx: Update failed:', errorMsg);
+          message.error(errorMsg);
         }
+      } else {
+        // Just refresh the list
+        console.log('🔄 Vendor.tsx: No update needed, just refreshing list');
+        loadVendors();
       }
-    } catch (error) {
-      console.error('Error updating vendor:', error);
-      message.error('Failed to update vendor. Please try again.');
-    } finally {
-      setProfileVisible(false);
-      setSelectedVendorId(null);
+    } catch (error: any) {
+      console.error('🔄 Vendor.tsx: Error updating vendor:', error);
+      console.error('🔄 Vendor.tsx: Error details:', error.message, error.stack);
+      // Don't show error if update was already successful
+      if (!updatedData?.success) {
+        message.error(error.message || 'Failed to update vendor. Please try again.');
+      }
     }
   };
 

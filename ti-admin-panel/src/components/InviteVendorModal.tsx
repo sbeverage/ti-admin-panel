@@ -65,6 +65,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     { value: 'construction', label: 'Construction' },
     { value: 'agriculture', label: 'Agriculture' },
     { value: 'energy', label: 'Energy & Utilities' },
+    { value: 'coworking', label: 'Coworking' },
     { value: 'other', label: 'Other' }
   ];
 
@@ -140,6 +141,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         'Solar Installation', 'Energy Efficiency', 'HVAC Services', 'Electrical Services', 'Plumbing',
         'Home Insulation', 'Smart Home Technology', 'Energy Audits', 'Renewable Energy', 'Utility Services',
         'Generator Installation', 'Energy Storage', 'Green Building', 'Energy Consulting', 'Maintenance'
+      ],
+      coworking: [
+        'Shared Workspace', 'Private Office', 'Hot Desk', 'Meeting Rooms', 'Event Space',
+        'Virtual Office', 'Dedicated Desk', 'Day Pass', 'Monthly Membership', 'Conference Room',
+        'Phone Booth', 'Printing Services', 'High-Speed Internet', 'Kitchen Facilities', 'Parking'
       ],
       other: [
         'Custom Services', 'Specialized', 'Unique', 'Boutique', 'Artisan',
@@ -679,7 +685,16 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                       (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                     }
                     options={categoryOptions}
-                    onChange={(value) => setSelectedCategory(value)}
+                    onChange={(value) => {
+                      console.log('Selected category:', value);
+                      setSelectedCategory(value);
+                    }}
+                    onDropdownVisibleChange={(open) => {
+                      if (open) {
+                        console.log('Category options:', categoryOptions);
+                        console.log('Looking for coworking:', categoryOptions.find(opt => opt.value === 'coworking'));
+                      }
+                    }}
                   />
                 </Form.Item>
               </Col>

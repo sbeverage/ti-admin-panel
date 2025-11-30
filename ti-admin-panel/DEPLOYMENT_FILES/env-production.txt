@@ -2,8 +2,8 @@
 # Copy this to your live admin panel's .env file
 
 # API Configuration
-REACT_APP_API_BASE_URL=https://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/admin
-REACT_APP_ADMIN_SECRET=thrive-admin-super-secret-2024
+REACT_APP_API_BASE_URL=https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin
+REACT_APP_ADMIN_SECRET=6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e
 
 # AWS Configuration (if using image uploads)
 REACT_APP_AWS_ACCESS_KEY_ID=your_aws_access_key_id

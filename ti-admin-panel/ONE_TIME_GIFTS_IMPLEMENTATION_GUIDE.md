@@ -164,3 +164,8 @@ Or execute it in your Supabase SQL editor.
 
 None at this time. The frontend is ready for backend integration.
 
+
+
+
+
+

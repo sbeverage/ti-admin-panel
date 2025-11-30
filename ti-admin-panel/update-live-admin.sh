@@ -1,12 +1,33 @@
 #!/bin/bash
 
-# Deployment Script for Live Admin Panel
-# This script helps you deploy the updated configuration to your live admin panel
+# Script to update your live admin panel configuration
+# This script will help you update the configuration files
 
-echo "🚀 Starting Live Admin Panel Deployment..."
+echo "🚀 Updating Live Admin Panel Configuration..."
 
-# Check if backend is accessible
-echo "📡 Testing backend connection..."
+# Check if we're in the right directory
+if [ ! -f "package.json" ]; then
+    echo "❌ Please run this script from the admin panel directory"
+    exit 1
+fi
+
+echo "📋 Configuration changes needed:"
+echo ""
+echo "1. API Base URL:"
+echo "   OLD: https://api.forpurposetechnologies.com/api/admin"
+echo "   NEW: https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin"
+echo ""
+echo "2. Admin Secret:"
+echo "   OLD: test-key"
+echo "   NEW: 6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e"
+echo ""
+echo "3. Proxy Configuration:"
+echo "   OLD: https://api.forpurposetechnologies.com"
+echo "   NEW: https://mdqgndyhzlnwojtubouh.supabase.co"
+echo ""
+
+# Test backend connection
+echo "🔍 Testing backend connection..."
 if curl -s https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/health > /dev/null; then
     echo "✅ Backend is accessible"
 else
@@ -27,19 +48,21 @@ else
     exit 1
 fi
 
-echo "📋 Configuration files ready for deployment:"
-echo "   - api-config.js (API configuration)"
-echo "   - env-production.txt (Environment variables)"
-echo "   - package.json (Updated proxy configuration)"
-
 echo ""
-echo "📝 Next steps:"
-echo "1. Copy these files to your live admin panel server"
-echo "2. Update your API configuration with the new settings"
-echo "3. Update your environment variables"
-echo "4. Update your package.json proxy setting"
-echo "5. Build and deploy your admin panel"
-echo "6. Test all features"
-
+echo "📝 Next steps for your live admin panel:"
+echo "1. Update your API configuration file with the new base URL and secret"
+echo "2. Update your environment variables"
+echo "3. Update your package.json proxy setting"
+echo "4. Build and deploy your admin panel"
+echo "5. Test all features"
 echo ""
 echo "🎯 Your live admin panel is ready to connect to the new backend!"
+
+
+
+
+
+
+
+
+

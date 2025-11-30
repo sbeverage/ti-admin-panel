@@ -10,6 +10,7 @@ interface ImageUploadProps {
   description?: string;
   maxSize?: number;
   acceptedTypes?: string[];
+  bucketName?: string; // Optional: specify bucket name (defaults to 'beneficiary-images')
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -18,7 +19,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   title = "Upload Image",
   description = "Click or drag file to this area to upload",
   maxSize = 5 * 1024 * 1024, // 5MB
-  acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+  bucketName = 'beneficiary-images' // Default to beneficiary-images for backward compatibility
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -38,7 +40,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploading(true);
     
     try {
-      const result = await uploadToSupabase(file);
+      console.log('ImageUpload: Using bucketName:', bucketName);
+      const result = await uploadToSupabase(file, bucketName);
       console.log('ImageUpload: Upload result:', result);
       
       if (result.success && result.url) {
@@ -63,7 +66,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const handleRemove = async () => {
     if (currentImageUrl && (currentImageUrl.includes('supabase.co') || currentImageUrl.includes('amazonaws.com'))) {
       try {
-        const result = await deleteFromSupabase(currentImageUrl);
+        const result = await deleteFromSupabase(currentImageUrl, bucketName);
         if (!result.success) {
           console.warn('Failed to delete from Supabase Storage:', result.error);
         }

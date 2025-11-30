@@ -291,11 +291,106 @@ CREATE TABLE discounts (
 
 ---
 
+## ⚠️ Common Error: `min_purchase` Column Not Found
+
+### Error Message
+```
+{"error":"Could not find the 'min_purchase' column of 'discounts' in the schema cache"}
+```
+
+### Cause
+The backend code is trying to access or insert a `min_purchase` column that **does not exist** in the database schema. This can happen if:
+1. The backend code has hardcoded references to `min_purchase` or `max_discount`
+2. The backend is trying to set default values for these fields
+3. The backend is spreading or copying fields that include these non-existent columns
+
+### Solution
+
+**In your Supabase Edge Function (`/functions/api/admin/discounts/index.ts`):**
+
+1. **Remove any references to `min_purchase` and `max_discount`** in the insert/update operations:
+
+```typescript
+// ❌ WRONG - Don't do this:
+const dbData = {
+  vendor_id: discountData.vendorId,
+  // ... other fields ...
+  min_purchase: discountData.minPurchase, // ❌ This column doesn't exist!
+  max_discount: discountData.maxDiscount, // ❌ This column doesn't exist!
+};
+
+// ✅ CORRECT - Only include fields that exist:
+const dbData = {
+  vendor_id: discountData.vendorId,
+  name: discountData.title || discountData.name,
+  title: discountData.title,
+  description: discountData.description,
+  discount_type: discountData.discountType,
+  discount_value: discountData.discountValue,
+  discount_code: discountData.discountCode || discountData.posCode,
+  pos_code: discountData.discountCode || discountData.posCode,
+  usage_limit: discountData.usageLimit || 'unlimited',
+  is_active: discountData.isActive !== false,
+  start_date: discountData.startDate,
+  end_date: discountData.endDate,
+  // ✅ Do NOT include min_purchase or max_discount
+};
+```
+
+2. **If you're using object spreading, explicitly exclude these fields:**
+
+```typescript
+// ❌ WRONG - This might include unwanted fields:
+const dbData = {
+  ...discountData, // ❌ Might include minPurchase, maxDiscount
+  vendor_id: discountData.vendorId,
+  // ... field mapping ...
+};
+
+// ✅ CORRECT - Explicitly construct the object:
+const dbData = {
+  vendor_id: discountData.vendorId,
+  name: discountData.title || discountData.name,
+  // ... only include fields that exist in the database ...
+};
+```
+
+3. **Check for any default value assignments:**
+
+```typescript
+// ❌ WRONG - Don't set defaults for non-existent columns:
+const dbData = {
+  // ... other fields ...
+  min_purchase: discountData.minPurchase || 0, // ❌ Column doesn't exist!
+};
+
+// ✅ CORRECT - Only set defaults for existing columns:
+const dbData = {
+  // ... other fields ...
+  usage_limit: discountData.usageLimit || 'unlimited', // ✅ This column exists
+};
+```
+
+### Frontend Status
+
+✅ **The frontend is already fixed** - it does NOT send `minPurchase` or `maxDiscount` fields. The frontend explicitly excludes these fields before sending the request.
+
+### Verification
+
+After fixing the backend, verify that:
+- ✅ Creating a discount works without the `min_purchase` error
+- ✅ Updating a discount works without the `min_purchase` error
+- ✅ The backend only inserts/updates fields that exist in the database schema
+
+---
+
 ## 🔄 Update Discount Endpoint
 
 **Endpoint:** `PUT /api/admin/discounts/{id}`
 
 Same field mapping applies for updates. The frontend sends the same camelCase fields.
+
+**Important:** Make sure the update endpoint also excludes `min_purchase` and `max_discount` fields.
 
 ---
 
@@ -380,4 +475,5 @@ If you need help implementing any part of this:
 - Error handling for missing columns
 
 Let me know which part you'd like help with!
+
 

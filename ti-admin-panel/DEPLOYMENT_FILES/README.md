@@ -10,9 +10,9 @@
 - **Auto-Deploy:** ✅ Enabled (pushes to GitHub → auto-deploy to Vercel)
 
 ### **Backend API:**
-- **Hosting:** AWS Elastic Beanstalk
-- **Domain:** https://api.forpurposetechnologies.com
-- **Database:** AWS RDS MySQL
+- **Hosting:** Supabase Edge Functions
+- **Domain:** https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin
+- **Database:** Supabase PostgreSQL
 - **CDN/Proxy:** Cloudflare (for HTTPS and security)
 
 ---
@@ -69,10 +69,12 @@ git push origin main
 const API_CONFIG = {
   baseURL: process.env.NODE_ENV === 'development'
     ? '/api/admin'  // Use proxy in development
-    : 'https://api.forpurposetechnologies.com/api/admin',  // Production HTTPS URL
+    : 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',  // Production Supabase Edge Function URL
   headers: {
     'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
   }
 };
 ```
@@ -80,7 +82,7 @@ const API_CONFIG = {
 ### **Environment Variables** (Set in Vercel Dashboard):
 
 ```env
-REACT_APP_API_BASE_URL=https://api.forpurposetechnologies.com
+REACT_APP_API_BASE_URL=https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin
 REACT_APP_ADMIN_SECRET=6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e
 NODE_ENV=production
 ```
@@ -132,7 +134,7 @@ curl -sI https://admin.forpurposetechnologies.com | head -5
 ### **Test API Backend:**
 ```bash
 # Check if backend is accessible
-curl -s https://api.forpurposetechnologies.com/health | jq .
+curl -s https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/health | jq .
 
 # Should return:
 # {
@@ -185,7 +187,7 @@ curl -s https://api.forpurposetechnologies.com/health | jq .
 
 1. **Check backend health:**
    ```bash
-   curl https://api.forpurposetechnologies.com/health
+   curl https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/health
    ```
 
 2. **Verify environment variables in Vercel:**
@@ -216,7 +218,7 @@ curl -s https://api.forpurposetechnologies.com/health | jq .
 ## 🎯 Key Points to Remember
 
 1. **Admin Panel = Vercel** (NOT AWS)
-2. **Backend API = AWS** (Elastic Beanstalk)
+2. **Backend API = Supabase** (Edge Functions)
 3. **Both use Cloudflare** for HTTPS (that's the "Proxy Detected")
 4. **Deployment:** Push to GitHub → Vercel auto-deploys
 5. **Current Status:** ✅ Everything is working and HTTPS-enabled
@@ -238,7 +240,7 @@ curl -s https://api.forpurposetechnologies.com/health | jq .
 If you encounter issues:
 
 1. **Check Vercel deployment logs**
-2. **Verify backend is running** (`curl https://api.forpurposetechnologies.com/health`)
+2. **Verify backend is running** (`curl https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin/health`)
 3. **Check browser console for errors** (F12 → Console)
 4. **Review environment variables in Vercel dashboard**
 

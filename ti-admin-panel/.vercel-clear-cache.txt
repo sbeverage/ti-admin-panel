@@ -1,0 +1,3 @@
+# Force Vercel cache clear
+timestamp=$(date +%s)
+echo "Cache clear requested at: $timestamp"

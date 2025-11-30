@@ -205,6 +205,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         'Home Insulation', 'Smart Home Technology', 'Energy Audits', 'Renewable Energy', 'Utility Services',
         'Generator Installation', 'Energy Storage', 'Green Building', 'Energy Consulting', 'Maintenance'
       ],
+      coworking: [
+        'Shared Workspace', 'Private Office', 'Hot Desk', 'Meeting Rooms', 'Event Space',
+        'Virtual Office', 'Dedicated Desk', 'Day Pass', 'Monthly Membership', 'Conference Room',
+        'Phone Booth', 'Printing Services', 'High-Speed Internet', 'Kitchen Facilities', 'Parking'
+      ],
       other: [
         'Custom Services', 'Specialized', 'Unique', 'Boutique', 'Artisan',
         'Handmade', 'Local', 'Family-Owned', 'Eco-Friendly', 'Sustainable',
@@ -379,10 +384,13 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         };
 
         console.log('Setting vendor data:', transformedData);
+        // Store original vendor object for reference (especially for address structure, hours, social_links)
+        (transformedData as any).originalVendor = vendor;
         setVendorData(transformedData);
         setFormData(transformedData);
         setSelectedCategory(transformedData.category || '');
         console.log('Vendor profile data loaded successfully');
+        console.log('Original vendor object stored:', vendor);
       } else {
         console.error('❌ Vendor API response failed:', vendorResponse);
         message.error('Failed to load vendor data');
@@ -408,8 +416,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
 
 
   const handleEdit = () => {
+    console.log('✏️ Edit button clicked - entering edit mode');
+    console.log('✏️ Current vendorData:', vendorData);
     setIsEditing(true);
     setFormData({ ...vendorData });
+    console.log('✏️ isEditing set to true, formData updated');
   };
 
   const handleCancel = () => {
@@ -418,39 +429,263 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   };
 
   const handleSave = async () => {
+    console.log('💾 ========================================');
+    console.log('💾 SAVE BUTTON CLICKED - Starting vendor update...');
+    console.log('💾 Current formData:', JSON.stringify(formData, null, 2));
+    console.log('💾 Current vendorData:', JSON.stringify(vendorData, null, 2));
+    console.log('💾 ========================================');
+    
+    if (saving) {
+      console.warn('💾 Already saving, ignoring duplicate save request');
+      return;
+    }
+    
     setSaving(true);
     try {
       const vendorIdNum = parseInt(vendorId);
+      console.log('💾 Parsed vendor ID:', vendorIdNum);
+      
+      // Get the original vendor data to preserve fields we're not updating
+      const originalVendor = vendorData as any;
+      const originalVendorFromAPI = originalVendor?.originalVendor;
       
       // Transform form data back to API format
-      const apiData = {
-        name: formData.companyName || formData.vendorName,
-        email: formData.primaryEmail || formData.email,
-        phone: formData.phoneNumber || formData.contactNumber,
-        website: formData.websiteLink,
-        category: formData.category,
-        address: {
-          street: formData.address?.split(',')[0] || '',
-          city: formData.cityState?.split(',')[0] || '',
-          state: formData.cityState?.split(',')[1]?.trim() || '',
-          zipCode: formData.address?.split(' ').pop() || '',
-          latitude: 0, // These would need to be geocoded
-          longitude: 0
-        }
+      // Match the structure used when creating vendors (from InviteVendorModal)
+      // Use original vendor data as fallback to ensure we always have values
+      const apiData: any = {
+        name: formData.companyName || formData.vendorName || originalVendor?.companyName || originalVendorFromAPI?.name || '',
+        email: formData.primaryEmail || formData.email || originalVendor?.email || originalVendorFromAPI?.email || '',
+        phone: formData.phoneNumber || formData.contactNumber || originalVendor?.phoneNumber || originalVendorFromAPI?.phone || 'NA',
+        website: formData.websiteLink || originalVendor?.websiteLink || originalVendorFromAPI?.website || '',
+        category: formData.category || originalVendor?.category || originalVendorFromAPI?.category || '',
+        description: formData.description || originalVendor?.description || originalVendorFromAPI?.description || '',
       };
       
-      const result = await vendorAPI.updateVendor(vendorIdNum, apiData);
-      if (result.success) {
-        setVendorData(formData);
-        setIsEditing(false);
-        onUpdate(formData);
-        message.success('Vendor updated successfully!');
-      } else {
-        message.error('Failed to update vendor. Please try again.');
+      console.log('💾 Constructed apiData:', apiData);
+      
+      // Preserve hours if available (work schedule)
+      if (originalVendorFromAPI?.hours) {
+        apiData.hours = originalVendorFromAPI.hours;
+      } else if (originalVendor?.workSchedule) {
+        apiData.hours = originalVendor.workSchedule;
       }
-    } catch (error) {
+      
+      // Preserve social_links if available
+      if (originalVendorFromAPI?.social_links) {
+        apiData.social_links = originalVendorFromAPI.social_links;
+      }
+      
+      // Preserve tags if available
+      if (formData.tags && Array.isArray(formData.tags) && formData.tags.length > 0) {
+        apiData.tags = formData.tags;
+      } else if (originalVendor?.tags && Array.isArray(originalVendor.tags)) {
+        apiData.tags = originalVendor.tags;
+      }
+      
+      // Handle address - use original API address structure if available
+      if (originalVendorFromAPI?.address && typeof originalVendorFromAPI.address === 'object') {
+        // Use original address structure from API
+        apiData.address = {
+          street: originalVendorFromAPI.address.street || '',
+          city: originalVendorFromAPI.address.city || '',
+          state: originalVendorFromAPI.address.state || '',
+          zipCode: originalVendorFromAPI.address.zipCode || '',
+          latitude: originalVendorFromAPI.address.latitude || 0,
+          longitude: originalVendorFromAPI.address.longitude || 0
+        };
+      } else if (originalVendor?.address && typeof originalVendor.address === 'object') {
+        // Fallback to vendorData address if it's an object
+        apiData.address = {
+          street: originalVendor.address.street || '',
+          city: originalVendor.address.city || '',
+          state: originalVendor.address.state || '',
+          zipCode: originalVendor.address.zipCode || '',
+          latitude: originalVendor.address.latitude || 0,
+          longitude: originalVendor.address.longitude || 0
+        };
+      } else {
+        // Try to parse from formData if original not available
+        const addressString = formData.address || '';
+        const cityStateString = formData.cityState || '';
+        
+        // Parse address string (format: "street, city, state zip")
+        let street = '';
+        let city = '';
+        let state = '';
+        let zipCode = '';
+        
+        if (addressString) {
+          const addressParts = addressString.split(',');
+          street = addressParts[0]?.trim() || '';
+          if (addressParts.length > 1) {
+            city = addressParts[1]?.trim() || '';
+          }
+        }
+        
+        if (cityStateString) {
+          const cityStateParts = cityStateString.split(',');
+          city = cityStateParts[0]?.trim() || city;
+          state = cityStateParts[1]?.trim() || '';
+        }
+        
+        // Try to extract zipCode from address string
+        const zipMatch = addressString.match(/\b\d{5}(-\d{4})?\b/);
+        if (zipMatch) {
+          zipCode = zipMatch[0];
+        }
+        
+        apiData.address = {
+          street: street || '',
+          city: city || '',
+          state: state || '',
+          zipCode: zipCode || '',
+          latitude: 0,
+          longitude: 0
+        };
+      }
+      
+      // Include logo_url if it has been updated (check both vendorData and formData)
+      const logoUrl = formData.logo_url || vendorData?.logo_url;
+      if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
+        apiData.logo_url = logoUrl;
+      }
+      
+      // Ensure address is always a valid object (backend requires it)
+      if (!apiData.address || typeof apiData.address !== 'object') {
+        apiData.address = {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          latitude: 0,
+          longitude: 0
+        };
+      }
+      
+      // Ensure required fields are not empty - use original vendor data as fallback
+      if (!apiData.name || apiData.name.trim() === '') {
+        // Try to get from original vendor
+        const fallbackName = originalVendorFromAPI?.name || originalVendor?.companyName || originalVendor?.vendorName;
+        if (fallbackName) {
+          apiData.name = fallbackName;
+          console.log('⚠️ Using fallback name from original vendor:', fallbackName);
+        } else {
+          message.error('Company name is required');
+          setSaving(false);
+          return;
+        }
+      }
+      
+      if (!apiData.email || apiData.email.trim() === '') {
+        // Try to get from original vendor
+        const fallbackEmail = originalVendorFromAPI?.email || originalVendor?.email || originalVendor?.primaryEmail;
+        if (fallbackEmail) {
+          apiData.email = fallbackEmail;
+          console.log('⚠️ Using fallback email from original vendor:', fallbackEmail);
+        } else {
+          message.error('Email is required');
+          setSaving(false);
+          return;
+        }
+      }
+      
+      console.log('💾 Updating vendor with data:', JSON.stringify(apiData, null, 2));
+      console.log('💾 Vendor ID:', vendorIdNum);
+      console.log('💾 About to call vendorAPI.updateVendor...');
+      
+      try {
+        const result = await vendorAPI.updateVendor(vendorIdNum, apiData);
+        console.log('💾 Vendor update result received:', result);
+        console.log('💾 Result success:', result.success);
+        console.log('💾 Result data:', result.data);
+        console.log('💾 Result error:', result.error);
+        console.log('💾 Full result object:', JSON.stringify(result, null, 2));
+        
+        // Check for success - be explicit about what constitutes success
+        const isSuccess = result.success === true || 
+                         (result.success === undefined && result.data && !result.error);
+        
+        if (isSuccess) {
+          // Update local state with the response data if available
+          if (result.data) {
+            // Convert API response to VendorData format - only include VendorData properties
+            const apiResponse = result.data as any;
+            const updatedData: Partial<VendorData> = {
+              id: String(apiResponse.id || vendorIdNum),
+              vendorName: apiResponse.name || formData.vendorName || vendorData?.vendorName,
+              companyName: apiResponse.name || formData.companyName || vendorData?.companyName,
+              email: apiResponse.email || formData.email || vendorData?.email,
+              primaryEmail: apiResponse.email || formData.primaryEmail || vendorData?.primaryEmail,
+              phoneNumber: apiResponse.phone || formData.phoneNumber || vendorData?.phoneNumber,
+              contactNumber: apiResponse.phone || formData.contactNumber || vendorData?.contactNumber,
+              websiteLink: apiResponse.website || formData.websiteLink || vendorData?.websiteLink,
+              category: apiResponse.category || formData.category || vendorData?.category,
+              logo_url: apiResponse.logo_url || formData.logo_url || vendorData?.logo_url,
+              // Preserve other VendorData fields
+              contactName: formData.contactName || vendorData?.contactName,
+              bankAccount: vendorData?.bankAccount,
+              revenue: vendorData?.revenue,
+              dateOfJoin: vendorData?.dateOfJoin,
+              cityState: vendorData?.cityState,
+              vendorType: vendorData?.vendorType,
+              customers: vendorData?.customers,
+              active: vendorData?.active,
+              enabled: vendorData?.enabled,
+              status: vendorData?.status,
+              discounts: vendorData?.discounts,
+              workSchedule: apiResponse.hours || vendorData?.workSchedule,
+              tags: formData.tags || vendorData?.tags,
+              description: apiResponse.description || formData.description || vendorData?.description
+            };
+            setVendorData((prev: VendorData | null) => prev ? { ...prev, ...updatedData } as VendorData : null);
+            setFormData((prev: any) => ({ ...prev, ...updatedData }));
+          } else {
+            setVendorData(formData);
+            setFormData(formData);
+          }
+          setIsEditing(false);
+          // Only call onUpdate to refresh the parent list, don't pass data that would trigger another update
+          if (onUpdate) {
+            onUpdate({ success: true, vendorId: vendorIdNum });
+          }
+          message.success('Vendor updated successfully!');
+        } else {
+          const errorMsg = result.error || result.message || 'Failed to update vendor. Please try again.';
+          console.error('❌ Vendor update failed:', errorMsg);
+          console.error('❌ Full error response:', result);
+          console.error('❌ Request payload was:', JSON.stringify(apiData, null, 2));
+          
+          // Show more detailed error message
+          let displayError = errorMsg;
+          if (errorMsg.includes('400') || errorMsg.includes('Bad Request')) {
+            displayError = 'Invalid data. Please check all fields and try again.';
+          } else if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
+            displayError = 'Authentication failed. Please refresh and try again.';
+          } else if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
+            displayError = 'Vendor not found. Please refresh the page.';
+          } else if (errorMsg.includes('500') || errorMsg.includes('Internal Server Error')) {
+            displayError = 'Server error. Please try again later.';
+          }
+          
+          message.error(displayError);
+        }
+      } catch (apiError: any) {
+        console.error('❌ API call exception:', apiError);
+        console.error('❌ Error details:', {
+          message: apiError.message,
+          stack: apiError.stack
+        });
+        message.error(apiError.message || 'Failed to update vendor. Please check console for details.');
+      }
+    } catch (error: any) {
       console.error('Error updating vendor:', error);
-      message.error('Failed to update vendor. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      const errorMessage = error.message || error.response?.data?.error || 'Failed to update vendor. Please try again.';
+      message.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -505,6 +740,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               <Select
                 value={formData.category}
                 onChange={(value) => {
+                  console.log('Selected category:', value);
                   handleInputChange('category', value);
                   setSelectedCategory(value);
                 }}
@@ -515,6 +751,35 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                   (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                 }
                 style={{ width: '100%' }}
+                onDropdownVisibleChange={(open) => {
+                  if (open) {
+                    const categoryOptions = [
+                      { value: 'restaurant', label: 'Restaurant' },
+                      { value: 'retail', label: 'Retail' },
+                      { value: 'service', label: 'Service' },
+                      { value: 'entertainment', label: 'Entertainment' },
+                      { value: 'healthcare', label: 'Healthcare' },
+                      { value: 'education', label: 'Education' },
+                      { value: 'technology', label: 'Technology' },
+                      { value: 'automotive', label: 'Automotive' },
+                      { value: 'beauty', label: 'Beauty & Wellness' },
+                      { value: 'fitness', label: 'Fitness & Sports' },
+                      { value: 'travel', label: 'Travel & Tourism' },
+                      { value: 'finance', label: 'Finance & Insurance' },
+                      { value: 'real-estate', label: 'Real Estate' },
+                      { value: 'legal', label: 'Legal Services' },
+                      { value: 'consulting', label: 'Consulting' },
+                      { value: 'manufacturing', label: 'Manufacturing' },
+                      { value: 'construction', label: 'Construction' },
+                      { value: 'agriculture', label: 'Agriculture' },
+                      { value: 'energy', label: 'Energy & Utilities' },
+                      { value: 'coworking', label: 'Coworking' },
+                      { value: 'other', label: 'Other' }
+                    ];
+                    console.log('Category options:', categoryOptions);
+                    console.log('Looking for coworking:', categoryOptions.find(opt => opt.value === 'coworking'));
+                  }
+                }}
                 options={[
                   { value: 'restaurant', label: 'Restaurant' },
                   { value: 'retail', label: 'Retail' },
@@ -535,6 +800,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                   { value: 'construction', label: 'Construction' },
                   { value: 'agriculture', label: 'Agriculture' },
                   { value: 'energy', label: 'Energy & Utilities' },
+                  { value: 'coworking', label: 'Coworking' },
                   { value: 'other', label: 'Other' }
                 ]}
               />
@@ -967,10 +1233,17 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           <ImageUpload
             currentImageUrl={vendorData?.logo_url}
             onImageChange={(url) => {
-              setVendorData(prev => prev ? { ...prev, logo_url: url || '' } : null);
+              console.log('🖼️ Logo URL changed:', url);
+              const logoUrl = url || '';
+              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
+              // Also update formData so it's included when saving
+              setFormData((prev: any) => ({ ...prev, logo_url: logoUrl }));
+              console.log('🖼️ Updated vendorData and formData with logo URL');
+              // DO NOT auto-save - user must click Save button
             }}
             title="Upload Vendor Logo"
             description="Click or drag an image file to upload"
+            bucketName="vendor-images"
           />
         </div>
       </Card>
@@ -1082,29 +1355,66 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           </div>
           
           <div className="header-actions">
-            {isEditing ? (
-              <Space>
-                <Button onClick={handleCancel} icon={<CloseOutlined />}>
-                  Cancel
-                </Button>
+            {(() => {
+              console.log('🔍 Rendering header actions, isEditing:', isEditing, 'saving:', saving);
+              return isEditing ? (
+                <Space>
+                  <Button 
+                    onClick={(e) => {
+                      console.log('❌ Cancel button clicked');
+                      handleCancel();
+                    }} 
+                    icon={<CloseOutlined />}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="primary"
+                    htmlType="button"
+                    onClick={(e) => {
+                      console.log('💾💾💾 SAVE BUTTON CLICKED - EVENT FIRED 💾💾💾');
+                      console.log('💾 Button event:', e);
+                      console.log('💾 isEditing:', isEditing);
+                      console.log('💾 saving:', saving);
+                      console.log('💾 vendorData:', vendorData);
+                      console.log('💾 formData:', formData);
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.nativeEvent?.stopImmediatePropagation();
+                      try {
+                        console.log('💾 About to call handleSave...');
+                        handleSave();
+                        console.log('💾 handleSave called (async, may not be complete)');
+                      } catch (error) {
+                        console.error('❌ Error calling handleSave:', error);
+                        message.error('Failed to save. Please check console for details.');
+                      }
+                    }}
+                    icon={<SaveOutlined />}
+                    loading={saving}
+                    disabled={saving}
+                    style={{ 
+                      pointerEvents: saving ? 'none' : 'auto',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      zIndex: 9999
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </Space>
+              ) : (
                 <Button
                   type="primary"
-                  onClick={handleSave}
-                  icon={<SaveOutlined />}
-                  loading={saving}
+                  onClick={(e) => {
+                    console.log('✏️ Edit Profile button clicked');
+                    handleEdit();
+                  }}
+                  icon={<EditOutlined />}
                 >
-                  Save Changes
+                  Edit Profile
                 </Button>
-              </Space>
-            ) : (
-              <Button
-                type="primary"
-                onClick={handleEdit}
-                icon={<EditOutlined />}
-              >
-                Edit Profile
-              </Button>
-            )}
+              );
+            })()}
           </div>
         </div>
 
