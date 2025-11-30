@@ -55,22 +55,47 @@ const Dashboard: React.FC = () => {
       console.log('📊 Loading dashboard data from API...');
       
       // Import API functions
-      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI } = await import('../services/api');
+      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI, dashboardAPI: { getChartData } } = await import('../services/api');
       
-      // Load dashboard stats and approvals in parallel
-      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse] = await Promise.all([
+      // Load dashboard stats, approvals, chart data, and all donors in parallel
+      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
         dashboardAPI.getDashboardStats().catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } }))
+        beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        getChartData('donations', '30d').catch(() => ({ success: false, data: null }))
       ]);
       
       console.log('📊 Dashboard responses:', {
         stats: statsResponse,
         approvals: approvalsResponse,
         vendors: vendorsResponse,
-        beneficiaries: beneficiariesResponse
+        beneficiaries: beneficiariesResponse,
+        donors: donorsResponse,
+        donationsChart: donationsChartData
       });
+      
+      // Calculate active vs inactive donors
+      // Active = has monthly subscription, Inactive = has account but no monthly subscription
+      let activeDonorsCount = 0;
+      let inactiveDonorsCount = 0;
+      
+      if (donorsResponse.success && donorsResponse.data) {
+        donorsResponse.data.forEach((donor: any) => {
+          // Check if donor has an active monthly subscription
+          const hasMonthlyDonation = donor.monthly_donation?.active === true || 
+                                     donor.subscription?.active === true ||
+                                     donor.has_active_subscription === true;
+          
+          if (hasMonthlyDonation) {
+            activeDonorsCount++;
+          } else {
+            // Has account but no monthly donation = inactive
+            inactiveDonorsCount++;
+          }
+        });
+      }
       
       // Use stats from dashboard API if available, otherwise calculate from individual endpoints
       let stats: any = {};
@@ -79,55 +104,94 @@ const Dashboard: React.FC = () => {
         // Use data from dashboard stats endpoint
         stats = {
           totalVendors: statsResponse.data.totalVendors || vendorsResponse.pagination?.total || 0,
-          totalDonors: statsResponse.data.totalDonors || 0,
+          totalDonors: statsResponse.data.totalDonors || donorsResponse.pagination?.total || 0,
           totalBeneficiaries: statsResponse.data.totalBeneficiaries || beneficiariesResponse.pagination?.total || 0,
           totalTenants: statsResponse.data.totalTenants || 0,
           totalRevenue: statsResponse.data.totalRevenue || statsResponse.data.totalDonations || 0,
           totalDonations: statsResponse.data.totalDonations || statsResponse.data.totalRevenue || 0,
           totalOneTimeGift: statsResponse.data.totalOneTimeGift || 0,
-          activeDonors: statsResponse.data.activeDonors || 0,
+          activeDonors: activeDonorsCount || statsResponse.data.activeDonors || 0,
+          inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
           activeDiscounts: statsResponse.data.activeDiscounts || 0,
+          // Chart data for donations
+          donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
+          donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
       } else {
         // Fallback: calculate from individual endpoints
         stats = {
           totalVendors: vendorsResponse.pagination?.total || 0,
-          totalDonors: 0,
+          totalDonors: donorsResponse.pagination?.total || 0,
           totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
           totalTenants: 0,
           totalRevenue: 0,
           totalDonations: 0,
           totalOneTimeGift: 0,
-          activeDonors: 0,
+          activeDonors: activeDonorsCount,
+          inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
           activeDiscounts: 0,
+          donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
+          donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
       }
       
       console.log('📊 Final dashboard stats:', stats);
       setDashboardStats(stats);
       
-      // Load recent approvals data
-      const recentBeneficiaries = beneficiariesResponse.data?.slice(0, 5).map((b: any) => ({
-        key: b.id?.toString() || Math.random().toString(),
-        beneficiary: b.name || 'Unknown',
-        email: b.email || 'N/A',
-        cityState: b.address ? `${b.address.city || ''}, ${b.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
-        cause: b.category || 'N/A',
-        active: b.is_active !== false,
-        enabled: b.is_enabled !== false,
-      })) || [];
+      // Load recent approvals data with proper city/state parsing and logos
+      const recentBeneficiaries = beneficiariesResponse.data?.slice(0, 5).map((b: any) => {
+        let cityState = 'N/A';
+        if (b.address) {
+          const city = b.address.city || '';
+          const state = b.address.state || '';
+          if (city && state) {
+            cityState = `${city}, ${state}`;
+          } else if (city) {
+            cityState = city;
+          } else if (state) {
+            cityState = state;
+          }
+        }
+        
+        return {
+          key: b.id?.toString() || Math.random().toString(),
+          beneficiary: b.name || 'Unknown',
+          email: b.email || 'N/A',
+          cityState: cityState,
+          cause: b.category || 'N/A',
+          active: b.is_active !== false,
+          enabled: b.is_enabled !== false,
+          logo: b.logo_url || b.logo || null,
+        };
+      }) || [];
       
-      const recentVendors = vendorsResponse.data?.slice(0, 5).map((v: any) => ({
-        key: v.id?.toString() || Math.random().toString(),
-        beneficiary: v.name || 'Unknown',
-        email: v.email || 'N/A',
-        cityState: v.address ? `${v.address.city || ''}, ${v.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
-        cause: v.category || 'N/A',
-        active: v.is_active !== false,
-        enabled: v.is_enabled !== false,
-      })) || [];
+      const recentVendors = vendorsResponse.data?.slice(0, 5).map((v: any) => {
+        let cityState = 'N/A';
+        if (v.address) {
+          const city = v.address.city || '';
+          const state = v.address.state || '';
+          if (city && state) {
+            cityState = `${city}, ${state}`;
+          } else if (city) {
+            cityState = city;
+          } else if (state) {
+            cityState = state;
+          }
+        }
+        
+        return {
+          key: v.id?.toString() || Math.random().toString(),
+          beneficiary: v.name || 'Unknown',
+          email: v.email || 'N/A',
+          cityState: cityState,
+          cause: v.category || 'N/A',
+          active: v.is_active !== false,
+          enabled: v.is_enabled !== false,
+          logo: v.logo_url || v.logo || null,
+        };
+      }) || [];
       
       setApprovalsData(activeApprovalTab === 'beneficiaries' ? recentBeneficiaries : recentVendors);
       
@@ -217,29 +281,61 @@ const Dashboard: React.FC = () => {
       if (activeApprovalTab === 'beneficiaries') {
         const response = await beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [] }));
         if (response.success && response.data) {
-          const data = response.data.map((b: any) => ({
-            key: b.id?.toString() || Math.random().toString(),
-            beneficiary: b.name || 'Unknown',
-            email: b.email || 'N/A',
-            cityState: b.address ? `${b.address.city || ''}, ${b.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
-            cause: b.category || 'N/A',
-            active: b.is_active !== false,
-            enabled: b.is_enabled !== false,
-          }));
+          const data = response.data.map((b: any) => {
+            let cityState = 'N/A';
+            if (b.address) {
+              const city = b.address.city || '';
+              const state = b.address.state || '';
+              if (city && state) {
+                cityState = `${city}, ${state}`;
+              } else if (city) {
+                cityState = city;
+              } else if (state) {
+                cityState = state;
+              }
+            }
+            
+            return {
+              key: b.id?.toString() || Math.random().toString(),
+              beneficiary: b.name || 'Unknown',
+              email: b.email || 'N/A',
+              cityState: cityState,
+              cause: b.category || 'N/A',
+              active: b.is_active !== false,
+              enabled: b.is_enabled !== false,
+              logo: b.logo_url || b.logo || null,
+            };
+          });
           setApprovalsData(data);
         }
       } else {
         const response = await vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [] }));
         if (response.success && response.data) {
-          const data = response.data.map((v: any) => ({
-            key: v.id?.toString() || Math.random().toString(),
-            beneficiary: v.name || 'Unknown',
-            email: v.email || 'N/A',
-            cityState: v.address ? `${v.address.city || ''}, ${v.address.state || ''}`.replace(/^,\s*|,\s*$/g, '') || 'N/A' : 'N/A',
-            cause: v.category || 'N/A',
-            active: v.is_active !== false,
-            enabled: v.is_enabled !== false,
-          }));
+          const data = response.data.map((v: any) => {
+            let cityState = 'N/A';
+            if (v.address) {
+              const city = v.address.city || '';
+              const state = v.address.state || '';
+              if (city && state) {
+                cityState = `${city}, ${state}`;
+              } else if (city) {
+                cityState = city;
+              } else if (state) {
+                cityState = state;
+              }
+            }
+            
+            return {
+              key: v.id?.toString() || Math.random().toString(),
+              beneficiary: v.name || 'Unknown',
+              email: v.email || 'N/A',
+              cityState: cityState,
+              cause: v.category || 'N/A',
+              active: v.is_active !== false,
+              enabled: v.is_enabled !== false,
+              logo: v.logo_url || v.logo || null,
+            };
+          });
           setApprovalsData(data);
         }
       }
@@ -396,7 +492,18 @@ const Dashboard: React.FC = () => {
       title: 'Beneficiary name',
       dataIndex: 'beneficiary',
       key: 'beneficiary',
-      render: (text: string) => <Text strong>{text}</Text>,
+      render: (text: string, record: any) => (
+        <Space>
+          {record.logo ? (
+            <Avatar src={record.logo} size={32} shape="square" />
+          ) : (
+            <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
+              {text ? text.charAt(0).toUpperCase() : 'B'}
+            </Avatar>
+          )}
+          <Text strong>{text}</Text>
+        </Space>
+      ),
     },
     {
       title: 'Emails',
@@ -453,7 +560,18 @@ const Dashboard: React.FC = () => {
       title: 'Vendor name',
       dataIndex: 'beneficiary',
       key: 'beneficiary',
-      render: (text: string) => <Text strong>{text}</Text>,
+      render: (text: string, record: any) => (
+        <Space>
+          {record.logo ? (
+            <Avatar src={record.logo} size={32} shape="square" />
+          ) : (
+            <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
+              {text ? text.charAt(0).toUpperCase() : 'V'}
+            </Avatar>
+          )}
+          <Text strong>{text}</Text>
+        </Space>
+      ),
     },
     {
       title: 'Emails',
@@ -780,7 +898,7 @@ const Dashboard: React.FC = () => {
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>{(dashboardStats?.totalDonors || 0) - (dashboardStats?.activeDonors || 0)} In-Active Donors</span>
+                                <span>{dashboardStats?.inactiveDonors || '--'} In-Active Donors</span>
                               </div>
                             </div>
                           </div>
@@ -827,11 +945,11 @@ const Dashboard: React.FC = () => {
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>Average: $500/week</span>
+                                <span>Average: {dashboardStats?.donationsAverage ? `$${dashboardStats.donationsAverage.toLocaleString()}/week` : '--'}</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>Trend: +12.5% vs last month</span>
+                                <span>Trend: {dashboardStats?.donationsTrend ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs last month` : '--'}</span>
                               </div>
                             </div>
                           </div>
@@ -850,11 +968,11 @@ const Dashboard: React.FC = () => {
                   <div className="tab-header">
                     <Typography.Title level={2}>Recent Approvals</Typography.Title>
                     <Typography.Link 
-                      onClick={handleViewAllBeneficiaries} 
+                      onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')} 
                       className="view-all-link"
                       style={{ color: '#DB8633' }}
                     >
-                      View all Beneficiaries
+                      View all {activeApprovalTab === 'beneficiaries' ? 'Beneficiaries' : 'Vendors'}
                     </Typography.Link>
                   </div>
                   <Tabs 
