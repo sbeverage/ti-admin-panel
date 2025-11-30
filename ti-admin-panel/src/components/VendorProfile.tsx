@@ -1243,7 +1243,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             }}
             title="Upload Vendor Logo"
             description="Click or drag an image file to upload"
-            bucketName="beneficiary-images"
+            bucketName="vendor-logos"
           />
         </div>
       </Card>
