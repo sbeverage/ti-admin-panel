@@ -617,31 +617,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       // CRITICAL: Prioritize formData.logo_url (what user just uploaded) over everything else
       // Backend might expect logoUrl (camelCase) which saves to logo_url column
       const logoUrl = formData.logo_url || formData.logoUrl || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
-      console.log('🖼️ ========================================');
-      console.log('🖼️ Checking logo_url for save:');
-      console.log('🖼️ formData.logo_url:', formData.logo_url);
-      console.log('🖼️ formData.logoUrl:', formData.logoUrl);
-      console.log('🖼️ vendorData?.logo_url:', vendorData?.logo_url);
-      console.log('🖼️ originalVendorFromAPI?.logo_url:', originalVendorFromAPI?.logo_url);
-      console.log('🖼️ final logoUrl:', logoUrl);
-      console.log('🖼️ isEditing:', isEditing);
-      console.log('🖼️ formData object:', JSON.stringify(formData, null, 2));
-      console.log('🖼️ ========================================');
-      
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
-        // Send all field name variations for maximum compatibility (like BeneficiaryProfile does)
-        apiData.logoUrl = logoUrl; // ⚠️ CRITICAL: Backend expects camelCase
+        // Send all field name variations for maximum compatibility
+        apiData.logoUrl = logoUrl; // Backend expects camelCase
         apiData.logo_url = logoUrl; // Also send snake_case for compatibility
         apiData.logo = logoUrl; // Send plain 'logo' as well
-        console.log('✅ logoUrl, logo_url, and logo included in apiData:', logoUrl);
-        console.log('✅ Full apiData being sent (with logo):', JSON.stringify(apiData, null, 2));
-      } else {
-        console.warn('⚠️ ========================================');
-        console.warn('⚠️ logo_url is missing or empty, not including in save');
-        console.warn('⚠️ formData keys:', Object.keys(formData));
-        console.warn('⚠️ vendorData keys:', vendorData ? Object.keys(vendorData) : 'null');
-        console.warn('⚠️ formData.logo_url value:', formData.logo_url);
-        console.warn('⚠️ ========================================');
+        console.log('✅ logoUrl included in apiData:', logoUrl);
       }
       
       // Ensure address is always a valid object (backend requires it)
@@ -747,48 +728,25 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }
           setIsEditing(false);
           
-          // Check if logo_url was actually saved by the backend
-          const apiResponseLogoUrl = (result.data as any)?.logo_url;
-          const logoWasSaved = apiResponseLogoUrl && apiResponseLogoUrl !== null && apiResponseLogoUrl !== '';
-          const logoWasSent = savedLogoUrl && savedLogoUrl !== null && savedLogoUrl !== '';
-          
-          if (logoWasSent && !logoWasSaved) {
-            console.warn('⚠️ WARNING: logo_url was sent but backend returned null/empty');
-            console.warn('⚠️ This indicates the backend may not be saving logo_url properly');
-            message.warning('Vendor updated, but logo may not have saved. Please check and re-upload if needed.');
-          }
-          
           // Reload vendor data to get the latest from API (including logo_url)
-          // Pass the saved logo URL to preserve it if backend returns null
           // Don't show loading spinner during reload to avoid window appearing to close/reopen
           console.log('🔄 Reloading vendor data after successful update...');
-          console.log('🖼️ Preserving logo_url during reload:', savedLogoUrl);
-          console.log('🖼️ API response logo_url:', apiResponseLogoUrl);
           try {
-            await loadVendorData(false, savedLogoUrl); // Pass false to skip loading spinner, and logo_url to preserve
+            await loadVendorData(false); // Pass false to skip loading spinner
           } catch (reloadError) {
             console.error('Error reloading vendor data:', reloadError);
-            // Don't fail the save if reload fails, but ensure logo_url is preserved
-            if (savedLogoUrl) {
-              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: savedLogoUrl } as VendorData : null);
-              setFormData((prev: any) => ({ ...prev, logo_url: savedLogoUrl }));
-            }
+            // Don't fail the save if reload fails
           }
           
-          // Only call onUpdate to refresh the parent list if logo was actually saved
-          // This prevents the vendor list from showing a missing logo if backend didn't save it
+          // Call onUpdate to refresh the parent list
           if (onUpdate) {
-            // Pass the logo_url in the update so parent can preserve it in the list
             onUpdate({ 
               success: true, 
-              vendorId: vendorIdNum,
-              logo_url: logoWasSaved ? apiResponseLogoUrl : savedLogoUrl // Use saved URL if backend didn't save it
+              vendorId: vendorIdNum
             });
           }
           
-          if (logoWasSaved || !logoWasSent) {
-            message.success('Vendor updated successfully!');
-          }
+          message.success('Vendor updated successfully!');
         } else {
           const errorMsg = result.error || result.message || 'Failed to update vendor. Please try again.';
           console.error('❌ Vendor update failed:', errorMsg);
