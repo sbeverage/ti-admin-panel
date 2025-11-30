@@ -45,9 +45,7 @@ import {
   CrownOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
-  SortAscendingOutlined,
-  TeamOutlined,
-  GlobalOutlined
+  SortAscendingOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
