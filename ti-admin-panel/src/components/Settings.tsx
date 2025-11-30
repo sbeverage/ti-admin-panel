@@ -56,6 +56,18 @@ const Settings: React.FC = () => {
       
       if (settingsResponse.success) {
         setSettingsData(settingsResponse.data);
+        // Update personal profile with loaded data
+        if (settingsResponse.data) {
+          setPersonalProfile((prev: any) => ({
+            ...prev,
+            ...settingsResponse.data,
+            notifications: settingsResponse.data.notifications || {
+              email: true,
+              push: true,
+              sms: false
+            }
+          }));
+        }
       } else {
         setError('Failed to load settings');
         setSettingsData(null);
@@ -108,7 +120,17 @@ const Settings: React.FC = () => {
     }
   };
 
-  const [personalProfile, setPersonalProfile] = useState<any>(null);
+  const [personalProfile, setPersonalProfile] = useState<any>({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    }
+  });
 
   const menuItems = [
     {
@@ -293,7 +315,7 @@ const Settings: React.FC = () => {
     setPersonalProfile((prev: any) => ({
       ...prev,
       notifications: {
-        ...prev.notifications,
+        ...(prev?.notifications || { email: true, push: true, sms: false }),
         [key]: checked
       }
     }));
@@ -457,21 +479,21 @@ const Settings: React.FC = () => {
                               <div className="notification-item">
                                 <Text>Email Notifications</Text>
                                 <Switch
-                                  checked={personalProfile.notifications.email}
+                                  checked={personalProfile?.notifications?.email ?? true}
                                   onChange={(checked) => handleNotificationChange('email', checked)}
                                 />
                               </div>
                               <div className="notification-item">
                                 <Text>Push Notifications</Text>
                                 <Switch
-                                  checked={personalProfile.notifications.push}
+                                  checked={personalProfile?.notifications?.push ?? true}
                                   onChange={(checked) => handleNotificationChange('push', checked)}
                                 />
                               </div>
                               <div className="notification-item">
                                 <Text>SMS Notifications</Text>
                                 <Switch
-                                  checked={personalProfile.notifications.sms}
+                                  checked={personalProfile?.notifications?.sms ?? false}
                                   onChange={(checked) => handleNotificationChange('sms', checked)}
                                 />
                               </div>
