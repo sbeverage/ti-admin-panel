@@ -773,12 +773,21 @@ const Beneficiaries: React.FC = () => {
         onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
 
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
+        breakpoint="lg"
+        collapsedWidth="0"
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">

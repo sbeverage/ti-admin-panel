@@ -339,62 +339,40 @@ const Settings: React.FC = () => {
         onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
 
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <Sider
-        className={`settings-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
+        breakpoint="lg"
+        collapsedWidth="0"
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
-        <div className="logo-section" style={{ 
-          padding: '20px 16px 12px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          backgroundColor: 'transparent'
-        }}>
-          {/* Simplified logo section with large centered logo */}
-          <div className="logo-container" style={{
-            position: 'relative',
-            marginBottom: '12px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
+        <div className="standard-logo-section">
+          <div className="standard-logo-container">
             <img
               src="/white-logo.png"
-              alt="Thrive Initiative Logo"
-              className="logo-image"
-              style={{ 
-                width: '180px', 
-                height: 'auto', 
-                maxWidth: '100%',
-                display: 'block',
-                margin: '0 auto'
-              }}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
+              alt="THRIVE Logo"
+              className="standard-logo-image"
             />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
-          </div>
-        </div>
 
         <Menu
           mode="inline"
           defaultSelectedKeys={['settings']}
           selectedKeys={[location.pathname === '/settings' ? 'settings' : '']}
-          style={{ borderRight: 0 }}
           items={menuItems}
-          className="settings-menu"
+          className="standard-menu"
           onClick={handleMenuClick}
         />
 
-        <UserProfile className="user-profile" />
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
       {/* Main Content */}

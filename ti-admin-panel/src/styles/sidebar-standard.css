@@ -627,19 +627,63 @@
   }
   
   /* Enhanced table responsiveness */
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
+  }
+  
   .ant-table {
+    font-size: 12px !important;
+    min-width: 600px !important;
+  }
+  
+  /* Better table container */
+  .ant-table-container {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  /* Card wrapper for tables */
+  .ant-card .ant-table-wrapper {
+    margin: -16px !important;
+    padding: 16px !important;
+  }
+  
+  .ant-table-thead > tr > th {
+    padding: 10px 8px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    font-weight: 600 !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 10px 8px !important;
     font-size: 12px !important;
   }
   
-  .ant-table-thead > tr > th,
+  /* Make tables horizontally scrollable on mobile */
+  .ant-table-container {
+    overflow-x: auto !important;
+  }
+  
+  /* Better table cell content wrapping */
   .ant-table-tbody > tr > td {
-    padding: 8px 12px !important;
+    word-break: break-word !important;
+    max-width: 150px !important;
   }
   
   /* Enhanced button responsiveness */
   .ant-btn {
     height: 36px !important;
     font-size: 14px !important;
+    padding: 4px 12px !important;
+  }
+  
+  .ant-btn-sm {
+    height: 28px !important;
+    font-size: 12px !important;
+    padding: 0 8px !important;
   }
   
   /* Enhanced form responsiveness */
@@ -650,6 +694,41 @@
   .ant-input,
   .ant-select {
     height: 36px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Card responsiveness */
+  .ant-card {
+    margin-bottom: 16px !important;
+  }
+  
+  .ant-card-body {
+    padding: 16px !important;
+  }
+  
+  /* Statistic cards on mobile */
+  .ant-statistic-title {
+    font-size: 12px !important;
+  }
+  
+  .ant-statistic-content {
+    font-size: 20px !important;
+  }
+  
+  /* Menu item icons consistency */
+  .standard-menu .ant-menu-item-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  /* Ensure only one hamburger menu button is visible */
+  .mobile-menu-btn-right {
+    display: flex !important;
+  }
+  
+  .mobile-menu-btn {
+    display: none !important;
   }
 }
 
@@ -707,9 +786,25 @@
     font-size: 24px !important;
   }
   
-  .ant-table-thead > tr > th,
+  .ant-table-thead > tr > th {
+    padding: 8px 6px !important;
+    font-size: 10px !important;
+  }
+  
   .ant-table-tbody > tr > td {
-    padding: 6px 8px !important;
+    padding: 8px 6px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Even smaller table on very small screens */
+  .ant-table {
+    min-width: 500px !important;
+  }
+  
+  /* Stack action buttons vertically on very small screens */
+  .ant-table-tbody .ant-space {
+    flex-direction: column !important;
+    gap: 4px !important;
   }
 }
 
@@ -747,6 +842,12 @@
 
 /* Tablet Responsiveness */
 @media (min-width: 769px) and (max-width: 1024px) {
+  /* Hide mobile menu button on tablet */
+  .mobile-menu-btn-right,
+  .mobile-menu-btn {
+    display: none !important;
+  }
+  
   .standard-sider,
   .dashboard-sider,
   .donors-sider,
@@ -759,6 +860,8 @@
   .settings-sider,
   .sidebar {
     width: 240px !important;
+    transform: translateX(0) !important;
+    position: fixed !important;
   }
   
   .standard-main-content,
@@ -769,6 +872,27 @@
   .overview-cards .ant-col,
   .summary-cards .ant-col {
     width: 50% !important;
+  }
+  
+  /* Better table on tablet */
+  .ant-table {
+    font-size: 13px !important;
+  }
+  
+  .ant-table-thead > tr > th {
+    padding: 12px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 12px 10px !important;
+  }
+  
+  /* Menu icons on tablet */
+  .standard-menu .ant-menu-item-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 }
 
