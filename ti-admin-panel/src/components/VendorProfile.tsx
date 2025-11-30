@@ -546,8 +546,16 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       
       // Include logo_url if it has been updated (check both vendorData and formData)
       const logoUrl = formData.logo_url || vendorData?.logo_url;
+      console.log('🖼️ Checking logo_url for save:', {
+        formData_logo_url: formData.logo_url,
+        vendorData_logo_url: vendorData?.logo_url,
+        final_logoUrl: logoUrl
+      });
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
         apiData.logo_url = logoUrl;
+        console.log('✅ logo_url included in apiData:', logoUrl);
+      } else {
+        console.warn('⚠️ logo_url is missing or empty, not including in save');
       }
       
       // Ensure address is always a valid object (backend requires it)
@@ -644,6 +652,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             setFormData(formData);
           }
           setIsEditing(false);
+          // Reload vendor data to get the latest from API (including logo_url)
+          console.log('🔄 Reloading vendor data after successful update...');
+          await loadVendorData();
           // Only call onUpdate to refresh the parent list, don't pass data that would trigger another update
           if (onUpdate) {
             onUpdate({ success: true, vendorId: vendorIdNum });
@@ -1235,11 +1246,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             onImageChange={(url) => {
               console.log('🖼️ Logo URL changed:', url);
               const logoUrl = url || '';
+              // Update both vendorData and formData immediately so it shows in the UI
               setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
-              // Also update formData so it's included when saving
               setFormData((prev: any) => ({ ...prev, logo_url: logoUrl }));
-              console.log('🖼️ Updated vendorData and formData with logo URL');
-              // DO NOT auto-save - user must click Save button
+              console.log('🖼️ Updated vendorData and formData with logo URL:', logoUrl);
+              // Note: User must click Save button to persist to database
             }}
             title="Upload Vendor Logo"
             description="Click or drag an image file to upload"
@@ -1324,8 +1335,15 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               Back to Vendors
             </Button>
             <div className="vendor-title">
-                                      <Avatar size={64} style={{ backgroundColor: '#DB8633' }}>
-                {(vendorData.companyName || vendorData.vendorName).charAt(0)}
+              <Avatar 
+                size={64} 
+                src={vendorData?.logo_url}
+                style={{ 
+                  backgroundColor: vendorData?.logo_url ? 'transparent' : '#DB8633',
+                  border: vendorData?.logo_url ? '2px solid #DB8633' : 'none'
+                }}
+              >
+                {!vendorData?.logo_url && (vendorData.companyName || vendorData.vendorName).charAt(0)}
               </Avatar>
               <div className="title-content">
                 <Title level={2} style={{ margin: 0 }}>
