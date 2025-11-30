@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -8,7 +8,7 @@ import {
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
-  MailOutlined
+  MailOutlined, EnvironmentOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
@@ -77,7 +77,23 @@ const Donors: React.FC = () => {
           donation: donor.total_donations ? `$${donor.total_donations}` : '$0',
           oneTime: donor.one_time_donation ? `$${donor.one_time_donation}` : '$0',
           lastDonated: donor.last_donation_date ? new Date(donor.last_donation_date).toLocaleDateString() : 'Never',
-          cityState: donor.address ? `${donor.address.city}, ${donor.address.state}` : 'N/A',
+          cityState: (() => {
+            if (!donor.address) return 'N/A';
+            const city = donor.address.city || '';
+            const state = donor.address.state || '';
+            if (city && state) {
+              return `${city}, ${state}`;
+            } else if (city) {
+              return city;
+            } else if (state) {
+              return state;
+            }
+            return 'N/A';
+          })(),
+          // Store location data for potential future use
+          latitude: donor.address?.latitude || donor.latitude || null,
+          longitude: donor.address?.longitude || donor.longitude || null,
+          locationPermissionGranted: donor.location_permission_granted || donor.address?.location_permission_granted || false,
           active: donor.is_active || false,
           enabled: donor.is_enabled || false,
           avatar: donor.name ? donor.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'D',
@@ -472,8 +488,17 @@ const Donors: React.FC = () => {
       ),
       dataIndex: 'cityState',
       key: 'cityState',
-      render: (text: string) => <Text type="secondary">{text}</Text>,
-      width: 160,
+      render: (text: string, record: any) => (
+        <Space>
+          <Text type="secondary">{text}</Text>
+          {record.locationPermissionGranted && (
+            <Tooltip title={`Location permission granted. Coordinates: ${record.latitude ? record.latitude.toFixed(4) : 'N/A'}, ${record.longitude ? record.longitude.toFixed(4) : 'N/A'}`}>
+              <EnvironmentOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+      width: 180,
     },
     {
       title: 'Active/De-active',
