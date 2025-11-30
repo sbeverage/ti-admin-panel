@@ -224,7 +224,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     loadVendorData();
   }, [vendorId]);
 
-  const loadVendorData = async (showLoading: boolean = true) => {
+  const loadVendorData = async (showLoading: boolean = true, logoUrlToPreserve?: string | null) => {
     if (showLoading) {
       setLoading(true);
     }
@@ -389,8 +389,8 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }),
           // Work schedule (from vendor data)
           workSchedule: vendor.hours,
-          // Images from vendor data
-          logo_url: vendor.logo_url,
+          // Images from vendor data - preserve uploaded logo_url if backend returns null
+          logo_url: vendor.logo_url || logoUrlToPreserve || null,
           // Form data parsed from description field
           tags: formData.tags || [],
           pricingTier: formData.pricingTier || 'Not Set',
@@ -736,35 +736,18 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           setIsEditing(false);
           
           // Reload vendor data to get the latest from API (including logo_url)
-          // Store the saved logo URL before reload so we can restore it if backend returns null
+          // Pass the saved logo URL to preserve it if backend returns null
           // Don't show loading spinner during reload to avoid window appearing to close/reopen
           console.log('🔄 Reloading vendor data after successful update...');
-          const logoUrlToPreserve = savedLogoUrl;
+          console.log('🖼️ Preserving logo_url during reload:', savedLogoUrl);
           try {
-            await loadVendorData(false); // Pass false to skip loading spinner
-            // After reload, check if logo_url is null in the newly loaded data
-            // Use a small timeout to ensure state has updated
-            setTimeout(() => {
-              setVendorData((prev: VendorData | null) => {
-                if (prev && !prev.logo_url && logoUrlToPreserve) {
-                  console.log('⚠️ Backend returned null logo_url, preserving uploaded URL in state');
-                  return { ...prev, logo_url: logoUrlToPreserve } as VendorData;
-                }
-                return prev;
-              });
-              setFormData((prev: any) => {
-                if (prev && !prev.logo_url && logoUrlToPreserve) {
-                  return { ...prev, logo_url: logoUrlToPreserve };
-                }
-                return prev;
-              });
-            }, 100);
+            await loadVendorData(false, savedLogoUrl); // Pass false to skip loading spinner, and logo_url to preserve
           } catch (reloadError) {
             console.error('Error reloading vendor data:', reloadError);
             // Don't fail the save if reload fails, but ensure logo_url is preserved
-            if (logoUrlToPreserve) {
-              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrlToPreserve } as VendorData : null);
-              setFormData((prev: any) => ({ ...prev, logo_url: logoUrlToPreserve }));
+            if (savedLogoUrl) {
+              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: savedLogoUrl } as VendorData : null);
+              setFormData((prev: any) => ({ ...prev, logo_url: savedLogoUrl }));
             }
           }
           
