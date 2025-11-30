@@ -248,6 +248,8 @@ const Reporting: React.FC = () => {
   // Calculate totals
   const totals = payoutData.reduce((acc, item) => ({
     totalDonations: acc.totalDonations + item.totalDonations,
+    totalMonthlyDonations: acc.totalMonthlyDonations + item.monthlyDonations,
+    totalOneTimeDonations: acc.totalOneTimeDonations + item.oneTimeDonations,
     totalServiceFees: acc.totalServiceFees + item.serviceFees,
     totalCCFees: acc.totalCCFees + item.ccProcessingFees,
     totalNetAmount: acc.totalNetAmount + item.netAmount,
@@ -257,6 +259,8 @@ const Reporting: React.FC = () => {
     totalDonationCount: acc.totalDonationCount + item.donationCount
   }), {
     totalDonations: 0,
+    totalMonthlyDonations: 0,
+    totalOneTimeDonations: 0,
     totalServiceFees: 0,
     totalCCFees: 0,
     totalNetAmount: 0,
@@ -800,10 +804,10 @@ const Reporting: React.FC = () => {
                       </Text>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={2} align="right">
-                      ${totals.totalDonations.toFixed(2)}
+                      ${totals.totalMonthlyDonations.toFixed(2)}
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={3} align="right">
-                      ${totals.totalDonations.toFixed(2)}
+                      ${totals.totalOneTimeDonations.toFixed(2)}
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={4} align="center">
                       <Tag>{totals.totalDonationCount}</Tag>
