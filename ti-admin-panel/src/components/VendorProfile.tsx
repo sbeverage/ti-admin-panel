@@ -617,25 +617,31 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       // CRITICAL: Prioritize formData.logo_url (what user just uploaded) over everything else
       // Backend might expect logoUrl (camelCase) which saves to logo_url column
       const logoUrl = formData.logo_url || formData.logoUrl || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
-      console.log('🖼️ Checking logo_url for save:', {
-        formData_logo_url: formData.logo_url,
-        formData_logoUrl: formData.logoUrl,
-        vendorData_logo_url: vendorData?.logo_url,
-        originalVendor_logo_url: originalVendorFromAPI?.logo_url,
-        final_logoUrl: logoUrl,
-        isEditing: isEditing
-      });
+      console.log('🖼️ ========================================');
+      console.log('🖼️ Checking logo_url for save:');
+      console.log('🖼️ formData.logo_url:', formData.logo_url);
+      console.log('🖼️ formData.logoUrl:', formData.logoUrl);
+      console.log('🖼️ vendorData?.logo_url:', vendorData?.logo_url);
+      console.log('🖼️ originalVendorFromAPI?.logo_url:', originalVendorFromAPI?.logo_url);
+      console.log('🖼️ final logoUrl:', logoUrl);
+      console.log('🖼️ isEditing:', isEditing);
+      console.log('🖼️ formData object:', JSON.stringify(formData, null, 2));
+      console.log('🖼️ ========================================');
+      
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
         // Send all field name variations for maximum compatibility (like BeneficiaryProfile does)
         apiData.logoUrl = logoUrl; // ⚠️ CRITICAL: Backend expects camelCase
         apiData.logo_url = logoUrl; // Also send snake_case for compatibility
         apiData.logo = logoUrl; // Send plain 'logo' as well
         console.log('✅ logoUrl, logo_url, and logo included in apiData:', logoUrl);
-        console.log('✅ Full apiData being sent:', JSON.stringify(apiData, null, 2));
+        console.log('✅ Full apiData being sent (with logo):', JSON.stringify(apiData, null, 2));
       } else {
+        console.warn('⚠️ ========================================');
         console.warn('⚠️ logo_url is missing or empty, not including in save');
         console.warn('⚠️ formData keys:', Object.keys(formData));
         console.warn('⚠️ vendorData keys:', vendorData ? Object.keys(vendorData) : 'null');
+        console.warn('⚠️ formData.logo_url value:', formData.logo_url);
+        console.warn('⚠️ ========================================');
       }
       
       // Ensure address is always a valid object (backend requires it)
@@ -1371,7 +1377,13 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                 console.log('🖼️ Logo URL changed:', url);
                 const logoUrl = url || '';
                 // Update formData immediately so it shows in the UI and gets saved
-                setFormData((prev: any) => ({ ...prev, logo_url: logoUrl }));
+                // CRITICAL: This is what gets sent to the backend when Save is clicked
+                setFormData((prev: any) => {
+                  const updated = { ...prev, logo_url: logoUrl };
+                  console.log('🖼️ Updated formData with logo_url:', logoUrl);
+                  console.log('🖼️ formData after update:', updated);
+                  return updated;
+                });
                 // Also update vendorData for immediate display
                 setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
                 console.log('🖼️ Updated vendorData and formData with logo URL:', logoUrl);
