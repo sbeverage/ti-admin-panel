@@ -1346,6 +1346,69 @@ export const analyticsAPI = {
     }
     
     return response.json();
+  },
+
+  // Get all donors with referral data
+  getAllDonorsWithReferrals: async (): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/admin/users/referrals`, {
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  // Get user referral details
+  getUserReferralDetails: async (userId: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${userId}/referrals`, {
+      headers: API_CONFIG.headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  // Grant manual credit to user
+  grantCredit: async (userId: number, amount: number, description: string, expiresInDays?: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${userId}/credits`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({
+        amount,
+        description,
+        expiresInDays: expiresInDays || 90,
+        source: 'manual'
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  // Extend credit expiration
+  extendCreditExpiration: async (creditId: number, newExpirationDate: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/admin/credits/${creditId}/extend`, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({
+        expiresAt: newExpirationDate
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 

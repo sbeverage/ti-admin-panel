@@ -491,27 +491,64 @@
 }
 
 /* Button Branding - Ensure white text on orange backgrounds */
-.ant-btn-primary {
+.ant-btn-primary,
+.ant-btn-primary *,
+.ant-btn-primary span,
+.ant-btn-primary .anticon {
   background: #DB8633 !important;
   border-color: #DB8633 !important;
   color: #ffffff !important;
 }
 
-.ant-btn-primary:hover {
+.ant-btn-primary:hover,
+.ant-btn-primary:hover *,
+.ant-btn-primary:hover span,
+.ant-btn-primary:hover .anticon {
   background: #c6762a !important;
   border-color: #c6762a !important;
   color: #ffffff !important;
 }
 
-.ant-btn-primary:focus {
+.ant-btn-primary:focus,
+.ant-btn-primary:focus *,
+.ant-btn-primary:focus span,
+.ant-btn-primary:focus .anticon {
   background: #DB8633 !important;
   border-color: #DB8633 !important;
   color: #ffffff !important;
 }
 
-.ant-btn-primary:active {
+.ant-btn-primary:active,
+.ant-btn-primary:active *,
+.ant-btn-primary:active span,
+.ant-btn-primary:active .anticon {
   background: #c6762a !important;
   border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+/* Force white text on all orange background buttons */
+[style*="background: #DB8633"],
+[style*="background-color: #DB8633"],
+[style*="backgroundColor: #DB8633"] {
+  color: #ffffff !important;
+}
+
+[style*="background: #DB8633"] *,
+[style*="background-color: #DB8633"] *,
+[style*="backgroundColor: #DB8633"] * {
+  color: #ffffff !important;
+}
+
+[style*="background: #DB8633"] span,
+[style*="background-color: #DB8633"] span,
+[style*="backgroundColor: #DB8633"] span {
+  color: #ffffff !important;
+}
+
+[style*="background: #DB8633"] .anticon,
+[style*="background-color: #DB8633"] .anticon,
+[style*="backgroundColor: #DB8633"] .anticon {
   color: #ffffff !important;
 }
 

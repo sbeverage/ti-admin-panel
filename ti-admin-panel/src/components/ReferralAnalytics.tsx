@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress, Tooltip } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress, Tooltip, Modal, Form, InputNumber, Divider, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
@@ -26,7 +26,12 @@ import {
   GlobalOutlined,
   SearchOutlined,
   GiftOutlined,
-  BankOutlined
+  BankOutlined,
+  DollarOutlined,
+  PlusOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import './ReferralAnalytics.css';
 import '../styles/sidebar-standard.css';
@@ -36,6 +41,7 @@ const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { TextArea } = Input;
 
 const ReferralAnalytics: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -50,6 +56,13 @@ const ReferralAnalytics: React.FC = () => {
   const [invitationSearchText, setInvitationSearchText] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [donorsData, setDonorsData] = useState<any[]>([]);
+  const [donorsLoading, setDonorsLoading] = useState(false);
+  const [donorSearchText, setDonorSearchText] = useState<string>('');
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
+  const [creditGrantModalVisible, setCreditGrantModalVisible] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState<any>(null);
+  const [creditGrantForm] = Form.useForm();
   const navigate = useNavigate();
 
   // Test data for analytics
@@ -427,6 +440,47 @@ const ReferralAnalytics: React.FC = () => {
     }
   };
 
+  // Load all donors with referral data
+  const loadAllDonors = async () => {
+    setDonorsLoading(true);
+    try {
+      const response = await analyticsAPI.getAllDonorsWithReferrals();
+      if (response.success && response.data) {
+        setDonorsData(response.data);
+      } else {
+        // Use test data if API doesn't return data
+        setDonorsData([]);
+      }
+    } catch (error) {
+      console.error('Error loading donors:', error);
+      setDonorsData([]);
+    } finally {
+      setDonorsLoading(false);
+    }
+  };
+
+  // Handle credit grant
+  const handleCreditGrant = async (values: any) => {
+    if (!selectedDonor) return;
+    
+    try {
+      await analyticsAPI.grantCredit(
+        selectedDonor.user_id || selectedDonor.id,
+        values.amount,
+        values.description,
+        values.expiresInDays
+      );
+      message.success(`Successfully granted $${values.amount} credit to ${selectedDonor.name}`);
+      setCreditGrantModalVisible(false);
+      creditGrantForm.resetFields();
+      setSelectedDonor(null);
+      // Reload donors to refresh credit data
+      await loadAllDonors();
+    } catch (error: any) {
+      message.error(error.message || 'Failed to grant credit');
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
     // Load test data immediately for demonstration
@@ -434,6 +488,7 @@ const ReferralAnalytics: React.FC = () => {
     setInvitationsData(getTestInvitationsData());
     // Also try to load from API (will replace test data if real data exists)
     loadReferralAnalytics();
+    loadAllDonors();
   }, []);
 
   // Load invitations when analytics data is available or filter changes
@@ -831,6 +886,23 @@ const ReferralAnalytics: React.FC = () => {
     message.info('Generate Referral Links feature - Coming soon!');
     // TODO: Open modal to generate referral links for users
   };
+
+  // Open credit grant modal
+  const openCreditGrantModal = (donor: any) => {
+    setSelectedDonor(donor);
+    setCreditGrantModalVisible(true);
+  };
+
+  // Filter donors based on search
+  const filteredDonors = donorsData.filter((donor: any) => {
+    if (!donorSearchText) return true;
+    const searchLower = donorSearchText.toLowerCase();
+    return (
+      (donor.name && donor.name.toLowerCase().includes(searchLower)) ||
+      (donor.email && donor.email.toLowerCase().includes(searchLower)) ||
+      (donor.user_id && donor.user_id.toString().includes(searchLower))
+    );
+  });
 
   const referralColumns = [
     {
@@ -1248,6 +1320,281 @@ const ReferralAnalytics: React.FC = () => {
                     )
                   },
                   {
+                    key: 'all-donors',
+                    label: (
+                      <span>
+                        <UserOutlined />
+                        All Donors
+                      </span>
+                    ),
+                    children: (
+                      <div className="all-donors-content">
+                        {/* Search */}
+                        <Card style={{ marginBottom: 24 }}>
+                          <Input
+                            placeholder="Search by name, email, or user ID..."
+                            prefix={<SearchOutlined />}
+                            value={donorSearchText}
+                            onChange={(e) => setDonorSearchText(e.target.value)}
+                            allowClear
+                            size="large"
+                          />
+                        </Card>
+
+                        {/* Donors Table */}
+                        <Card title={`All Donors (${filteredDonors.length})`}>
+                          {donorsLoading ? (
+                            <Spin size="large" style={{ display: 'flex', justifyContent: 'center', padding: '40px' }} />
+                          ) : filteredDonors.length > 0 ? (
+                            <Table
+                              dataSource={filteredDonors.map((donor: any, index: number) => ({
+                                ...donor,
+                                key: donor.user_id || donor.id || index
+                              }))}
+                              columns={[
+                                {
+                                  title: 'Donor',
+                                  key: 'donor',
+                                  width: 250,
+                                  render: (_: any, record: any) => (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                      <Avatar size={40} style={{ backgroundColor: '#DB8633' }}>
+                                        {record.name ? record.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
+                                      </Avatar>
+                                      <div>
+                                        <Text strong style={{ display: 'block' }}>{record.name || 'Unknown'}</Text>
+                                        <Text type="secondary" style={{ fontSize: '12px' }}>{record.email || 'N/A'}</Text>
+                                      </div>
+                                    </div>
+                                  )
+                                },
+                                {
+                                  title: 'Total Referrals',
+                                  key: 'total_referrals',
+                                  width: 120,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => (
+                                    <Text strong style={{ fontSize: '16px' }}>
+                                      {record.referral_stats?.total_referrals || record.total_referrals || 0}
+                                    </Text>
+                                  )
+                                },
+                                {
+                                  title: 'Successful',
+                                  key: 'successful',
+                                  width: 120,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => (
+                                    <Text strong style={{ fontSize: '16px', color: '#52c41a' }}>
+                                      {record.referral_stats?.successful_referrals || record.successful_referrals || 0}
+                                    </Text>
+                                  )
+                                },
+                                {
+                                  title: 'Conversion Rate',
+                                  key: 'conversion_rate',
+                                  width: 140,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => {
+                                    const rate = record.referral_stats?.conversion_rate || record.conversion_rate || 0;
+                                    return (
+                                      <Tag color={rate >= 70 ? 'green' : rate >= 50 ? 'orange' : 'red'}>
+                                        {rate.toFixed(1)}%
+                                      </Tag>
+                                    );
+                                  }
+                                },
+                                {
+                                  title: 'Milestones',
+                                  key: 'milestones',
+                                  width: 120,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => (
+                                    <Space>
+                                      {record.milestones?.length > 0 ? (
+                                        <Tooltip title={record.milestones.map((m: any) => m.milestone_type).join(', ')}>
+                                          <Badge count={record.milestones.length} style={{ backgroundColor: '#DB8633' }}>
+                                            <TrophyOutlined style={{ fontSize: '20px', color: '#DB8633' }} />
+                                          </Badge>
+                                        </Tooltip>
+                                      ) : (
+                                        <Text type="secondary">-</Text>
+                                      )}
+                                    </Space>
+                                  )
+                                },
+                                {
+                                  title: 'Active Credits',
+                                  key: 'active_credits',
+                                  width: 140,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => {
+                                    const credits = record.referral_stats?.active_credits || record.active_credits || 0;
+                                    return (
+                                      <Text strong style={{ fontSize: '16px', color: '#DB8633' }}>
+                                        ${credits.toFixed(2)}
+                                      </Text>
+                                    );
+                                  }
+                                },
+                                {
+                                  title: 'Actions',
+                                  key: 'actions',
+                                  width: 150,
+                                  fixed: 'right' as const,
+                                  render: (_: any, record: any) => (
+                                    <Space>
+                                      <Tooltip title="Grant Credit">
+                                        <Button
+                                          type="primary"
+                                          icon={<PlusOutlined />}
+                                          size="small"
+                                          onClick={() => openCreditGrantModal(record)}
+                                          style={{
+                                            backgroundColor: '#DB8633',
+                                            borderColor: '#DB8633',
+                                            color: '#ffffff'
+                                          }}
+                                        >
+                                          Grant Credit
+                                        </Button>
+                                      </Tooltip>
+                                    </Space>
+                                  )
+                                }
+                              ]}
+                              expandable={{
+                                expandedRowKeys,
+                                onExpandedRowsChange: (keys) => setExpandedRowKeys(keys as React.Key[]),
+                                expandedRowRender: (record: any) => (
+                                  <div style={{ padding: '16px', background: '#fafafa', borderRadius: '8px' }}>
+                                    <Row gutter={[24, 24]}>
+                                      {/* Referrals */}
+                                      <Col span={24}>
+                                        <Card size="small" title={<><TeamOutlined /> Referrals</>} style={{ marginBottom: 16 }}>
+                                          {record.referrals && record.referrals.length > 0 ? (
+                                            <Table
+                                              dataSource={record.referrals}
+                                              columns={[
+                                                {
+                                                  title: 'Referred User',
+                                                  dataIndex: 'referred_user_name',
+                                                  key: 'referred_user_name',
+                                                  render: (text: string) => text || 'N/A'
+                                                },
+                                                {
+                                                  title: 'Referral Code',
+                                                  dataIndex: 'referral_code',
+                                                  key: 'referral_code',
+                                                  render: (code: string) => <Text code>{code}</Text>
+                                                },
+                                                {
+                                                  title: 'Status',
+                                                  dataIndex: 'status',
+                                                  key: 'status',
+                                                  render: (status: string) => {
+                                                    const statusConfig: any = {
+                                                      pending: { color: 'orange', text: 'Pending' },
+                                                      signed_up: { color: 'blue', text: 'Signed Up' },
+                                                      payment_setup: { color: 'cyan', text: 'Payment Setup' },
+                                                      paid: { color: 'green', text: 'Paid' },
+                                                      cancelled: { color: 'red', text: 'Cancelled' }
+                                                    };
+                                                    const config = statusConfig[status] || { color: 'default', text: status };
+                                                    return <Tag color={config.color}>{config.text}</Tag>;
+                                                  }
+                                                },
+                                                {
+                                                  title: 'Created',
+                                                  dataIndex: 'created_at',
+                                                  key: 'created_at',
+                                                  render: (date: string) => date ? new Date(date).toLocaleDateString() : 'N/A'
+                                                },
+                                                {
+                                                  title: 'Paid',
+                                                  dataIndex: 'paid_at',
+                                                  key: 'paid_at',
+                                                  render: (date: string) => date ? new Date(date).toLocaleDateString() : '-'
+                                                }
+                                              ]}
+                                              pagination={false}
+                                              size="small"
+                                            />
+                                          ) : (
+                                            <Empty description="No referrals" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                          )}
+                                        </Card>
+                                      </Col>
+
+                                      {/* Milestones */}
+                                      <Col span={12}>
+                                        <Card size="small" title={<><TrophyOutlined /> Milestones</>}>
+                                          {record.milestones && record.milestones.length > 0 ? (
+                                            <Space direction="vertical" style={{ width: '100%' }}>
+                                              {record.milestones.map((milestone: any, idx: number) => (
+                                                <div key={idx} style={{ padding: '8px', background: '#fff', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
+                                                  <Text strong>{milestone.milestone_type?.replace('_', ' ').toUpperCase()}</Text>
+                                                  <br />
+                                                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                    Unlocked: {milestone.unlocked_at ? new Date(milestone.unlocked_at).toLocaleDateString() : 'N/A'}
+                                                  </Text>
+                                                  <br />
+                                                  <Text style={{ color: '#DB8633', fontWeight: 600 }}>
+                                                    Reward: ${milestone.reward_value || 0}
+                                                  </Text>
+                                                </div>
+                                              ))}
+                                            </Space>
+                                          ) : (
+                                            <Empty description="No milestones unlocked" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                          )}
+                                        </Card>
+                                      </Col>
+
+                                      {/* Credits */}
+                                      <Col span={12}>
+                                        <Card size="small" title={<><DollarOutlined /> Credits</>}>
+                                          <Space direction="vertical" style={{ width: '100%' }}>
+                                            <div>
+                                              <Text type="secondary">Active Credits: </Text>
+                                              <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
+                                                ${(record.referral_stats?.active_credits || record.active_credits || 0).toFixed(2)}
+                                              </Text>
+                                            </div>
+                                            <div>
+                                              <Text type="secondary">Total Earned: </Text>
+                                              <Text strong style={{ color: '#DB8633', fontSize: '16px' }}>
+                                                ${(record.referral_stats?.total_credits_earned || record.total_credits_earned || 0).toFixed(2)}
+                                              </Text>
+                                            </div>
+                                            <div>
+                                              <Text type="secondary">Expired: </Text>
+                                              <Text strong style={{ color: '#ff4d4f', fontSize: '16px' }}>
+                                                ${(record.referral_stats?.expired_credits || record.expired_credits || 0).toFixed(2)}
+                                              </Text>
+                                            </div>
+                                          </Space>
+                                        </Card>
+                                      </Col>
+                                    </Row>
+                                  </div>
+                                )
+                              }}
+                              pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Total ${total} donors`
+                              }}
+                              scroll={{ x: 1200 }}
+                            />
+                          ) : (
+                            <Empty description="No donors found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                          )}
+                        </Card>
+                      </div>
+                    )
+                  },
+                  {
                     key: 'invitations',
                     label: (
                       <span>
@@ -1407,6 +1754,101 @@ const ReferralAnalytics: React.FC = () => {
           </Spin>
         </Content>
       </Layout>
+
+      {/* Credit Grant Modal */}
+      <Modal
+        title={
+          <Space>
+            <DollarOutlined />
+            <span>Grant Credit to {selectedDonor?.name || 'Donor'}</span>
+          </Space>
+        }
+        open={creditGrantModalVisible}
+        onCancel={() => {
+          setCreditGrantModalVisible(false);
+          creditGrantForm.resetFields();
+          setSelectedDonor(null);
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={creditGrantForm}
+          layout="vertical"
+          onFinish={handleCreditGrant}
+          initialValues={{
+            expiresInDays: 90
+          }}
+        >
+          <Form.Item
+            label="Credit Amount"
+            name="amount"
+            rules={[
+              { required: true, message: 'Please enter credit amount' },
+              { type: 'number', min: 0.01, message: 'Amount must be greater than 0' }
+            ]}
+          >
+            <InputNumber
+              prefix="$"
+              style={{ width: '100%' }}
+              placeholder="Enter credit amount"
+              min={0.01}
+              step={0.01}
+              precision={2}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: 'Please enter a description' }]}
+          >
+            <TextArea
+              rows={3}
+              placeholder="Reason for granting this credit..."
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Expires In (Days)"
+            name="expiresInDays"
+            rules={[{ required: true, message: 'Please enter expiration days' }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              placeholder="90"
+              min={1}
+              max={365}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<CheckCircleOutlined />}
+                style={{
+                  backgroundColor: '#DB8633',
+                  borderColor: '#DB8633',
+                  color: '#ffffff'
+                }}
+              >
+                Grant Credit
+              </Button>
+              <Button
+                onClick={() => {
+                  setCreditGrantModalVisible(false);
+                  creditGrantForm.resetFields();
+                  setSelectedDonor(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </Layout>
   );
 };
