@@ -480,7 +480,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         phone: formData.phoneNumber || formData.contactNumber || originalVendor?.phoneNumber || originalVendorFromAPI?.phone || 'NA',
         website: formData.websiteLink || originalVendor?.websiteLink || originalVendorFromAPI?.website || '',
         category: formData.category || originalVendor?.category || originalVendorFromAPI?.category || '',
-        description: formData.description || originalVendor?.description || originalVendorFromAPI?.description || '',
       };
       
       console.log('💾 Constructed apiData:', apiData);
@@ -497,12 +496,60 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         apiData.social_links = originalVendorFromAPI.social_links;
       }
       
-      // Preserve tags if available
-      if (formData.tags && Array.isArray(formData.tags) && formData.tags.length > 0) {
-        apiData.tags = formData.tags;
-      } else if (originalVendor?.tags && Array.isArray(originalVendor.tags)) {
-        apiData.tags = originalVendor.tags;
+      // Always include tags (even if empty array) - send directly to API
+      const tagsToSave = formData.tags && Array.isArray(formData.tags) 
+        ? formData.tags 
+        : originalVendor?.tags && Array.isArray(originalVendor.tags)
+        ? originalVendor.tags
+        : [];
+      apiData.tags = tagsToSave;
+      console.log('🏷️ Tags to save:', tagsToSave);
+      
+      // Handle description field - it stores JSON with tags, pricingTier, and description text
+      // Parse existing description to preserve other fields, then update with new values
+      let descriptionData: any = {};
+      try {
+        // Try to parse existing description as JSON (from InviteVendorModal format)
+        if (originalVendorFromAPI?.description) {
+          try {
+            descriptionData = JSON.parse(originalVendorFromAPI.description);
+            console.log('📝 Parsed existing description JSON:', descriptionData);
+          } catch {
+            // If not JSON, treat as plain text
+            descriptionData = { description: originalVendorFromAPI.description };
+          }
+        } else if (originalVendor?.description) {
+          try {
+            descriptionData = JSON.parse(originalVendor.description);
+          } catch {
+            descriptionData = { description: originalVendor.description };
+          }
+        }
+      } catch (error) {
+        console.log('Could not parse description, using as plain text');
+        descriptionData = { description: formData.description || originalVendor?.description || 'No description provided' };
       }
+      
+      // Update description data with current form values
+      descriptionData.tags = tagsToSave; // Include tags in description JSON too (for consistency)
+      descriptionData.pricingTier = formData.pricingTier || originalVendor?.pricingTier || descriptionData.pricingTier || 'Not Set';
+      descriptionData.description = formData.description || descriptionData.description || 'No description provided';
+      
+      // Preserve other fields from description JSON if they exist
+      if (descriptionData.logo_file_name) {
+        // Keep existing logo_file_name
+      }
+      if (descriptionData.product_images) {
+        // Keep existing product_images
+      }
+      if (descriptionData.image_upload_status) {
+        // Keep existing image_upload_status
+      }
+      
+      // Stringify the description data to match InviteVendorModal format
+      apiData.description = JSON.stringify(descriptionData);
+      console.log('📝 Description JSON to save:', descriptionData);
+      console.log('📝 Description string to save:', apiData.description);
       
       // Handle address - use original API address structure if available
       if (originalVendorFromAPI?.address && typeof originalVendorFromAPI.address === 'object') {
