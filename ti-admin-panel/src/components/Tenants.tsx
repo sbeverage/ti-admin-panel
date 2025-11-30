@@ -260,6 +260,8 @@ const Tenants: React.FC = () => {
               alt="THRIVE Logo"
               className="standard-logo-image"
             />
+          </div>
+        </div>
 
         <Menu
           className="standard-menu"

@@ -362,6 +362,8 @@ const Settings: React.FC = () => {
               alt="THRIVE Logo"
               className="standard-logo-image"
             />
+          </div>
+        </div>
 
         <Menu
           mode="inline"
