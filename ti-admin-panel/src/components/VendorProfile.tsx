@@ -614,13 +614,16 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       }
       
       // Include logo URL - send multiple field name variations for backend compatibility
+      // CRITICAL: Prioritize formData.logo_url (what user just uploaded) over everything else
       // Backend might expect logoUrl (camelCase) which saves to logo_url column
-      const logoUrl = formData.logo_url || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
+      const logoUrl = formData.logo_url || formData.logoUrl || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
       console.log('🖼️ Checking logo_url for save:', {
         formData_logo_url: formData.logo_url,
+        formData_logoUrl: formData.logoUrl,
         vendorData_logo_url: vendorData?.logo_url,
         originalVendor_logo_url: originalVendorFromAPI?.logo_url,
-        final_logoUrl: logoUrl
+        final_logoUrl: logoUrl,
+        isEditing: isEditing
       });
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
         // Send all field name variations for maximum compatibility (like BeneficiaryProfile does)
@@ -628,8 +631,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         apiData.logo_url = logoUrl; // Also send snake_case for compatibility
         apiData.logo = logoUrl; // Send plain 'logo' as well
         console.log('✅ logoUrl, logo_url, and logo included in apiData:', logoUrl);
+        console.log('✅ Full apiData being sent:', JSON.stringify(apiData, null, 2));
       } else {
         console.warn('⚠️ logo_url is missing or empty, not including in save');
+        console.warn('⚠️ formData keys:', Object.keys(formData));
+        console.warn('⚠️ vendorData keys:', vendorData ? Object.keys(vendorData) : 'null');
       }
       
       // Ensure address is always a valid object (backend requires it)
@@ -1337,21 +1343,56 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     <div className="images-section">
       <Card title="Logo" className="profile-section-card" style={{ marginBottom: '24px' }}>
         <div className="logo-section">
-          <ImageUpload
-            currentImageUrl={vendorData?.logo_url}
-            onImageChange={(url) => {
-              console.log('🖼️ Logo URL changed:', url);
-              const logoUrl = url || '';
-              // Update both vendorData and formData immediately so it shows in the UI
-              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
-              setFormData((prev: any) => ({ ...prev, logo_url: logoUrl }));
-              console.log('🖼️ Updated vendorData and formData with logo URL:', logoUrl);
-              // Note: User must click Save button to persist to database
-            }}
-            title="Upload Vendor Logo"
-            description="Click or drag an image file to upload"
-            bucketName="vendor-logos"
-          />
+          {isEditing ? (
+            <ImageUpload
+              currentImageUrl={formData?.logo_url || vendorData?.logo_url}
+              onImageChange={(url) => {
+                console.log('🖼️ Logo URL changed:', url);
+                const logoUrl = url || '';
+                // Update formData immediately so it shows in the UI and gets saved
+                setFormData((prev: any) => ({ ...prev, logo_url: logoUrl }));
+                // Also update vendorData for immediate display
+                setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
+                console.log('🖼️ Updated vendorData and formData with logo URL:', logoUrl);
+                // Note: User must click Save button to persist to database
+              }}
+              title="Upload Vendor Logo"
+              description="Click or drag an image file to upload"
+              bucketName="vendor-logos"
+            />
+          ) : (
+            vendorData?.logo_url ? (
+              <div>
+                <Image
+                  src={vendorData.logo_url}
+                  alt="Vendor logo"
+                  style={{ 
+                    maxWidth: 200, 
+                    maxHeight: 200,
+                    borderRadius: '8px',
+                    border: '1px solid #d9d9d9'
+                  }}
+                />
+                <div style={{ marginTop: '12px' }}>
+                  <Text type="secondary">Click "Edit Profile" to change the logo</Text>
+                </div>
+              </div>
+            ) : (
+              <div style={{ 
+                border: '2px dashed #d9d9d9', 
+                borderRadius: '8px', 
+                padding: '40px', 
+                textAlign: 'center',
+                backgroundColor: '#fafafa'
+              }}>
+                <PictureOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '12px' }} />
+                <Text type="secondary" style={{ display: 'block' }}>No logo uploaded</Text>
+                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
+                  Click "Edit Profile" to upload a logo
+                </Text>
+              </div>
+            )
+          )}
         </div>
       </Card>
 
