@@ -1,63 +1,64 @@
-# ✅ Image Upload Setup - COMPLETE! (Supabase Storage)
+# ✅ AWS S3 Image Upload Setup - COMPLETE!
 
-**Date:** November 29, 2025  
-**Status:** 🟢 Production Ready - Using Supabase Storage Only
+**Date:** October 19, 2025  
+**Status:** 🟢 Production Ready
 
 ---
 
 ## 🎉 What We Accomplished
 
-### **1. Migrated to Supabase Storage**
-- ✅ **Storage:** Supabase Storage (fully migrated from AWS S3)
-- ✅ **Buckets:** 
-  - `beneficiary-images` - For beneficiary photos
-  - `vendor-images` - For vendor logos
-- ✅ **Public Access:** Configured via Supabase Storage policies
-- ✅ **Backend Integration:** Secure uploads via Supabase Edge Functions
+### **1. Created S3 Bucket**
+- ✅ **Bucket Name:** `ti-admin-images`
+- ✅ **Region:** `us-east-1`
+- ✅ **Public Read Access:** Enabled
+- ✅ **Bucket Policy:** Configured for public image access
 
-### **2. Configuration**
-All image uploads now use Supabase Storage via the backend API:
+### **2. Configured Vercel Environment Variables**
+All AWS credentials are now set in Vercel production environment:
 
-| Component | Storage Service | Status |
-|-----------|----------------|--------|
-| Vendor Logos | Supabase Storage (`vendor-images` bucket) | ✅ Working |
-| Beneficiary Images | Supabase Storage (`beneficiary-images` bucket) | ✅ Working |
-| Discount Images | Supabase Storage (`beneficiary-images` bucket) | ✅ Working |
+| Variable | Value | Status |
+|----------|-------|--------|
+| `REACT_APP_AWS_ACCESS_KEY_ID` | `[REDACTED - Set in Vercel]` | ✅ Set |
+| `REACT_APP_AWS_SECRET_ACCESS_KEY` | `[REDACTED - Set in Vercel]` | ✅ Set |
+| `REACT_APP_AWS_REGION` | `us-east-1` | ✅ Set |
+| `REACT_APP_S3_BUCKET_NAME` | `ti-admin-images` | ✅ Set |
+| `REACT_APP_ADMIN_SECRET` | `6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e` | ✅ Set |
+| `REACT_APP_API_BASE_URL` | Backend URL | ✅ Set |
 
 ### **3. Deployed to Production**
 - ✅ **Admin Panel URL:** `https://admin.forpurposetechnologies.com`
-- ✅ **Deployment Status:** Successfully deployed
+- ✅ **Deployment Status:** Successfully deployed with new environment variables
 - ✅ **Backend Status:** Healthy and connected
-- ✅ **Storage:** Supabase Storage (no AWS dependencies)
 
 ---
 
-## 🔐 Supabase Storage Configuration
+## 🔐 AWS Configuration Details
 
-### **Storage Buckets**
+### **S3 Bucket Configuration**
 ```json
 {
-  "buckets": [
-    {
-      "name": "beneficiary-images",
-      "public": true,
-      "purpose": "Beneficiary photos and images"
-    },
-    {
-      "name": "vendor-images",
-      "public": true,
-      "purpose": "Vendor logos"
-    }
-  ],
-  "storage": "Supabase Storage",
-  "region": "Global CDN"
+  "bucket": "ti-admin-images",
+  "region": "us-east-1",
+  "publicAccess": true,
+  "bucketPolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "PublicReadGetObject",
+        "Effect": "Allow",
+        "Principal": "*",
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::ti-admin-images/*"
+      }
+    ]
+  }
 }
 ```
 
-### **Backend API Endpoints**
-- **Upload:** `POST /api/admin/storage/upload`
-- **Delete:** `POST /api/admin/storage/delete`
-- **Authentication:** Uses Admin Secret for secure access
+### **IAM User**
+- **User:** `thrive-backend-deploy`
+- **Account:** `120107231670`
+- **Permissions:** Full S3 access to `ti-admin-images` bucket
 
 ---
 
@@ -69,7 +70,7 @@ Your admin panel now supports:
 1. Navigate to a vendor profile
 2. Go to the "Images & Media" section
 3. Click or drag an image to upload
-4. Image automatically uploads to Supabase Storage
+4. Image automatically uploads to S3
 5. URL is saved to vendor profile
 
 ### **Supported Features**
@@ -78,7 +79,7 @@ Your admin panel now supports:
 - ✅ File size validation (max 5MB)
 - ✅ Image preview
 - ✅ Replace existing images
-- ✅ Delete images from Supabase Storage
+- ✅ Delete images from S3
 - ✅ Public URL generation
 - ✅ Progress indicators
 
@@ -89,42 +90,35 @@ Your admin panel now supports:
 ### **Upload Flow:**
 1. User selects/drags image in admin panel
 2. Frontend validates file type and size
-3. Image uploads to Supabase Storage via backend API
-4. Backend uses service role key for secure uploads
-5. Supabase Storage returns public URL
-6. URL saved to vendor/beneficiary profile in database
-7. Image immediately visible in admin panel
+3. Image uploads to AWS S3 using credentials
+4. S3 returns public URL
+5. URL saved to vendor profile in database
+6. Image immediately visible in admin panel
 
 ### **File Naming:**
 Images are stored with unique names to prevent conflicts:
 ```
-{timestamp}-{random}.{extension}
+vendor-images/{timestamp}-{random}.{extension}
 ```
 
 Example:
 ```
-uploads/1729347442544-a8f3b2c.jpg
+vendor-images/1729347442544-a8f3b2c.jpg
 ```
 
 ### **Public URL Format:**
 ```
-https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/{bucket-name}/{path}
-```
-
-Example:
-```
-https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/vendor-images/uploads/1729347442544-a8f3b2c.jpg
+https://ti-admin-images.s3.amazonaws.com/vendor-images/1729347442544-a8f3b2c.jpg
 ```
 
 ---
 
 ## 🔧 Backend Integration
 
-### **Current Backend (Supabase Edge Functions):**
+### **Current Backend (Supabase):**
 - **URL:** `https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin`
 - **Status:** 🟢 Healthy
-- **Admin Secret:** Set in backend environment variables
-- **Storage:** Supabase Storage (no AWS dependencies)
+- **Admin Secret:** `6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e`
 
 ---
 
@@ -143,26 +137,22 @@ https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/vendor-images/
 - ✅ Health check: `/health` endpoint responding
 - ✅ Admin authentication working
 - ✅ Vendor API endpoints responding
-- ✅ Storage upload endpoint working
-- ✅ Storage delete endpoint working
 
 ---
 
 ## 📊 Current Status
 
 ### **✅ Completed:**
-1. Migrated from AWS S3 to Supabase Storage
-2. Removed all AWS dependencies
-3. Updated all components to use Supabase Storage
+1. S3 bucket created and configured
+2. AWS credentials added to Vercel
+3. Admin panel redeployed with new credentials
 4. Backend API connected and healthy
 5. Image upload functionality ready
-6. All documentation updated
 
 ### **🟢 Production Ready:**
 - Admin panel: `https://admin.forpurposetechnologies.com`
-- Storage: Supabase Storage (global CDN)
+- S3 bucket: `ti-admin-images` (us-east-1)
 - Image uploads: Fully functional
-- **No AWS dependencies**
 
 ---
 
@@ -170,22 +160,32 @@ https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/vendor-images/
 
 ### **If Image Uploads Don't Work:**
 
-1. **Check Backend Storage Endpoints:**
-   - Verify `/api/admin/storage/upload` is implemented
-   - Verify `/api/admin/storage/delete` is implemented
+1. **Check Vercel Environment Variables:**
+   ```bash
+   vercel env ls
+   ```
+   Verify all 4 AWS variables are set.
 
 2. **Check Browser Console:**
-   - Open DevTools → Console
-   - Look for Supabase Storage errors or CORS issues
+   Open DevTools → Console
+   Look for AWS S3 errors or CORS issues
 
-3. **Verify Supabase Storage Buckets:**
-   - Check that `beneficiary-images` bucket exists
-   - Check that `vendor-images` bucket exists
-   - Verify bucket policies allow public read access
+3. **Verify AWS Credentials:**
+   ```bash
+   aws s3 ls s3://ti-admin-images
+   ```
+   Should list bucket contents.
 
-4. **Check Backend Logs:**
-   - Verify service role key is configured
-   - Check for authentication errors
+4. **Test S3 Upload Manually:**
+   ```bash
+   echo "test" > test.txt
+   aws s3 cp test.txt s3://ti-admin-images/test.txt
+   ```
+
+5. **Check Bucket Policy:**
+   ```bash
+   aws s3api get-bucket-policy --bucket ti-admin-images
+   ```
 
 ---
 
@@ -207,26 +207,31 @@ https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/vendor-images/
 
 ## 📚 Related Documentation
 
-- `SUPABASE_STORAGE_BACKEND_ENDPOINTS.md` - Backend storage API documentation
-- `src/services/supabaseStorage.ts` - Supabase Storage upload service
+- `AWS_SETUP_GUIDE.md` - Detailed AWS setup instructions
+- `QUICK_SETUP.md` - Quick troubleshooting guide
+- `src/services/aws.ts` - AWS S3 upload service
 - `src/components/ImageUpload.tsx` - Image upload component
 
 ---
 
 ## 💡 Key Points to Remember
 
-1. **Storage:** All images use Supabase Storage (no AWS)
-2. **Buckets:** Separate buckets for vendors and beneficiaries
+1. **AWS Credentials:** Stored securely in Vercel environment variables
+2. **S3 Bucket:** Public read access for uploaded images
 3. **File Validation:** Frontend validates before upload (type, size)
 4. **Unique Filenames:** Prevents conflicts, uses timestamp + random string
-5. **Public URLs:** Images accessible via Supabase Storage public URL
-6. **Backend Security:** Uses service role key for secure uploads
+5. **Public URLs:** Images accessible via S3 public URL
+6. **Admin Secret:** Required for backend API calls (different from AWS)
 
 ---
 
-**Last Updated:** November 29, 2025  
-**Status:** 🟢 Production Ready - Supabase Storage Only  
-**Image Uploads:** ✅ Working  
-**AWS Dependencies:** ❌ Removed
+**Last Updated:** October 19, 2025  
+**Status:** 🟢 Production Ready  
+**Image Uploads:** ✅ Working
 
-**All systems go! Your admin panel uses Supabase Storage exclusively! 🚀**
+**All systems go! Your admin panel can now upload vendor logos to AWS S3! 🚀**
+
+
+
+
+
