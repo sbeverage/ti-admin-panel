@@ -24,7 +24,8 @@ import {
   FallOutlined,
   TeamOutlined,
   GlobalOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
@@ -363,6 +364,8 @@ const Dashboard: React.FC = () => {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -437,6 +440,12 @@ const Dashboard: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

@@ -1771,3 +1771,71 @@ export const beneficiaryAPI = {
     return response.json();
   }
 };
+
+export const reportingAPI = {
+  // Get payout data for a date range
+  getPayoutData: async (startDate: string, endDate: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/reporting/payouts?startDate=${startDate}&endDate=${endDate}`,
+      { headers: API_CONFIG.headers }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Update bank information for a beneficiary
+  updateBankInfo: async (beneficiaryId: number, bankInfo: {
+    bank_name: string;
+    account_holder_name: string;
+    routing_number: string;
+    account_number: string;
+    payment_method: 'direct_deposit' | 'check';
+  }): Promise<ApiResponse<any>> => {
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/reporting/beneficiaries/${beneficiaryId}/bank-info`,
+      {
+        method: 'PUT',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify(bankInfo)
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Update payout status
+  updatePayoutStatus: async (beneficiaryId: number, statusData: {
+    payout_status: string;
+    payout_date?: string;
+    notes?: string;
+  }): Promise<ApiResponse<any>> => {
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/reporting/beneficiaries/${beneficiaryId}/payout-status`,
+      {
+        method: 'PUT',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify(statusData)
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Get Stripe reconciliation data
+  getStripeReconciliation: async (startDate: string, endDate: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/reporting/stripe-reconciliation?startDate=${startDate}&endDate=${endDate}`,
+      { headers: API_CONFIG.headers }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  }
+};

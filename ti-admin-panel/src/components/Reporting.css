@@ -1,0 +1,45 @@
+.reporting-layout {
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.reporting-layout .standard-header {
+  padding: 0 24px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reporting-layout .ant-statistic-title {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.reporting-layout .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.reporting-layout .ant-table-summary {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.reporting-layout .ant-table-summary .ant-table-cell {
+  background: #fafafa !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .reporting-layout .ant-table {
+    font-size: 12px;
+  }
+  
+  .reporting-layout .ant-statistic-content {
+    font-size: 20px;
+  }
+}
+
