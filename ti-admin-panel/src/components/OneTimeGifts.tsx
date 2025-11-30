@@ -388,12 +388,6 @@ const OneTimeGifts: React.FC = () => {
       title: 'Tenant Management'
     },
     {
-      key: 'leaderboard',
-      icon: <CrownOutlined />,
-      label: 'Leaderboard',
-      title: 'Leaderboard & Rankings'
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',

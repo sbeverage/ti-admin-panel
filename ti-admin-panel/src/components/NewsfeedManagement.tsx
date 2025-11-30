@@ -105,8 +105,6 @@ const NewsfeedManagement: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    } else if (key === 'leaderboard') {
-      navigate('/leaderboard');
     } else if (key === 'newsfeed-management') {
       navigate('/newsfeed-management');
     } else if (key === 'ads-management') {
@@ -159,12 +157,6 @@ const NewsfeedManagement: React.FC = () => {
       icon: <BankOutlined />,
       label: 'Tenants',
       title: 'Tenant Management'
-    },
-    {
-      key: 'leaderboard',
-      icon: <CrownOutlined />,
-      label: 'Leaderboard',
-      title: 'Leaderboard & Rankings'
     },
     {
       key: 'feeds',

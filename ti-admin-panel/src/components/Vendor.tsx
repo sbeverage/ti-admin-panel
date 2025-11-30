@@ -334,8 +334,6 @@ const Vendor: React.FC = () => {
       navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
-    } else if (key === 'leaderboard') {
-      navigate('/leaderboard');
     } else if (key === 'settings') {
       navigate('/settings');
        }
@@ -406,12 +404,6 @@ const Vendor: React.FC = () => {
       icon: <BankOutlined />,
       label: 'Tenants',
       title: 'Tenant Management'
-    },
-    {
-      key: 'leaderboard',
-      icon: <CrownOutlined />,
-      label: 'Leaderboard',
-      title: 'Leaderboard & Rankings'
     },
     {
       key: 'pending-approvals',

@@ -108,8 +108,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
         current_beneficiary: null,
         donation_history: [],
         discount_redemptions: [],
-        total_savings: 0,
-        leaderboard_position: null
+        total_savings: 0
       });
     } finally {
       setLoadingDetails(false);
@@ -628,45 +627,6 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
             </div>
           </TabPane>
 
-          {/* Leaderboard Tab */}
-          <TabPane tab={<span><TrophyOutlined /> Leaderboard</span>} key="leaderboard">
-            <div style={{ padding: '20px 0' }}>
-              {donorDetails?.leaderboard_position ? (
-                <Card>
-                  <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
-                    <div>
-                      <TrophyOutlined style={{ fontSize: '48px', color: '#DB8633' }} />
-                      <Title level={2} style={{ margin: '16px 0' }}>
-                        #{donorDetails.leaderboard_position.rank}
-                      </Title>
-                      <Text type="secondary">Overall Ranking</Text>
-                    </div>
-                    <Divider />
-                    <div>
-                      <Text type="secondary">Total Points</Text>
-                      <Title level={3} style={{ margin: '8px 0', color: '#DB8633' }}>
-                        {donorDetails.leaderboard_position.points?.toLocaleString() || 0}
-                      </Title>
-                    </div>
-                    {donorDetails.leaderboard_position.period && (
-                      <div>
-                        <Text type="secondary">
-                          {donorDetails.leaderboard_position.period === 'all_time' ? 'All Time' :
-                           donorDetails.leaderboard_position.period === 'year' ? 'This Year' :
-                           donorDetails.leaderboard_position.period === 'month' ? 'This Month' : ''}
-                        </Text>
-                      </div>
-                    )}
-                  </Space>
-                </Card>
-              ) : (
-                <Empty 
-                  description="No leaderboard data available"
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
-          </TabPane>
         </Tabs>
       </Spin>
     </Modal>

@@ -8,7 +8,6 @@ import Vendor from './components/Vendor';
 import Beneficiaries from './components/Beneficiaries';
 import Tenants from './components/Tenants';
 import Discounts from './components/Discounts';
-import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
 import NewsfeedManagement from './components/NewsfeedManagement';
 import PendingApprovals from './components/PendingApprovals';
@@ -66,7 +65,6 @@ function App() {
           <Route path="/beneficiaries" element={<Beneficiaries />} />
           <Route path="/tenants" element={<Tenants />} />
           <Route path="/discounts" element={<Discounts />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
           <Route path="/pending-approvals" element={<PendingApprovals />} />
           <Route path="/referral-analytics" element={<ReferralAnalytics />} />
