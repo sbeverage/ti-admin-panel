@@ -44,7 +44,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const [trustTransparency, setTrustTransparency] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
-  // Image URLs from S3 uploads
+  // Image URLs from Supabase Storage uploads
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
@@ -76,7 +76,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   ];
 
-  // Image upload handlers - using real AWS S3 uploads
+  // Image upload handlers - using Supabase Storage
   const handleMainImageChange = (url: string | null) => {
     setMainImageUrl(url);
     form.setFieldsValue({ mainImage: url });

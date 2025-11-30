@@ -64,7 +64,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const handleRemove = async () => {
-    if (currentImageUrl && (currentImageUrl.includes('supabase.co') || currentImageUrl.includes('amazonaws.com'))) {
+    if (currentImageUrl && currentImageUrl.includes('supabase.co')) {
       try {
         const result = await deleteFromSupabase(currentImageUrl, bucketName);
         if (!result.success) {

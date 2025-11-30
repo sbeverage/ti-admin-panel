@@ -325,10 +325,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         const vendorId = vendorResponse.data.id;
         console.log('✅ Vendor created successfully with ID:', vendorId);
         
-        // Upload logo to S3 if provided
+        // Upload logo to Supabase Storage if provided
         if (logoFileList.length > 0 && logoFileList[0].originFileObj) {
           try {
-            console.log('Uploading logo to S3...');
+            console.log('Uploading logo to Supabase Storage...');
             const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
             console.log('Logo upload response:', logoUploadResponse);
             if (logoUploadResponse.success) {
@@ -375,10 +375,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             if (discountResponse.success && discountResponse.data) {
               message.success('Discount created successfully!');
               
-              // Upload discount image to S3 if provided
+              // Upload discount image to Supabase Storage if provided
               if (productImagesFileList.length > 0) {
                 try {
-                  console.log('Uploading discount image to S3...');
+                  console.log('Uploading discount image to Supabase Storage...');
                   const discountId = discountResponse.data.id;
                   const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
                   console.log('Discount image upload response:', imageUploadResponse);
@@ -527,7 +527,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         
         // For now, we'll create a mock URL and store the file for later upload
         // This allows the form to work while we figure out the correct upload endpoint
-        const mockUrl = `https://thrive-backend-uploads.s3.us-east-1.amazonaws.com/mock-${Date.now()}-${file.name}`;
+        const mockUrl = `https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/beneficiary-images/mock-${Date.now()}-${file.name}`;
         
         // Simulate upload progress
         onProgress({ percent: 50 });

@@ -195,8 +195,8 @@ Status: ✅ Healthy
 
 ### **Environment Variables (Vercel):**
 ```
-REACT_APP_AWS_ACCESS_KEY_ID: ✅ Set
-REACT_APP_AWS_SECRET_ACCESS_KEY: ✅ Set
+REACT_APP_AWS_ACCESS_KEY_ID: ✅ Set (stored in Vercel, not in code)
+REACT_APP_AWS_SECRET_ACCESS_KEY: ✅ Set (stored in Vercel, not in code)
 REACT_APP_AWS_REGION: ✅ Set (us-east-1)
 REACT_APP_S3_BUCKET_NAME: ✅ Set (ti-admin-images)
 REACT_APP_ADMIN_SECRET: ✅ Set
