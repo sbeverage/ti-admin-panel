@@ -224,18 +224,22 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     loadVendorData();
   }, [vendorId]);
 
-  const loadVendorData = async () => {
-    setLoading(true);
+  const loadVendorData = async (showLoading: boolean = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     
     // Create timeout promise that rejects after 3 seconds
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Request timeout')), 3000);
     });
 
+    const vendorIdNum = parseInt(vendorId);
+    const timerName = `Vendor Profile API Call ${vendorIdNum}-${Date.now()}`;
+    
     try {
-      const vendorIdNum = parseInt(vendorId);
       console.log('Loading vendor profile data...');
-      console.time('Vendor Profile API Call');
+      console.time(timerName);
       
       // Load vendor data with timeout
       const vendorResponse = await Promise.race([
@@ -243,6 +247,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         timeoutPromise
       ]) as any;
       
+      console.timeEnd(timerName);
       console.log('Vendor API response:', vendorResponse);
       if (vendorResponse.success && vendorResponse.data) {
         const vendor = vendorResponse.data;
@@ -306,14 +311,26 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         console.log(`🎯 Final discounts count:`, discounts.length);
         
         // Parse form data from description field (stored as JSON)
+        // Handle both JSON and plain text descriptions
         let formData: any = {};
         try {
           if (vendor.description) {
-            formData = JSON.parse(vendor.description);
-            console.log('Parsed form data from description:', formData);
+            // Try to parse as JSON first
+            try {
+              formData = JSON.parse(vendor.description);
+              console.log('Parsed form data from description (JSON):', formData);
+            } catch (jsonError) {
+              // If JSON parsing fails, treat as plain text
+              console.log('Description is plain text, not JSON:', vendor.description);
+              formData = { description: vendor.description };
+            }
           }
         } catch (error) {
           console.log('Could not parse form data from description:', error);
+          // Fallback: use description as plain text
+          if (vendor.description) {
+            formData = { description: vendor.description };
+          }
         }
 
         // Transform API data to match our interface
@@ -401,7 +418,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         setSelectedCategory('');
       }
     } catch (error) {
-      console.timeEnd('Vendor Profile API Call');
+      // End timer if it was started
+      try {
+        console.timeEnd(timerName);
+      } catch {}
       console.error('Error loading vendor data:', error);
       console.error('Error details:', error);
       console.log('API failed, showing fallback vendor data');
@@ -410,7 +430,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       setFormData(null);
       setSelectedCategory('');
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -544,16 +566,21 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         };
       }
       
-      // Include logo_url if it has been updated (check both vendorData and formData)
-      const logoUrl = formData.logo_url || vendorData?.logo_url;
+      // Include logo URL - send multiple field name variations for backend compatibility
+      // Backend might expect logoUrl (camelCase) which saves to logo_url column
+      const logoUrl = formData.logo_url || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
       console.log('🖼️ Checking logo_url for save:', {
         formData_logo_url: formData.logo_url,
         vendorData_logo_url: vendorData?.logo_url,
+        originalVendor_logo_url: originalVendorFromAPI?.logo_url,
         final_logoUrl: logoUrl
       });
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
-        apiData.logo_url = logoUrl;
-        console.log('✅ logo_url included in apiData:', logoUrl);
+        // Send all field name variations for maximum compatibility (like BeneficiaryProfile does)
+        apiData.logoUrl = logoUrl; // ⚠️ CRITICAL: Backend expects camelCase
+        apiData.logo_url = logoUrl; // Also send snake_case for compatibility
+        apiData.logo = logoUrl; // Send plain 'logo' as well
+        console.log('✅ logoUrl, logo_url, and logo included in apiData:', logoUrl);
       } else {
         console.warn('⚠️ logo_url is missing or empty, not including in save');
       }
@@ -614,6 +641,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                          (result.success === undefined && result.data && !result.error);
         
         if (isSuccess) {
+          // CRITICAL: Prioritize formData.logo_url over API response since backend might return null
+          // even though we sent it (backend might not be saving it properly, but we want to preserve it in UI)
+          const savedLogoUrl = formData.logo_url || (result.data as any)?.logo_url || vendorData?.logo_url;
+          
           // Update local state with the response data if available
           if (result.data) {
             // Convert API response to VendorData format - only include VendorData properties
@@ -628,7 +659,8 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               contactNumber: apiResponse.phone || formData.contactNumber || vendorData?.contactNumber,
               websiteLink: apiResponse.website || formData.websiteLink || vendorData?.websiteLink,
               category: apiResponse.category || formData.category || vendorData?.category,
-              logo_url: apiResponse.logo_url || formData.logo_url || vendorData?.logo_url,
+              // CRITICAL: Use formData logo_url first (what user uploaded), then API response, then fallback
+              logo_url: savedLogoUrl,
               // Preserve other VendorData fields
               contactName: formData.contactName || vendorData?.contactName,
               bankAccount: vendorData?.bankAccount,
@@ -645,16 +677,50 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               tags: formData.tags || vendorData?.tags,
               description: apiResponse.description || formData.description || vendorData?.description
             };
+            console.log('💾 Updated data with logo_url:', savedLogoUrl);
             setVendorData((prev: VendorData | null) => prev ? { ...prev, ...updatedData } as VendorData : null);
             setFormData((prev: any) => ({ ...prev, ...updatedData }));
           } else {
-            setVendorData(formData);
-            setFormData(formData);
+            // If no response data, use formData but ensure logo_url is preserved
+            const finalFormData = { ...formData, logo_url: savedLogoUrl };
+            setVendorData(finalFormData);
+            setFormData(finalFormData);
           }
           setIsEditing(false);
+          
           // Reload vendor data to get the latest from API (including logo_url)
+          // Store the saved logo URL before reload so we can restore it if backend returns null
+          // Don't show loading spinner during reload to avoid window appearing to close/reopen
           console.log('🔄 Reloading vendor data after successful update...');
-          await loadVendorData();
+          const logoUrlToPreserve = savedLogoUrl;
+          try {
+            await loadVendorData(false); // Pass false to skip loading spinner
+            // After reload, check if logo_url is null in the newly loaded data
+            // Use a small timeout to ensure state has updated
+            setTimeout(() => {
+              setVendorData((prev: VendorData | null) => {
+                if (prev && !prev.logo_url && logoUrlToPreserve) {
+                  console.log('⚠️ Backend returned null logo_url, preserving uploaded URL in state');
+                  return { ...prev, logo_url: logoUrlToPreserve } as VendorData;
+                }
+                return prev;
+              });
+              setFormData((prev: any) => {
+                if (prev && !prev.logo_url && logoUrlToPreserve) {
+                  return { ...prev, logo_url: logoUrlToPreserve };
+                }
+                return prev;
+              });
+            }, 100);
+          } catch (reloadError) {
+            console.error('Error reloading vendor data:', reloadError);
+            // Don't fail the save if reload fails, but ensure logo_url is preserved
+            if (logoUrlToPreserve) {
+              setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrlToPreserve } as VendorData : null);
+              setFormData((prev: any) => ({ ...prev, logo_url: logoUrlToPreserve }));
+            }
+          }
+          
           // Only call onUpdate to refresh the parent list, don't pass data that would trigger another update
           if (onUpdate) {
             onUpdate({ success: true, vendorId: vendorIdNum });
