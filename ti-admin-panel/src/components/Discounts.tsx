@@ -39,7 +39,8 @@ import {
   DeleteOutlined,
   DollarOutlined,
   PercentageOutlined,
-  ShoppingOutlined
+  ShoppingOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
@@ -186,6 +187,8 @@ const Discounts: React.FC = () => {
       navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -329,6 +332,12 @@ const Discounts: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

@@ -8,7 +8,8 @@ import {
   CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined
+  EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import './PendingApprovals.css';
 
@@ -167,6 +168,8 @@ const PendingApprovals: React.FC = () => {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -258,6 +261,12 @@ const PendingApprovals: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

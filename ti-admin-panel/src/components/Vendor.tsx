@@ -8,7 +8,7 @@ import {
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, StopOutlined
+  CheckCircleOutlined, StopOutlined, CalculatorOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
@@ -334,6 +334,8 @@ const Vendor: React.FC = () => {
       navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
        }
@@ -422,6 +424,12 @@ const Vendor: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

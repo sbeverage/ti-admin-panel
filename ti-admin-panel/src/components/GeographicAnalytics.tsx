@@ -38,7 +38,8 @@ import {
   ShopOutlined,
   HeartOutlined,
   TrophyOutlined,
-  TeamOutlined
+  TeamOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import './GeographicAnalytics.css';
 import '../styles/sidebar-standard.css';
@@ -122,6 +123,8 @@ const GeographicAnalytics: React.FC = () => {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -196,6 +199,12 @@ const GeographicAnalytics: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

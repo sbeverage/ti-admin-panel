@@ -31,7 +31,8 @@ import {
   PlusOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import './ReferralAnalytics.css';
 import '../styles/sidebar-standard.css';
@@ -523,6 +524,8 @@ const ReferralAnalytics: React.FC = () => {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -597,6 +600,12 @@ const ReferralAnalytics: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

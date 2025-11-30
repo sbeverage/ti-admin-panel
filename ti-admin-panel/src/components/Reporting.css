@@ -32,6 +32,21 @@
   background: #fafafa !important;
 }
 
+/* Smaller table headers to fit on one line */
+.reporting-layout .ant-table-thead > tr > th.table-header-small {
+  font-size: 11px;
+  padding: 8px 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.reporting-layout .ant-table-thead > tr > th {
+  font-size: 12px;
+  padding: 8px 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .reporting-layout .ant-table {

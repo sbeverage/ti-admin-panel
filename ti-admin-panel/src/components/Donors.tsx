@@ -8,7 +8,7 @@ import {
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
-  MailOutlined, EnvironmentOutlined
+  MailOutlined, EnvironmentOutlined, CalculatorOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
@@ -282,6 +282,8 @@ const Donors: React.FC = () => {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -369,6 +371,12 @@ const Donors: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',

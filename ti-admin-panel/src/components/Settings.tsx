@@ -11,7 +11,7 @@ import {
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined,   LockOutlined,
   TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
-  ApiOutlined, GlobalOutlined, LogoutOutlined
+  ApiOutlined, GlobalOutlined, LogoutOutlined, CalculatorOutlined
 } from '@ant-design/icons';
 import './Settings.css';
 import ApiRateLimiting from './ApiRateLimiting';
@@ -115,6 +115,8 @@ const Settings: React.FC = () => {
       navigate('/geographic-analytics');
     } else if (key === 'discounts') {
       navigate('/discounts');
+    } else if (key === 'reporting') {
+      navigate('/reporting');
     } else if (key === 'settings') {
       navigate('/settings');
     }
@@ -186,6 +188,12 @@ const Settings: React.FC = () => {
       icon: <GlobalOutlined />,
       label: 'Geographic Analytics',
       title: 'Geographic Analytics & Insights'
+    },
+    {
+      key: 'reporting',
+      icon: <CalculatorOutlined />,
+      label: 'Reporting',
+      title: 'Payouts & Financial Reporting'
     },
     {
       key: 'settings',
