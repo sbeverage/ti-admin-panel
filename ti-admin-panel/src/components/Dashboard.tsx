@@ -176,8 +176,6 @@ const Dashboard: React.FC = () => {
       navigate('/pending-approvals');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
-    } else if (key === 'one-time-gifts') {
-      navigate('/one-time-gifts');
     } else if (key === 'geographic-analytics') {
       navigate('/geographic-analytics');
     } else if (key === 'settings') {
@@ -248,12 +246,6 @@ const Dashboard: React.FC = () => {
       icon: <TeamOutlined />,
       label: 'Referral Analytics',
       title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'one-time-gifts',
-      icon: <DollarOutlined />,
-      label: 'One-Time Gifts',
-      title: 'One-Time Gift Management'
     },
     {
       key: 'geographic-analytics',
