@@ -741,11 +741,23 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }
           setIsEditing(false);
           
+          // Check if logo_url was actually saved by the backend
+          const apiResponseLogoUrl = (result.data as any)?.logo_url;
+          const logoWasSaved = apiResponseLogoUrl && apiResponseLogoUrl !== null && apiResponseLogoUrl !== '';
+          const logoWasSent = savedLogoUrl && savedLogoUrl !== null && savedLogoUrl !== '';
+          
+          if (logoWasSent && !logoWasSaved) {
+            console.warn('⚠️ WARNING: logo_url was sent but backend returned null/empty');
+            console.warn('⚠️ This indicates the backend may not be saving logo_url properly');
+            message.warning('Vendor updated, but logo may not have saved. Please check and re-upload if needed.');
+          }
+          
           // Reload vendor data to get the latest from API (including logo_url)
           // Pass the saved logo URL to preserve it if backend returns null
           // Don't show loading spinner during reload to avoid window appearing to close/reopen
           console.log('🔄 Reloading vendor data after successful update...');
           console.log('🖼️ Preserving logo_url during reload:', savedLogoUrl);
+          console.log('🖼️ API response logo_url:', apiResponseLogoUrl);
           try {
             await loadVendorData(false, savedLogoUrl); // Pass false to skip loading spinner, and logo_url to preserve
           } catch (reloadError) {
@@ -757,11 +769,20 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             }
           }
           
-          // Only call onUpdate to refresh the parent list, don't pass data that would trigger another update
+          // Only call onUpdate to refresh the parent list if logo was actually saved
+          // This prevents the vendor list from showing a missing logo if backend didn't save it
           if (onUpdate) {
-            onUpdate({ success: true, vendorId: vendorIdNum });
+            // Pass the logo_url in the update so parent can preserve it in the list
+            onUpdate({ 
+              success: true, 
+              vendorId: vendorIdNum,
+              logo_url: logoWasSaved ? apiResponseLogoUrl : savedLogoUrl // Use saved URL if backend didn't save it
+            });
           }
-          message.success('Vendor updated successfully!');
+          
+          if (logoWasSaved || !logoWasSent) {
+            message.success('Vendor updated successfully!');
+          }
         } else {
           const errorMsg = result.error || result.message || 'Failed to update vendor. Please try again.';
           console.error('❌ Vendor update failed:', errorMsg);

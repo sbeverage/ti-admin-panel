@@ -199,7 +199,42 @@ const Vendor: React.FC = () => {
     // If updateData indicates success, just refresh the list (update was already done in VendorProfile)
     if (updatedData?.success === true) {
       console.log('🔄 Vendor.tsx: Update already successful, just refreshing list');
+      
+      // If logo_url was provided in updateData, preserve it in the vendor list
+      // This handles the case where backend returns null but we know the logo was uploaded
+      const logoUrlToPreserve = updatedData?.logo_url;
+      const vendorIdToUpdate = updatedData?.vendorId;
+      
+      if (logoUrlToPreserve && vendorIdToUpdate) {
+        console.log('🖼️ Preserving logo_url in vendor list:', logoUrlToPreserve, 'for vendor:', vendorIdToUpdate);
+        // Update the vendor in the list before reloading
+        setVendorsData((prev: any[]) => {
+          return prev.map((vendor: any) => {
+            if (vendor.key === vendorIdToUpdate.toString()) {
+              return { ...vendor, logo_url: logoUrlToPreserve };
+            }
+            return vendor;
+          });
+        });
+      }
+      
       loadVendors();
+      
+      // After reload, if logo_url was preserved, restore it if API didn't return it
+      if (logoUrlToPreserve && vendorIdToUpdate) {
+        setTimeout(() => {
+          setVendorsData((prev: any[]) => {
+            return prev.map((vendor: any) => {
+              if (vendor.key === vendorIdToUpdate.toString() && !vendor.logo_url && logoUrlToPreserve) {
+                console.log('🖼️ Restoring logo_url after reload:', logoUrlToPreserve);
+                return { ...vendor, logo_url: logoUrlToPreserve };
+              }
+              return vendor;
+            });
+          });
+        }, 500); // Wait for loadVendors to complete
+      }
+      
       return;
     }
     
