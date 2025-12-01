@@ -714,6 +714,24 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           // CRITICAL: Prioritize formData.logo_url over API response since backend might return null
           // even though we sent it (backend might not be saving it properly, but we want to preserve it in UI)
           const savedLogoUrl = formData.logo_url || (result.data as any)?.logo_url || vendorData?.logo_url;
+          const backendReturnedLogoUrl = (result.data as any)?.logo_url;
+          
+          // WORKAROUND: If we sent a logo_url but backend returned null, make a separate API call to update it
+          if (savedLogoUrl && savedLogoUrl !== '' && !backendReturnedLogoUrl) {
+            console.warn('⚠️ Backend did not save logo_url, attempting separate update...');
+            try {
+              const logoUpdateResult = await vendorAPI.updateVendorLogoUrl(vendorIdNum, savedLogoUrl);
+              if (logoUpdateResult.success) {
+                console.log('✅ Logo URL updated successfully via separate API call');
+              } else {
+                console.error('❌ Failed to update logo URL separately:', logoUpdateResult.error);
+                // Continue anyway - logo is preserved in UI
+              }
+            } catch (logoError) {
+              console.error('❌ Error updating logo URL separately:', logoError);
+              // Continue anyway - logo is preserved in UI
+            }
+          }
           
           // Update local state with the response data if available
           if (result.data) {

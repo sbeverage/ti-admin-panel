@@ -623,6 +623,55 @@ export const vendorAPI = {
     }
     
     return response.json();
+  },
+
+  // Update vendor logo URL (workaround for backend not saving logo_url in main update)
+  updateVendorLogoUrl: async (vendorId: number, logoUrl: string): Promise<ApiResponse<Vendor>> => {
+    try {
+      console.log('🖼️ API: Updating vendor logo URL only:', logoUrl);
+      // Try PATCH first, fallback to PUT if needed
+      const response = await fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}`, {
+        method: 'PATCH',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify({ 
+          logoUrl, 
+          logo_url: logoUrl,
+          logo: logoUrl 
+        })
+      });
+      
+      if (!response.ok) {
+        // If PATCH fails, try PUT with minimal data
+        const putResponse = await fetch(`${API_CONFIG.baseURL}/vendors/${vendorId}`, {
+          method: 'PUT',
+          headers: API_CONFIG.headers,
+          body: JSON.stringify({ logoUrl, logo_url: logoUrl, logo: logoUrl })
+        });
+        
+        if (!putResponse.ok) {
+          const errorText = await putResponse.text();
+          throw new Error(`Failed to update logo URL: ${errorText}`);
+        }
+        
+        const result = await putResponse.json();
+        return {
+          success: true,
+          data: result
+        };
+      }
+      
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error: any) {
+      console.error('Failed to update vendor logo URL:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to update logo URL'
+      };
+    }
   }
 };
 
