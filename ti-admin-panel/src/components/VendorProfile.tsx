@@ -389,8 +389,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }),
           // Work schedule (from vendor data)
           workSchedule: vendor.hours,
-          // Images from vendor data - preserve uploaded logo_url if backend returns null
-          logo_url: vendor.logo_url || logoUrlToPreserve || null,
+          // Images from vendor data - preserve uploaded logo_url if backend returns null/empty
+          // CRITICAL: If logoUrlToPreserve is provided (after save), use it to prevent loss
+          // Otherwise, use backend's logo_url value
+          logo_url: logoUrlToPreserve !== undefined && logoUrlToPreserve !== null 
+            ? logoUrlToPreserve 
+            : (vendor.logo_url || null),
           // Form data parsed from description field
           tags: formData.tags || [],
           pricingTier: formData.pricingTier || 'Not Set',
@@ -617,12 +621,38 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       // CRITICAL: Prioritize formData.logo_url (what user just uploaded) over everything else
       // Backend might expect logoUrl (camelCase) which saves to logo_url column
       const logoUrl = formData.logo_url || formData.logoUrl || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
+      console.log('🖼️ Logo URL resolution:', {
+        'formData.logo_url': formData.logo_url,
+        'formData.logoUrl': formData.logoUrl,
+        'vendorData?.logo_url': vendorData?.logo_url,
+        'originalVendorFromAPI?.logo_url': originalVendorFromAPI?.logo_url,
+        'final logoUrl': logoUrl
+      });
+      
+      // Always send logo_url field if we have a value (even if empty string, to preserve existing)
+      // Only skip if it's explicitly null (user removed it)
       if (logoUrl !== undefined && logoUrl !== null && logoUrl !== '') {
         // Send all field name variations for maximum compatibility
         apiData.logoUrl = logoUrl; // Backend expects camelCase
         apiData.logo_url = logoUrl; // Also send snake_case for compatibility
         apiData.logo = logoUrl; // Send plain 'logo' as well
         console.log('✅ logoUrl included in apiData:', logoUrl);
+      } else if (logoUrl === null && formData.logo_url === null) {
+        // User explicitly removed the logo - send null to clear it
+        apiData.logoUrl = null;
+        apiData.logo_url = null;
+        apiData.logo = null;
+        console.log('🗑️ Logo explicitly removed by user - sending null to clear');
+      } else {
+        // Logo URL is missing but wasn't explicitly removed - preserve existing
+        console.warn('⚠️ Logo URL is missing but not explicitly removed - preserving existing logo_url');
+        const existingLogoUrl = originalVendorFromAPI?.logo_url || vendorData?.logo_url;
+        if (existingLogoUrl) {
+          apiData.logoUrl = existingLogoUrl;
+          apiData.logo_url = existingLogoUrl;
+          apiData.logo = existingLogoUrl;
+          console.log('✅ Preserving existing logo_url:', existingLogoUrl);
+        }
       }
       
       // Ensure address is always a valid object (backend requires it)
@@ -729,10 +759,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           setIsEditing(false);
           
           // Reload vendor data to get the latest from API (including logo_url)
+          // CRITICAL: Preserve logo_url during reload in case backend returns null
           // Don't show loading spinner during reload to avoid window appearing to close/reopen
           console.log('🔄 Reloading vendor data after successful update...');
+          console.log('🔄 Preserving logo_url during reload:', savedLogoUrl);
           try {
-            await loadVendorData(false); // Pass false to skip loading spinner
+            await loadVendorData(false, savedLogoUrl); // Pass logoUrlToPreserve to prevent loss
           } catch (reloadError) {
             console.error('Error reloading vendor data:', reloadError);
             // Don't fail the save if reload fails
