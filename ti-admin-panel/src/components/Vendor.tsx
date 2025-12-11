@@ -8,7 +8,7 @@ import {
   MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, StopOutlined, CalculatorOutlined
+  CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
@@ -328,6 +328,8 @@ const Vendor: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -412,6 +414,12 @@ const Vendor: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',

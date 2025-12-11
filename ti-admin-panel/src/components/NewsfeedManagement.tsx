@@ -33,7 +33,8 @@ import {
   MoreOutlined,
   TeamOutlined,
   GlobalOutlined,
-  MenuOutlined
+  MenuOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import './NewsfeedManagement.css';
@@ -112,6 +113,8 @@ const NewsfeedManagement: React.FC = () => {
       console.log('Ads Management clicked');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -181,6 +184,12 @@ const NewsfeedManagement: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',

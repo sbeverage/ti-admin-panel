@@ -31,7 +31,8 @@ import {
   ExclamationCircleOutlined,
   TeamOutlined,
   GlobalOutlined,
-  CalculatorOutlined
+  CalculatorOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
@@ -68,6 +69,8 @@ const Tenants: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -201,6 +204,12 @@ const Tenants: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',

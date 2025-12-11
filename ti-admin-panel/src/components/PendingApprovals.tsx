@@ -9,7 +9,7 @@ import {
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
   EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined,
-  CalculatorOutlined
+  CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import './PendingApprovals.css';
 
@@ -164,6 +164,8 @@ const PendingApprovals: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -249,6 +251,12 @@ const PendingApprovals: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',

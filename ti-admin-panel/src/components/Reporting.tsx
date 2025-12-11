@@ -27,7 +27,8 @@ import {
   ReloadOutlined,
   CalculatorOutlined,
   ReconciliationOutlined,
-  DownOutlined
+  DownOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import './Reporting.css';
 import '../styles/sidebar-standard.css';
@@ -129,6 +130,12 @@ const Reporting: React.FC = () => {
       title: 'Pending Approvals'
     },
     {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
+    },
+    {
       key: 'referral-analytics',
       icon: <FileTextOutlined />,
       label: 'Referral Analytics',
@@ -163,6 +170,7 @@ const Reporting: React.FC = () => {
     else if (key === 'discounts') navigate('/discounts');
     else if (key === 'tenants') navigate('/tenants');
     else if (key === 'pending-approvals') navigate('/pending-approvals');
+    else if (key === 'invitations') navigate('/invitations');
     else if (key === 'referral-analytics') navigate('/referral-analytics');
     else if (key === 'geographic-analytics') navigate('/geographic-analytics');
     else if (key === 'reporting') navigate('/reporting');

@@ -11,7 +11,7 @@ import {
   FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
   DownOutlined, ShopOutlined, GiftOutlined, BankOutlined,   LockOutlined,
   TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
-  ApiOutlined, GlobalOutlined, LogoutOutlined, CalculatorOutlined
+  ApiOutlined, GlobalOutlined, LogoutOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import './Settings.css';
 import ApiRateLimiting from './ApiRateLimiting';
@@ -109,6 +109,8 @@ const Settings: React.FC = () => {
       navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -176,6 +178,12 @@ const Settings: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',

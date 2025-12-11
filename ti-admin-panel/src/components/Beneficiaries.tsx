@@ -45,7 +45,8 @@ import {
   CrownOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
-  SortAscendingOutlined
+  SortAscendingOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
@@ -390,6 +391,8 @@ const Beneficiaries: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -735,6 +738,12 @@ const Beneficiaries: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',
