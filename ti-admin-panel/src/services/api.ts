@@ -1888,3 +1888,65 @@ export const reportingAPI = {
     return response.json();
   }
 };
+
+// Invitations API functions
+export const invitationsAPI = {
+  // Get all invitations with filters and pagination
+  getInvitations: async (params?: {
+    type?: 'vendor' | 'beneficiary';
+    status?: 'pending' | 'approved' | 'rejected' | 'contacted';
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<any>> => {
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const url = `${API_CONFIG.baseURL}/invitations${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetch(url, {
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
+  // Update invitation status
+  updateInvitationStatus: async (id: number, status: 'pending' | 'approved' | 'rejected' | 'contacted', notes?: string): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/invitations/${id}/status`, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ status, notes })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
+  // Invite beneficiary/vendor (create user account and send email)
+  inviteUser: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/invitations/${id}/invite`, {
+      method: 'POST',
+      headers: API_CONFIG.headers
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  }
+};

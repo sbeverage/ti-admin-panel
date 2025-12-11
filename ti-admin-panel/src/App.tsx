@@ -15,6 +15,7 @@ import ReferralAnalytics from './components/ReferralAnalytics';
 import GeographicAnalytics from './components/GeographicAnalytics';
 import ApiRateLimiting from './components/ApiRateLimiting';
 import Reporting from './components/Reporting';
+import Invitations from './components/Invitations';
 
 import './App.css';
 
@@ -67,6 +68,7 @@ function App() {
           <Route path="/discounts" element={<Discounts />} />
           <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
           <Route path="/pending-approvals" element={<PendingApprovals />} />
+          <Route path="/invitations" element={<Invitations />} />
           <Route path="/referral-analytics" element={<ReferralAnalytics />} />
           <Route path="/geographic-analytics" element={<GeographicAnalytics />} />
           <Route path="/api-rate-limiting" element={<ApiRateLimiting />} />

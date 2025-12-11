@@ -25,7 +25,8 @@ import {
   TeamOutlined,
   GlobalOutlined,
   ReloadOutlined,
-  CalculatorOutlined
+  CalculatorOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
@@ -360,6 +361,8 @@ const Dashboard: React.FC = () => {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
+    } else if (key === 'invitations') {
+      navigate('/invitations');
     } else if (key === 'referral-analytics') {
       navigate('/referral-analytics');
     } else if (key === 'geographic-analytics') {
@@ -428,6 +431,12 @@ const Dashboard: React.FC = () => {
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
       title: 'Pending Approvals'
+    },
+    {
+      key: 'invitations',
+      icon: <MailOutlined />,
+      label: 'Invitations',
+      title: 'Beneficiary & Vendor Invitations'
     },
     {
       key: 'referral-analytics',
