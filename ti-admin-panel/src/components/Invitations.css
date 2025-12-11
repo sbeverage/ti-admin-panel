@@ -1,11 +1,36 @@
 /* Invitations Component Styles */
 
-.invitations-container {
-  padding: 24px;
+.invitations-content {
+  padding: 24px !important;
+  background: #F5F5FA !important;
+}
+
+.invitations-content .content-wrapper {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
 }
 
 .invitations-header {
-  margin-bottom: 24px;
+  background: #ffffff !important;
+  padding: 24px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08) !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.invitations-header .header-left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  align-items: flex-start !important;
+}
+
+.invitations-header .header-right {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
 }
 
 .invitations-filters {
@@ -24,6 +49,12 @@
 @media (max-width: 768px) {
   .mobile-menu-button {
     display: inline-block;
+  }
+  
+  .invitations-header {
+    padding: 16px !important;
+    flex-direction: column !important;
+    gap: 16px !important;
   }
 }
 

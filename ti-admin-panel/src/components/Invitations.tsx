@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Button, Input, Select, Table, Tag, Modal, message, Spin, Card, Descriptions, Tooltip } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Button, Input, Select, Table, Tag, Modal, message, Spin, Card, Descriptions, Tooltip, Checkbox } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { invitationsAPI } from '../services/api';
+import { invitationsAPI, donorAPI } from '../services/api';
+import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
   MenuOutlined, SearchOutlined, ShopOutlined, HeartOutlined,
@@ -9,6 +10,8 @@ import {
   CheckCircleOutlined, CloseCircleOutlined, MailOutlined, EyeOutlined,
   StarOutlined, RiseOutlined, GiftOutlined, BankOutlined, CalendarOutlined
 } from '@ant-design/icons';
+import '../styles/sidebar-standard.css';
+import '../styles/menu-hover-overrides.css';
 import './Invitations.css';
 
 const { Header, Sider, Content } = Layout;
@@ -48,6 +51,8 @@ const Invitations: React.FC = () => {
   const [newStatus, setNewStatus] = useState<'pending' | 'approved' | 'rejected' | 'contacted'>('pending');
   const [statusNotes, setStatusNotes] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   // Filters
   const [typeFilter, setTypeFilter] = useState<'all' | 'vendor' | 'beneficiary'>('all');
@@ -272,13 +277,43 @@ const Invitations: React.FC = () => {
     }
   };
 
-  const handleInviteUser = async (invitation: Invitation) => {
+  const handleInviteUser = async (invitation: Invitation, notifyDonors: boolean = false) => {
     try {
       setInviting(true);
       const response = await invitationsAPI.inviteUser(invitation.id);
 
       if (response.success) {
         message.success('User account created and invitation email sent!');
+        
+        // If this is a beneficiary and notifyDonors is true, notify all donors who requested this beneficiary
+        if (invitation.type === 'beneficiary' && notifyDonors) {
+          try {
+            // Get all donors who have this beneficiary selected
+            const donorsResponse = await donorAPI.getDonors(1, 1000);
+            if (donorsResponse.success && donorsResponse.data) {
+              const relevantDonors = donorsResponse.data.filter((donor: any) => 
+                donor.beneficiary_name === invitation.company_name || 
+                donor.beneficiary_id === response.data?.beneficiary_id
+              );
+              
+              // Send notification emails to all relevant donors
+              const emailPromises = relevantDonors.map((donor: any) => 
+                donorAPI.resendInvitation(donor.id).catch(err => {
+                  console.error(`Failed to notify donor ${donor.email}:`, err);
+                  return null;
+                })
+              );
+              
+              await Promise.all(emailPromises);
+              message.success(`Notified ${relevantDonors.length} donor(s) about the new beneficiary!`);
+            }
+          } catch (error: any) {
+            console.error('Error notifying donors:', error);
+            // Don't fail the whole operation if donor notification fails
+            message.warning('Beneficiary added, but some donor notifications may have failed');
+          }
+        }
+        
         loadInvitations();
       } else {
         message.error('Failed to invite user');
@@ -289,6 +324,109 @@ const Invitations: React.FC = () => {
     } finally {
       setInviting(false);
     }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('Please select invitations to approve');
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Bulk Approve & Notify Donors?',
+      content: 'This will approve all selected invitations, create user accounts, and notify all donors who requested these beneficiaries. Continue?',
+      okText: 'Yes, approve all',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setBulkActionLoading(true);
+          const selectedInvitations = invitations.filter(inv => selectedRowKeys.includes(inv.id));
+          
+          // Step 1: Approve all selected invitations
+          const approvePromises = selectedInvitations.map(inv => 
+            invitationsAPI.updateInvitationStatus(inv.id, 'approved')
+          );
+          
+          const approveResults = await Promise.allSettled(approvePromises);
+          const approved = approveResults.filter(r => r.status === 'fulfilled').length;
+          const approveFailed = approveResults.filter(r => r.status === 'rejected').length;
+
+          if (approved > 0) {
+            message.success(`Successfully approved ${approved} invitation(s)`);
+            
+            // Step 2: Create user accounts for all approved invitations
+            const invitePromises = selectedInvitations.map(inv => 
+              invitationsAPI.inviteUser(inv.id).catch(err => {
+                console.error(`Failed to invite user for invitation ${inv.id}:`, err);
+                return null;
+              })
+            );
+            
+            await Promise.allSettled(invitePromises);
+            
+            // Step 3: Group beneficiaries and notify donors
+            const beneficiaryGroups = new Map<string, Invitation[]>();
+            selectedInvitations.forEach(inv => {
+              if (inv.type === 'beneficiary') {
+                const key = inv.company_name || inv.contact_name;
+                if (!beneficiaryGroups.has(key)) {
+                  beneficiaryGroups.set(key, []);
+                }
+                beneficiaryGroups.get(key)!.push(inv);
+              }
+            });
+
+            // Notify all donors who requested these beneficiaries
+            if (beneficiaryGroups.size > 0) {
+              try {
+                const donorsResponse = await donorAPI.getDonors(1, 1000);
+                if (donorsResponse.success && donorsResponse.data) {
+                  const notifiedDonors = new Set<number>();
+                  
+                  // For each beneficiary group, notify relevant donors
+                  Array.from(beneficiaryGroups.entries()).forEach(([beneficiaryName, invs]) => {
+                    const relevantDonors = donorsResponse.data.filter((donor: any) => 
+                      donor.beneficiary_name === beneficiaryName ||
+                      donor.beneficiary_id === invs[0].id // Fallback to invitation ID if name doesn't match
+                    );
+                    
+                    relevantDonors.forEach((donor: any) => {
+                      if (!notifiedDonors.has(donor.id)) {
+                        notifiedDonors.add(donor.id);
+                        donorAPI.resendInvitation(donor.id).catch(err => {
+                          console.error(`Failed to notify donor ${donor.email}:`, err);
+                        });
+                      }
+                    });
+                  });
+                  
+                  if (notifiedDonors.size > 0) {
+                    message.success(`Notified ${notifiedDonors.size} donor(s) about approved beneficiaries!`);
+                  } else {
+                    message.info('No donors found to notify for these beneficiaries');
+                  }
+                }
+              } catch (error: any) {
+                console.error('Error notifying donors:', error);
+                message.warning('Approvals completed, but some donor notifications may have failed');
+              }
+            }
+          }
+          
+          if (approveFailed > 0) {
+            message.error(`Failed to approve ${approveFailed} invitation(s)`);
+          }
+          
+          setSelectedRowKeys([]);
+          loadInvitations();
+        } catch (error: any) {
+          console.error('Error bulk approving:', error);
+          message.error(error.message || 'Failed to approve invitations');
+        } finally {
+          setBulkActionLoading(false);
+        }
+      }
+    });
   };
 
   const columns = [
@@ -385,12 +523,31 @@ const Invitations: React.FC = () => {
               onClick={() => handleUpdateStatus(record)}
             />
           </Tooltip>
-          {record.status === 'approved' && (
+          {record.status === 'approved' && record.type === 'beneficiary' && (
+            <Tooltip title="Send Invitation Email & Notify Donors">
+              <Button
+                type="link"
+                icon={<MailOutlined />}
+                onClick={() => {
+                  Modal.confirm({
+                    title: 'Notify Donors?',
+                    content: 'Do you want to notify all donors who requested this beneficiary?',
+                    okText: 'Yes, notify donors',
+                    cancelText: 'No, just send invitation',
+                    onOk: () => handleInviteUser(record, true),
+                    onCancel: () => handleInviteUser(record, false),
+                  });
+                }}
+                loading={inviting}
+              />
+            </Tooltip>
+          )}
+          {record.status === 'approved' && record.type === 'vendor' && (
             <Tooltip title="Send Invitation Email">
               <Button
                 type="link"
                 icon={<MailOutlined />}
-                onClick={() => handleInviteUser(record)}
+                onClick={() => handleInviteUser(record, false)}
                 loading={inviting}
               />
             </Tooltip>
@@ -401,80 +558,77 @@ const Invitations: React.FC = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        width={250}
-        style={{
-          background: colorBgContainer,
-          boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
-        }}
-        className="sidebar-standard"
-      >
-        <div className="logo" style={{ padding: '16px', textAlign: 'center' }}>
-          {!collapsed ? (
-            <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-              Admin Panel
-            </Title>
-          ) : (
-            <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-              AP
-            </Title>
-          )}
-        </div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={['invitations']}
-          items={menuItems}
-          onClick={handleMenuClick}
-          className="standard-menu"
+    <Layout className="standard-layout">
+      {/* Mobile Menu Button - Right Side */}
+      <Button
+        className="mobile-menu-btn-right"
+        icon={<MenuOutlined />}
+        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarVisible && (
+        <div 
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarVisible(false)}
         />
+      )}
+
+      {/* Sidebar */}
+      <Sider
+        width={280}
+        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        breakpoint="lg"
+        collapsedWidth="0"
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
+      >
+        <div className="standard-logo-section">
+          <div className="standard-logo-container">
+            <img
+              src="/white-logo.png"
+              alt="THRIVE Logo"
+              className="standard-logo-image"
+            />
+          </div>
+        </div>
+
+        <Menu
+          mode="inline"
+          defaultSelectedKeys={['invitations']}
+          selectedKeys={[location.pathname === '/invitations' ? 'invitations' : '']}
+          items={menuItems}
+          className="standard-menu"
+          onClick={handleMenuClick}
+        />
+
+        <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
-      <Layout>
-        <Header
-          style={{
-            padding: '0 24px',
-            background: colorBgContainer,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          }}
-        >
-          <Button
-            type="text"
-            icon={<MenuOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: '16px', width: 64, height: 64 }}
-          />
-          <Button
-            type="text"
-            icon={<MenuOutlined />}
-            onClick={() => setMobileSidebarVisible(true)}
-            style={{ fontSize: '16px', width: 64, height: 64 }}
-            className="mobile-menu-button"
-          />
-        </Header>
-
-        <Content
-          style={{
-            margin: '24px',
-            padding: 24,
-            minHeight: 280,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
-          }}
-        >
-          <div style={{ marginBottom: 24 }}>
+      {/* Main Content */}
+      <Layout className="standard-main-content">
+        <Header className="invitations-header">
+          <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Invitations</Title>
             <Text type="secondary">
               Manage beneficiary and vendor invitation requests
             </Text>
           </div>
+          <div className="header-right">
+            {selectedRowKeys.length > 0 && (
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={handleBulkApprove}
+                loading={bulkActionLoading}
+              >
+                Approve Selected ({selectedRowKeys.length})
+              </Button>
+            )}
+          </div>
+        </Header>
+
+        <Content className="invitations-content">
+          <div className="content-wrapper">
 
           {/* Filters */}
           <Card style={{ marginBottom: 24 }}>
@@ -547,6 +701,15 @@ const Invitations: React.FC = () => {
                 columns={columns}
                 dataSource={invitations}
                 rowKey="id"
+                rowSelection={{
+                  selectedRowKeys,
+                  onChange: (selectedKeys) => {
+                    setSelectedRowKeys(selectedKeys);
+                  },
+                  getCheckboxProps: (record) => ({
+                    disabled: record.status !== 'pending',
+                  }),
+                }}
                 pagination={{
                   current: currentPage,
                   pageSize: pageSize,
@@ -562,6 +725,7 @@ const Invitations: React.FC = () => {
               />
             </Spin>
           </Card>
+          </div>
         </Content>
       </Layout>
 
