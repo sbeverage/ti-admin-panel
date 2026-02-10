@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -417,6 +417,11 @@ const Donors: React.FC = () => {
             {record.avatar}
           </Avatar>
           <Text strong style={{ cursor: 'pointer' }}>{text}</Text>
+          {record.coworking === 'Yes' && (
+            <Tag className="coworking-badge" color="gold">
+              Coworking
+            </Tag>
+          )}
         </Space>
       ),
       fixed: 'left' as const,
@@ -690,12 +695,19 @@ const Donors: React.FC = () => {
     try {
       console.log('Creating new donor:', values);
       
+      const isCoworking = values.coworking === 'Yes' || values.coworking === true;
+      const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
+        ? parseFloat(String(values.sponsorAmount).replace('$', ''))
+        : (isCoworking ? 15 : 0);
+
       const donorData = {
         name: values.name,
         email: values.email,
         phone: values.contact,
         beneficiary_id: values.beneficiary,
-        coworking: values.coworking || false,
+        coworking: isCoworking,
+        sponsorAmount: sponsorAmount,
+        inviteType: isCoworking ? 'coworking' : 'standard',
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''

@@ -33,6 +33,21 @@ This guide covers implementing a complete donor invitation flow where:
 8. Mobile App → Creates authenticated user account
 ```
 
+### Coworking Member Invitation (Special Flow)
+
+If the donor is a **THRIVE Coworking member**, the invite should set:
+- **Coworking Member:** Yes
+- **Sponsor Amount:** 15 (or your configured amount)
+
+The mobile app will:
+1. Prefill email/name from the invite
+2. Ask for password + phone + optional photo
+3. Verify email
+4. Select a charity
+5. Show coworking sponsor amount and offer optional extra donation (min $5)
+6. Skip payment if they decline extra
+7. Complete onboarding and show the tutorial
+
 ---
 
 ## 🔧 Implementation Details

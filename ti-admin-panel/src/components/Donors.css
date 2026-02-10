@@ -631,6 +631,16 @@
   border: 1px solid #ffd591;
 }
 
+.coworking-badge {
+  margin-left: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
 /* Invite Donor Button Styling - Now standardized globally in App.css */
 
 /* Orange elements with white text */

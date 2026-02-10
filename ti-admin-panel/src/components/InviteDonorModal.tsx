@@ -20,6 +20,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const coworkingValue = Form.useWatch('coworking', form);
 
   const handleSubmit = async () => {
     try {
@@ -83,7 +84,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
         className="invite-donor-form"
         initialValues={{
           coworking: 'No',
-          donation: '$0',
+          sponsorAmount: 15,
           oneTime: '$0'
         }}
       >
@@ -208,7 +209,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               
               <Form.Item
                 name="coworking"
-                label="Coworking"
+                label="Coworking Member"
                 rules={[{ required: true, message: 'Please select coworking status' }]}
                 className="form-item"
               >
@@ -220,18 +221,20 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
             </div>
             
             <div className="form-row">
-              <Form.Item
-                name="donation"
-                label="Donation Amount"
-                rules={[{ required: true, message: 'Please enter donation amount' }]}
-                className="form-item"
-              >
-                <Input 
-                  placeholder="Enter donation amount"
-                  prefix={<DollarOutlined />}
-                  size="large"
-                />
-              </Form.Item>
+              {coworkingValue === 'Yes' && (
+                <Form.Item
+                  name="sponsorAmount"
+                  label="Coworking Sponsor Amount"
+                  rules={[{ required: true, message: 'Please enter sponsor amount' }]}
+                  className="form-item"
+                >
+                  <Input 
+                    placeholder="15"
+                    prefix={<DollarOutlined />}
+                    size="large"
+                  />
+                </Form.Item>
+              )}
               
               <Form.Item
                 name="oneTime"
