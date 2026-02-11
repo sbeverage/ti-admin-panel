@@ -695,20 +695,10 @@ const Donors: React.FC = () => {
     try {
       console.log('Creating new donor:', values);
       
-      const isCoworking = values.coworking === 'Yes' || values.coworking === true;
-      const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
-        ? parseFloat(String(values.sponsorAmount).replace('$', ''))
-        : (isCoworking ? 15 : 0);
-
       const donorData: any = {
         name: values.name,
         email: values.email,
         phone: values.contact,
-        coworking: isCoworking,
-        sponsorAmount: sponsorAmount,
-        sponsor_amount: sponsorAmount,
-        inviteType: isCoworking ? 'coworking' : 'standard',
-        invite_type: isCoworking ? 'coworking' : 'standard',
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''
