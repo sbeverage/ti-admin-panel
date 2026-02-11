@@ -700,14 +700,15 @@ const Donors: React.FC = () => {
         ? parseFloat(String(values.sponsorAmount).replace('$', ''))
         : (isCoworking ? 15 : 0);
 
-      const donorData = {
+      const donorData: any = {
         name: values.name,
         email: values.email,
         phone: values.contact,
-        beneficiary_id: values.beneficiary,
         coworking: isCoworking,
         sponsorAmount: sponsorAmount,
+        sponsor_amount: sponsorAmount,
         inviteType: isCoworking ? 'coworking' : 'standard',
+        invite_type: isCoworking ? 'coworking' : 'standard',
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''
@@ -715,6 +716,10 @@ const Donors: React.FC = () => {
         is_active: true,
         is_enabled: true
       };
+
+      if (values.beneficiary) {
+        donorData.beneficiary_id = Number(values.beneficiary);
+      }
       
       const response = await donorAPI.createDonor(donorData);
       
@@ -1159,6 +1164,7 @@ const Donors: React.FC = () => {
         visible={isInviteModalVisible}
         onCancel={() => setIsInviteModalVisible(false)}
         onSubmit={handleInviteDonor}
+        beneficiaries={beneficiariesList}
       />
 
       {/* Edit Donor Modal */}
