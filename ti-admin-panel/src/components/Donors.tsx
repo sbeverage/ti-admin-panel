@@ -733,7 +733,11 @@ const Donors: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating donor:', error);
-      message.error('Failed to create donor. Please try again.');
+      const errorMessage =
+        error instanceof Error && error.message
+          ? `Failed to create donor: ${error.message}`
+          : 'Failed to create donor. Please try again.';
+      message.error(errorMessage);
     }
   };
 
