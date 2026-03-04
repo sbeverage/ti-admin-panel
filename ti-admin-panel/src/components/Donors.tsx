@@ -410,11 +410,6 @@ const Donors: React.FC = () => {
             {record.avatar}
           </Avatar>
           <Text strong className="donor-name-text" style={{ cursor: 'pointer' }}>{text}</Text>
-          {record.coworking === 'Yes' && (
-            <Tag className="coworking-badge" color="gold">
-              Coworking
-            </Tag>
-          )}
         </Space>
       ),
       fixed: 'left' as const,
