@@ -133,6 +133,12 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       const values = await form.validateFields();
       setLoading(true);
 
+      if (!vendorId) {
+        message.error('Please select a vendor before saving this discount.');
+        setLoading(false);
+        return;
+      }
+
       // Format data for backend
       // Backend expects snake_case field names (per database schema)
       // Only include fields that exist in the database schema

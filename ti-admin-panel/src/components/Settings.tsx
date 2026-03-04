@@ -34,6 +34,8 @@ const Settings: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addUserForm] = Form.useForm();
+  const [editUserForm] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -95,6 +97,17 @@ const Settings: React.FC = () => {
   useEffect(() => {
     loadSettingsData();
   }, []);
+
+  useEffect(() => {
+    if (editingUser && isEditUserModalVisible) {
+      editUserForm.setFieldsValue({
+        name: editingUser.name,
+        email: editingUser.email,
+        role: editingUser.role,
+        status: editingUser.status
+      });
+    }
+  }, [editingUser, isEditUserModalVisible, editUserForm]);
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {
@@ -279,7 +292,47 @@ const Settings: React.FC = () => {
   };
 
   const handleAddUser = () => {
+    addUserForm.resetFields();
     setIsAddUserModalVisible(true);
+  };
+
+  const handleAddUserSubmit = async (values: any) => {
+    try {
+      const response = await settingsAPI.addTeamMember(values);
+      if (response.success) {
+        message.success('Team member added successfully!');
+        setIsAddUserModalVisible(false);
+        addUserForm.resetFields();
+        loadSettingsData();
+      } else {
+        message.error(response.error || 'Failed to add team member');
+      }
+    } catch (error: any) {
+      console.error('Error adding team member:', error);
+      message.error(error.message || 'Failed to add team member. Please try again.');
+    }
+  };
+
+  const handleEditUserSubmit = async (values: any) => {
+    if (!editingUser?.id) {
+      message.error('Missing team member ID.');
+      return;
+    }
+
+    try {
+      const response = await settingsAPI.updateTeamMember(editingUser.id, values);
+      if (response.success) {
+        message.success('Team member updated successfully!');
+        setIsEditUserModalVisible(false);
+        setEditingUser(null);
+        loadSettingsData();
+      } else {
+        message.error(response.error || 'Failed to update team member');
+      }
+    } catch (error: any) {
+      console.error('Error updating team member:', error);
+      message.error(error.message || 'Failed to update team member. Please try again.');
+    }
   };
 
   const handleTabChange = (key: string) => {
@@ -670,11 +723,14 @@ const Settings: React.FC = () => {
       <Modal
         title="Add Team Member"
         open={isAddUserModalVisible}
-        onCancel={() => setIsAddUserModalVisible(false)}
+        onCancel={() => {
+          setIsAddUserModalVisible(false);
+          addUserForm.resetFields();
+        }}
         footer={null}
         width={600}
       >
-        <Form layout="vertical">
+        <Form form={addUserForm} layout="vertical" onFinish={handleAddUserSubmit}>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -743,12 +799,15 @@ const Settings: React.FC = () => {
       <Modal
         title="Edit Team Member"
         open={isEditUserModalVisible}
-        onCancel={() => setIsEditUserModalVisible(false)}
+        onCancel={() => {
+          setIsEditUserModalVisible(false);
+          setEditingUser(null);
+        }}
         footer={null}
         width={600}
       >
         {editingUser && (
-          <Form layout="vertical" initialValues={editingUser}>
+          <Form form={editUserForm} layout="vertical" onFinish={handleEditUserSubmit}>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item

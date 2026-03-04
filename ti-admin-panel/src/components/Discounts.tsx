@@ -212,6 +212,8 @@ const Discounts: React.FC = () => {
     setEditingDiscount({
       id: discount.id,
       title: discount.title,
+      vendorId: discount.vendorId,
+      vendorName: discount.vendorName,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
       posCode: discount.discountCode,

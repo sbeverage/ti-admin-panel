@@ -28,6 +28,7 @@ interface ApprovalItem {
   type: string;
   location: string;
   registrationDate: string;
+  createdAt: number | null;
   documentsSubmitted: string;
   verificationStatus: string;
   active: boolean;
@@ -80,6 +81,7 @@ const PendingApprovals: React.FC = () => {
           type: approval.type || 'vendor',
           location: approval.location || 'N/A',
           registrationDate: approval.created_at ? new Date(approval.created_at).toLocaleDateString() : 'N/A',
+          createdAt: approval.created_at ? new Date(approval.created_at).getTime() : null,
           documentsSubmitted: approval.documents_submitted || 'N/A',
           verificationStatus: approval.verification_status || 'pending',
           active: approval.is_active || false,
@@ -113,23 +115,13 @@ const PendingApprovals: React.FC = () => {
   }, [currentPage, pageSize, activeTab]);
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    if (activeTab === 'vendors') {
-      setVendorsData(prevData =>
-        prevData.map(item =>
-          item.key === key
-            ? { ...item, [field]: !item[field] }
-            : item
-        )
-      );
-    } else {
-      setBeneficiariesData(prevData =>
-        prevData.map(item =>
-          item.key === key
-            ? { ...item, [field]: !item[field] }
-            : item
-        )
-      );
-    }
+    setApprovalsData(prevData =>
+      prevData.map(item =>
+        item.key === key
+          ? { ...item, [field]: !item[field] }
+          : item
+      )
+    );
     console.log(`Toggled ${field} for key ${key}`);
   };
 
@@ -203,9 +195,8 @@ const PendingApprovals: React.FC = () => {
     }
   ];
 
-  const [vendorsData, setVendorsData] = useState<ApprovalItem[]>([]);
-
-  const [beneficiariesData, setBeneficiariesData] = useState<ApprovalItem[]>([]);
+  const vendorCount = approvalsData.filter((item) => item.itemType === 'vendor').length;
+  const beneficiaryCount = approvalsData.filter((item) => item.itemType === 'beneficiary').length;
 
   const menuItems = [
     {
@@ -471,21 +462,51 @@ const PendingApprovals: React.FC = () => {
   };
 
   const getCurrentData = (): ApprovalItem[] => {
-    const data = activeTab === 'vendors' ? vendorsData : beneficiariesData;
-    
-    // Filter by search query if present
-    if (searchQuery.trim()) {
-      return data.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.phone.includes(searchQuery) ||
-        item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    const baseData = approvalsData.filter((item) =>
+      activeTab === 'vendors' ? item.itemType === 'vendor' : item.itemType === 'beneficiary'
+    );
+
+    const filteredByStatus =
+      selectedStatusFilter === 'all'
+        ? baseData
+        : baseData.filter((item) => item.verificationStatus?.toLowerCase() === selectedStatusFilter);
+
+    const filteredByDocuments =
+      selectedDocumentFilter === 'all'
+        ? filteredByStatus
+        : filteredByStatus.filter((item) => {
+            const docStatus = item.documentsSubmitted?.toLowerCase();
+            if (selectedDocumentFilter === 'complete') return docStatus === 'complete';
+            if (selectedDocumentFilter === 'incomplete') return docStatus === 'incomplete';
+            if (selectedDocumentFilter === 'pending-review') return docStatus === 'pending review' || docStatus === 'pending-review';
+            return true;
+          });
+
+    const filteredByTime =
+      selectedTimeFilter === 'all'
+        ? filteredByDocuments
+        : filteredByDocuments.filter((item) => {
+            if (!item.createdAt) return true;
+            const diffDays = (Date.now() - item.createdAt) / (1000 * 60 * 60 * 24);
+            if (selectedTimeFilter === '7-days') return diffDays <= 7;
+            if (selectedTimeFilter === '30-days') return diffDays <= 30;
+            if (selectedTimeFilter === '90-days') return diffDays <= 90;
+            if (selectedTimeFilter === '1-year') return diffDays <= 365;
+            return true;
+          });
+
+    if (!searchQuery.trim()) {
+      return filteredByTime;
     }
-    
-    return data;
+
+    return filteredByTime.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.phone.includes(searchQuery) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const getTotalCount = (): number => {
@@ -602,7 +623,7 @@ const PendingApprovals: React.FC = () => {
                     label: (
                       <span>
                         <ShopOutlined />
-                        Vendors ({vendorsData.length})
+                        Vendors ({vendorCount})
                       </span>
                     ),
                   },
@@ -611,7 +632,7 @@ const PendingApprovals: React.FC = () => {
                     label: (
                       <span>
                         <HeartOutlined />
-                        Beneficiaries ({beneficiariesData.length})
+                        Beneficiaries ({beneficiaryCount})
                       </span>
                     ),
                   },
@@ -683,7 +704,7 @@ const PendingApprovals: React.FC = () => {
             <div className="approvals-table-section">
               <Spin spinning={loading}>
                 <Table
-                  dataSource={approvalsData}
+                  dataSource={getCurrentData()}
                   columns={approvalColumns}
                   pagination={false}
                   size="middle"
