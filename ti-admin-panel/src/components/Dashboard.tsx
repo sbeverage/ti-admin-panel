@@ -787,7 +787,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donors"
@@ -796,7 +796,7 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Vendors"
@@ -805,10 +805,7 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Beneficiaries"
@@ -817,6 +814,18 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                  <Card className="summary-card">
+                    <Statistic
+                      title="Active Donors"
+                      value={dashboardStats?.activeDonors || '--'}
+                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]} className="summary-cards">
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic
@@ -835,33 +844,12 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Active Donors"
-                      value={dashboardStats?.activeDonors || '--'}
-                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic
                       title="Pending Approvals"
                       value={dashboardStats?.pendingApprovals || '--'}
                       prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Revenue"
-                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
-                      prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
                 </Col>
