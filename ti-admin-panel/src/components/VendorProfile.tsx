@@ -1305,7 +1305,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                 boxShadow: '0 4px 12px rgba(219, 134, 51, 0.4)'
               }}
             >
-              <PlusOutlined /> Add Your First Discount
+              Add Your First Discount
             </Button>
           </div>
         )}
@@ -1332,7 +1332,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               borderColor: '#DB8633'
             }}
           >
-            <PlusOutlined /> Add New Discount
+            Add New Discount
           </Button>
         </div>
       </Card>

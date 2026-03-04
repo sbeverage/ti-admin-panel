@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography } from 'antd';
-import { UserAddOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, CalendarOutlined, EnvironmentOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { UserAddOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, CalendarOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import './InviteDonorModal.css';
 
 const { Option } = Select;
@@ -10,7 +10,7 @@ const { Title, Text } = Typography;
 interface InviteDonorModalProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: any) => Promise<boolean>;
   beneficiaries: any[];
 }
 
@@ -42,9 +42,11 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
       
       console.log('📦 Donor data:', values);
       
-      onSubmit(values);
-      form.resetFields();
-      onCancel();
+      const success = await onSubmit(values);
+      if (success) {
+        form.resetFields();
+        onCancel();
+      }
     } catch (error) {
       console.error('Validation failed:', error);
     } finally {
@@ -61,12 +63,6 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
     <Modal
       title={
         <div className="modal-header">
-          <Button 
-            type="text" 
-            icon={<ArrowLeftOutlined />} 
-            onClick={handleCancel}
-            className="back-btn"
-          />
           <div className="header-content">
             <Title level={3} className="modal-title">Invite Donor</Title>
             <Text className="modal-subtitle">Complete your details and send invite to donor</Text>

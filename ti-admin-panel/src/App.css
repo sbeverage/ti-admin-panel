@@ -121,6 +121,25 @@ a:hover, .ant-btn-link:hover {
   color: #DB8633 !important;
 }
 
+/* Required field asterisk styling */
+.ant-form-item-required::before {
+  color: #ff4d4f !important;
+}
+
+.ant-form-item-required::after {
+  color: #ff4d4f !important;
+}
+
+/* Add breathing room inside text fields */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number-input,
+.ant-select-selector,
+.ant-picker {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
 [style*="color: #1890ff"]:hover {
   color: #C6762A !important;
 }

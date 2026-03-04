@@ -19,13 +19,15 @@ interface EditDonorModalProps {
   donor: any | null;
   onCancel: () => void;
   onSubmit: (values: any) => void;
+  beneficiaries: any[];
 }
 
 const EditDonorModal: React.FC<EditDonorModalProps> = ({
   visible,
   donor,
   onCancel,
-  onSubmit
+  onSubmit,
+  beneficiaries
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -79,7 +81,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
         city: city,
         state: state,
         zipCode: '',
-        beneficiary: donor.beneficiary || '',
+        beneficiary: donor.originalData?.beneficiary_id?.toString() || '',
         coworking: donor.coworking || 'No',
         donation: donationAmount !== '0' ? donationAmount : '',
         oneTime: oneTimeAmount !== '0' ? oneTimeAmount : '',
@@ -308,20 +310,24 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     <Form.Item
                       name="beneficiary"
                       label="Selected Beneficiary Name"
-                      rules={[{ required: true, message: 'Please select a beneficiary' }]}
+                      rules={[{ required: false }]}
                       className="form-item"
                     >
                       <Select
                         placeholder="Select beneficiary"
                         size="large"
+                        allowClear
+                        showSearch
+                        filterOption={(input, option) =>
+                          (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        notFoundContent="No beneficiaries found"
                       >
-                        <Option value="United Way">United Way</Option>
-                        <Option value="American Red Cross">American Red Cross</Option>
-                        <Option value="Feeding America">Feeding America</Option>
-                        <Option value="St. Jude Children's Research Hospital">St. Jude Children's Research Hospital</Option>
-                        <Option value="Habitat for Humanity">Habitat for Humanity</Option>
-                        <Option value="Make-A-Wish Foundation">Make-A-Wish Foundation</Option>
-                        <Option value="Doctors Without Borders USA">Doctors Without Borders USA</Option>
+                        {beneficiaries.map((beneficiary: any) => (
+                          <Option key={beneficiary.id} value={beneficiary.id?.toString()}>
+                            {beneficiary.name || 'Unknown'}
+                          </Option>
+                        ))}
                       </Select>
                     </Form.Item>
                     
@@ -342,7 +348,19 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     <Form.Item
                       name="donation"
                       label="Donation Amount"
-                      rules={[{ required: true, message: 'Please enter donation amount' }]}
+                      rules={[
+                        {
+                          validator: (_, value) => {
+                            if (value === undefined || value === null || value === '') {
+                              return Promise.resolve();
+                            }
+                            const numeric = parseFloat(String(value));
+                            return numeric > 0
+                              ? Promise.resolve()
+                              : Promise.reject(new Error('Donation amount must be greater than 0'));
+                          }
+                        }
+                      ]}
                       className="form-item"
                     >
                       <Input 
@@ -357,7 +375,19 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
               <Form.Item
                 name="oneTime"
                 label="One Time Gifts"
-                rules={[{ required: false }]}
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      if (value === undefined || value === null || value === '') {
+                        return Promise.resolve();
+                      }
+                      const numeric = parseFloat(String(value));
+                      return numeric > 0
+                        ? Promise.resolve()
+                        : Promise.reject(new Error('One time gift must be greater than 0'));
+                    }
+                  }
+                ]}
                 className="form-item"
               >
                 <Input 

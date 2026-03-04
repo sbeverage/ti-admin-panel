@@ -723,7 +723,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="beneficiaryName"
-                  label="Beneficiary Name *"
+                  label="Beneficiary Name"
                   rules={[{ required: true, message: 'Please enter beneficiary name' }]}
                 >
                   <Input placeholder="Enter organization name" />
@@ -732,7 +732,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="category"
-                  label="Category *"
+                  label="Category"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
                   <Select placeholder="Select category" showSearch optionFilterProp="children">
@@ -749,7 +749,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="type"
-                  label="Type *"
+                  label="Type"
                   rules={[{ required: true, message: 'Please select type' }]}
                 >
                   <Select placeholder="Select type">
@@ -764,7 +764,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="location"
-                  label="Location *"
+                  label="Location"
                   rules={[{ required: true, message: 'Please enter location (City, State)' }]}
                   tooltip="Enter location as 'City, State' format (e.g., 'Atlanta, GA')"
                 >
@@ -776,7 +776,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="city"
-                  label="City *"
+                  label="City"
                   rules={[{ required: true, message: 'Please enter city' }]}
                 >
                   <Input placeholder="Enter city" />
@@ -785,7 +785,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="state"
-                  label="State *"
+                  label="State"
                   rules={[{ required: true, message: 'Please enter state' }]}
                 >
                   <Input placeholder="Enter state" />
@@ -805,7 +805,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact *"
+                  label="Primary Contact"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
@@ -814,7 +814,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
-                  label="Primary Contact Email *"
+                  label="Primary Contact Email"
                   rules={[{ required: true, message: 'Please enter email' }, { type: 'email', message: 'Please enter a valid email' }]}
                 >
                   <Input placeholder="Enter email address" />
@@ -894,7 +894,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             </Row>
             <Form.Item
               name="about"
-              label="About *"
+              label="About"
               rules={[
                 { required: true, message: 'Please enter description' },
                 { min: 200, message: 'Description must be at least 200 characters' }
@@ -916,7 +916,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Title level={4}>Impact & Story</Title>
             <Form.Item
               name="whyThisMatters"
-              label="Why This Matters *"
+              label="Why This Matters"
               rules={[
                 { required: true, message: 'Please explain why this cause is important' },
                 { min: 200, message: 'Must be at least 200 characters' }
@@ -932,7 +932,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             
             <Form.Item
               name="successStory"
-              label="Success Story *"
+              label="Success Story"
               rules={[
                 { required: true, message: 'Please share a success story' },
                 { min: 150, message: 'Must be at least 150 characters' }
@@ -945,6 +945,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 maxLength={500}
               />
             </Form.Item>
+            <Text type="secondary" style={{ fontSize: '12px', marginTop: '-8px', display: 'block' }}>
+              Minimum 150 characters required
+            </Text>
             
             <Form.Item
               name="storyAuthor"
@@ -960,7 +963,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             </Text>
             
             <Row gutter={[24, 16]}>
-              <Col span={8}>
+              <Col span={12}>
                   <Form.Item
                   name="livesImpacted"
                   label="Lives Impacted"
@@ -970,7 +973,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., Over 10,000 children have received life-saving treatment" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -978,7 +981,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   </Text>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="programsActive"
                   label="Programs Active"
@@ -988,7 +991,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., We operate 25 programs across 10 states" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -996,7 +999,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   </Text>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="directToProgramsPercentage"
                   label="Direct to Programs (%)"
@@ -1006,7 +1009,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., 95% of all donations go directly to programs" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -1108,6 +1111,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                     >
                       <Select
                         placeholder="Select channel"
+                        style={{ width: '100%' }}
                         value={link.channel}
                         onChange={(value) => updateProfileLink(index, 'channel', value)}
                       >

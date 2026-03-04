@@ -355,8 +355,6 @@ const Dashboard: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -374,19 +372,29 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const timeFilterOptions = [
+    'All',
+    '1 Week',
+    '15 Days',
+    '1 Month',
+    '3 Months',
+    '6 Months',
+    'One Year',
+    'Custom Date'
+  ];
+
   const timeFilterMenu = (
-    <Menu onClick={handleTimeFilterChange}>
-      <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
-        All
-      </Menu.Item>
-      <Menu.Item key="1 Week">1 Week</Menu.Item>
-      <Menu.Item key="15 Days">15 Days</Menu.Item>
-      <Menu.Item key="1 Month">1 Month</Menu.Item>
-      <Menu.Item key="3 Months">3 Months</Menu.Item>
-      <Menu.Item key="6 Months">6 Months</Menu.Item>
-      <Menu.Item key="One Year">One Year</Menu.Item>
-      <Menu.Item key="Custom Date">Custom Date</Menu.Item>
-    </Menu>
+    <Menu
+      onClick={handleTimeFilterChange}
+      selectedKeys={[selectedTimeFilter]}
+      items={timeFilterOptions.map((option) => ({
+        key: option,
+        label: option,
+        icon: selectedTimeFilter === option
+          ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+          : undefined
+      }))}
+    />
   );
 
   const menuItems = [
@@ -419,12 +427,6 @@ const Dashboard: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -762,7 +764,6 @@ const Dashboard: React.FC = () => {
               Refresh
             </Button>
             <Button type="text" icon={<BellOutlined />} />
-            <Avatar size={32} icon={<UserOutlined />} />
           </div>
         </Header>
 

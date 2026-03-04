@@ -204,6 +204,15 @@
   background: #ffffff;
 }
 
+.ant-layout-content.discounts-content {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+  background: #F5F5FA;
+  margin-top: 0;
+  overflow: visible;
+}
+
 .header-left {
   display: flex;
   flex-direction: column;
@@ -231,6 +240,37 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+/* Discounts Table Section */
+.discounts-table-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.discounts-table {
+  border-radius: 12px;
+}
+
+.discounts-table .ant-table-thead > tr > th {
+  background: #324E58 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.discounts-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.discounts-pagination .ant-pagination-item-active {
+  background: #DB8633;
+  border-color: #DB8633;
+}
+
+.discounts-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
 }
 
 /* Search and Filter Bar */
@@ -266,6 +306,24 @@
   background: #c6762a !important;
   border-color: #c6762a !important;
   color: #ffffff !important;
+}
+
+.add-discount-btn,
+.add-discount-btn *,
+.add-discount-btn span,
+.add-discount-btn div {
+  color: #ffffff !important;
+}
+
+.add-discount-btn:hover,
+.add-discount-btn:focus,
+.add-discount-btn:active,
+.add-discount-btn:focus-visible {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: 0 4px 12px rgba(219, 134, 51, 0.25) !important;
 }
 
 .filter-section {

@@ -21,7 +21,6 @@ import {
   Image
 } from 'antd';
 import {
-  ArrowLeftOutlined,
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
@@ -1277,20 +1276,25 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         </Col>
       </Row>
 
-      <div className="form-field">
-        <label>Verification Status</label>
+      <div className="form-field verification-status">
         {isEditing ? (
-          <Checkbox
-            checked={formData.verificationStatus}
-            onChange={(e) => handleInputChange('verificationStatus', e.target.checked)}
-          >
-            Verified 501(c)(3) Nonprofit
-          </Checkbox>
+          <div className="verification-status-inline">
+            <label>Verification Status</label>
+            <Checkbox
+              checked={formData.verificationStatus}
+              onChange={(e) => handleInputChange('verificationStatus', e.target.checked)}
+            >
+              Verified 501(c)(3) Nonprofit
+            </Checkbox>
+          </div>
         ) : (
-          <Badge
-            status={beneficiaryData.verificationStatus ? 'success' : 'default'}
-            text={beneficiaryData.verificationStatus ? 'Verified' : 'Not Verified'}
-          />
+          <>
+            <label>Verification Status</label>
+            <Badge
+              status={beneficiaryData.verificationStatus ? 'success' : 'default'}
+              text={beneficiaryData.verificationStatus ? 'Verified' : 'Not Verified'}
+            />
+          </>
         )}
       </div>
     </Card>
@@ -1406,7 +1410,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         <div className="profile-header">
           <div className="header-left">
             <Button
-              icon={<ArrowLeftOutlined />}
               onClick={onClose}
               className="back-button"
             >

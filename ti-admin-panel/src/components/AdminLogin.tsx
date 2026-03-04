@@ -68,6 +68,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
             >
               <Form.Item
                 name="username"
+                label="Username"
                 rules={[
                   { required: true, message: 'Please enter your username' },
                   { min: 3, message: 'Username must be at least 3 characters' }
@@ -81,6 +82,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
 
               <Form.Item
                 name="password"
+                label="Password"
                 rules={[
                   { required: true, message: 'Please enter your password' },
                   { min: 8, message: 'Password must be at least 8 characters' }

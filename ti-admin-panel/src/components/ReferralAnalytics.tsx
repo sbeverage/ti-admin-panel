@@ -514,8 +514,6 @@ const ReferralAnalytics: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -576,12 +574,6 @@ const ReferralAnalytics: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',

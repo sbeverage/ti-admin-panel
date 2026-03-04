@@ -158,8 +158,6 @@ const PendingApprovals: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -233,12 +231,6 @@ const PendingApprovals: React.FC = () => {
       icon: <HeartOutlined />,
       label: 'Beneficiaries',
       title: 'Beneficiary Management'
-    },
-    {
-      key: 'tenants',
-      icon: <UserOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'discounts',

@@ -648,6 +648,8 @@
   width: 100%;
   justify-content: center;
   margin-top: 8px;
+  align-items: center;
+  text-align: center;
 }
 
 .legend-item {
@@ -661,6 +663,7 @@
   background: #f8f9fa;
   border-radius: 8px;
   transition: all 0.3s ease;
+  justify-content: center;
 }
 
 .legend-item:hover {

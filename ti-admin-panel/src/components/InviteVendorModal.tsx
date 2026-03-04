@@ -585,7 +585,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact Information *"
+                  label="Primary Contact Information"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
@@ -594,7 +594,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
-                  label="Primary Contact Email *"
+                  label="Primary Contact Email"
                   rules={[{ required: true, message: 'Please enter primary email' }]}
                 >
                   <Input placeholder="Enter primary contact email" />
@@ -605,7 +605,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="companyName"
-                  label="Company Name *"
+                  label="Company Name"
                   rules={[{ required: true, message: 'Please enter company name' }]}
                 >
                   <Input placeholder="Enter company name" />
@@ -614,7 +614,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="websiteLink"
-                  label="Website Link *"
+                  label="Website Link"
                   rules={[{ required: true, message: 'Please enter website link' }]}
                 >
                   <Input placeholder="Enter website link" />
@@ -625,7 +625,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="street"
-                  label="Street Address *"
+                  label="Street Address"
                   rules={[{ required: true, message: 'Please enter street address' }]}
                 >
                   <Input placeholder="Enter street address" />
@@ -634,7 +634,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="phoneNumber"
-                  label="Company Phone Number *"
+                  label="Company Phone Number"
                   rules={[{ required: true, message: 'Please enter phone number' }]}
                 >
                   <Input placeholder="Enter company phone number" />
@@ -645,7 +645,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="city"
-                  label="City *"
+                  label="City"
                   rules={[{ required: true, message: 'Please enter city' }]}
                 >
                   <Input placeholder="Enter city" />
@@ -654,7 +654,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="state"
-                  label="State *"
+                  label="State"
                   rules={[{ required: true, message: 'Please enter state' }]}
                 >
                   <Input placeholder="Enter state" />
@@ -663,7 +663,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="zipCode"
-                  label="ZIP Code *"
+                  label="ZIP Code"
                   rules={[{ required: true, message: 'Please enter ZIP code' }]}
                 >
                   <Input placeholder="Enter ZIP code" />
@@ -674,7 +674,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="category"
-                  label="Category *"
+                  label="Category"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
                   <Select 
@@ -726,7 +726,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="description"
-                  label="Description *"
+                  label="Description"
                   rules={[{ required: true, message: 'Please enter description' }]}
                 >
                   <TextArea rows={4} placeholder="Enter company description" />

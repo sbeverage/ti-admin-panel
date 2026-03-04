@@ -102,8 +102,6 @@ const NewsfeedManagement: React.FC = () => {
       navigate('/beneficiaries');
     } else if (key === 'vendor') {
       navigate('/vendor');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'newsfeed-management') {
@@ -154,12 +152,6 @@ const NewsfeedManagement: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'feeds',

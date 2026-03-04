@@ -118,12 +118,6 @@ const Reporting: React.FC = () => {
       title: 'Discount Management'
     },
     {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
@@ -168,7 +162,6 @@ const Reporting: React.FC = () => {
     else if (key === 'beneficiaries') navigate('/beneficiaries');
     else if (key === 'vendor') navigate('/vendor');
     else if (key === 'discounts') navigate('/discounts');
-    else if (key === 'tenants') navigate('/tenants');
     else if (key === 'pending-approvals') navigate('/pending-approvals');
     else if (key === 'invitations') navigate('/invitations');
     else if (key === 'referral-analytics') navigate('/referral-analytics');

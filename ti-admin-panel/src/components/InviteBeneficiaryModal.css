@@ -88,7 +88,7 @@
 }
 
 .steps-sidebar .ant-steps-vertical > .ant-steps-item.ant-steps-item-finish .ant-steps-item-icon {
-  color: #52c41a;
+  color: #DB8633;
 }
 
 .steps-sidebar .ant-steps-vertical > .ant-steps-item.ant-steps-item-wait .ant-steps-item-icon {
@@ -205,6 +205,17 @@
   color: #ffffff !important;
 }
 
+.upload-btn,
+.upload-btn *,
+.upload-btn span,
+.upload-btn div,
+.add-profile-link-btn,
+.add-profile-link-btn *,
+.add-profile-link-btn span,
+.add-profile-link-btn div {
+  color: #ffffff !important;
+}
+
 /* Form 990 Upload */
 .ant-upload.ant-upload-select {
   width: 100%;
@@ -301,11 +312,12 @@
 /* Form Actions */
 .form-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
+  gap: 12px;
 }
 
 .prev-btn {

@@ -10,8 +10,6 @@ import {
   Pagination,
   Select,
   Card,
-  Row,
-  Col,
   Table,
   Tag,
   message,
@@ -178,8 +176,6 @@ const Discounts: React.FC = () => {
       navigate('/beneficiaries');
     } else if (key === 'vendor') {
       navigate('/vendor');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
     } else if (key === 'invitations') {
@@ -311,12 +307,6 @@ const Discounts: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -505,111 +495,108 @@ const Discounts: React.FC = () => {
         <UserProfile className="standard-user-profile" showRole={true} />
       </Sider>
 
-      <Layout className="main-content">
-        <Header className="discounts-header" style={{ background: '#fff', padding: '16px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <Title level={2} style={{ margin: 0 }}>Discounts</Title>
-              <Text type="secondary">{totalDiscounts} Discounts Found</Text>
-            </div>
+      <Layout className="standard-main-content">
+        <Header className="discounts-header">
+          <div className="header-left">
+            <Title level={2} style={{ margin: 0 }}>Discounts</Title>
+            <Text type="secondary" className="discounts-count">
+              {totalDiscounts} Discounts Found
+            </Text>
+          </div>
+          <div className="header-right">
             <Button
               type="primary"
               icon={<GiftOutlined />}
+              size="large"
               onClick={handleAddDiscount}
-              style={{
-                backgroundColor: '#DB8633',
-                borderColor: '#DB8633',
-                color: '#ffffff'
-              }}
+              className="add-discount-btn"
             >
               Add Discount
             </Button>
           </div>
         </Header>
 
-        <Content className="discounts-content" style={{ padding: '24px', background: '#f0f2f5' }}>
-          {/* Search and Filter Bar */}
-          <Card style={{ marginBottom: '24px' }}>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={8}>
+        <Content className="discounts-content">
+          <div className="content-wrapper">
+            {/* Search and Filter Bar */}
+            <div className="search-filter-bar">
+              <div className="search-section">
                 <Search
                   placeholder="Search Discount Name or Code"
                   allowClear
                   enterButton={<SearchOutlined />}
                   size="large"
+                  className="discount-search"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   onSearch={() => loadDiscounts()}
                 />
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Select
-                  placeholder="Filter by Vendor"
-                  size="large"
-                  style={{ width: '100%' }}
-                  allowClear
-                  value={selectedVendor}
-                  onChange={(value) => setSelectedVendor(value)}
-                >
-                  {vendorsData.map((vendor: any) => (
-                    <Option key={vendor.id} value={vendor.id.toString()}>
-                      {vendor.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Select
-                  placeholder="Filter by Type"
-                  size="large"
-                  style={{ width: '100%' }}
-                  allowClear
-                  value={selectedType}
-                  onChange={(value) => setSelectedType(value)}
-                >
-                  <Option value="percentage">Percentage</Option>
-                  <Option value="fixed">Fixed Amount</Option>
-                  <Option value="bogo">Buy 1 Get 1</Option>
-                  <Option value="free">Free</Option>
-                </Select>
-              </Col>
-            </Row>
-          </Card>
+              </div>
+              <div className="filter-section">
+                <Text strong className="filter-label">Filters</Text>
+                <div className="filter-dropdowns">
+                  <Select
+                    placeholder="Filter by Vendor"
+                    className="filter-dropdown"
+                    size="large"
+                    allowClear
+                    value={selectedVendor}
+                    onChange={(value) => setSelectedVendor(value)}
+                  >
+                    {vendorsData.map((vendor: any) => (
+                      <Option key={vendor.id} value={vendor.id.toString()}>
+                        {vendor.name}
+                      </Option>
+                    ))}
+                  </Select>
+                  <Select
+                    placeholder="Filter by Type"
+                    className="filter-dropdown"
+                    size="large"
+                    allowClear
+                    value={selectedType}
+                    onChange={(value) => setSelectedType(value)}
+                  >
+                    <Option value="percentage">Percentage</Option>
+                    <Option value="fixed">Fixed Amount</Option>
+                    <Option value="bogo">Buy 1 Get 1</Option>
+                    <Option value="free">Free</Option>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
           {/* Discounts Table */}
-          <Card>
+          <div className="discounts-table-section">
             <Spin spinning={loading}>
-              {error ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <Text type="danger">{error}</Text>
-                </div>
-              ) : (
-                <>
-                  <Table
-                    columns={columns}
-                    dataSource={discountsData}
-                    pagination={false}
-                    scroll={{ x: 1200 }}
-                    rowKey="key"
-                  />
-                  <div style={{ marginTop: '16px', textAlign: 'right' }}>
-                    <Pagination
-                      current={currentPage}
-                      total={totalDiscounts}
-                      pageSize={pageSize}
-                      onChange={(page, size) => {
-                        setCurrentPage(page);
-                        if (size) setPageSize(size);
-                      }}
-                      showSizeChanger
-                      showQuickJumper
-                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} discounts`}
-                    />
-                  </div>
-                </>
-              )}
+              <Table
+                columns={columns}
+                dataSource={discountsData}
+                pagination={false}
+                scroll={{ x: 1200 }}
+                rowKey="key"
+                className="discounts-table"
+                locale={{
+                  emptyText: error ? `Error: ${error}` : 'No discounts found'
+                }}
+              />
             </Spin>
-          </Card>
+            <div className="pagination-section">
+              <Pagination
+                current={currentPage}
+                total={totalDiscounts}
+                pageSize={pageSize}
+                onChange={(page, size) => {
+                  setCurrentPage(page);
+                  if (size) setPageSize(size);
+                }}
+                showSizeChanger={false}
+                showQuickJumper={false}
+                className="discounts-pagination"
+              />
+            </div>
+          </div>
+          </div>
         </Content>
       </Layout>
 

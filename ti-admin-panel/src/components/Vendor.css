@@ -731,15 +731,35 @@
 
 /* Action Button Styles */
 .edit-action-btn {
-  color: #8c8c8c;
-  border: none;
-  padding: 4px 8px;
-  transition: all 0.3s ease;
+  background-color: #fff7e6 !important;
+  border: 1.5px solid #DB8633 !important;
+  color: #DB8633 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
 }
 
 .edit-action-btn:hover {
-  color: #DB8633;
-  background: rgba(219, 134, 51, 0.1);
+  background-color: #fff2d9 !important;
+  border-color: #C6762A !important;
+  color: #C6762A !important;
+}
+
+.edit-action-btn .anticon {
+  color: #DB8633 !important;
+  font-size: 14px !important;
+}
+
+.edit-action-btn:hover .anticon {
+  color: #C6762A !important;
 }
 
 .delete-action-btn {

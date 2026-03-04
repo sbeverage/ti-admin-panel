@@ -272,8 +272,6 @@ const Donors: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -349,12 +347,6 @@ const Donors: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -691,14 +683,24 @@ const Donors: React.FC = () => {
     if (size) setPageSize(size);
   };
 
-  const handleInviteDonor = async (values: any) => {
+  const handleInviteDonor = async (values: any): Promise<boolean> => {
     try {
       console.log('Creating new donor:', values);
       
+      const isCoworking = values.coworking === 'Yes' || values.coworking === true;
+      const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
+        ? parseFloat(String(values.sponsorAmount).replace('$', ''))
+        : (isCoworking ? 15 : 0);
+
       const donorData: any = {
         name: values.name,
         email: values.email,
         phone: values.contact,
+        coworking: isCoworking,
+        sponsor_amount: sponsorAmount,
+        sponsorAmount: sponsorAmount,
+        invite_type: isCoworking ? 'coworking' : 'standard',
+        inviteType: isCoworking ? 'coworking' : 'standard',
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''
@@ -718,8 +720,10 @@ const Donors: React.FC = () => {
         setIsInviteModalVisible(false);
         // Refresh the donors list
         loadDonors();
+        return true;
       } else {
         message.error('Failed to create donor');
+        return false;
       }
     } catch (error) {
       console.error('Error creating donor:', error);
@@ -728,6 +732,7 @@ const Donors: React.FC = () => {
           ? `Failed to create donor: ${error.message}`
           : 'Failed to create donor. Please try again.';
       message.error(errorMessage);
+      return false;
     }
   };
 
@@ -790,6 +795,14 @@ const Donors: React.FC = () => {
           zipCode: values.zipCode || '',
           street: '' // Street address not currently in form, but backend expects it
         },
+        beneficiary_id: values.beneficiary ? Number(values.beneficiary) : undefined,
+        donation_amount: values.donation !== undefined && values.donation !== null && values.donation !== ''
+          ? parseFloat(String(values.donation).replace('$', ''))
+          : undefined,
+        one_time_donation: values.oneTime !== undefined && values.oneTime !== null && values.oneTime !== ''
+          ? parseFloat(String(values.oneTime).replace('$', ''))
+          : undefined,
+        coworking: values.coworking,
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
         is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true
         // Note: 'notes' field removed - column doesn't exist in users table
@@ -973,7 +986,7 @@ const Donors: React.FC = () => {
               className="invite-donor-btn"
               onClick={() => setIsInviteModalVisible(true)}
             >
-              + Invite A Donor
+              Invite A Donor
             </Button>
           </div>
         </Header>
@@ -1086,12 +1099,6 @@ const Donors: React.FC = () => {
             <div className="donors-table-section">
               <Spin spinning={loading}>
                 
-                {donorsData.length === 0 && !loading && (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <Text>No donors found. Use "Invite A Donor" button to add one.</Text>
-                  </div>
-                )}
-                
                 <Table
                   dataSource={filteredDonorsData}
                   columns={columns}
@@ -1131,7 +1138,9 @@ const Donors: React.FC = () => {
                     };
                   }}
                   locale={{
-                    emptyText: error ? `Error: ${error}` : 'No donors found'
+                    emptyText: error
+                      ? `Error: ${error}`
+                      : 'No donors found. Use "Invite A Donor" button to add one.'
                   }}
                 />
               </Spin>
@@ -1171,6 +1180,7 @@ const Donors: React.FC = () => {
           setEditingDonor(null);
         }}
         onSubmit={handleUpdateDonor}
+        beneficiaries={beneficiariesList}
       />
 
       {/* Delete User Confirmation Modal */}
