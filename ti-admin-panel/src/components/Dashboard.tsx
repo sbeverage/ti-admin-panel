@@ -805,15 +805,6 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Tenants"
-                      value={dashboardStats?.totalTenants || '--'}
-                      prefix={<BankOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
               </Row>
 
               <Row gutter={[16, 16]} className="summary-cards">
