@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { settingsAPI } from '../services/api';
 import './AdminLogin.css';
 
 const { Title, Text } = Typography;
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -18,20 +19,25 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
     setLoading(true);
     
     try {
-      // Simulate API call - replace with real authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check credentials (in production, this would be server-side)
-      if (values.username === 'admin' && values.password === 'Thr1v3@dm1n!') {
+      const response = await settingsAPI.loginTeamMember({
+        email: values.email,
+        password: values.password
+      });
+
+      if (response.success && response.data) {
+        const displayName = response.data.name || response.data.email || values.email;
         message.success('Login successful!');
         localStorage.setItem('admin_authenticated', 'true');
-        localStorage.setItem('admin_username', values.username);
-        onLogin(values.username);
+        localStorage.setItem('admin_username', displayName);
+        onLogin(displayName);
       } else {
-        message.error('Invalid username or password');
+        message.error(response.error || 'Invalid email or password');
       }
-    } catch (error) {
-      message.error('Login failed. Please try again.');
+    } catch (error: any) {
+      const errorMessage = error?.message?.includes('HTTP error!')
+        ? error.message
+        : 'Login failed. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -67,15 +73,15 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               className="login-form"
             >
               <Form.Item
-                name="username"
-                label="Username"
+                name="email"
+                label="Email"
                 rules={[
-                  { required: true, message: 'Please enter your username' },
-                  { min: 3, message: 'Username must be at least 3 characters' }
+                  { required: true, message: 'Please enter your email' },
+                  { type: 'email', message: 'Please enter a valid email' }
                 ]}
               >
                 <Input
-                  placeholder="Enter Username"
+                  placeholder="Enter Email"
                   className="login-input"
                 />
               </Form.Item>
