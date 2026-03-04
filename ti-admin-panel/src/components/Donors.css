@@ -531,6 +531,26 @@
   padding-left: 40px;
 }
 
+.donor-name-cell {
+  min-width: 200px;
+  flex-wrap: nowrap;
+}
+
+.donor-name-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: inline-block;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.donors-table .ant-table-tbody > tr > td:first-child {
+  word-break: normal !important;
+  white-space: nowrap;
+}
+
 /* Remove all column borders */
 .donors-table .ant-table-container {
   border: none !important;

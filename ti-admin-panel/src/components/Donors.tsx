@@ -403,12 +403,13 @@ const Donors: React.FC = () => {
             console.log('Clicked on name column');
             handleEditDonor(record);
           }}
+          className="donor-name-cell"
           style={{ cursor: 'pointer', width: '100%' }}
         >
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.avatar}
           </Avatar>
-          <Text strong style={{ cursor: 'pointer' }}>{text}</Text>
+          <Text strong className="donor-name-text" style={{ cursor: 'pointer' }}>{text}</Text>
           {record.coworking === 'Yes' && (
             <Tag className="coworking-badge" color="gold">
               Coworking
@@ -417,7 +418,7 @@ const Donors: React.FC = () => {
         </Space>
       ),
       fixed: 'left' as const,
-      width: 200,
+      width: 260,
     },
     {
       title: 'Emails',
