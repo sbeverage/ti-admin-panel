@@ -8,13 +8,7 @@ import {
   subscribeToNotifications,
   AppNotification,
 } from '../services/notifications';
-
-const levelColors: Record<string, string> = {
-  info: 'blue',
-  success: 'green',
-  warning: 'orange',
-  error: 'red',
-};
+import './NotificationsDropdown.css';
 
 const formatTimestamp = (timestamp: number) => {
   try {
@@ -44,49 +38,43 @@ const NotificationsDropdown: React.FC = () => {
 
   const dropdownContent = useMemo(() => {
     return (
-      <div style={{ width: 340 }}>
-        <Space
-          align="center"
-          style={{
-            width: '100%',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            borderBottom: '1px solid #f0f0f0',
-          }}
-        >
+      <div className="notifications-dropdown">
+        <div className="notifications-dropdown__header">
           <Typography.Text strong>Notifications</Typography.Text>
-          <Button type="link" size="small" onClick={markAllRead} disabled={unreadCount === 0}>
+          <Button
+            type="link"
+            size="small"
+            className="notifications-dropdown__mark-all"
+            onClick={markAllRead}
+            disabled={unreadCount === 0}
+          >
             Mark all read
           </Button>
-        </Space>
+        </div>
         <List
+          className="notifications-dropdown__list"
           dataSource={notifications}
           locale={{ emptyText: 'No notifications yet' }}
           renderItem={(item) => (
             <List.Item
               key={item.id}
-              style={{
-                padding: '12px 16px',
-                background: item.read ? '#ffffff' : '#faf7f2',
-                cursor: 'pointer',
-              }}
+              className={`notifications-dropdown__item ${item.read ? '' : 'is-unread'}`}
+              style={{ padding: '12px 20px' }}
               onClick={() => markRead(item.id)}
             >
               <List.Item.Meta
                 title={
-                  <Space size="small">
+                  <Space size="small" className="notifications-dropdown__title">
                     <Typography.Text strong>{item.title}</Typography.Text>
-                    <Tag color={levelColors[item.level] || 'blue'}>{item.level}</Tag>
+                    <Tag className={`notification-level-tag level-${item.level}`}>{item.level}</Tag>
                   </Space>
                 }
                 description={
-                  <div>
+                  <div className="notifications-dropdown__body">
                     {item.message && <Typography.Text>{item.message}</Typography.Text>}
-                    <div>
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                        {formatTimestamp(item.createdAt)}
-                      </Typography.Text>
-                    </div>
+                    <Typography.Text type="secondary" className="notifications-dropdown__timestamp">
+                      {formatTimestamp(item.createdAt)}
+                    </Typography.Text>
                   </div>
                 }
               />
@@ -98,8 +86,13 @@ const NotificationsDropdown: React.FC = () => {
   }, [notifications, unreadCount]);
 
   return (
-    <Dropdown overlay={dropdownContent} trigger={['click']} placement="bottomRight">
-      <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+    <Dropdown
+      overlay={dropdownContent}
+      trigger={['click']}
+      placement="bottomRight"
+      overlayClassName="notifications-dropdown-overlay"
+    >
+      <Badge count={unreadCount} size="small" offset={[-2, 2]} className="notifications-badge">
         <Button type="text" icon={<BellOutlined />} />
       </Badge>
     </Dropdown>

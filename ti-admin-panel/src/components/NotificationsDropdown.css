@@ -1,0 +1,107 @@
+.notifications-dropdown-overlay {
+  padding: 0;
+}
+
+.notifications-dropdown {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #f1d9c1;
+  border-radius: 12px;
+  box-shadow: 0 16px 32px rgba(33, 24, 14, 0.16);
+  overflow: hidden;
+}
+
+.notifications-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #fff6ed;
+  border-bottom: 1px solid #f1d9c1;
+}
+
+.notifications-dropdown__mark-all {
+  color: #db8633;
+  padding: 0;
+}
+
+.notifications-dropdown__list {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.notifications-dropdown__item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notifications-dropdown__item .ant-list-item-meta {
+  margin: 0;
+  padding: 0;
+}
+
+.notifications-dropdown__item .ant-list-item-meta-content {
+  padding-left: 0;
+}
+
+.notifications-dropdown__item + .notifications-dropdown__item {
+  border-top: 1px solid #f6eadf;
+}
+
+.notifications-dropdown__item:hover {
+  background: #fff5ea;
+}
+
+.notifications-dropdown__item.is-unread {
+  background: #fff8f1;
+  border-left: 3px solid #db8633;
+  padding-left: 17px;
+}
+
+.notifications-dropdown__title {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.notifications-dropdown__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notifications-dropdown__timestamp {
+  font-size: 12px;
+}
+
+.notification-level-tag {
+  border: none;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 10px;
+  line-height: 1.6;
+  padding: 0 8px;
+  background: #fff1e5;
+  color: #b55a17;
+}
+
+.notification-level-tag.level-success {
+  background: #fdf2e9;
+  color: #a35c24;
+}
+
+.notification-level-tag.level-warning {
+  background: #ffe8d4;
+  color: #b0531f;
+}
+
+.notification-level-tag.level-error {
+  background: #ffd9c9;
+  color: #a03f12;
+}
+
+.notifications-badge .ant-badge-count {
+  background: #db8633;
+  box-shadow: 0 0 0 1px #ffffff;
+}
