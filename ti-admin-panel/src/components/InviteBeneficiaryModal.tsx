@@ -18,6 +18,7 @@ import {
   DeleteOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
+import { addNotification } from '../services/notifications';
 import ImageUpload from './ImageUpload';
 import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 import './InviteBeneficiaryModal.css';
@@ -633,6 +634,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       if (isSuccess) {
         message.success('Beneficiary created successfully!');
+        addNotification({
+          title: 'Beneficiary invited',
+          message: beneficiaryData.name || 'Beneficiary created',
+          level: 'success',
+        });
         // Call onSubmit callback (which should refresh the beneficiaries list)
         onSubmit(allData);
         handleCancel();
@@ -642,12 +648,22 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         const errorMsg = response.error || responseData?.error || 'Failed to create beneficiary';
         console.error('❌ Backend error:', errorMsg);
         message.error(`Failed to create beneficiary: ${errorMsg}`);
+        addNotification({
+          title: 'Beneficiary invite failed',
+          message: errorMsg,
+          level: 'error',
+        });
       }
       
     } catch (error: any) {
       console.error('❌ Error creating beneficiary:', error);
       const errorMsg = error?.message || 'Failed to create beneficiary. Please try again.';
       message.error(errorMsg);
+      addNotification({
+        title: 'Beneficiary invite failed',
+        message: errorMsg,
+        level: 'error',
+      });
     } finally {
       setSaving(false);
     }

@@ -13,6 +13,7 @@ import {
   InboxOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI } from '../services/api';
+import { addNotification } from '../services/notifications';
 import './InviteVendorModal.css';
 
 const { Title, Text } = Typography;
@@ -401,6 +402,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         }
         
         message.success('Vendor created successfully!');
+        addNotification({
+          title: 'Vendor invited',
+          message: allData.companyName || 'Vendor created',
+          level: 'success',
+        });
         // Call onSubmit callback first to trigger parent refresh
         onSubmit(allData);
         // Small delay to ensure backend has finished processing
@@ -412,12 +418,23 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         console.error('Response details:', JSON.stringify(vendorResponse, null, 2));
         const errorMessage = vendorResponse?.error || vendorResponse?.message || 'Unknown error';
         message.error(`Failed to create vendor: ${errorMessage}`);
+        addNotification({
+          title: 'Vendor invite failed',
+          message: errorMessage,
+          level: 'error',
+        });
         setSaving(false);
         return; // Don't close modal on error
       }
     } catch (error) {
       console.error('Error creating vendor:', error);
-      message.error(`Failed to create vendor: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Please try again.';
+      message.error(`Failed to create vendor: ${errorMessage}`);
+      addNotification({
+        title: 'Vendor invite failed',
+        message: errorMessage,
+        level: 'error',
+      });
     } finally {
       setSaving(false);
     }

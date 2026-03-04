@@ -198,6 +198,97 @@ export interface PaginatedResponse<T> {
   message?: string;
 }
 
+export interface NotificationRecord {
+  id: number;
+  title: string;
+  message?: string;
+  level: 'info' | 'success' | 'warning' | 'error';
+  entity_type?: string;
+  entity_id?: string;
+  metadata?: any;
+  created_at: string;
+  read_at?: string | null;
+}
+
+export interface NotificationsResponse {
+  success: boolean;
+  data?: NotificationRecord[];
+  unreadCount?: number;
+  error?: string;
+  message?: string;
+}
+
+export const notificationsAPI = {
+  getNotifications: async (params?: { limit?: number; offset?: number; unreadOnly?: boolean }): Promise<NotificationsResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    if (params?.unreadOnly) queryParams.append('unreadOnly', 'true');
+
+    const url = `${API_CONFIG.baseURL}/notifications${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetch(url, { headers: API_CONFIG.headers });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
+  createNotification: async (payload: {
+    title: string;
+    message?: string;
+    level?: 'info' | 'success' | 'warning' | 'error';
+    entity_type?: string;
+    entity_id?: string;
+    metadata?: any;
+  }): Promise<NotificationsResponse> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/notifications`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
+  markRead: async (ids: string[]): Promise<NotificationsResponse> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/notifications/read`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ ids }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
+  markAllRead: async (): Promise<NotificationsResponse> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/notifications/read`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ all: true }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+};
+
 // Vendor API functions
 export const vendorAPI = {
   // Get all vendors

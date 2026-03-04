@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message, DatePicker, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { dashboardAPI } from '../services/api';
@@ -14,7 +14,6 @@ import {
   FileTextOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
-  BellOutlined,
   ShoppingOutlined,
   BankOutlined,
   GiftOutlined,
@@ -28,6 +27,7 @@ import {
   CalculatorOutlined,
   MailOutlined
 } from '@ant-design/icons';
+import NotificationsDropdown from './NotificationsDropdown';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -39,7 +39,10 @@ const { Title, Text } = Typography;
 const Dashboard: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const [selectedTimeFilterKey, setSelectedTimeFilterKey] = useState('1 Month');
+  const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');
+  const [customDateOpen, setCustomDateOpen] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState<any>(null);
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
@@ -247,9 +250,25 @@ const Dashboard: React.FC = () => {
   } = theme.useToken();
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
-    setSelectedTimeFilter(key);
+    if (key === 'Custom Date') {
+      setCustomDateOpen(true);
+      return;
+    }
+
+    setSelectedTimeFilterKey(key);
+    setSelectedTimeFilterLabel(key);
     // Here you would typically fetch new data based on the selected time period
     console.log('Time filter changed to:', key);
+  };
+
+  const handleCustomDateApply = () => {
+    if (customDateRange?.[0] && customDateRange?.[1]) {
+      const start = customDateRange[0].format('MM/DD/YYYY');
+      const end = customDateRange[1].format('MM/DD/YYYY');
+      setSelectedTimeFilterKey('Custom Date');
+      setSelectedTimeFilterLabel(`${start} - ${end}`);
+    }
+    setCustomDateOpen(false);
   };
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
@@ -386,11 +405,11 @@ const Dashboard: React.FC = () => {
   const timeFilterMenu = (
     <Menu
       onClick={handleTimeFilterChange}
-      selectedKeys={[selectedTimeFilter]}
+      selectedKeys={[selectedTimeFilterKey]}
       items={timeFilterOptions.map((option) => ({
         key: option,
         label: option,
-        icon: selectedTimeFilter === option
+        icon: selectedTimeFilterKey === option
           ? <CheckCircleFilled style={{ color: '#DB8633' }} />
           : undefined
       }))}
@@ -763,7 +782,7 @@ const Dashboard: React.FC = () => {
             >
               Refresh
             </Button>
-            <Button type="text" icon={<BellOutlined />} />
+            <NotificationsDropdown />
           </div>
         </Header>
 
@@ -780,7 +799,7 @@ const Dashboard: React.FC = () => {
                 >
                   <Button className="time-filter-button">
                     <CalendarOutlined />
-                    <span>{selectedTimeFilter}</span>
+                    <span>{selectedTimeFilterLabel}</span>
                     <DownOutlined />
                   </Button>
                 </Dropdown>
@@ -878,7 +897,7 @@ const Dashboard: React.FC = () => {
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>This Month</span>
+                                <span>{selectedTimeFilterLabel}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
@@ -913,7 +932,7 @@ const Dashboard: React.FC = () => {
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>This Month</span>
+                                <span>{selectedTimeFilterLabel}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
@@ -1032,6 +1051,20 @@ const Dashboard: React.FC = () => {
           </Spin>
         </Content>
       </Layout>
+
+      <Modal
+        title="Select Custom Date Range"
+        open={customDateOpen}
+        onCancel={() => setCustomDateOpen(false)}
+        onOk={handleCustomDateApply}
+        okText="Apply"
+      >
+        <DatePicker.RangePicker
+          style={{ width: '100%' }}
+          onChange={(range) => setCustomDateRange(range)}
+          value={customDateRange}
+        />
+      </Modal>
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarVisible && (

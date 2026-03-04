@@ -13,6 +13,7 @@ import {
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
 import { donorAPI, beneficiaryAPI } from '../services/api';
+import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Donors.css';
@@ -713,12 +714,22 @@ const Donors: React.FC = () => {
       
       if (response.success) {
         message.success('Donor created successfully!');
+        addNotification({
+          title: 'Donor invited',
+          message: `${values.name} (${values.email})`,
+          level: 'success',
+        });
         setIsInviteModalVisible(false);
         // Refresh the donors list
         loadDonors();
         return true;
       } else {
         message.error('Failed to create donor');
+        addNotification({
+          title: 'Donor invite failed',
+          message: 'Failed to create donor.',
+          level: 'error',
+        });
         return false;
       }
     } catch (error) {
@@ -728,6 +739,11 @@ const Donors: React.FC = () => {
           ? `Failed to create donor: ${error.message}`
           : 'Failed to create donor. Please try again.';
       message.error(errorMessage);
+      addNotification({
+        title: 'Donor invite failed',
+        message: errorMessage,
+        level: 'error',
+      });
       return false;
     }
   };
@@ -856,11 +872,21 @@ const Donors: React.FC = () => {
       
       if (response.success || response.data) {
         message.success(`Invitation email resent successfully to ${record.email || record.name}`);
+        addNotification({
+          title: 'Donor invite resent',
+          message: record.email || record.name || 'Invitation resent',
+          level: 'success',
+        });
         // Optionally refresh the donor list
         await loadDonors();
       } else {
         const errorMsg = response.error || response.message || 'Failed to resend invitation email';
         message.error(errorMsg);
+        addNotification({
+          title: 'Resend invitation failed',
+          message: errorMsg,
+          level: 'error',
+        });
       }
     } catch (error: any) {
       console.error('Error resending invitation:', error);
@@ -887,6 +913,11 @@ const Donors: React.FC = () => {
       } else {
         message.error(`❌ ${errorMessage}`);
       }
+      addNotification({
+        title: 'Resend invitation failed',
+        message: errorMessage,
+        level: 'error',
+      });
     } finally {
       setResendingInvitation(null);
     }
@@ -909,6 +940,11 @@ const Donors: React.FC = () => {
       
       if (response.success || response.data) {
         message.success(`Donor ${deletingUser.name || deletingUser.email} deleted successfully`);
+        addNotification({
+          title: 'Donor deleted',
+          message: deletingUser.email || deletingUser.name || 'Donor deleted',
+          level: 'warning',
+        });
         setIsDeleteUserModalVisible(false);
         setDeletingUser(null);
         // Refresh donors list

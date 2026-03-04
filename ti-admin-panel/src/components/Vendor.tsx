@@ -13,6 +13,7 @@ import {
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
 import { vendorAPI, Vendor as VendorType } from '../services/api';
+import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Vendor.css';
@@ -36,6 +37,10 @@ const Vendor: React.FC = () => {
   const [vendorsData, setVendorsData] = useState<any[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
   const [showInactive, setShowInactive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedStatus, setSelectedStatus] = useState<string | undefined>();
+  const [selectedLocation, setSelectedLocation] = useState<string | undefined>();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -89,10 +94,10 @@ const Vendor: React.FC = () => {
         // Transform API data to match our table structure
         console.log('🔄 Transforming vendor data...');
         console.log('📋 Vendors to transform:', vendorsData.length);
-        const transformedData = vendorsData.map((vendor: VendorType) => ({
+          const transformedData = vendorsData.map((vendor: VendorType) => ({
             key: vendor.id.toString(),
             name: vendor.name,
-            contactName: vendor.email, // Using email as contact name for now
+            contactName: (vendor as any).contact_name || (vendor as any).contactName || vendor.name || vendor.email,
             email: vendor.email,
             contact: vendor.phone,
             category: vendor.category || 'Uncategorized',
@@ -157,6 +162,11 @@ const Vendor: React.FC = () => {
     } catch (error) {
       console.error(`Error updating vendor ${field}:`, error);
       message.error(`Failed to update vendor ${field} status`);
+      addNotification({
+        title: 'Vendor update failed',
+        message: `Failed to update vendor ${field} status.`,
+        level: 'error',
+      });
     }
   };
 
@@ -302,14 +312,29 @@ const Vendor: React.FC = () => {
       
       if (response.success) {
         message.success(`Vendor ${action}d successfully`);
+        addNotification({
+          title: `Vendor ${action}d`,
+          message: record.name || 'Vendor status updated',
+          level: 'success',
+        });
         // Reload vendors to get updated data
         loadVendors();
       } else {
         message.error(`Failed to ${action} vendor: ${response.error}`);
+        addNotification({
+          title: `Vendor ${action} failed`,
+          message: response.error || 'Status update failed',
+          level: 'error',
+        });
       }
     } catch (error) {
       console.error(`Error ${action}ing vendor:`, error);
       message.error(`Failed to ${action} vendor. Please try again.`);
+      addNotification({
+        title: `Vendor ${action} failed`,
+        message: 'Status update failed. Please try again.',
+        level: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -449,6 +474,7 @@ const Vendor: React.FC = () => {
       ),
       dataIndex: 'name',
       key: 'name',
+      sorter: (a: any, b: any) => a.name.localeCompare(b.name),
       render: (text: string, record: any) => (
         <Space>
           <Avatar 
@@ -611,10 +637,23 @@ const Vendor: React.FC = () => {
     setCurrentPage(page);
   };
 
-  // Filter vendors based on status
-  const filteredVendors = showInactive 
-    ? vendorsData 
-    : vendorsData.filter(vendor => vendor.status === 'active');
+  const uniqueCategories = Array.from(new Set(vendorsData.map(vendor => vendor.category).filter(Boolean)));
+  const uniqueStatuses = Array.from(new Set(vendorsData.map(vendor => vendor.status).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(vendorsData.map(vendor => vendor.cityState).filter(Boolean)));
+
+  const filteredVendors = vendorsData.filter((vendor) => {
+    const matchesStatus = showInactive ? true : vendor.status === 'active';
+    const matchesCategory = selectedCategory ? vendor.category === selectedCategory : true;
+    const matchesLocation = selectedLocation ? vendor.cityState === selectedLocation : true;
+    const matchesStatusFilter = selectedStatus ? vendor.status === selectedStatus : true;
+    const matchesSearch = searchTerm
+      ? [vendor.name, vendor.contactName, vendor.email, vendor.contact, vendor.category, vendor.cityState]
+          .filter(Boolean)
+          .some((value: string) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+      : true;
+
+    return matchesStatus && matchesCategory && matchesLocation && matchesStatusFilter && matchesSearch;
+  });
 
   return (
     <Layout className="vendor-layout">
@@ -693,6 +732,8 @@ const Vendor: React.FC = () => {
                   enterButton={<SearchOutlined />}
                   size="large"
                   className="vendor-search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
               
@@ -714,42 +755,53 @@ const Vendor: React.FC = () => {
                     placeholder="Select Category"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedCategory}
+                    onChange={(value) => setSelectedCategory(value)}
+                    allowClear
                   >
-                    <Option value="technology">Technology</Option>
-                    <Option value="energy">Energy</Option>
-                    <Option value="healthcare">Healthcare</Option>
-                    <Option value="education">Education</Option>
+                    {uniqueCategories.map((category) => (
+                      <Option key={category} value={category}>
+                        {category}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Status"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedStatus}
+                    onChange={(value) => setSelectedStatus(value)}
+                    allowClear
                   >
-                    <Option value="active">Active</Option>
-                    <Option value="inactive">Inactive</Option>
-                    <Option value="pending">Pending</Option>
+                    {uniqueStatuses.map((status) => (
+                      <Option key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Location"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedLocation}
+                    onChange={(value) => setSelectedLocation(value)}
+                    allowClear
                   >
-                    <Option value="san-francisco">San Francisco, CA</Option>
-                    <Option value="portland">Portland, OR</Option>
-                    <Option value="boston">Boston, MA</Option>
+                    {uniqueLocations.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Rating"
                     className="filter-dropdown"
                     size="large"
-                  >
-                    <Option value="4.5+">4.5+ Stars</Option>
-                    <Option value="4.0+">4.0+ Stars</Option>
-                    <Option value="3.5+">3.5+ Stars</Option>
-                  </Select>
+                    disabled
+                  />
                 </div>
               </div>
               
