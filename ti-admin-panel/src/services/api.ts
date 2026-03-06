@@ -460,13 +460,25 @@ export const vendorAPI = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const vendor = await response.json();
+      const vendorResponse = await response.json();
       
-      // The backend returns the vendor object directly
-      // Wrap it in the format the frontend expects
+      // Handle multiple response formats:
+      // - { success: true, data: vendor }
+      // - vendor object directly
+      const resolvedVendor = vendorResponse?.data && vendorResponse?.success !== false
+        ? vendorResponse.data
+        : vendorResponse;
+      
+      if (resolvedVendor && resolvedVendor.id) {
+        return {
+          success: true,
+          data: resolvedVendor
+        };
+      }
+      
       return {
-        success: true,
-        data: vendor
+        success: false,
+        error: vendorResponse?.error || vendorResponse?.message || 'Vendor not found'
       };
       
     } catch (error) {

@@ -932,6 +932,14 @@
   white-space: nowrap !important;
 }
 
+/* Force smaller View All link in Recent Approvals header */
+.dashboard-layout .tab-header .view-all-link,
+.dashboard-layout .tab-header .ant-typography.view-all-link,
+.dashboard-layout .tab-header .ant-typography.ant-typography-link.view-all-link {
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+}
+
 /* Table - Light Theme */
 .ant-table {
   background: #ffffff;
