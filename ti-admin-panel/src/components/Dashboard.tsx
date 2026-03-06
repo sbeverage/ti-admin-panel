@@ -982,13 +982,21 @@ const Dashboard: React.FC = () => {
                 <Card className="approvals-card">
                   <div className="tab-header">
                     <Typography.Title level={2}>Recent Approvals</Typography.Title>
-                    <Typography.Link 
-                      onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')} 
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          (activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor'));
+                        }
+                      }}
                       className="view-all-link"
-                      style={{ color: '#DB8633', fontSize: '10px', lineHeight: 1.2 }}
+                      style={{ color: '#DB8633' }}
                     >
                       View all {activeApprovalTab === 'beneficiaries' ? 'Beneficiaries' : 'Vendors'}
-                    </Typography.Link>
+                    </span>
                   </div>
                   <Tabs 
                     activeKey={activeApprovalTab} 
