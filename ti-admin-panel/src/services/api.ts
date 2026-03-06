@@ -441,9 +441,20 @@ export const vendorAPI = {
     }
 
     try {
-      const response = await fetch(`${API_CONFIG.baseURL}/vendors/${id}`, {
+      const primaryUrl = buildAdminUrl(`/vendors/${id}`);
+      let response = await fetch(primaryUrl, {
         headers: API_CONFIG.headers
       });
+
+      if (!response.ok && response.status === 404) {
+        const fallbackUrl = buildPublicUrl(`/vendors/${id}`);
+        if (fallbackUrl !== primaryUrl) {
+          console.warn('⚠️ Vendor get 404 - retrying with fallback URL:', fallbackUrl);
+          response = await fetch(fallbackUrl, {
+            headers: API_CONFIG.headers
+          });
+        }
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

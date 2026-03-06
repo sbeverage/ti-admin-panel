@@ -985,7 +985,7 @@ const Dashboard: React.FC = () => {
                     <Typography.Link 
                       onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')} 
                       className="view-all-link"
-                      style={{ color: '#DB8633' }}
+                      style={{ color: '#DB8633', fontSize: '10px', lineHeight: 1.2 }}
                     >
                       View all {activeApprovalTab === 'beneficiaries' ? 'Beneficiaries' : 'Vendors'}
                     </Typography.Link>
