@@ -602,7 +602,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact Information"
+                  label="Primary Contact"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
@@ -718,8 +718,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="tags"
-                  label="Tags"
-                  rules={[{ required: false, message: 'Please select tags' }]}
+                  label="Tags (Optional)"
                 >
                   <Select
                     mode="multiple"
@@ -755,8 +754,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="logo"
-                  label="Upload Logo"
-                  rules={[{ required: false, message: 'Please upload a logo' }]}
+                  label="Upload Logo (Optional)"
                 >
                   <Dragger
                     {...uploadProps}
@@ -777,7 +775,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="productImages"
-                  label="Upload Product Images"
+                  label="Upload Product Images (Optional)"
                 >
                   <Dragger
                     {...uploadProps}
@@ -791,7 +789,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                     </p>
                     <p className="ant-upload-text">Click or drag images to this area to upload</p>
                     <p className="ant-upload-hint">
-                      Upload minimum 3 additional images. Max 5 files, 10MB each
+                      Optional. Up to 5 files, 10MB each
                     </p>
                   </Dragger>
                 </Form.Item>
@@ -803,15 +801,14 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       case 1:
         return (
           <div className="step-content">
-            <Title level={4}>Discount Configuration</Title>
+            <Title level={4}>Discount Configuration (Optional)</Title>
             
             {/* Discount Basic Information */}
             <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="discountName"
-                  label="Discount Name"
-                  rules={[{ required: false, message: 'Please enter discount name' }]}
+                  label="Discount Name (Optional)"
                 >
                   <Input placeholder="e.g., Summer Special, Happy Hour" />
                 </Form.Item>
@@ -819,8 +816,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountType"
-                  label="Discount Type"
-                  rules={[{ required: false, message: 'Please select discount type' }]}
+                  label="Discount Type (Optional)"
                 >
                   <Select placeholder="Select discount type">
                     <Option value="free">Free</Option>
@@ -837,8 +833,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountValue"
-                  label="Discount Value"
-                  rules={[{ required: false, message: 'Please enter discount value' }]}
+                  label="Discount Value (Optional)"
                 >
                   <Input 
                     placeholder={form.getFieldValue('discountType') === 'percentage' ? 'e.g., 20' : 
@@ -852,8 +847,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountOn"
-                  label="Discount On"
-                  rules={[{ required: false, message: 'Please specify what the discount applies to' }]}
+                  label="Discount On (Optional)"
                 >
                   <Input placeholder="e.g., appetizers, desserts, clothing items, services" />
                 </Form.Item>
@@ -865,8 +859,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="frequency"
-                  label="Monthly Frequency"
-                  rules={[{ required: false, message: 'Please select monthly frequency' }]}
+                  label="Monthly Frequency (Optional)"
                 >
                   <Select placeholder="How many times per month can users get this discount?">
                     <Option value="1">1 time per month</Option>
@@ -881,8 +874,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="promoCode"
-                  label="Promo Code"
-                  rules={[{ required: false, message: 'Please enter promo code' }]}
+                  label="Promo Code (Optional)"
                 >
                   <Input placeholder="e.g., SUMMER20, HAPPYHOUR" />
                 </Form.Item>
@@ -894,8 +886,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="additionalTerms"
-                  label="Additional Terms"
-                  rules={[{ required: false }]}
+                  label="Additional Terms (Optional)"
                 >
                   <TextArea 
                     rows={3} 
@@ -910,8 +901,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="approvedBy"
-                  label="Approved By"
-                  rules={[{ required: false, message: 'Please enter who approved this discount' }]}
+                  label="Approved By (Optional)"
                 >
                   <Input placeholder="e.g., John Smith, Marketing Manager" />
                 </Form.Item>
