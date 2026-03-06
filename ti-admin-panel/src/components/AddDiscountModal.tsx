@@ -34,6 +34,7 @@ interface AddDiscountModalProps {
   visible: boolean;
   vendorId: number;
   vendorName?: string;
+  vendorOptions?: Array<{ id: number; name: string }>;
   onCancel: () => void;
   onSuccess: () => void;
   editingDiscount?: any; // For editing existing discount
@@ -52,12 +53,14 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [discountType, setDiscountType] = useState<DiscountType | undefined>(editingDiscount?.discountType || undefined);
+  const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>(vendorId || undefined);
 
   useEffect(() => {
     if (visible) {
       if (editingDiscount) {
         // Populate form with existing discount data
         form.setFieldsValue({
+          vendorId: editingDiscount.vendorId || vendorId,
           title: editingDiscount.title || editingDiscount.name,
           discountType: editingDiscount.discountType || editingDiscount.discount_type,
           discountValue: editingDiscount.discountValue || editingDiscount.discount_value,
@@ -66,12 +69,14 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           description: editingDiscount.description || editingDiscount.additionalTerms
         });
         setDiscountType(editingDiscount.discountType || editingDiscount.discount_type);
+        setSelectedVendorId(editingDiscount.vendorId || vendorId);
       } else {
         form.resetFields();
         setDiscountType(undefined);
+        setSelectedVendorId(vendorId || undefined);
       }
     }
-  }, [visible, editingDiscount, form]);
+  }, [visible, editingDiscount, form, vendorId]);
 
   const handleDiscountTypeChange = (value: DiscountType) => {
     setDiscountType(value);
@@ -133,7 +138,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       const values = await form.validateFields();
       setLoading(true);
 
-      if (!vendorId) {
+      const resolvedVendorId = values.vendorId || selectedVendorId || vendorId;
+      if (!resolvedVendorId) {
         message.error('Please select a vendor before saving this discount.');
         setLoading(false);
         return;
@@ -144,8 +150,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       // Only include fields that exist in the database schema
       // IMPORTANT: Do NOT include minPurchase, maxDiscount - these columns don't exist in the database
       const discountData: any = {
-        vendor_id: vendorId,
-        vendorId: vendorId, // Send both for compatibility
+        vendor_id: resolvedVendorId,
+        vendorId: resolvedVendorId, // Send both for compatibility
         title: values.title,
         name: values.title, // Send both for compatibility (some backends use 'name')
         description: values.description || values.title,
@@ -201,6 +207,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         message.success(editingDiscount ? 'Discount updated successfully!' : 'Discount added successfully!');
         form.resetFields();
         setDiscountType(undefined);
+        setSelectedVendorId(undefined);
         onSuccess();
         onCancel();
       } else {
@@ -247,6 +254,28 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         onFinish={handleSubmit}
         className="discount-form"
       >
+        <Form.Item
+          name="vendorId"
+          label="Vendor"
+          rules={[{ required: true, message: 'Please select a vendor' }]}
+        >
+          <Select
+            placeholder="Select vendor"
+            size="large"
+            value={selectedVendorId}
+            onChange={(value) => setSelectedVendorId(value)}
+            disabled={!!editingDiscount}
+            showSearch
+            optionFilterProp="children"
+          >
+            {(vendorOptions || []).map((vendor) => (
+              <Option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
         {/* Discount Preview Card */}
         {preview && formatDiscountPreview(preview) && (
           <Card 

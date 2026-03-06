@@ -94,7 +94,18 @@ const Vendor: React.FC = () => {
         // Transform API data to match our table structure
         console.log('🔄 Transforming vendor data...');
         console.log('📋 Vendors to transform:', vendorsData.length);
-          const transformedData = vendorsData.map((vendor: VendorType) => ({
+          const transformedData = vendorsData.map((vendor: VendorType) => {
+            const rawStatus = ((vendor as any).status || 'active').toString().toLowerCase();
+            const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
+            const isActive = normalizedStatus === 'active';
+            const isEnabled =
+              (vendor as any).is_enabled !== undefined
+                ? Boolean((vendor as any).is_enabled)
+                : (vendor as any).enabled !== undefined
+                ? Boolean((vendor as any).enabled)
+                : isActive;
+
+            return ({
             key: vendor.id.toString(),
             name: vendor.name,
             contactName: (vendor as any).contact_name || (vendor as any).contactName || vendor.name || vendor.email,
@@ -108,12 +119,17 @@ const Vendor: React.FC = () => {
               : 'Location not specified',
             tier: '$$', // Default tier, could be calculated based on data
             discount: 10, // Default discount, should come from discounts API
-            active: true, // Default active status
-            enabled: true, // Default enabled status
-            status: vendor.status || 'active', // Use vendor status from API, default to active
+            active: (vendor as any).is_active !== undefined
+              ? Boolean((vendor as any).is_active)
+              : (vendor as any).active !== undefined
+              ? Boolean((vendor as any).active)
+              : isActive,
+            enabled: isEnabled,
+            status: normalizedStatus, // Use normalized vendor status
             avatar: vendor.name.charAt(0).toUpperCase(),
             logo_url: vendor.logo_url || null // Include logo URL for display
-          }));
+          });
+        });
         console.log('Transformed data:', transformedData);
         console.log('Sample vendor status:', transformedData[0]?.status);
         console.log('Setting vendors data...');
@@ -145,19 +161,33 @@ const Vendor: React.FC = () => {
     try {
       const vendorId = parseInt(key);
       const currentVendor = vendorsData.find(v => v.key === key);
-      if (currentVendor) {
-        const updatedData = { [field]: !currentVendor[field] };
-        await vendorAPI.updateVendor(vendorId, updatedData);
-        
-        // Update local state
+      if (!currentVendor) return;
+
+      const nextStatus = currentVendor.status === 'active' ? 'inactive' : 'active';
+      const action = nextStatus === 'active' ? 'activate' : 'deactivate';
+
+      const response = await vendorAPI.updateVendorStatus(vendorId, nextStatus);
+      if (response.success) {
         setVendorsData(prevData =>
           prevData.map(item =>
             item.key === key
-              ? { ...item, [field]: !item[field] }
+              ? {
+                  ...item,
+                  status: nextStatus,
+                  active: nextStatus === 'active',
+                  enabled: nextStatus === 'active',
+                }
               : item
           )
         );
-        message.success(`Vendor ${field} status updated successfully`);
+        message.success(`Vendor ${action}d successfully`);
+      } else {
+        message.error(`Failed to ${action} vendor: ${response.error || 'Unknown error'}`);
+        addNotification({
+          title: `Vendor ${action} failed`,
+          message: response.error || `Failed to update vendor ${field} status.`,
+          level: 'error',
+        });
       }
     } catch (error) {
       console.error(`Error updating vendor ${field}:`, error);

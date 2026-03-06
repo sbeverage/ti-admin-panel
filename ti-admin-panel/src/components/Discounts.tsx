@@ -607,6 +607,10 @@ const Discounts: React.FC = () => {
         visible={isAddModalVisible}
         vendorId={editingDiscount?.vendorId || (selectedVendor ? parseInt(selectedVendor) : 0)}
         vendorName={editingDiscount?.vendorName}
+        vendorOptions={vendorsData.map((vendor: any) => ({
+          id: vendor.id,
+          name: vendor.name
+        }))}
         onCancel={() => {
           setIsAddModalVisible(false);
           setEditingDiscount(null);
