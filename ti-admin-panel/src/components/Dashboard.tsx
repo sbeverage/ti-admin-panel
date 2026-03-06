@@ -1004,10 +1004,7 @@ const Dashboard: React.FC = () => {
                       {
                         key: 'beneficiaries',
                         label: (
-                          <span 
-                            onClick={() => navigate('/beneficiaries')}
-                            style={{ color: '#DB8633', cursor: 'pointer' }}
-                          >
+                          <span style={{ color: '#DB8633' }}>
                             Beneficiaries
                           </span>
                         ),
