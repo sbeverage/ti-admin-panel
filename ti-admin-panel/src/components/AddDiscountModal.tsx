@@ -442,10 +442,9 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           </Select>
         </Form.Item>
 
-        {/* Description (Optional) */}
         <Form.Item
           name="description"
-          label="Additional Details (Optional)"
+          label="Additional Details"
           tooltip="Any additional terms or conditions for this discount"
         >
           <TextArea

@@ -718,7 +718,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="tags"
-                  label="Tags (Optional)"
+                  label="Tags"
                 >
                   <Select
                     mode="multiple"
@@ -754,7 +754,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="logo"
-                  label="Upload Logo (Optional)"
+                  label="Upload Logo"
                 >
                   <Dragger
                     {...uploadProps}
@@ -775,7 +775,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="productImages"
-                  label="Upload Product Images (Optional)"
+                  label="Upload Product Images"
                 >
                   <Dragger
                     {...uploadProps}
@@ -801,14 +801,14 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       case 1:
         return (
           <div className="step-content">
-            <Title level={4}>Discount Configuration (Optional)</Title>
+            <Title level={4}>Discount Configuration</Title>
             
             {/* Discount Basic Information */}
             <Row gutter={[24, 16]}>
               <Col span={12}>
                 <Form.Item
                   name="discountName"
-                  label="Discount Name (Optional)"
+                  label="Discount Name"
                 >
                   <Input placeholder="e.g., Summer Special, Happy Hour" />
                 </Form.Item>
@@ -816,7 +816,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountType"
-                  label="Discount Type (Optional)"
+                  label="Discount Type"
                 >
                   <Select placeholder="Select discount type">
                     <Option value="free">Free</Option>
@@ -833,7 +833,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountValue"
-                  label="Discount Value (Optional)"
+                  label="Discount Value"
                 >
                   <Input 
                     placeholder={form.getFieldValue('discountType') === 'percentage' ? 'e.g., 20' : 
@@ -847,7 +847,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="discountOn"
-                  label="Discount On (Optional)"
+                  label="Discount On"
                 >
                   <Input placeholder="e.g., appetizers, desserts, clothing items, services" />
                 </Form.Item>
@@ -859,7 +859,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="frequency"
-                  label="Monthly Frequency (Optional)"
+                  label="Monthly Frequency"
                 >
                   <Select placeholder="How many times per month can users get this discount?">
                     <Option value="1">1 time per month</Option>
@@ -874,7 +874,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="promoCode"
-                  label="Promo Code (Optional)"
+                  label="Promo Code"
                 >
                   <Input placeholder="e.g., SUMMER20, HAPPYHOUR" />
                 </Form.Item>
@@ -886,7 +886,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="additionalTerms"
-                  label="Additional Terms (Optional)"
+                  label="Additional Terms"
                 >
                   <TextArea 
                     rows={3} 
@@ -901,7 +901,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="approvedBy"
-                  label="Approved By (Optional)"
+                  label="Approved By"
                 >
                   <Input placeholder="e.g., John Smith, Marketing Manager" />
                 </Form.Item>

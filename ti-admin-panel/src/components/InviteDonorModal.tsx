@@ -167,7 +167,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               
               <Form.Item
                 name="zipCode"
-                label="ZIP Code (Optional)"
+                label="ZIP Code"
                 rules={[{ required: false }]}
                 className="form-item"
               >
@@ -187,7 +187,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
             <div className="form-row">
               <Form.Item
                 name="beneficiary"
-                label="Selected Beneficiary Name (Optional)"
+                label="Selected Beneficiary Name"
                 rules={[{ required: false }]}
                 className="form-item"
               >
@@ -243,7 +243,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               
               <Form.Item
                 name="oneTime"
-                label="One Time Gifts (Optional)"
+                label="One Time Gifts"
                 rules={[{ required: false }]}
                 className="form-item"
               >
@@ -260,7 +260,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
             <div className="form-row">
               <Form.Item
                 name="lastDonated"
-                label="Last Donated Date (Optional)"
+                label="Last Donated Date"
                 className="form-item full-width"
               >
                 <DatePicker 
@@ -280,7 +280,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
             </Title>
             <Form.Item
               name="notes"
-              label="Notes (Optional)"
+              label="Notes"
               className="form-item full-width"
             >
               <TextArea 

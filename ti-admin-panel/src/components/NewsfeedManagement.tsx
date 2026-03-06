@@ -972,7 +972,7 @@ const NewsfeedManagement: React.FC = () => {
                 
                 <Form.Item
                   name="image"
-                  label="Add Image (Optional)"
+                  label="Add Image"
                 >
                   <Upload
                     listType="picture-card"

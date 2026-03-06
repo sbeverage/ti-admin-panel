@@ -290,7 +290,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     
                     <Form.Item
                       name="zipCode"
-                      label="ZIP Code (Optional)"
+                      label="ZIP Code"
                       rules={[{ required: false }]}
                       className="form-item"
                     >
@@ -310,7 +310,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                   <div className="form-row">
                     <Form.Item
                       name="beneficiary"
-                      label="Selected Beneficiary Name (Optional)"
+                      label="Selected Beneficiary Name"
                       rules={[{ required: false }]}
                       className="form-item"
                     >
@@ -375,7 +375,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     
               <Form.Item
                 name="oneTime"
-                label="One Time Gifts (Optional)"
+                label="One Time Gifts"
                 rules={[
                   {
                     validator: (_, value) => {
@@ -404,7 +404,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                   <div className="form-row">
                     <Form.Item
                       name="lastDonated"
-                      label="Last Donated Date (Optional)"
+                      label="Last Donated Date"
                       className="form-item full-width"
                     >
                       <DatePicker 
@@ -424,7 +424,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                   </Title>
                   <Form.Item
                     name="notes"
-                    label="Notes (Optional)"
+                    label="Notes"
                     className="form-item full-width"
                   >
                     <TextArea 

@@ -973,7 +973,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Input placeholder="e.g., Sarah M., Program Director" maxLength={50} />
             </Form.Item>
 
-            <Divider>Impact Metrics (Optional)</Divider>
+            <Divider>Impact Metrics</Divider>
             <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
               These metrics help showcase the impact of the organization. All fields are optional.
             </Text>
@@ -1088,7 +1088,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             
             <Form.Item
               name="form990"
-              label="Upload Form-990 (Optional)"
+              label="Upload Form-990"
             >
               <Upload
                 beforeUpload={(file) => {
@@ -1117,7 +1117,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Divider>Profile Links</Divider>
             
             <div className="profile-links-section">
-              <Title level={5} style={{ marginBottom: 16 }}>Enter your profile links (Optional)</Title>
+              <Title level={5} style={{ marginBottom: 16 }}>Enter your profile links</Title>
               {profileLinks.map((link, index) => (
                 <Row gutter={[16, 16]} key={index} style={{ marginBottom: 16, alignItems: 'flex-start' }}>
                   <Col span={10}>
@@ -1191,7 +1191,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 <Card title="Main Image" style={{ marginBottom: '16px' }}>
                   <Form.Item
                     name="mainImage"
-                    label="Upload Main Image (Optional)"
+                    label="Upload Main Image"
                     rules={[{ required: false }]}
                   >
                     <ImageUpload
@@ -1208,7 +1208,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 <Card title="Organization Logo" style={{ marginBottom: '16px' }}>
                   <Form.Item
                     name="logo"
-                    label="Upload Logo (Optional)"
+                    label="Upload Logo"
                     rules={[{ required: false }]}
                   >
                     <ImageUpload
@@ -1222,7 +1222,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               </Col>
               
               <Col span={24}>
-                <Card title="Additional Images (Optional)">
+                <Card title="Additional Images">
                   <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
                     Upload up to 3 additional images showcasing your programs and impact
                   </Text>
