@@ -20,6 +20,18 @@ const API_CONFIG = {
   }
 };
 
+const normalizeBaseUrl = (baseUrl: string) => baseUrl.replace(/\/+$/, '');
+
+const buildAdminUrl = (path: string) => {
+  const base = normalizeBaseUrl(API_CONFIG.baseURL);
+  return base.endsWith('/admin') ? `${base}${path}` : `${base}/admin${path}`;
+};
+
+const buildPublicUrl = (path: string) => {
+  const base = normalizeBaseUrl(API_CONFIG.baseURL);
+  return base.endsWith('/admin') ? `${base.replace(/\/admin$/, '')}${path}` : `${base}${path}`;
+};
+
 // Log configuration for debugging
 console.log('🚀 API Config loaded:');
 console.log('   - Environment:', process.env.NODE_ENV);
@@ -551,13 +563,26 @@ export const vendorAPI = {
     try {
       console.log('🌐 API: Updating vendor ID:', id);
       console.log('🌐 API: Vendor data payload:', JSON.stringify(vendorData, null, 2));
-      console.log('🌐 API: Request URL:', `${API_CONFIG.baseURL}/vendors/${id}`);
+      const primaryUrl = buildAdminUrl(`/vendors/${id}`);
+      console.log('🌐 API: Request URL:', primaryUrl);
       
-      const response = await fetch(`${API_CONFIG.baseURL}/vendors/${id}`, {
+      let response = await fetch(primaryUrl, {
         method: 'PUT',
         headers: API_CONFIG.headers,
         body: JSON.stringify(vendorData)
       });
+      
+      if (!response.ok && response.status === 404) {
+        const fallbackUrl = buildPublicUrl(`/vendors/${id}`);
+        if (fallbackUrl !== primaryUrl) {
+          console.warn('⚠️ Vendor update 404 - retrying with fallback URL:', fallbackUrl);
+          response = await fetch(fallbackUrl, {
+            method: 'PUT',
+            headers: API_CONFIG.headers,
+            body: JSON.stringify(vendorData)
+          });
+        }
+      }
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -1906,11 +1931,24 @@ export const beneficiaryAPI = {
 
   // Update beneficiary/charity
   updateBeneficiary: async (id: number, beneficiaryData: any): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/charities/${id}`, {
-      method: 'PUT',
-      headers: API_CONFIG.headers,
-      body: JSON.stringify(beneficiaryData)
-    });
+      const primaryUrl = buildAdminUrl(`/charities/${id}`);
+      let response = await fetch(primaryUrl, {
+        method: 'PUT',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify(beneficiaryData)
+      });
+
+      if (!response.ok && response.status === 404) {
+        const fallbackUrl = buildPublicUrl(`/charities/${id}`);
+        if (fallbackUrl !== primaryUrl) {
+          console.warn('⚠️ Beneficiary update 404 - retrying with fallback URL:', fallbackUrl);
+          response = await fetch(fallbackUrl, {
+            method: 'PUT',
+            headers: API_CONFIG.headers,
+            body: JSON.stringify(beneficiaryData)
+          });
+        }
+      }
     
     if (!response.ok) {
       const errorText = await response.text();
