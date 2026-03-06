@@ -795,7 +795,7 @@
 
 .view-all-link {
   color: #DB8633 !important;
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 400 !important;
   transition: all 0.2s ease;
   cursor: pointer;
@@ -806,7 +806,7 @@
 .dashboard-layout .view-all-link,
 .dashboard-layout .ant-typography.view-all-link,
 .dashboard-layout .ant-typography.ant-typography-link.view-all-link {
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 400 !important;
   line-height: 1.2 !important;
   color: #DB8633 !important;
@@ -936,7 +936,7 @@
 .dashboard-layout .tab-header .view-all-link,
 .dashboard-layout .tab-header .ant-typography.view-all-link,
 .dashboard-layout .tab-header .ant-typography.ant-typography-link.view-all-link {
-  font-size: 12px !important;
+  font-size: 16px !important;
   line-height: 1.2 !important;
 }
 
