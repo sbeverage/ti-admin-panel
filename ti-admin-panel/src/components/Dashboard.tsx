@@ -402,19 +402,17 @@ const Dashboard: React.FC = () => {
     'Custom Date'
   ];
 
-  const timeFilterMenu = (
-    <Menu
-      onClick={handleTimeFilterChange}
-      selectedKeys={[selectedTimeFilterKey]}
-      items={timeFilterOptions.map((option) => ({
-        key: option,
-        label: option,
-        icon: selectedTimeFilterKey === option
-          ? <CheckCircleFilled style={{ color: '#DB8633' }} />
-          : undefined
-      }))}
-    />
-  );
+  const timeFilterMenu = {
+    onClick: handleTimeFilterChange,
+    selectedKeys: [selectedTimeFilterKey],
+    items: timeFilterOptions.map((option) => ({
+      key: option,
+      label: option,
+      icon: selectedTimeFilterKey === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined
+    }))
+  };
 
   const menuItems = [
     {
@@ -793,7 +791,7 @@ const Dashboard: React.FC = () => {
               <div className="summary-header">
                 <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
                 <Dropdown
-                  overlay={timeFilterMenu}
+                  menu={timeFilterMenu}
                   trigger={['click']}
                   placement="bottomRight"
                 >
@@ -891,7 +889,7 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Breakdown of Donors</div>
                             <Dropdown
-                              overlay={timeFilterMenu}
+                              menu={timeFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
@@ -926,7 +924,7 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Donations</div>
                             <Dropdown
-                              overlay={timeFilterMenu}
+                              menu={timeFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
@@ -1026,10 +1024,7 @@ const Dashboard: React.FC = () => {
                       {
                         key: 'vendors', 
                         label: (
-                          <span 
-                            onClick={() => navigate('/vendor')}
-                            style={{ color: '#DB8633', cursor: 'pointer' }}
-                          >
+                          <span style={{ color: '#DB8633' }}>
                             Vendors
                           </span>
                         ),
