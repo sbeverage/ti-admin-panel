@@ -1045,6 +1045,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           <Form
             form={form}
             layout="vertical"
+            requiredMark="optional"
             className="vendor-form"
           >
             {renderStepContent()}

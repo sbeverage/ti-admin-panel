@@ -1307,6 +1307,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           <Form
             form={form}
             layout="vertical"
+            requiredMark="optional"
             className="beneficiary-form"
           >
             {renderStepContent()}

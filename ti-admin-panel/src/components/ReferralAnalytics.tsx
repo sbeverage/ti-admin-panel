@@ -1776,6 +1776,7 @@ const ReferralAnalytics: React.FC = () => {
         <Form
           form={creditGrantForm}
           layout="vertical"
+          requiredMark="optional"
           onFinish={handleCreditGrant}
           initialValues={{
             expiresInDays: 90

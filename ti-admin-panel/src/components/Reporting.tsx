@@ -923,7 +923,7 @@ const Reporting: React.FC = () => {
         }}
         width={600}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" requiredMark="optional">
           <Form.Item
             name="paymentMethod"
             label="Payment Method"
@@ -986,7 +986,7 @@ const Reporting: React.FC = () => {
         }}
         width={500}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" requiredMark="optional">
           <Form.Item
             name="payoutStatus"
             label="Payout Status"

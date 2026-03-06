@@ -88,6 +88,7 @@ const Login: React.FC = () => {
             autoComplete="off"
             layout="vertical"
             size="large"
+            requiredMark="optional"
           >
             <Form.Item
               name="email"

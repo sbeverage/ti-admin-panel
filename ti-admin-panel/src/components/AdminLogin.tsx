@@ -70,6 +70,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               onFinish={handleSubmit}
               layout="vertical"
               size="large"
+              requiredMark="optional"
               className="login-form"
             >
               <Form.Item

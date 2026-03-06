@@ -918,6 +918,7 @@ const NewsfeedManagement: React.FC = () => {
               <Form
                 form={adminPostForm}
                 layout="vertical"
+                requiredMark="optional"
                 onFinish={handlePublishAdminPost}
               >
                 <Form.Item

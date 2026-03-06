@@ -79,6 +79,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
       <Form
         form={form}
         layout="vertical"
+        requiredMark="optional"
         className="invite-donor-form"
         initialValues={{
           coworking: 'No',

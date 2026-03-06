@@ -252,6 +252,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       <Form
         form={form}
         layout="vertical"
+        requiredMark="optional"
         onFinish={handleSubmit}
         className="discount-form"
       >

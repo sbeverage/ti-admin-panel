@@ -204,6 +204,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
             <Form
               form={form}
               layout="vertical"
+              requiredMark="optional"
               className="invite-donor-form"
               initialValues={{
                 coworking: donor?.coworking || 'No',

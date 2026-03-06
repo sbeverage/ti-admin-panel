@@ -462,6 +462,7 @@ const Settings: React.FC = () => {
                           <Card title="Personal Information" className="settings-card">
                             <Form
                               layout="vertical"
+                              requiredMark="optional"
                               initialValues={personalProfile}
                               onFinish={handleProfileUpdate}
                             >
@@ -558,6 +559,7 @@ const Settings: React.FC = () => {
                       <Card title="Change Password" className="settings-card">
                         <Form
                           layout="vertical"
+                          requiredMark="optional"
                           onFinish={handlePasswordChange}
                         >
                           <Form.Item
@@ -730,7 +732,7 @@ const Settings: React.FC = () => {
         footer={null}
         width={600}
       >
-        <Form form={addUserForm} layout="vertical" onFinish={handleAddUserSubmit}>
+        <Form form={addUserForm} layout="vertical" requiredMark="optional" onFinish={handleAddUserSubmit}>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -807,7 +809,7 @@ const Settings: React.FC = () => {
         width={600}
       >
         {editingUser && (
-          <Form form={editUserForm} layout="vertical" onFinish={handleEditUserSubmit}>
+          <Form form={editUserForm} layout="vertical" requiredMark="optional" onFinish={handleEditUserSubmit}>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
