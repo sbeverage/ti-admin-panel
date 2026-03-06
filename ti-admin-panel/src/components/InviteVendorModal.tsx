@@ -13,6 +13,7 @@ import {
   InboxOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI } from '../services/api';
+import { uploadToSupabase } from '../services/supabaseStorage';
 import { addNotification } from '../services/notifications';
 import './InviteVendorModal.css';
 
@@ -327,7 +328,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         console.log('✅ Vendor created successfully with ID:', vendorId);
         
         // Upload logo to Supabase Storage if provided
-        if (logoFileList.length > 0 && logoFileList[0].originFileObj) {
+        if (!logoUrl && logoFileList.length > 0 && logoFileList[0].originFileObj) {
           try {
             console.log('Uploading logo to Supabase Storage...');
             const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
@@ -535,33 +536,28 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     }
   };
 
-  const uploadProps = {
+  const createUploadProps = (bucketName: string, folder: string) => ({
     name: 'file',
     multiple: false,
     customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
       try {
         console.log('Uploading file:', file.name, 'Type:', file.type);
-        
-        // For now, we'll create a mock URL and store the file for later upload
-        // This allows the form to work while we figure out the correct upload endpoint
-        const mockUrl = `https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/beneficiary-images/mock-${Date.now()}-${file.name}`;
-        
-        // Simulate upload progress
-        onProgress({ percent: 50 });
-        setTimeout(() => {
-          onProgress({ percent: 100 });
-          
+
+        onProgress({ percent: 20 });
+        const result = await uploadToSupabase(file, bucketName, folder);
+        onProgress({ percent: 100 });
+
+        if (result.success && result.url) {
           onSuccess({
-            url: mockUrl,
+            url: result.url,
             name: file.name,
             status: 'done',
-            file: file // Store the actual file for later processing
+            file: file
           });
-          
-        message.success(`${file.name} ready for upload (Note: Upload endpoint needs backend configuration)`);
-        console.log('File prepared for upload:', file.name);
-        }, 1000);
-        
+          message.success(`${file.name} uploaded successfully`);
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
       } catch (error) {
         console.error('Upload error:', error);
         onError(error);
@@ -590,7 +586,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         console.log('Uploading:', info.file.name);
       }
     },
-  };
+  });
+
+  const logoUploadProps = createUploadProps('vendor-logos', 'vendors/logos');
+  const productImagesUploadProps = createUploadProps('vendor-logos', 'vendors/products');
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -757,7 +756,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                   label="Upload Logo"
                 >
                   <Dragger
-                    {...uploadProps}
+                    {...logoUploadProps}
                     fileList={logoFileList}
                     onChange={handleLogoUpload}
                     className="logo-upload"
@@ -778,7 +777,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                   label="Upload Product Images"
                 >
                   <Dragger
-                    {...uploadProps}
+                    {...productImagesUploadProps}
                     multiple={true}
                     fileList={productImagesFileList}
                     onChange={handleProductImagesUpload}
