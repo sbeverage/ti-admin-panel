@@ -2012,18 +2012,30 @@ export const reportingAPI = {
 
   // Update bank information for a beneficiary
   updateBankInfo: async (beneficiaryId: number, bankInfo: {
-    bank_name: string;
-    account_holder_name: string;
-    routing_number: string;
-    account_number: string;
-    payment_method: 'direct_deposit' | 'check';
+    bank_name?: string;
+    account_holder_name?: string;
+    routing_number?: string;
+    account_number?: string;
+    payment_method?: 'direct_deposit' | 'check';
+    // Alternate keys supported by backend
+    accountName?: string;
+    routingNumber?: string;
+    accountNumber?: string;
+    paymentMethod?: 'direct_deposit' | 'check';
   }): Promise<ApiResponse<any>> => {
+    const payload = {
+      ...bankInfo,
+      accountName: bankInfo.accountName ?? bankInfo.account_holder_name,
+      routingNumber: bankInfo.routingNumber ?? bankInfo.routing_number,
+      accountNumber: bankInfo.accountNumber ?? bankInfo.account_number,
+      paymentMethod: bankInfo.paymentMethod ?? bankInfo.payment_method,
+    };
     const response = await fetch(
       `${API_CONFIG.baseURL}/reporting/beneficiaries/${beneficiaryId}/bank-info`,
       {
         method: 'PUT',
         headers: API_CONFIG.headers,
-        body: JSON.stringify(bankInfo)
+        body: JSON.stringify(payload)
       }
     );
     if (!response.ok) {

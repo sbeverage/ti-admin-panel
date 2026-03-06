@@ -361,7 +361,12 @@ const Reporting: React.FC = () => {
         account_holder_name: values.accountHolderName,
         routing_number: values.routingNumber,
         account_number: values.accountNumber,
-        payment_method: values.paymentMethod
+        payment_method: values.paymentMethod,
+        // Compatibility with backend expecting different keys
+        accountName: values.accountHolderName,
+        routingNumber: values.routingNumber,
+        accountNumber: values.accountNumber,
+        paymentMethod: values.paymentMethod
       });
       
       if (response.success) {
@@ -370,11 +375,11 @@ const Reporting: React.FC = () => {
         form.resetFields();
         loadPayoutData();
       } else {
-        message.error('Failed to update bank information');
+        message.error(response.error || response.message || 'Failed to update bank information');
       }
     } catch (error: any) {
       console.error('Error saving bank info:', error);
-      message.error('Error saving bank information');
+      message.error(error?.message || 'Error saving bank information');
     }
   };
 
