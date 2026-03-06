@@ -46,6 +46,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
   visible,
   vendorId,
   vendorName,
+  vendorOptions,
   onCancel,
   onSuccess,
   editingDiscount
