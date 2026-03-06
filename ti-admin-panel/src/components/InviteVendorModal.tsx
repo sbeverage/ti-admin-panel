@@ -342,8 +342,56 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           }
         }
         
-        // Create discounts for this vendor if any were provided
-        if (allData.discountName && allData.discountType && allData.discountValue) {
+      const normalizeDiscountType = (type?: string) => {
+        if (!type) return undefined;
+        if (type === 'dollar') return 'fixed';
+        return type;
+      };
+
+      const buildDiscountPayloads = () => {
+        const payloads: any[] = [];
+        const sourceDiscounts = discounts.length > 0
+          ? discounts
+          : (allData.discountName || allData.discountType || allData.discountValue || allData.discountOn || allData.promoCode)
+          ? [allData]
+          : [];
+
+        sourceDiscounts.forEach((discount: any) => {
+          if (!discount.discountName || !discount.discountType) return;
+
+          const normalizedType = normalizeDiscountType(discount.discountType);
+          const rawValue = discount.discountValue;
+          let discountValue = rawValue !== undefined && rawValue !== null && rawValue !== ''
+            ? parseFloat(rawValue)
+            : undefined;
+
+          if (normalizedType === 'bogo' && !discountValue) {
+            discountValue = 50;
+          }
+          if (normalizedType === 'free' && !discountValue) {
+            discountValue = 100;
+          }
+
+          payloads.push({
+            title: discount.discountName,
+            description: discount.discountOn || discount.discountName,
+            discountType: normalizedType,
+            discountValue,
+            discountCode: discount.promoCode || null,
+            frequency: discount.frequency || null,
+            additionalTerms: discount.additionalTerms || null,
+            approvedBy: discount.approvedBy || null,
+            approvalDate: discount.approvalDate || null,
+          });
+        });
+
+        return payloads;
+      };
+
+      const discountPayloads = buildDiscountPayloads();
+
+      // Create discounts for this vendor if any were provided
+      if (discountPayloads.length > 0) {
           try {
             // Backend expects camelCase field names
             // Tags should be an array for JSONB format in Supabase
@@ -352,32 +400,32 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               : allData.tags 
               ? [allData.tags] 
               : [];
-            
+          
+          let createdCount = 0;
+          for (const payload of discountPayloads) {
             const discountData = {
               vendorId: vendorId,
-              title: allData.discountName,
-              description: allData.discountOn || allData.discountName,
-              discountType: allData.discountType,
-              discountValue: parseFloat(allData.discountValue),
-              discountCode: allData.promoCode || null,
+              title: payload.title,
+              description: payload.description,
+              discountType: payload.discountType,
+              discountValue: payload.discountValue,
+              discountCode: payload.discountCode,
               category: allData.category || null,
-              tags: tagsArray.length > 0 ? tagsArray : null, // Send as array for JSONB
+              tags: tagsArray.length > 0 ? tagsArray : null,
               minPurchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
               maxDiscount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
-              terms: allData.additionalTerms || null,
+              terms: payload.additionalTerms || null,
               startDate: allData.startDate ? new Date(allData.startDate).toISOString() : new Date().toISOString(),
-              endDate: allData.endDate ? new Date(allData.endDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              endDate: allData.endDate ? new Date(allData.endDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
               isActive: true
             };
-            
+
             console.log('Creating discount:', discountData);
             const discountResponse = await discountAPI.createDiscount(discountData);
             console.log('Discount API response:', discountResponse);
-            
+
             if (discountResponse.success && discountResponse.data) {
-              message.success('Discount created successfully!');
-              
-              // Upload discount image to Supabase Storage if provided
+              createdCount += 1;
               if (productImagesFileList.length > 0) {
                 try {
                   console.log('Uploading discount image to Supabase Storage...');
@@ -393,9 +441,15 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 }
               }
             } else {
-              console.warn('Discount creation failed, but vendor was created successfully');
-              message.warning('Vendor created! Discount setup can be completed later from the vendor profile.');
+              console.warn('Discount creation failed:', discountResponse);
             }
+          }
+
+          if (createdCount > 0) {
+            message.success(`Discount${createdCount > 1 ? 's' : ''} created successfully!`);
+          } else {
+            message.warning('Vendor created! Discount setup can be completed later from the vendor profile.');
+          }
           } catch (error) {
             console.error('Error creating discount:', error);
             message.warning('Vendor created successfully! Discount setup can be completed later from the vendor profile.');
