@@ -2030,14 +2030,24 @@ export const reportingAPI = {
       accountNumber: bankInfo.accountNumber ?? bankInfo.account_number,
       paymentMethod: bankInfo.paymentMethod ?? bankInfo.payment_method,
     };
-    const response = await fetch(
-      `${API_CONFIG.baseURL}/reporting/beneficiaries/${beneficiaryId}/bank-info`,
-      {
-        method: 'PUT',
-        headers: API_CONFIG.headers,
-        body: JSON.stringify(payload)
+    const primaryUrl = buildAdminUrl(`/reporting/beneficiaries/${beneficiaryId}/bank-info`);
+    let response = await fetch(primaryUrl, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok && response.status === 404) {
+      const fallbackUrl = buildPublicUrl(`/reporting/beneficiaries/${beneficiaryId}/bank-info`);
+      if (fallbackUrl !== primaryUrl) {
+        console.warn('⚠️ Bank info update 404 - retrying with fallback URL:', fallbackUrl);
+        response = await fetch(fallbackUrl, {
+          method: 'PUT',
+          headers: API_CONFIG.headers,
+          body: JSON.stringify(payload)
+        });
       }
-    );
+    }
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -2050,14 +2060,24 @@ export const reportingAPI = {
     payout_date?: string;
     notes?: string;
   }): Promise<ApiResponse<any>> => {
-    const response = await fetch(
-      `${API_CONFIG.baseURL}/reporting/beneficiaries/${beneficiaryId}/payout-status`,
-      {
-        method: 'PUT',
-        headers: API_CONFIG.headers,
-        body: JSON.stringify(statusData)
+    const primaryUrl = buildAdminUrl(`/reporting/beneficiaries/${beneficiaryId}/payout-status`);
+    let response = await fetch(primaryUrl, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(statusData)
+    });
+
+    if (!response.ok && response.status === 404) {
+      const fallbackUrl = buildPublicUrl(`/reporting/beneficiaries/${beneficiaryId}/payout-status`);
+      if (fallbackUrl !== primaryUrl) {
+        console.warn('⚠️ Payout status update 404 - retrying with fallback URL:', fallbackUrl);
+        response = await fetch(fallbackUrl, {
+          method: 'PUT',
+          headers: API_CONFIG.headers,
+          body: JSON.stringify(statusData)
+        });
       }
-    );
+    }
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
