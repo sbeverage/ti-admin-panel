@@ -270,7 +270,7 @@ const Dashboard: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const handleTimeFilterChange = ({ key }: { key: string }) => {
+  const handleTimeFilterChange = (key: string) => {
     if (key === 'Custom Date') {
       setCustomDateOpen(true);
       return;
@@ -278,8 +278,6 @@ const Dashboard: React.FC = () => {
 
     setSelectedTimeFilterKey(key);
     setSelectedTimeFilterLabel(key);
-    // Here you would typically fetch new data based on the selected time period
-    console.log('Time filter changed to:', key);
   };
 
   const handleCustomDateApply = () => {
@@ -288,13 +286,19 @@ const Dashboard: React.FC = () => {
       const end = customDateRange[1].format('MM/DD/YYYY');
       setSelectedTimeFilterKey('Custom Date');
       setSelectedTimeFilterLabel(`${start} - ${end}`);
-      message.info('Custom date range is not supported yet. Showing latest period.');
+      // Custom date range not supported by backend yet; data shows latest period
     }
     setCustomDateOpen(false);
   };
 
   const handleToggleChange = async (record: any, field: 'active' | 'enabled') => {
     const nextValue = !record[field];
+    const targetId = Number(record.id ?? record.key);
+    if (!targetId || isNaN(targetId)) {
+      message.error('Invalid record ID.');
+      return;
+    }
+
     setApprovalsData(prevData =>
       prevData.map(item =>
         item.key === record.key
@@ -305,7 +309,6 @@ const Dashboard: React.FC = () => {
 
     try {
       const { vendorAPI, beneficiaryAPI } = await import('../services/api');
-      const targetId = Number(record.id || record.key);
 
       if (activeApprovalTab === 'beneficiaries') {
         const payload = field === 'active'
@@ -349,12 +352,12 @@ const Dashboard: React.FC = () => {
     navigate('/beneficiaries');
   };
 
-  // Load approvals data when tab changes
+  // Load approvals data when tab changes or dashboard stats load
   useEffect(() => {
     if (dashboardStats) {
       loadApprovalsData();
     }
-  }, [activeApprovalTab]);
+  }, [activeApprovalTab, dashboardStats]);
 
   useEffect(() => {
     loadDashboardData();
@@ -470,14 +473,14 @@ const Dashboard: React.FC = () => {
   ];
 
   const timeFilterMenu = {
-    onClick: handleTimeFilterChange,
     selectedKeys: [selectedTimeFilterKey],
     items: timeFilterOptions.map((option) => ({
       key: option,
       label: option,
       icon: selectedTimeFilterKey === option
         ? <CheckCircleFilled style={{ color: '#DB8633' }} />
-        : undefined
+        : undefined,
+      onClick: () => handleTimeFilterChange(option)
     }))
   };
 
