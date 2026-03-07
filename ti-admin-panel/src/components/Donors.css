@@ -433,9 +433,10 @@
 }
 
 .invite-donor-btn:active {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
+  background: #c6762a !important;
+  border-color: #c6762a !important;
   color: #ffffff !important;
+  transition: none !important;
 }
 
 /* Force override any Ant Design blue hover colors */

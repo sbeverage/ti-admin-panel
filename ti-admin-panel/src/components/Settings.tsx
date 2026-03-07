@@ -36,6 +36,7 @@ const Settings: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [addUserForm] = Form.useForm();
   const [editUserForm] = Form.useForm();
+  const [profileForm] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -82,13 +83,30 @@ const Settings: React.FC = () => {
         setTeamMembers(teamResponse.data);
         const cachedEmail = localStorage.getItem('admin_email');
         const storedUsername = localStorage.getItem('admin_username');
-        if (!cachedEmail && storedUsername && teamResponse.data?.length) {
-          const matchedMember = teamResponse.data.find((member: any) =>
-            member?.email === storedUsername || member?.name === storedUsername
+        let matchedMember: any = null;
+        if (cachedEmail && teamResponse.data?.length) {
+          matchedMember = teamResponse.data.find((m: any) => m?.email === cachedEmail);
+        }
+        if (!matchedMember && storedUsername && teamResponse.data?.length) {
+          matchedMember = teamResponse.data.find((m: any) =>
+            m?.email === storedUsername || m?.name === storedUsername
           );
           if (matchedMember?.email) {
             localStorage.setItem('admin_email', matchedMember.email);
           }
+        }
+        // Prefill personal profile from current team member (#61)
+        if (matchedMember) {
+          setPersonalProfile((prev: any) => ({
+            ...prev,
+            name: matchedMember.name || prev.name,
+            email: matchedMember.email || prev.email,
+            role: matchedMember.role || prev.role,
+            phone: matchedMember.phone || prev.phone,
+            notifications: settingsResponse?.success && settingsResponse?.data?.notifications
+              ? settingsResponse.data.notifications
+              : (prev.notifications || { email: true, push: true, sms: false })
+          }));
         }
       } else {
         setError('Failed to load team members');
@@ -121,6 +139,18 @@ const Settings: React.FC = () => {
       });
     }
   }, [editingUser, isEditUserModalVisible, editUserForm]);
+
+  // Prefill Personal Info form when data loads (#61)
+  useEffect(() => {
+    if (personalProfile && (personalProfile.name || personalProfile.email)) {
+      profileForm.setFieldsValue({
+        name: personalProfile.name || '',
+        email: personalProfile.email || '',
+        phone: personalProfile.phone || '',
+        role: personalProfile.role || ''
+      });
+    }
+  }, [personalProfile, profileForm]);
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {
@@ -510,9 +540,9 @@ const Settings: React.FC = () => {
                         <Col xs={24} lg={16}>
                           <Card title="Personal Information" className="settings-card">
                             <Form
+                              form={profileForm}
                               layout="vertical"
                               requiredMark="optional"
-                              initialValues={personalProfile}
                               onFinish={handleProfileUpdate}
                             >
                               <Row gutter={16}>
@@ -701,7 +731,10 @@ const Settings: React.FC = () => {
                       <div className="api-rate-limiting-section">
                         <div className="api-rate-limiting-header">
                           <Title level={4} style={{ margin: 0 }}>API Rate Limiting Configuration</Title>
-                          <Text type="secondary">Configure and monitor API rate limiting rules to protect your system</Text>
+                          <Text type="secondary">
+                            Rate limiting controls how many API requests can be made in a given time window (e.g., 60 requests per minute).
+                            This helps prevent abuse, ensures fair usage, and protects your backend from overload. Configure limits per endpoint and user type.
+                          </Text>
                         </div>
                         <div className="api-rate-limiting-content">
                           <Card className="api-rate-limiting-card">

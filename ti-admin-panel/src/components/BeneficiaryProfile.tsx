@@ -18,7 +18,8 @@ import {
   Tabs,
   Badge,
   Statistic,
-  Image
+  Image,
+  Upload
 } from 'antd';
 import {
   EditOutlined,
@@ -30,7 +31,8 @@ import {
   SafetyOutlined,
   TeamOutlined,
   CheckCircleFilled,
-  BankOutlined
+  BankOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
@@ -1297,6 +1299,41 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           </>
         )}
       </div>
+
+      {/* Form-990 upload - visible when editing (#89) */}
+      {(isEditing || beneficiaryData?.form990Url) && (
+        <div className="form-field" style={{ marginTop: 16 }}>
+          <label>Form-990</label>
+          {isEditing ? (
+            <>
+              <Upload
+                beforeUpload={(file) => {
+                  handleInputChange('form990File', file);
+                  return false; // Prevent auto upload - handled in save
+                }}
+                onRemove={() => handleInputChange('form990File', null)}
+                maxCount={1}
+                accept=".pdf,.doc,.docx"
+              >
+                <Button icon={<UploadOutlined />} className="upload-btn">
+                  Select Form-990 File
+                </Button>
+              </Upload>
+              {beneficiaryData?.form990Url && (
+                <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                  Current: <a href={beneficiaryData.form990Url} target="_blank" rel="noopener noreferrer">View existing Form-990</a>
+                </Text>
+              )}
+            </>
+          ) : (
+            beneficiaryData?.form990Url ? (
+              <a href={beneficiaryData.form990Url} target="_blank" rel="noopener noreferrer">View Form-990</a>
+            ) : (
+              <Text type="secondary">No Form-990 uploaded</Text>
+            )
+          )}
+        </div>
+      )}
     </Card>
   );
 

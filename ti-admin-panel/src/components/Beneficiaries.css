@@ -498,8 +498,10 @@
   color: #ffffff !important;
 }
 
+/* :active matches :hover to prevent blink - no color change on click */
 .ant-btn-primary.invite-beneficiary-btn:active {
-  background: #b36b25 !important;
-  border-color: #b36b25 !important;
+  background: #c6762a !important;
+  border-color: #c6762a !important;
   color: #ffffff !important;
+  transition: none !important;
 } 

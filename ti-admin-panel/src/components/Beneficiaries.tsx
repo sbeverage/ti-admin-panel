@@ -79,6 +79,7 @@ const Beneficiaries: React.FC = () => {
   const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
   const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
+  const [selectedActiveStatus, setSelectedActiveStatus] = useState<'active' | 'inactive' | undefined>(undefined);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [loading, setLoading] = useState(false);
@@ -338,7 +339,7 @@ const Beneficiaries: React.FC = () => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchTerm, selectedCause, selectedDuration, selectedType, selectedLocation]);
+  }, [searchTerm, selectedCause, selectedDuration, selectedType, selectedLocation, selectedActiveStatus]);
 
   const uniqueCauses = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryCause).filter(Boolean)));
   const uniqueTypes = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryType).filter(Boolean)));
@@ -367,7 +368,12 @@ const Beneficiaries: React.FC = () => {
         })()
       : true;
 
-    return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration;
+    const matchesActiveStatus = selectedActiveStatus
+      ? (beneficiary.active === true && selectedActiveStatus === 'active') ||
+        (beneficiary.active === false && selectedActiveStatus === 'inactive')
+      : true;
+
+    return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration && matchesActiveStatus;
   });
 
   const sortedBeneficiaries = [...filteredBeneficiaries].sort((a, b) => {
@@ -1020,6 +1026,18 @@ const Beneficiaries: React.FC = () => {
                         {location}
                       </Option>
                     ))}
+                  </Select>
+
+                  <Select
+                    placeholder="Active / Inactive"
+                    className="filter-dropdown"
+                    size="large"
+                    value={selectedActiveStatus}
+                    onChange={(value) => setSelectedActiveStatus(value)}
+                    allowClear
+                  >
+                    <Option value="active">Active</Option>
+                    <Option value="inactive">Inactive</Option>
                   </Select>
                 </div>
               </div>

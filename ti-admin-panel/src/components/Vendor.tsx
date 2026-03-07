@@ -103,7 +103,7 @@ const Vendor: React.FC = () => {
         console.log('🔄 Transforming vendor data...');
         console.log('📋 Vendors to transform:', vendorsData.length);
           const transformedData = vendorsData.map((vendor: VendorType) => {
-            const rawStatus = ((vendor as any).status || 'active').toString().toLowerCase();
+            const rawStatus = ((vendor as any).status ?? ((vendor as any).is_active !== false ? 'active' : 'inactive')).toString().toLowerCase();
             const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
             const isActive = normalizedStatus === 'active';
             const isEnabled =
