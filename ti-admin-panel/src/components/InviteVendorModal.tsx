@@ -1148,6 +1148,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             icon={<ArrowLeftOutlined />} 
             onClick={handleCancel}
             className="back-btn"
+            disabled={saving}
           />
           <div className="header-content">
             <Title level={3} className="modal-title">Invite Vendor</Title>
@@ -1166,7 +1167,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           <Steps
             direction="vertical"
             current={currentStep}
-            onChange={setCurrentStep}
+            onChange={saving ? undefined : setCurrentStep}
             items={steps.map((step, index) => ({
               title: step.title,
               description: step.description,
@@ -1181,6 +1182,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             layout="vertical"
             requiredMark="optional"
             className="vendor-form"
+            disabled={saving}
           >
             {renderStepContent()}
             <div className="form-actions">
@@ -1203,8 +1205,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 loading={saving}
                 disabled={saving}
               >
-                {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
-                {!saving && <ArrowRightOutlined />}
+                <span className="next-btn-label">
+                  {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+                </span>
+                <ArrowRightOutlined style={{ visibility: saving ? 'hidden' : 'visible' }} />
               </Button>
             </div>
           </Form>

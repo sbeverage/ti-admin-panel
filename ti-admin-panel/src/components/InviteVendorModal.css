@@ -232,6 +232,18 @@
   color: #ffffff !important;
 }
 
+.next-btn {
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.next-btn .next-btn-label {
+  display: inline-flex;
+}
+
 /* Schedule Table */
 .schedule-table {
   border: 1px solid #e8e8e8;
