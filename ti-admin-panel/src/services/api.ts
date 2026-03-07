@@ -559,14 +559,23 @@ export const vendorAPI = {
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
-      const vendor = await response.json();
-      console.log('✅ Vendor created successfully:', vendor);
-      
-      // The backend returns the vendor object directly
-      // Wrap it in the format the frontend expects
+      const vendorResponse = await response.json();
+      console.log('✅ Vendor created successfully:', vendorResponse);
+
+      const resolvedVendor = vendorResponse?.data && vendorResponse?.success !== false
+        ? vendorResponse.data
+        : vendorResponse;
+
+      if (resolvedVendor && resolvedVendor.id) {
+        return {
+          success: true,
+          data: resolvedVendor
+        };
+      }
+
       return {
-        success: true,
-        data: vendor
+        success: false,
+        error: vendorResponse?.error || vendorResponse?.message || 'Vendor creation failed'
       };
       
     } catch (error) {

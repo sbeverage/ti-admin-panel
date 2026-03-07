@@ -325,6 +325,15 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       const vendorCreated = vendorResponse?.success && vendorResponse?.data;
       if (vendorCreated && vendorResponse.data) {
         const vendorId = vendorResponse.data.id;
+        if (!vendorId) {
+          console.warn('Vendor created but missing ID in response:', vendorResponse);
+          message.warning('Vendor created, but discount setup could not be saved. Please add discounts from the vendor profile.');
+          onSubmit(allData);
+          setTimeout(() => {
+            handleCancel();
+          }, 100);
+          return;
+        }
         console.log('✅ Vendor created successfully with ID:', vendorId);
         
         // Upload logo to Supabase Storage if provided
@@ -452,7 +461,8 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           }
           } catch (error) {
             console.error('Error creating discount:', error);
-            message.warning('Vendor created successfully! Discount setup can be completed later from the vendor profile.');
+            const errorMessage = error instanceof Error ? error.message : 'Discount creation failed';
+            message.warning(`Vendor created. Discount setup failed: ${errorMessage}`);
           }
         }
         
