@@ -166,6 +166,10 @@ export interface Vendor {
   };
   logo_url: string;
   status: 'active' | 'inactive';
+  is_active?: boolean;
+  active?: boolean;
+  is_enabled?: boolean;
+  enabled?: boolean;
   created_at: string;
   updated_at: string;
 }
