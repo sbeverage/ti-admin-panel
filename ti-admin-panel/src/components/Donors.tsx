@@ -980,8 +980,9 @@ const Donors: React.FC = () => {
     try {
       setLoading(true);
       const response = await donorAPI.deleteDonor(deletingUser.id);
+      const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
-      if (response.success || response.data) {
+      if (isSuccess) {
         message.success(`Donor ${deletingUser.name || deletingUser.email} deleted successfully`);
         addNotification({
           title: 'Donor deleted',
@@ -990,10 +991,9 @@ const Donors: React.FC = () => {
         });
         setIsDeleteUserModalVisible(false);
         setDeletingUser(null);
-        // Refresh donors list
         await loadDonors();
       } else {
-        message.error(response.message || 'Failed to delete donor');
+        message.error(response?.message || response?.error || 'Failed to delete donor');
       }
     } catch (error: any) {
       console.error('Error deleting donor:', error);

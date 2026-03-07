@@ -410,6 +410,26 @@ a:hover {
   transform: translateY(0) !important;
 }
 
+/* Prevent button text/background blink on click (#51) */
+.ant-btn,
+.invite-beneficiary-btn,
+.invite-vendor-btn,
+.invite-tenant-btn,
+.invite-donor-btn {
+  -webkit-tap-highlight-color: transparent !important;
+  tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.ant-btn:focus,
+.ant-btn:focus-visible,
+.invite-beneficiary-btn:focus,
+.invite-vendor-btn:focus,
+.invite-tenant-btn:focus,
+.invite-donor-btn:focus {
+  outline: none !important;
+}
+
 /* Standardized Table Column Widths - Applied Across Entire Platform */
 .ant-table-thead > tr > th,
 .ant-table-tbody > tr > td {

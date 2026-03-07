@@ -419,10 +419,12 @@ const Beneficiaries: React.FC = () => {
       const idToDelete = typeof beneficiaryId === 'string' ? parseInt(beneficiaryId) : beneficiaryId;
       console.log('Deleting beneficiary with ID:', idToDelete);
       const response = await beneficiaryAPI.deleteBeneficiary(idToDelete);
+      const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
-      if (response.success || response.data) {
+      if (isSuccess) {
         message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
         setIsDeleteBeneficiaryModalVisible(false);
+        setDeletingBeneficiary(null);
         
         // Immediately remove from local state (in case backend does soft delete)
         const deletedKey = deletingBeneficiary.key || deletingBeneficiary.id?.toString();
@@ -433,11 +435,10 @@ const Beneficiaries: React.FC = () => {
         ));
         setTotalBeneficiaries(prev => Math.max(0, prev - 1));
         
-        setDeletingBeneficiary(null);
-        // Also refresh from API to ensure consistency
+        // Refresh from API to ensure consistency
         await loadBeneficiaries();
       } else {
-        message.error(response.error || response.message || 'Failed to delete beneficiary');
+        message.error(response?.error || response?.message || 'Failed to delete beneficiary');
       }
     } catch (error: any) {
       console.error('Error deleting beneficiary:', error);

@@ -1147,15 +1147,20 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const handleDeleteDiscount = async (discountId: number) => {
     try {
       const response = await discountAPI.deleteDiscount(discountId);
-      if (response.success) {
+      const isSuccess = !response?.error && response?.success !== false;
+      if (isSuccess) {
         message.success('Discount deleted successfully');
         await loadVendorData(); // Reload vendor data to refresh discounts
       } else {
-        message.error('Failed to delete discount');
+        const errMsg = response?.error || 'Failed to delete discount';
+        message.error(errMsg);
+        throw new Error(errMsg); // Keep modal open on error
       }
     } catch (error: any) {
-      console.error('Error deleting discount:', error);
-      message.error(error.message || 'Failed to delete discount');
+      if (!error?.message?.includes('Failed to delete')) {
+        message.error(error?.message || 'Failed to delete discount');
+      }
+      throw error; // Re-throw so Modal.confirm stays open
     }
   };
 
@@ -1275,7 +1280,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                             okText: 'Delete',
                             okType: 'danger',
                             cancelText: 'Cancel',
-                            onOk: () => handleDeleteDiscount(discount.id)
+                            onOk: async () => { await handleDeleteDiscount(discount.id); }
                           });
                         }}
                       >

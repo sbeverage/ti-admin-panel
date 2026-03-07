@@ -196,15 +196,18 @@ const Discounts: React.FC = () => {
   const handleDeleteDiscount = async (discountId: number) => {
     try {
       const response = await discountAPI.deleteDiscount(discountId);
-      if (response.success) {
+      const isSuccess = !response?.error && response?.success !== false;
+      if (isSuccess) {
         message.success('Discount deleted successfully');
-        loadDiscounts();
+        await loadDiscounts();
       } else {
-        message.error('Failed to delete discount');
+        message.error(response?.error || 'Failed to delete discount');
+        throw new Error('Delete failed');
       }
     } catch (error: any) {
       console.error('Error deleting discount:', error);
       message.error(error.message || 'Failed to delete discount');
+      throw error;
     }
   };
 

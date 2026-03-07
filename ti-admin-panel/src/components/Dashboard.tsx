@@ -310,7 +310,7 @@ const Dashboard: React.FC = () => {
 
   const handleToggleChange = async (record: any, field: 'active' | 'enabled') => {
     const nextValue = !record[field];
-    const targetId = Number(record.id ?? record.key);
+    const targetId = Number(record.id ?? record.key ?? record.rawData?.id);
     if (!targetId || isNaN(targetId)) {
       message.error('Invalid record ID.');
       return;
@@ -351,6 +351,8 @@ const Dashboard: React.FC = () => {
         ? (nextValue ? 'activated' : 'deactivated')
         : (nextValue ? 'enabled' : 'disabled');
       message.success(`${label} ${statusText}.`);
+      // Refresh from server to ensure UI stays in sync
+      loadApprovalsData();
     } catch (error: any) {
       console.error('Toggle update error:', error);
       setApprovalsData(prevData =>
@@ -407,8 +409,8 @@ const Dashboard: React.FC = () => {
               email: b.email || 'N/A',
               cityState: cityState,
               cause: b.category || 'N/A',
-              active: b.is_active !== false,
-              enabled: b.is_enabled !== false,
+              active: (b.is_active ?? b.isActive) !== false,
+              enabled: (b.is_enabled ?? b.isEnabled ?? b.is_active ?? b.isActive) !== false,
               logo: b.logo_url || b.logo || null,
             };
           });

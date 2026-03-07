@@ -2033,32 +2033,20 @@ export const beneficiaryAPI = {
     return response.json();
   },
 
-  // Update beneficiary/charity
+  // Update beneficiary/charity (uses same base as GET /charities)
   updateBeneficiary: async (id: number, beneficiaryData: any): Promise<ApiResponse<any>> => {
-      const primaryUrl = buildAdminUrl(`/charities/${id}`);
-      let response = await fetch(primaryUrl, {
-        method: 'PUT',
-        headers: API_CONFIG.headers,
-        body: JSON.stringify(beneficiaryData)
-      });
+    const url = `${API_CONFIG.baseURL}/charities/${id}`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(beneficiaryData)
+    });
 
-      if (!response.ok && response.status === 404) {
-        const fallbackUrl = buildPublicUrl(`/charities/${id}`);
-        if (fallbackUrl !== primaryUrl) {
-          console.warn('⚠️ Beneficiary update 404 - retrying with fallback URL:', fallbackUrl);
-          response = await fetch(fallbackUrl, {
-            method: 'PUT',
-            headers: API_CONFIG.headers,
-            body: JSON.stringify(beneficiaryData)
-          });
-        }
-      }
-    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
-    
+
     return response.json();
   },
 

@@ -330,10 +330,15 @@ const Vendor: React.FC = () => {
             
             message.success('Vendor deleted successfully (Mock Mode)');
           } else {
-            // Call real API (when it's back online)
-            await vendorAPI.deleteVendor(parseInt(record.key));
-            message.success('Vendor deleted successfully');
-            loadVendors();
+            const response = await vendorAPI.deleteVendor(parseInt(record.key));
+            const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
+            if (isSuccess) {
+              message.success('Vendor deleted successfully');
+              await loadVendors();
+            } else {
+              message.error(response?.error || response?.message || 'Failed to delete vendor');
+              throw new Error('Delete failed');
+            }
           }
         } catch (error) {
           console.error('Error deleting vendor:', error);
