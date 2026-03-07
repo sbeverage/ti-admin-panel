@@ -104,7 +104,7 @@ const Beneficiaries: React.FC = () => {
       let response: any = null;
 
       do {
-        response = await beneficiaryAPI.getBeneficiaries(page, limit);
+        response = await beneficiaryAPI.getBeneficiaries(page, limit, { includeInactive: true });
         console.log('Beneficiary API response:', response);
         if (response?.success && Array.isArray(response.data)) {
           collected.push(...response.data);
