@@ -359,7 +359,18 @@ const Settings: React.FC = () => {
   const handlePasswordChange = async (values: any) => {
     try {
       console.log('Changing password');
-      const response = await settingsAPI.updateSettings({ password: values.newPassword });
+      const email = localStorage.getItem('admin_email');
+
+      if (!email) {
+        message.error('Missing admin email. Please log in again.');
+        return;
+      }
+
+      const response = await settingsAPI.changeTeamMemberPassword({
+        email,
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword
+      });
       
       if (response.success) {
         message.success('Password changed successfully!');

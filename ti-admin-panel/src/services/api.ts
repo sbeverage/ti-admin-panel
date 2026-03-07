@@ -1140,7 +1140,29 @@ export const donorAPI = {
       throw new Error(errorMessage);
     }
     
-    return response.json();
+    const donorResponse = await response.json();
+    const resolvedDonor = donorResponse?.data && donorResponse?.success !== false
+      ? donorResponse.data
+      : donorResponse;
+
+    if (resolvedDonor && (resolvedDonor.id || resolvedDonor.user_id)) {
+      return {
+        success: true,
+        data: resolvedDonor
+      };
+    }
+
+    if (donorResponse?.success === false || donorResponse?.error) {
+      return {
+        success: false,
+        error: donorResponse?.error || donorResponse?.message || 'Failed to create donor'
+      };
+    }
+
+    return {
+      success: true,
+      data: donorResponse
+    };
   },
 
   // Update donor
@@ -1687,6 +1709,33 @@ export const settingsAPI = {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
+    return response.json();
+  },
+
+  // Change current team member password
+  changeTeamMemberPassword: async (payload: {
+    email: string;
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/settings/team/change-password`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
     return response.json();
   },
 
