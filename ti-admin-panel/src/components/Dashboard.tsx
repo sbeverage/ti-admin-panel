@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
       
       // Load dashboard stats, approvals, chart data, and all donors in parallel
       const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
-        dashboardAPI.getDashboardStats().catch(() => ({ success: false, data: null })),
+        dashboardAPI.getDashboardStats(selectedPeriod).catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),

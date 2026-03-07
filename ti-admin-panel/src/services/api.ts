@@ -1436,8 +1436,9 @@ export const tenantAPI = {
 // Dashboard Analytics API functions
 export const dashboardAPI = {
   // Get dashboard summary statistics
-  getDashboardStats: async (): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/dashboard/stats`, {
+  getDashboardStats: async (period?: string): Promise<ApiResponse<any>> => {
+    const query = period ? `?period=${encodeURIComponent(period)}` : '';
+    const response = await fetch(`${API_CONFIG.baseURL}/dashboard/stats${query}`, {
       headers: API_CONFIG.headers
     });
     
