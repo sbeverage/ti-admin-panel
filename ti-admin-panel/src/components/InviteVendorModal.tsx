@@ -45,6 +45,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   const [logoFileList, setLogoFileList] = useState<any[]>([]);
   const [productImagesFileList, setProductImagesFileList] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedPricingTier, setSelectedPricingTier] = useState<string>('');
 
   // Predefined categories for consistency
   const categoryOptions = [
@@ -176,6 +177,17 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     }
   ];
 
+  React.useEffect(() => {
+    if (currentStep === 1) {
+      const formTier = form.getFieldValue('pricingTier');
+      const storedTier = formTier || priceDiscounts?.pricingTier || '';
+      if (storedTier) {
+        setSelectedPricingTier(storedTier);
+        form.setFieldsValue({ pricingTier: storedTier });
+      }
+    }
+  }, [currentStep, form, priceDiscounts]);
+
   const handleNext = async () => {
     try {
       console.log('🔍 Current step:', currentStep);
@@ -201,6 +213,22 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         // Step 2: Work Schedule - all fields optional, just get values
         console.log('🚀 Step 2 - Preparing to submit...');
         const allValues = form.getFieldsValue();
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const missingSchedule = days.find((day) => {
+          const isClosed = allValues[`${day}Closed`];
+          const startTime = allValues[`${day}Start`];
+          const endTime = allValues[`${day}End`];
+          if (isClosed) {
+            return false;
+          }
+          return !startTime || !endTime;
+        });
+
+        if (missingSchedule) {
+          const dayLabel = `${missingSchedule.charAt(0).toUpperCase()}${missingSchedule.slice(1)}`;
+          message.error(`Please set both start and end times for ${dayLabel}, or mark it as closed.`);
+          return;
+        }
         console.log('📦 All collected values:', { ...basicDetails, ...priceDiscounts, ...allValues });
         setWorkSchedule(allValues);
         await handleSubmit({ ...basicDetails, ...priceDiscounts, ...allValues });
@@ -227,6 +255,36 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     
     setSaving(true);
     try {
+      const fetchAllVendors = async () => {
+        const collected: any[] = [];
+        let page = 1;
+        const limit = 200;
+        let total = 0;
+
+        do {
+          const response = await vendorAPI.getVendors(page, limit);
+          if (!response.success || !Array.isArray(response.data)) {
+            throw new Error(response.error || response.message || 'Failed to load vendors');
+          }
+          collected.push(...response.data);
+          total = response.pagination?.total || collected.length;
+          page += 1;
+        } while (collected.length < total);
+
+        return collected;
+      };
+
+      const existingVendors = await fetchAllVendors();
+      const normalizedEmail = (allData.primaryEmail || '').toString().trim().toLowerCase();
+      const duplicateVendor = existingVendors.find((vendor: any) =>
+        (vendor.email || '').toString().trim().toLowerCase() === normalizedEmail
+      );
+
+      if (duplicateVendor) {
+        message.error('A vendor with this email already exists.');
+        setSaving(false);
+        return;
+      }
       
       // Get uploaded file URLs (for now using mock URLs until we fix the upload endpoint)
       const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
@@ -559,6 +617,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     setWorkSchedule({});
     setLogoFileList([]);
     setProductImagesFileList([]);
+    setSelectedPricingTier('');
     onCancel();
   };
 
@@ -986,11 +1045,23 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             <Row gutter={[24, 16]}>
               <Col span={24}>
                 <Title level={5}>Select the tier that best describes your location pricing</Title>
+                <Form.Item name="pricingTier" style={{ display: 'none' }}>
+                  <Input />
+                </Form.Item>
                 <div className="pricing-tiers">
-                  <Button className="pricing-tier-btn" value="$">$</Button>
-                  <Button className="pricing-tier-btn" value="$$">$$</Button>
-                  <Button className="pricing-tier-btn" value="$$$">$$$</Button>
-                  <Button className="pricing-tier-btn" value="$$$$">$$$$</Button>
+                  {['$', '$$', '$$$', '$$$$'].map((tier) => (
+                    <Button
+                      key={tier}
+                      className="pricing-tier-btn"
+                      type={selectedPricingTier === tier ? 'primary' : 'default'}
+                      onClick={() => {
+                        setSelectedPricingTier(tier);
+                        form.setFieldsValue({ pricingTier: tier });
+                      }}
+                    >
+                      {tier}
+                    </Button>
+                  ))}
                 </div>
               </Col>
             </Row>

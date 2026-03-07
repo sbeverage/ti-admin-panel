@@ -35,12 +35,15 @@ const Vendor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [allVendorsData, setAllVendorsData] = useState<any[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
   const [showInactive, setShowInactive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>();
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>();
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -51,7 +54,7 @@ const Vendor: React.FC = () => {
   // Load vendors from API
   useEffect(() => {
     loadVendors();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
   const loadVendors = async () => {
     setLoading(true);
@@ -62,24 +65,29 @@ const Vendor: React.FC = () => {
     try {
       console.log('🔄 Loading vendors from API...');
       console.time('API Call'); // Start timing
-      const response = await vendorAPI.getVendors(currentPage, pageSize);
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await vendorAPI.getVendors(page, limit);
+        console.log('📦 Vendor API response:', response);
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
       console.timeEnd('API Call'); // End timing
-      console.log('📦 Vendor API response:', response);
-      console.log('✅ Response success:', response.success);
-      console.log('📊 Response data length:', response.data?.length);
-      console.log('📄 Response pagination:', response.pagination);
-      console.log('📋 Response data sample:', response.data?.[0]);
+      console.log('📋 Total vendors loaded:', collected.length);
       
       // Ensure data is an array before processing - handle all cases
       let vendorsData: VendorType[] = [];
       
-      if (response && response.data) {
-        if (Array.isArray(response.data)) {
-          vendorsData = response.data;
-        } else {
-          console.warn('⚠️ response.data is not an array:', response.data);
-          vendorsData = [];
-        }
+      if (collected.length > 0) {
+        vendorsData = collected;
       } else {
         console.warn('⚠️ response.data is undefined:', response);
         vendorsData = [];
@@ -90,7 +98,7 @@ const Vendor: React.FC = () => {
       console.log('📋 Is array?', Array.isArray(vendorsData));
       console.log('📋 Full response object:', response);
       
-      if (response.success && vendorsData.length > 0) {
+      if (response?.success && vendorsData.length > 0) {
         // Transform API data to match our table structure
         console.log('🔄 Transforming vendor data...');
         console.log('📋 Vendors to transform:', vendorsData.length);
@@ -134,12 +142,14 @@ const Vendor: React.FC = () => {
         console.log('Sample vendor status:', transformedData[0]?.status);
         console.log('Setting vendors data...');
         setVendorsData(transformedData);
-        setTotalVendors(response.pagination?.total || 0);
+        setAllVendorsData(transformedData);
+        setTotalVendors(transformedData.length);
         console.log('Vendors data set successfully');
-      } else if (response.success && vendorsData.length === 0) {
+      } else if (response?.success && vendorsData.length === 0) {
         // Success but no vendors yet
         console.log('✅ API call successful, but no vendors found');
         setVendorsData([]);
+        setAllVendorsData([]);
         setTotalVendors(0);
       } else {
         console.error('❌ Failed to load vendors:', response);
@@ -150,6 +160,7 @@ const Vendor: React.FC = () => {
       console.error('Error loading vendors:', error);
       console.error('Error details:', error);
       setVendorsData([]);
+      setAllVendorsData([]);
       setTotalVendors(0);
       setError('Failed to load vendors');
       setLoading(false);
@@ -160,7 +171,7 @@ const Vendor: React.FC = () => {
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     try {
       const vendorId = parseInt(key);
-      const currentVendor = vendorsData.find(v => v.key === key);
+      const currentVendor = allVendorsData.find(v => v.key === key);
       if (!currentVendor) return;
 
       const nextStatus = currentVendor.status === 'active' ? 'inactive' : 'active';
@@ -168,6 +179,18 @@ const Vendor: React.FC = () => {
 
       const response = await vendorAPI.updateVendorStatus(vendorId, nextStatus);
       if (response.success) {
+        setAllVendorsData(prevData =>
+          prevData.map(item =>
+            item.key === key
+              ? {
+                  ...item,
+                  status: nextStatus,
+                  active: nextStatus === 'active',
+                  enabled: nextStatus === 'active',
+                }
+              : item
+          )
+        );
         setVendorsData(prevData =>
           prevData.map(item =>
             item.key === key
@@ -504,7 +527,8 @@ const Vendor: React.FC = () => {
       ),
       dataIndex: 'name',
       key: 'name',
-      sorter: (a: any, b: any) => a.name.localeCompare(b.name),
+      sorter: true,
+      sortOrder: sortField === 'name' ? sortOrder : null,
       render: (text: string, record: any) => (
         <Space>
           <Avatar 
@@ -667,11 +691,17 @@ const Vendor: React.FC = () => {
     setCurrentPage(page);
   };
 
-  const uniqueCategories = Array.from(new Set(vendorsData.map(vendor => vendor.category).filter(Boolean)));
-  const uniqueStatuses = Array.from(new Set(vendorsData.map(vendor => vendor.status).filter(Boolean)));
-  const uniqueLocations = Array.from(new Set(vendorsData.map(vendor => vendor.cityState).filter(Boolean)));
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, selectedCategory, selectedStatus, selectedLocation, showInactive]);
 
-  const filteredVendors = vendorsData.filter((vendor) => {
+  const uniqueCategories = Array.from(new Set(allVendorsData.map(vendor => vendor.category).filter(Boolean)));
+  const uniqueStatuses = Array.from(new Set(allVendorsData.map(vendor => vendor.status).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(allVendorsData.map(vendor => vendor.cityState).filter(Boolean)));
+
+  const filteredVendors = allVendorsData.filter((vendor) => {
     const matchesStatus = selectedStatus
       ? vendor.status === selectedStatus
       : showInactive
@@ -687,6 +717,21 @@ const Vendor: React.FC = () => {
 
     return matchesStatus && matchesCategory && matchesLocation && matchesSearch;
   });
+
+  const sortedVendors = [...filteredVendors].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedVendors = sortedVendors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <Layout className="vendor-layout">
@@ -848,7 +893,7 @@ const Vendor: React.FC = () => {
             <div className="vendors-table-section">
               <Spin spinning={loading}>
               <Table
-                dataSource={filteredVendors}
+                dataSource={paginatedVendors}
                 columns={columns}
                 pagination={false}
                 size="middle"
@@ -856,6 +901,15 @@ const Vendor: React.FC = () => {
                 rowClassName="vendor-row"
                 scroll={{ x: 1800 }}
                 bordered={false}
+                onChange={(_, __, sorter) => {
+                  if (Array.isArray(sorter)) {
+                    return;
+                  }
+                  const nextField = (sorter as any).field as string | undefined;
+                  const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                  setSortField(nextField || null);
+                  setSortOrder(nextOrder || null);
+                }}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No vendors found'
                   }}
@@ -866,7 +920,7 @@ const Vendor: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalVendors}
+                  total={filteredVendors.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
