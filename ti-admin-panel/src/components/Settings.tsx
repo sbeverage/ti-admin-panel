@@ -60,6 +60,9 @@ const Settings: React.FC = () => {
         setSettingsData(settingsResponse.data);
         // Update personal profile with loaded data
         if (settingsResponse.data) {
+          if (settingsResponse.data.email) {
+            localStorage.setItem('admin_email', settingsResponse.data.email);
+          }
           setPersonalProfile((prev: any) => ({
             ...prev,
             ...settingsResponse.data,
@@ -359,7 +362,7 @@ const Settings: React.FC = () => {
   const handlePasswordChange = async (values: any) => {
     try {
       console.log('Changing password');
-      const email = localStorage.getItem('admin_email');
+      const email = localStorage.getItem('admin_email') || personalProfile?.email || settingsData?.email;
 
       if (!email) {
         message.error('Missing admin email. Please log in again.');
