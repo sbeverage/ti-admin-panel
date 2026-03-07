@@ -84,6 +84,7 @@ interface BeneficiaryData {
   impactStatement2?: string;
   ein?: string;
   website?: string;
+  form990Url?: string;
   verificationStatus?: boolean;
   volunteerInfo?: string;
   // Fields from spec
@@ -269,6 +270,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         impactStatement2: apiData.impact_statement_2 || apiData.impactStatement2 || '',
         ein: apiData.ein || '',
         website: apiData.website || '',
+        form990Url: apiData.form_990_url || apiData.form990Url || '',
         verificationStatus: apiData.verification_status || apiData.verificationStatus || false,
         volunteerInfo: apiData.volunteer_info || apiData.volunteerInfo || '',
         // New fields from spec
