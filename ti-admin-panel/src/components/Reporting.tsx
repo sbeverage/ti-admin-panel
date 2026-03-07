@@ -78,6 +78,7 @@ const Reporting: React.FC = () => {
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<PayoutData | null>(null);
   const [payoutStatusModalVisible, setPayoutStatusModalVisible] = useState(false);
   const [needsReviewFilter, setNeedsReviewFilter] = useState(false);
+  const [bankInfoFilter, setBankInfoFilter] = useState<'all' | 'has' | 'missing'>('all');
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
@@ -245,10 +246,13 @@ const Reporting: React.FC = () => {
     loadPayoutData();
   }, [selectedMonth]);
 
-  // Filter by needs review when button is active
-  const displayedPayoutData = needsReviewFilter
-    ? payoutData.filter((p) => p.reconciliationStatus === 'needs_review')
-    : payoutData;
+  // Filter by needs review and bank info
+  const displayedPayoutData = payoutData.filter((p) => {
+    if (needsReviewFilter && p.reconciliationStatus !== 'needs_review') return false;
+    if (bankInfoFilter === 'has' && !p.bankInfo.hasBankInfo) return false;
+    if (bankInfoFilter === 'missing' && p.bankInfo.hasBankInfo) return false;
+    return true;
+  });
 
   // Calculate totals from displayed data
   const totals = displayedPayoutData.reduce((acc, item) => ({
@@ -426,15 +430,31 @@ const Reporting: React.FC = () => {
       key: 'beneficiaryName',
       fixed: 'left' as const,
       width: 200,
-      render: (text: string, record: PayoutData) => (
-        <Space>
-          <Text strong>{text}</Text>
-          {!record.bankInfo.hasBankInfo && (
-            <Tooltip title="Bank information missing - will need to write check">
-              <Tag color="orange" icon={<ExclamationCircleOutlined />}>No Bank Info</Tag>
-            </Tooltip>
-          )}
-        </Space>
+      render: (text: string) => <Text strong>{text}</Text>
+    },
+    {
+      title: 'Bank Info',
+      dataIndex: ['bankInfo', 'hasBankInfo'],
+      key: 'bankInfo',
+      width: 130,
+      align: 'center' as const,
+      filters: [
+        { text: 'Has Bank Info', value: 'has' },
+        { text: 'No Bank Info', value: 'missing' }
+      ],
+      onFilter: (value, record: PayoutData) => {
+        if (value === 'has') return record.bankInfo.hasBankInfo;
+        if (value === 'missing') return !record.bankInfo.hasBankInfo;
+        return true;
+      },
+      render: (hasBankInfo: boolean) => (
+        hasBankInfo ? (
+          <Tag color="green" icon={<CheckCircleOutlined />}>Has Bank Info</Tag>
+        ) : (
+          <Tooltip title="Bank information missing - will need to write check">
+            <Tag color="orange" icon={<ExclamationCircleOutlined />}>No Bank Info</Tag>
+          </Tooltip>
+        )
       )
     },
     {

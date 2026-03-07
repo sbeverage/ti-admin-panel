@@ -626,48 +626,42 @@ const ReferralAnalytics: React.FC = () => {
     },
   ];
 
-  // Referral Overview Data
+  // Referral Overview Data - real data only, no dummy growth percentages
   const referralOverviewData = [
     { 
       title: 'Total Referrals', 
-      value: analyticsData?.totalReferrals || '--', 
+      value: analyticsData?.totalReferrals ?? '--', 
       icon: <TeamOutlined />, 
-      growth: '+15.3%', 
       color: '#DB8633' 
     },
     { 
       title: 'Active Referrers', 
-      value: analyticsData?.activeReferrers || '--', 
+      value: analyticsData?.activeReferrers ?? '--', 
       icon: <CheckCircleFilled />, 
-      growth: '+8.7%', 
       color: '#324E58' 
     },
     { 
       title: 'Conversion Rate', 
-      value: analyticsData?.conversionRate ? `${analyticsData.conversionRate}%` : '--', 
+      value: analyticsData?.conversionRate != null ? `${analyticsData.conversionRate}%` : '--', 
       icon: <BarChartOutlined />, 
-      growth: '+3.2%', 
       color: '#324E58' 
     },
     { 
       title: 'Top Referrer', 
       value: analyticsData?.topReferrers?.[0]?.name || '--', 
       icon: <TrophyOutlined />, 
-      growth: '+12.4%', 
       color: '#324E58' 
     },
     { 
       title: 'Social Media Referrals', 
-      value: analyticsData?.referralSources?.[0]?.count || '--', 
+      value: analyticsData?.referralSources?.[0]?.count ?? '--', 
       icon: <ShareAltOutlined />, 
-      growth: '+5.8%', 
       color: '#DB8633' 
     },
     { 
       title: 'Email Referrals', 
-      value: analyticsData?.referralSources?.[1]?.count || '--', 
+      value: analyticsData?.referralSources?.[1]?.count ?? '--', 
       icon: <MessageOutlined />, 
-      growth: '+2.1%', 
       color: '#324E58' 
     },
   ];
