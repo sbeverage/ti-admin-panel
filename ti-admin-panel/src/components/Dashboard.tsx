@@ -161,6 +161,7 @@ const Dashboard: React.FC = () => {
         }
         
         return {
+          id: b.id,
           key: b.id?.toString() || Math.random().toString(),
           beneficiary: b.name || 'Unknown',
           email: b.email || 'N/A',
@@ -187,6 +188,7 @@ const Dashboard: React.FC = () => {
         }
         
         return {
+          id: v.id,
           key: v.id?.toString() || Math.random().toString(),
           beneficiary: v.name || 'Unknown',
           email: v.email || 'N/A',
@@ -271,17 +273,56 @@ const Dashboard: React.FC = () => {
     setCustomDateOpen(false);
   };
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setApprovalsData(prevData => 
-      prevData.map(item => 
-        item.key === key 
-          ? { ...item, [field]: !item[field] }
+  const handleToggleChange = async (record: any, field: 'active' | 'enabled') => {
+    const nextValue = !record[field];
+    setApprovalsData(prevData =>
+      prevData.map(item =>
+        item.key === record.key
+          ? { ...item, [field]: nextValue }
           : item
       )
     );
-    
-    // Here you would typically make an API call to update the backend
-    console.log(`Toggled ${field} for key ${key}`);
+
+    try {
+      const { vendorAPI, beneficiaryAPI } = await import('../services/api');
+      const targetId = Number(record.id || record.key);
+
+      if (activeApprovalTab === 'beneficiaries') {
+        const payload = field === 'active'
+          ? { is_active: nextValue }
+          : { is_enabled: nextValue };
+        const response = await beneficiaryAPI.updateBeneficiary(targetId, payload);
+        if (response?.success === false) {
+          throw new Error(response?.error || 'Failed to update beneficiary');
+        }
+      } else {
+        let response;
+        if (field === 'active') {
+          response = await vendorAPI.updateVendorStatus(targetId, nextValue ? 'active' : 'inactive');
+        } else {
+          response = await vendorAPI.updateVendor(targetId, { is_enabled: nextValue });
+        }
+        if (response?.success === false) {
+          throw new Error(response?.error || 'Failed to update vendor');
+        }
+      }
+
+      const label = activeApprovalTab === 'beneficiaries' ? 'Beneficiary' : 'Vendor';
+      const statusText = field === 'active'
+        ? (nextValue ? 'activated' : 'deactivated')
+        : (nextValue ? 'enabled' : 'disabled');
+      message.success(`${label} ${statusText}.`);
+    } catch (error: any) {
+      console.error('Toggle update error:', error);
+      setApprovalsData(prevData =>
+        prevData.map(item =>
+          item.key === record.key
+            ? { ...item, [field]: !nextValue }
+            : item
+        )
+      );
+      message.error(error?.message || `Failed to update ${field} status.`);
+    }
   };
 
   const handleViewAllBeneficiaries = () => {
@@ -317,6 +358,7 @@ const Dashboard: React.FC = () => {
             }
             
             return {
+              id: b.id,
               key: b.id?.toString() || Math.random().toString(),
               beneficiary: b.name || 'Unknown',
               email: b.email || 'N/A',
@@ -347,6 +389,7 @@ const Dashboard: React.FC = () => {
             }
             
             return {
+              id: v.id,
               key: v.id?.toString() || Math.random().toString(),
               beneficiary: v.name || 'Unknown',
               email: v.email || 'N/A',
@@ -568,7 +611,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${active ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'active')}
+            onClick={() => handleToggleChange(record, 'active')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -583,7 +626,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${enabled ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'enabled')}
+            onClick={() => handleToggleChange(record, 'enabled')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -636,7 +679,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${active ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'active')}
+            onClick={() => handleToggleChange(record, 'active')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -651,7 +694,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${enabled ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'enabled')}
+            onClick={() => handleToggleChange(record, 'enabled')}
           >
             <div className="toggle-slider"></div>
           </div>
