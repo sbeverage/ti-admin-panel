@@ -37,6 +37,17 @@ const Settings: React.FC = () => {
   const [addUserForm] = Form.useForm();
   const [editUserForm] = Form.useForm();
   const [profileForm] = Form.useForm();
+  const [personalProfile, setPersonalProfile] = useState<any>({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    }
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -177,18 +188,6 @@ const Settings: React.FC = () => {
       navigate('/settings');
     }
   };
-
-  const [personalProfile, setPersonalProfile] = useState<any>({
-    name: '',
-    email: '',
-    phone: '',
-    role: '',
-    notifications: {
-      email: true,
-      push: true,
-      sms: false
-    }
-  });
 
   const menuItems = [
     {
