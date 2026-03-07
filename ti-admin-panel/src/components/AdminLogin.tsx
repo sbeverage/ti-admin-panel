@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
+import { Form, Input, Button, Card, Typography, message, Space, Modal } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { settingsAPI } from '../services/api';
 import './AdminLogin.css';
@@ -13,7 +13,10 @@ interface LoginFormData {
 
 const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [resetForm] = Form.useForm();
 
   const handleSubmit = async (values: LoginFormData) => {
     setLoading(true);
@@ -40,6 +43,28 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
       message.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      const values = await resetForm.validateFields();
+      setResetLoading(true);
+      const response = await settingsAPI.resetTeamMemberPassword({ email: values.email });
+      if (response.success) {
+        message.success('Password reset email sent. Check your inbox.');
+        setResetModalVisible(false);
+        resetForm.resetFields();
+      } else {
+        message.error(response.error || 'Failed to send reset email');
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message?.includes('HTTP error!')
+        ? error.message
+        : 'Failed to send reset email. Please try again.';
+      message.error(errorMessage);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -103,7 +128,16 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               </Form.Item>
 
               <div className="forgot-password">
-                <a href="#" className="forgot-link">Forgot your password?</a>
+                <a
+                  href="#"
+                  className="forgot-link"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setResetModalVisible(true);
+                  }}
+                >
+                  Forgot your password?
+                </a>
               </div>
 
               <Form.Item className="login-button-container">
@@ -127,6 +161,31 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
           </Card>
         </div>
       </div>
+      <Modal
+        title="Reset Password"
+        open={resetModalVisible}
+        onCancel={() => {
+          setResetModalVisible(false);
+          resetForm.resetFields();
+        }}
+        onOk={handleResetPassword}
+        okText="Send Reset Email"
+        confirmLoading={resetLoading}
+        width={420}
+      >
+        <Form form={resetForm} layout="vertical" requiredMark="optional">
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input placeholder="Enter email address" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

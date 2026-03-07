@@ -1706,6 +1706,22 @@ export const settingsAPI = {
     return response.json();
   },
 
+  // Reset admin team member password
+  resetTeamMemberPassword: async (payload: { email: string }): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/settings/team/reset-password`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
+  },
+
   // Delete team member
   deleteTeamMember: async (id: number): Promise<ApiResponse<any>> => {
     const response = await fetch(`${API_CONFIG.baseURL}/settings/team/${id}`, {
