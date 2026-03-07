@@ -73,11 +73,14 @@ const Beneficiaries: React.FC = () => {
   const [selectedBeneficiaryData, setSelectedBeneficiaryData] = useState<any | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
   const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
+  const [allBeneficiariesData, setAllBeneficiariesData] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCause, setSelectedCause] = useState<string | undefined>(undefined);
   const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
   const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState(0);
@@ -93,14 +96,27 @@ const Beneficiaries: React.FC = () => {
     
     try {
       console.log('Loading beneficiaries from API...');
-      const response = await beneficiaryAPI.getBeneficiaries(currentPage, pageSize);
-      console.log('Beneficiary API response:', response);
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await beneficiaryAPI.getBeneficiaries(page, limit);
+        console.log('Beneficiary API response:', response);
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
       
-      if (response.success) {
+      if (response?.success) {
         // Log the actual API response structure for debugging
-        console.log('📊 Raw API response data:', response.data);
-        if (response.data && response.data.length > 0) {
-          const sample = response.data[0];
+        console.log('📊 Raw API response data:', collected);
+        if (collected.length > 0) {
+          const sample = collected[0];
           console.log('📋 Sample beneficiary object:', sample);
           console.log('📋 All keys in beneficiary object:', Object.keys(sample));
           console.log('📋 Full beneficiary data structure:', JSON.stringify(sample, null, 2));
@@ -118,7 +134,7 @@ const Beneficiaries: React.FC = () => {
         // Transform API data to match our table structure
         // Handle both new charity structure and legacy beneficiary structure
         // Filter out soft-deleted records (if backend returns them)
-        const filteredData = response.data.filter((beneficiary: any) => {
+        const filteredData = collected.filter((beneficiary: any) => {
           // Exclude soft-deleted records
           return !beneficiary.deleted_at && 
                  !beneficiary.deletedAt && 
@@ -244,11 +260,13 @@ const Beneficiaries: React.FC = () => {
         });
         
         setBeneficiariesData(transformedData);
-        setTotalBeneficiaries(response.pagination?.total || transformedData.length);
+        setAllBeneficiariesData(transformedData);
+        setTotalBeneficiaries(transformedData.length);
         console.log('Beneficiaries loaded successfully');
       } else {
         setError('Failed to load beneficiaries');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       }
     } catch (error: any) {
@@ -259,10 +277,12 @@ const Beneficiaries: React.FC = () => {
         console.log('⚠️ Beneficiary endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Beneficiary" button to add beneficiaries.');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       } else {
         setError('Failed to load beneficiaries');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       }
     } finally {
@@ -274,18 +294,24 @@ const Beneficiaries: React.FC = () => {
   // Load data on component mount and when page changes
   useEffect(() => {
     loadBeneficiaries();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     // This would typically update the backend
     console.log(`Toggling ${field} for beneficiary ${key}`);
   };
 
-  const uniqueCauses = Array.from(new Set(beneficiariesData.map((b) => b.beneficiaryCause).filter(Boolean)));
-  const uniqueTypes = Array.from(new Set(beneficiariesData.map((b) => b.beneficiaryType).filter(Boolean)));
-  const uniqueLocations = Array.from(new Set(beneficiariesData.map((b) => b.cityState).filter(Boolean)));
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, selectedCause, selectedDuration, selectedType, selectedLocation]);
 
-  const filteredBeneficiaries = beneficiariesData.filter((beneficiary) => {
+  const uniqueCauses = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryCause).filter(Boolean)));
+  const uniqueTypes = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryType).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(allBeneficiariesData.map((b) => b.cityState).filter(Boolean)));
+
+  const filteredBeneficiaries = allBeneficiariesData.filter((beneficiary) => {
     const matchesSearch = searchTerm
       ? [beneficiary.beneficiaryName, beneficiary.email, beneficiary.contactName, beneficiary.contactNumber, beneficiary.cityState]
           .filter(Boolean)
@@ -310,6 +336,21 @@ const Beneficiaries: React.FC = () => {
 
     return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration;
   });
+
+  const sortedBeneficiaries = [...filteredBeneficiaries].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedBeneficiaries = sortedBeneficiaries.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const handleInviteBeneficiary = () => {
     setInviteModalVisible(true);
@@ -472,6 +513,8 @@ const Beneficiaries: React.FC = () => {
       ),
       dataIndex: 'beneficiaryName',
       key: 'beneficiaryName',
+      sorter: true,
+      sortOrder: sortField === 'beneficiaryName' ? sortOrder : null,
       render: (text: string, record: any) => (
         <Space>
           <Avatar 
@@ -952,7 +995,7 @@ const Beneficiaries: React.FC = () => {
             <div className="beneficiaries-table-section">
               <Spin spinning={loading}>
                 <Table
-                  dataSource={filteredBeneficiaries}
+                  dataSource={paginatedBeneficiaries}
                   columns={columns}
                   pagination={false}
                   size="middle"
@@ -960,6 +1003,15 @@ const Beneficiaries: React.FC = () => {
                   rowClassName="beneficiary-row"
                   scroll={{ x: 1800 }}
                   bordered={false}
+                  onChange={(_, __, sorter) => {
+                    if (Array.isArray(sorter)) {
+                      return;
+                    }
+                    const nextField = (sorter as any).field as string | undefined;
+                    const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                    setSortField(nextField || null);
+                    setSortOrder(nextOrder || null);
+                  }}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No beneficiaries found'
                   }}
@@ -970,7 +1022,7 @@ const Beneficiaries: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalBeneficiaries}
+                  total={filteredBeneficiaries.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}

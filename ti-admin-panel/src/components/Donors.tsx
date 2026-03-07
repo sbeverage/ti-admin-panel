@@ -35,6 +35,7 @@ const Donors: React.FC = () => {
   const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
   const [deletingUser, setDeletingUser] = useState<any>(null);
   const [donorsData, setDonorsData] = useState<any[]>([]);
+  const [allDonorsData, setAllDonorsData] = useState<any[]>([]);
   const [filteredDonorsData, setFilteredDonorsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +47,8 @@ const Donors: React.FC = () => {
   const [selectedUserStatus, setSelectedUserStatus] = useState<string | undefined>(undefined);
   const [selectedCityState, setSelectedCityState] = useState<string | undefined>(undefined);
   const [selectedCoworking, setSelectedCoworking] = useState<string | undefined>(undefined);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
   const [citiesList, setCitiesList] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -62,12 +65,25 @@ const Donors: React.FC = () => {
     
     try {
       console.log('Loading donors from API...');
-      const response = await donorAPI.getDonors(currentPage, pageSize);
-      console.log('Donor API response:', response);
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await donorAPI.getDonors(page, limit);
+        console.log('Donor API response:', response);
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
       
-      if (response.success) {
+      if (response?.success) {
         // Transform API data to match our table structure
-        const transformedData = response.data.map((donor: any) => ({
+        const transformedData = collected.map((donor: any) => ({
           key: donor.id.toString(),
           id: donor.id, // Store original ID for API calls
           name: donor.name || 'Unknown',
@@ -103,8 +119,9 @@ const Donors: React.FC = () => {
         }));
         
         setDonorsData(transformedData);
+        setAllDonorsData(transformedData);
         setFilteredDonorsData(transformedData);
-        setTotalDonors(response.pagination?.total || transformedData.length);
+        setTotalDonors(transformedData.length);
         
         // Extract unique cities/states for filter
         const cities = Array.from(new Set(
@@ -118,6 +135,7 @@ const Donors: React.FC = () => {
       } else {
         setError('Failed to load donors');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       }
     } catch (error: any) {
@@ -128,10 +146,12 @@ const Donors: React.FC = () => {
         console.log('⚠️ Donor endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Donor" button to add donors.');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       } else {
         setError('Failed to load donors');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       }
     } finally {
@@ -156,15 +176,15 @@ const Donors: React.FC = () => {
   useEffect(() => {
     loadDonors();
     loadBeneficiaries();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
   // Apply filters when filter values change
   useEffect(() => {
     applyFilters();
-  }, [donorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+  }, [allDonorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
 
   const applyFilters = () => {
-    let filtered = [...donorsData];
+    let filtered = [...allDonorsData];
 
     // Search filter
     if (searchText) {
@@ -246,6 +266,27 @@ const Donors: React.FC = () => {
 
     setFilteredDonorsData(filtered);
   };
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+
+  const sortedDonors = [...filteredDonorsData].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedDonors = sortedDonors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
     setDonorsData(prevData =>
@@ -397,6 +438,8 @@ const Donors: React.FC = () => {
       ),
       dataIndex: 'name',
       key: 'name',
+      sorter: true,
+      sortOrder: sortField === 'name' ? sortOrder : null,
       render: (text: string, record: any) => (
         <Space 
           onClick={(e) => {
@@ -1132,7 +1175,7 @@ const Donors: React.FC = () => {
               <Spin spinning={loading}>
                 
                 <Table
-                  dataSource={filteredDonorsData}
+                  dataSource={paginatedDonors}
                   columns={columns}
                   pagination={false}
                   size="middle"
@@ -1142,6 +1185,15 @@ const Donors: React.FC = () => {
                   bordered={false}
                   rowKey={(record) => record.key || record.id || 'unknown'}
                   virtual={false}
+                  onChange={(_, __, sorter) => {
+                    if (Array.isArray(sorter)) {
+                      return;
+                    }
+                    const nextField = (sorter as any).field as string | undefined;
+                    const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                    setSortField(nextField || null);
+                    setSortOrder(nextOrder || null);
+                  }}
                   onRow={(record, index) => {
                     return {
                       onClick: (event: React.MouseEvent) => {
@@ -1181,7 +1233,7 @@ const Donors: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalDonors}
+                  total={filteredDonorsData.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
