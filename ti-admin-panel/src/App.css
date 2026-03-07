@@ -333,7 +333,6 @@ a:hover {
   border-color: #C6762A !important;
   color: #ffffff !important;
   box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
-  transform: translateY(-1px) !important;
 }
 
 .invite-beneficiary-btn:focus,
@@ -353,7 +352,7 @@ a:hover {
   background: #B36B25 !important;
   border-color: #B36B25 !important;
   color: #ffffff !important;
-  transform: translateY(0) !important;
+  transition: none !important;
 }
 
 /* Standardized Invite Button Styles - Applied Across Entire Platform */
@@ -387,7 +386,6 @@ a:hover {
   border-color: #C6762A !important;
   color: #ffffff !important;
   box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
-  transform: translateY(-1px) !important;
 }
 
 .invite-beneficiary-btn:focus,
@@ -407,7 +405,7 @@ a:hover {
   background: #B36B25 !important;
   border-color: #B36B25 !important;
   color: #ffffff !important;
-  transform: translateY(0) !important;
+  transition: none !important;
 }
 
 /* Prevent button text/background blink on click (#51) */
@@ -420,6 +418,19 @@ a:hover {
   tap-highlight-color: transparent !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+.invite-beneficiary-btn:active,
+.invite-vendor-btn:active,
+.invite-tenant-btn:active,
+.invite-donor-btn:active {
+  transition: none !important;
+}
+/* Eliminate transition flash on click - use minimal transition for smoother feel */
+.invite-beneficiary-btn:active,
+.invite-vendor-btn:active,
+.invite-tenant-btn:active,
+.invite-donor-btn:active {
+  transition: none !important;
 }
 .ant-btn:focus,
 .ant-btn:focus-visible,

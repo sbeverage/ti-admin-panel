@@ -288,15 +288,30 @@ const Donors: React.FC = () => {
     currentPage * pageSize
   );
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setDonorsData(prevData =>
-      prevData.map(item =>
-        item.key === key
-          ? { ...item, [field]: !item[field] }
-          : item
-      )
-    );
-    console.log(`Toggled ${field} for key ${key}`);
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const donorId = parseInt(key, 10);
+    if (isNaN(donorId)) return;
+    const donor = allDonorsData.find((d) => d.key === key);
+    if (!donor) return;
+    const nextVal = !donor[field];
+    const payload = field === 'active' ? { is_active: nextVal } : { is_enabled: nextVal };
+    try {
+      const response = await donorAPI.updateDonor(donorId, payload);
+      if (response?.success !== false) {
+        const update = (prev: any[]) =>
+          prev.map((d) => (d.key === key ? { ...d, [field]: nextVal } : d));
+        setDonorsData(update);
+        setAllDonorsData(update);
+        setFilteredDonorsData(update);
+        message.success('Donor updated');
+        loadDonors(); // Refresh from server
+      } else {
+        message.error('Failed to update donor');
+      }
+    } catch (err) {
+      console.error('Error updating donor:', err);
+      message.error('Failed to update donor');
+    }
   };
 
   const handleTimeFilterChange = (key: string) => {

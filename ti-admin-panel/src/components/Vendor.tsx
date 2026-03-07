@@ -170,45 +170,59 @@ const Vendor: React.FC = () => {
 
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     try {
-      const vendorId = parseInt(key);
+      const vendorId = parseInt(key, 10);
       const currentVendor = allVendorsData.find(v => v.key === key);
       if (!currentVendor) return;
 
-      const nextStatus = currentVendor.status === 'active' ? 'inactive' : 'active';
-      const action = nextStatus === 'active' ? 'activate' : 'deactivate';
-
-      const response = await vendorAPI.updateVendorStatus(vendorId, nextStatus);
-      if (response.success) {
-        setAllVendorsData(prevData =>
-          prevData.map(item =>
-            item.key === key
-              ? {
-                  ...item,
-                  status: nextStatus,
-                  active: nextStatus === 'active',
-                  enabled: nextStatus === 'active',
-                }
-              : item
-          )
-        );
-        setVendorsData(prevData =>
-          prevData.map(item =>
-            item.key === key
-              ? {
-                  ...item,
-                  status: nextStatus,
-                  active: nextStatus === 'active',
-                  enabled: nextStatus === 'active',
-                }
-              : item
-          )
-        );
-        message.success(`Vendor ${action}d successfully`);
+      let response;
+      if (field === 'active') {
+        const nextStatus = currentVendor.status === 'active' ? 'inactive' : 'active';
+        const action = nextStatus === 'active' ? 'activate' : 'deactivate';
+        response = await vendorAPI.updateVendorStatus(vendorId, nextStatus);
+        if (response.success) {
+          setAllVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key
+                ? { ...item, status: nextStatus, active: nextStatus === 'active', enabled: nextStatus === 'active' }
+                : item
+            )
+          );
+          setVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key
+                ? { ...item, status: nextStatus, active: nextStatus === 'active', enabled: nextStatus === 'active' }
+                : item
+            )
+          );
+          message.success(`Vendor ${action}d successfully`);
+          loadVendors(); // Refresh from server
+        } else {
+          message.error(`Failed to ${action} vendor: ${response.error || 'Unknown error'}`);
+        }
       } else {
-        message.error(`Failed to ${action} vendor: ${response.error || 'Unknown error'}`);
+        const nextEnabled = !currentVendor.enabled;
+        response = await vendorAPI.updateVendor(vendorId, { is_enabled: nextEnabled });
+        if (response.success) {
+          setAllVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key ? { ...item, enabled: nextEnabled } : item
+            )
+          );
+          setVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key ? { ...item, enabled: nextEnabled } : item
+            )
+          );
+          message.success(`Vendor ${nextEnabled ? 'enabled' : 'disabled'} successfully`);
+          loadVendors(); // Refresh from server
+        } else {
+          message.error(`Failed to update vendor: ${response.error || 'Unknown error'}`);
+        }
+      }
+      if (!response.success) {
         addNotification({
-          title: `Vendor ${action} failed`,
-          message: response.error || `Failed to update vendor ${field} status.`,
+          title: 'Vendor update failed',
+          message: response.error || `Failed to update vendor ${field}.`,
           level: 'error',
         });
       }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
-import { approvalsAPI } from '../services/api';
+import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
   CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
@@ -114,15 +114,61 @@ const PendingApprovals: React.FC = () => {
     loadApprovals();
   }, [currentPage, pageSize, activeTab]);
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setApprovalsData(prevData =>
-      prevData.map(item =>
-        item.key === key
-          ? { ...item, [field]: !item[field] }
-          : item
-      )
-    );
-    console.log(`Toggled ${field} for key ${key}`);
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const item = approvalsData.find((i) => i.key === key);
+    if (!item) return;
+    const id = parseInt(key, 10);
+    if (isNaN(id)) return;
+    const nextVal = !item[field];
+    try {
+      if (item.itemType === 'beneficiary') {
+        const payload = field === 'active'
+          ? { is_active: nextVal, isActive: nextVal }
+          : { is_enabled: nextVal, isEnabled: nextVal };
+        const response = await beneficiaryAPI.updateBeneficiary(id, payload);
+        if (response?.success !== false) {
+          setApprovalsData(prev =>
+            prev.map(i => (i.key === key ? { ...i, [field]: nextVal } : i))
+          );
+          message.success('Status updated');
+          loadApprovals(); // Refresh from server
+        } else {
+          message.error('Failed to update');
+        }
+      } else {
+        if (field === 'active') {
+          const nextStatus = nextVal ? 'active' : 'inactive';
+          const response = await vendorAPI.updateVendorStatus(id, nextStatus);
+          if (response?.success !== false) {
+            setApprovalsData(prev =>
+              prev.map(i =>
+                i.key === key
+                  ? { ...i, active: nextVal, enabled: nextVal }
+                  : i
+              )
+            );
+            message.success('Status updated');
+            loadApprovals(); // Refresh from server
+          } else {
+            message.error('Failed to update');
+          }
+        } else {
+          const response = await vendorAPI.updateVendor(id, { is_enabled: nextVal });
+          if (response?.success !== false) {
+            setApprovalsData(prev =>
+              prev.map(i => (i.key === key ? { ...i, enabled: nextVal } : i))
+            );
+            message.success('Status updated');
+            loadApprovals(); // Refresh from server
+          } else {
+            message.error('Failed to update');
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Toggle error:', err);
+      message.error(err?.message || 'Failed to update');
+    }
   };
 
   const handleTimeFilterChange = (key: string) => {

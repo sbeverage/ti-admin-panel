@@ -296,9 +296,42 @@ const Beneficiaries: React.FC = () => {
     loadBeneficiaries();
   }, [pageSize]);
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    // This would typically update the backend
-    console.log(`Toggling ${field} for beneficiary ${key}`);
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const beneficiaryId = parseInt(key, 10);
+    if (isNaN(beneficiaryId)) return;
+    const record = allBeneficiariesData.find((b) => b.key === key);
+    if (!record) return;
+    const nextActive = field === 'active' ? !record.active : record.active;
+    const nextEnabled = field === 'enabled' ? !record.enabled : record.enabled;
+    try {
+      const payload = field === 'active'
+        ? { is_active: nextActive, isActive: nextActive }
+        : { is_enabled: nextEnabled, isEnabled: nextEnabled };
+      const response = await beneficiaryAPI.updateBeneficiary(beneficiaryId, payload);
+      if (response?.success !== false) {
+        setAllBeneficiariesData(prev =>
+          prev.map(item =>
+            item.key === key
+              ? { ...item, active: nextActive, enabled: nextEnabled }
+              : item
+          )
+        );
+        setBeneficiariesData(prev =>
+          prev.map(item =>
+            item.key === key
+              ? { ...item, active: nextActive, enabled: nextEnabled }
+              : item
+          )
+        );
+        message.success(`${field === 'active' ? 'Active' : 'Enabled'} status updated`);
+        loadBeneficiaries(); // Refresh from server to stay in sync
+      } else {
+        message.error('Failed to update status');
+      }
+    } catch (err: any) {
+      console.error('Toggle error:', err);
+      message.error(err?.message || 'Failed to update status');
+    }
   };
 
   useEffect(() => {
