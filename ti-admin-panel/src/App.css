@@ -402,9 +402,10 @@ a:hover {
 .invite-vendor-btn:active,
 .invite-tenant-btn:active,
 .invite-donor-btn:active {
-  background: #B36B25 !important;
-  border-color: #B36B25 !important;
+  background: #C6762A !important;
+  border-color: #C6762A !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
   transition: none !important;
 }
 

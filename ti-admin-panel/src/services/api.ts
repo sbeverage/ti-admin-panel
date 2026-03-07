@@ -692,54 +692,9 @@ export const vendorAPI = {
     }
   },
 
-  // Update vendor status (active/inactive)
+  // Update vendor status (active/inactive) - uses PUT /vendors/:id with status in body
   updateVendorStatus: async (id: number, status: 'active' | 'inactive'): Promise<ApiResponse<Vendor>> => {
-    if (USE_MOCK_DATA) {
-      console.log('Using mock data for vendor status update');
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Find and update the vendor in mock data
-          const vendorIndex = mockVendors.findIndex(v => v.id === id);
-          if (vendorIndex !== -1) {
-            mockVendors[vendorIndex].status = status;
-            mockVendors[vendorIndex].updated_at = new Date().toISOString();
-            resolve({
-              success: true,
-              data: mockVendors[vendorIndex]
-            });
-          } else {
-            resolve({
-              success: false,
-              error: 'Vendor not found'
-            });
-          }
-        }, 500); // Simulate network delay
-      });
-    }
-
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}/vendors/${id}/status`, {
-        method: 'PATCH',
-        headers: API_CONFIG.headers,
-        body: JSON.stringify({ status })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error) {
-      console.error('❌ Vendor status update failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
+    return vendorAPI.updateVendor(id, { status });
   },
 
   // Delete vendor
