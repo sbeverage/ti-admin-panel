@@ -80,6 +80,16 @@ const Settings: React.FC = () => {
       
       if (teamResponse.success) {
         setTeamMembers(teamResponse.data);
+        const cachedEmail = localStorage.getItem('admin_email');
+        const storedUsername = localStorage.getItem('admin_username');
+        if (!cachedEmail && storedUsername && teamResponse.data?.length) {
+          const matchedMember = teamResponse.data.find((member: any) =>
+            member?.email === storedUsername || member?.name === storedUsername
+          );
+          if (matchedMember?.email) {
+            localStorage.setItem('admin_email', matchedMember.email);
+          }
+        }
       } else {
         setError('Failed to load team members');
         setTeamMembers([]);
@@ -362,7 +372,32 @@ const Settings: React.FC = () => {
   const handlePasswordChange = async (values: any) => {
     try {
       console.log('Changing password');
-      const email = localStorage.getItem('admin_email') || personalProfile?.email || settingsData?.email;
+      const storedUsername = localStorage.getItem('admin_username');
+      const matchedEmail = teamMembers?.find((member: any) =>
+        member?.email === storedUsername || member?.name === storedUsername
+      )?.email;
+      let email = localStorage.getItem('admin_email')
+        || (storedUsername && storedUsername.includes('@') ? storedUsername : null)
+        || matchedEmail
+        || personalProfile?.email
+        || settingsData?.email;
+
+      if (!email) {
+        try {
+          const teamResponse = await settingsAPI.getTeamMembers();
+          if (teamResponse.success) {
+            const fallbackEmail = teamResponse.data?.find((member: any) =>
+              member?.email === storedUsername || member?.name === storedUsername
+            )?.email;
+            if (fallbackEmail) {
+              localStorage.setItem('admin_email', fallbackEmail);
+              email = fallbackEmail;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching team members for email fallback:', error);
+        }
+      }
 
       if (!email) {
         message.error('Missing admin email. Please log in again.');
