@@ -68,6 +68,27 @@ const GeographicAnalytics: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  const getSelectedPeriod = () => {
+    switch (selectedTimeFilter) {
+      case 'All':
+        return 'all';
+      case '1 Week':
+        return '7d';
+      case '15 Days':
+        return '15d';
+      case '1 Month':
+        return '30d';
+      case '3 Months':
+        return '90d';
+      case '6 Months':
+        return '180d';
+      case 'One Year':
+        return '365d';
+      default:
+        return '30d';
+    }
+  };
+
   // Load geographic analytics from API
   const loadGeographicAnalytics = async () => {
     setLoading(true);
@@ -75,7 +96,8 @@ const GeographicAnalytics: React.FC = () => {
     
     try {
       console.log('Loading geographic analytics from API...');
-      const response = await analyticsAPI.getGeographicAnalytics('30d');
+      const selectedPeriod = getSelectedPeriod();
+      const response = await analyticsAPI.getGeographicAnalytics(selectedPeriod);
       console.log('Geographic analytics API response:', response);
       
       if (response.success) {
@@ -95,15 +117,18 @@ const GeographicAnalytics: React.FC = () => {
   };
 
 
-  // Load data on component mount
-  useEffect(() => {
-    loadGeographicAnalytics();
-  }, []);
-
   const handleTimeFilterChange = ({ key }: { key: string }) => {
+    if (key === 'Custom Date') {
+      message.info('Custom date range is not supported yet.');
+      return;
+    }
     setSelectedTimeFilter(key);
     console.log('Time filter changed to:', key);
   };
+
+  useEffect(() => {
+    loadGeographicAnalytics();
+  }, [selectedTimeFilter]);
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {

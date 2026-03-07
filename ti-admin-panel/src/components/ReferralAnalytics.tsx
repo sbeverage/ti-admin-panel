@@ -172,6 +172,27 @@ const ReferralAnalytics: React.FC = () => {
     };
   };
 
+  const getSelectedPeriod = () => {
+    switch (selectedTimeFilter) {
+      case 'All':
+        return 'all';
+      case '1 Week':
+        return '7d';
+      case '15 Days':
+        return '15d';
+      case '1 Month':
+        return '30d';
+      case '3 Months':
+        return '90d';
+      case '6 Months':
+        return '180d';
+      case 'One Year':
+        return '365d';
+      default:
+        return '30d';
+    }
+  };
+
   // Load referral analytics from API
   const loadReferralAnalytics = async () => {
     setLoading(true);
@@ -179,7 +200,8 @@ const ReferralAnalytics: React.FC = () => {
     
     try {
       console.log('Loading referral analytics from API...');
-      const response = await analyticsAPI.getReferralAnalytics('30d');
+      const selectedPeriod = getSelectedPeriod();
+      const response = await analyticsAPI.getReferralAnalytics(selectedPeriod);
       console.log('Referral analytics API response:', response);
       
       if (response.success && response.data) {
@@ -488,7 +510,6 @@ const ReferralAnalytics: React.FC = () => {
     setAnalyticsData(getTestAnalyticsData());
     setInvitationsData(getTestInvitationsData());
     // Also try to load from API (will replace test data if real data exists)
-    loadReferralAnalytics();
     loadAllDonors();
   }, []);
 
@@ -501,9 +522,17 @@ const ReferralAnalytics: React.FC = () => {
   }, [analyticsData, invitationStatusFilter]);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
+    if (key === 'Custom Date') {
+      message.info('Custom date range is not supported yet.');
+      return;
+    }
     setSelectedTimeFilter(key);
     console.log('Time filter changed to:', key);
   };
+
+  useEffect(() => {
+    loadReferralAnalytics();
+  }, [selectedTimeFilter]);
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {

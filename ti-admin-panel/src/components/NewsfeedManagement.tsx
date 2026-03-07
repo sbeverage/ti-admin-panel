@@ -40,7 +40,7 @@ import type { ColumnsType } from 'antd/es/table';
 import './NewsfeedManagement.css';
 
 const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
+const { TextArea, Search } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { Header, Sider, Content } = Layout;
@@ -693,22 +693,23 @@ const NewsfeedManagement: React.FC = () => {
             <Card>
               <Tabs activeKey={activeTab} onChange={setActiveTab}>
                 <TabPane tab="Community Posts" key="community">
-                  <div style={{ marginBottom: 16 }}>
-                    <Row gutter={16} align="middle">
-                      <Col flex="auto">
-                        <Input
-                          placeholder="Search posts by author or content..."
-                          prefix={<SearchOutlined />}
-                          value={searchText}
-                          onChange={(e) => setSearchText(e.target.value)}
-                          style={{ maxWidth: 400 }}
-                        />
-                      </Col>
-                      <Col>
+                  <div className="search-filter-bar">
+                    <div className="search-section">
+                      <Search
+                        placeholder="Search posts by author or content..."
+                        allowClear
+                        className="newsfeed-search"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                      />
+                    </div>
+                    <div className="filter-section">
+                      <Text strong className="filter-label">Filters</Text>
+                      <div className="filter-dropdowns">
                         <Select
                           value={statusFilter}
                           onChange={setStatusFilter}
-                          style={{ width: 150 }}
+                          className="filter-dropdown"
                           placeholder="Filter by status"
                         >
                           <Option value="all">All Status</Option>
@@ -716,8 +717,8 @@ const NewsfeedManagement: React.FC = () => {
                           <Option value="approved">Approved</Option>
                           <Option value="rejected">Rejected</Option>
                         </Select>
-                      </Col>
-                    </Row>
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Bulk Actions */}
