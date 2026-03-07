@@ -1540,6 +1540,34 @@ export const analyticsAPI = {
     return response.json();
   },
 
+  // Resend single referral invitation
+  resendReferralInvitation: async (invitationId: number): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/analytics/referrals/invitations/resend`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ invitationIds: [invitationId] })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Resend referral invitation(s) - bulk resend for pending invitations
+  resendReferralInvitations: async (invitationIds: number[]): Promise<ApiResponse<any>> => {
+    const response = await fetch(`${API_CONFIG.baseURL}/analytics/referrals/invitations/resend`, {
+      method: 'POST',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify({ invitationIds })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Get all donors with referral data
   getAllDonorsWithReferrals: async (): Promise<ApiResponse<any>> => {
     const response = await fetch(`${API_CONFIG.baseURL}/admin/users/referrals`, {

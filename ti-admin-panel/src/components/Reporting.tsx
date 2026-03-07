@@ -77,6 +77,7 @@ const Reporting: React.FC = () => {
   const [bankInfoModalVisible, setBankInfoModalVisible] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<PayoutData | null>(null);
   const [payoutStatusModalVisible, setPayoutStatusModalVisible] = useState(false);
+  const [needsReviewFilter, setNeedsReviewFilter] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
@@ -171,69 +172,6 @@ const Reporting: React.FC = () => {
     setMobileSidebarVisible(false);
   };
 
-  // Generate dummy data for preview
-  const generateDummyData = (): PayoutData[] => {
-    const beneficiaries = [
-      { name: 'Hope Community Center', id: 1, hasBank: true, status: 'completed' as const },
-      { name: 'Food Bank of America', id: 2, hasBank: true, status: 'processing' as const },
-      { name: 'Shelter for Families', id: 3, hasBank: false, status: 'pending' as const },
-      { name: 'Youth Education Program', id: 4, hasBank: true, status: 'completed' as const },
-      { name: 'Medical Assistance Fund', id: 5, hasBank: true, status: 'pending' as const },
-      { name: 'Community Garden Project', id: 6, hasBank: false, status: 'pending' as const },
-      { name: 'Senior Care Services', id: 7, hasBank: true, status: 'completed' as const },
-      { name: 'Homeless Outreach', id: 8, hasBank: true, status: 'processing' as const }
-    ];
-
-    return beneficiaries.map((ben, index) => {
-      const monthlyDonations = Math.random() * 5000 + 2000; // $2000-$7000
-      const oneTimeDonations = Math.random() * 3000 + 500; // $500-$3500
-      const totalDonations = monthlyDonations + oneTimeDonations;
-      const donationCount = Math.floor(Math.random() * 50 + 10); // 10-60 donations
-      const serviceFees = donationCount * 3;
-      const ccProcessingFees = Math.random() > 0.5 ? Math.random() * 200 + 50 : 0; // Sometimes covered
-      const netAmount = totalDonations - serviceFees - ccProcessingFees;
-      const platformFee = netAmount * 0.20;
-      const payoutAmount = netAmount * 0.80;
-      const stripeAmount = totalDonations + (Math.random() * 20 - 10); // Slight variance
-      
-      let reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
-      const difference = Math.abs(stripeAmount - totalDonations);
-      if (difference < 0.01) {
-        reconciliationStatus = 'matched';
-      } else if (difference > 1.00) {
-        reconciliationStatus = 'needs_review';
-      }
-
-      return {
-        key: ben.id.toString(),
-        beneficiaryId: ben.id,
-        beneficiaryName: ben.name,
-        totalDonations: Math.round(totalDonations * 100) / 100,
-        monthlyDonations: Math.round(monthlyDonations * 100) / 100,
-        oneTimeDonations: Math.round(oneTimeDonations * 100) / 100,
-        donationCount,
-        serviceFees,
-        ccProcessingFees: Math.round(ccProcessingFees * 100) / 100,
-        netAmount: Math.round(netAmount * 100) / 100,
-        platformFee: Math.round(platformFee * 100) / 100,
-        payoutAmount: Math.round(payoutAmount * 100) / 100,
-        stripeAmount: Math.round(stripeAmount * 100) / 100,
-        reconciliationStatus,
-        bankInfo: {
-          hasBankInfo: ben.hasBank,
-          bankName: ben.hasBank ? 'Chase Bank' : undefined,
-          accountHolderName: ben.hasBank ? ben.name : undefined,
-          routingNumber: ben.hasBank ? '021000021' : undefined,
-          accountNumber: ben.hasBank ? '****1234' : undefined,
-          paymentMethod: ben.hasBank ? 'direct_deposit' as const : 'check' as const
-        },
-        payoutStatus: ben.status,
-        payoutDate: ben.status === 'completed' ? selectedMonth.format('YYYY-MM-15') : undefined,
-        notes: ben.status === 'completed' ? 'Payout processed successfully' : undefined
-      };
-    });
-  };
-
   // Load payout data for selected month
   const loadPayoutData = async () => {
     setLoading(true);
@@ -293,15 +231,11 @@ const Reporting: React.FC = () => {
         
         setPayoutData(transformed);
       } else {
-        // Use dummy data when no real data is available
-        console.log('No data from API, using dummy data for preview');
-        setPayoutData(generateDummyData());
+        setPayoutData([]);
       }
     } catch (error: any) {
       console.error('Error loading payout data:', error);
-      // Use dummy data on error for preview
-      console.log('Error loading data, using dummy data for preview');
-      setPayoutData(generateDummyData());
+      setPayoutData([]);
     } finally {
       setLoading(false);
     }
@@ -311,8 +245,13 @@ const Reporting: React.FC = () => {
     loadPayoutData();
   }, [selectedMonth]);
 
-  // Calculate totals
-  const totals = payoutData.reduce((acc, item) => ({
+  // Filter by needs review when button is active
+  const displayedPayoutData = needsReviewFilter
+    ? payoutData.filter((p) => p.reconciliationStatus === 'needs_review')
+    : payoutData;
+
+  // Calculate totals from displayed data
+  const totals = displayedPayoutData.reduce((acc, item) => ({
     totalDonations: acc.totalDonations + item.totalDonations,
     totalMonthlyDonations: acc.totalMonthlyDonations + item.monthlyDonations,
     totalOneTimeDonations: acc.totalOneTimeDonations + item.oneTimeDonations,
@@ -850,15 +789,20 @@ const Reporting: React.FC = () => {
             }
             extra={
               <Badge count={payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} showZero>
-                <Tag color="red" icon={<ReconciliationOutlined />}>
+                <Button
+                  type={needsReviewFilter ? 'primary' : 'default'}
+                  icon={<ReconciliationOutlined />}
+                  onClick={() => setNeedsReviewFilter(!needsReviewFilter)}
+                  style={needsReviewFilter ? { backgroundColor: '#ff4d4f', borderColor: '#ff4d4f' } : {}}
+                >
                   {payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} Need Review
-                </Tag>
+                </Button>
               </Badge>
             }
           >
             <Table
               columns={columns}
-              dataSource={payoutData}
+              dataSource={displayedPayoutData}
               loading={loading}
               scroll={{ x: 1800 }}
               pagination={{

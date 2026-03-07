@@ -193,37 +193,24 @@ const ReferralAnalytics: React.FC = () => {
     }
   };
 
-  // Load referral analytics from API
+  // Load referral analytics from API - real data only, no dummy fallback
   const loadReferralAnalytics = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('Loading referral analytics from API...');
       const selectedPeriod = getSelectedPeriod();
       const response = await analyticsAPI.getReferralAnalytics(selectedPeriod);
-      console.log('Referral analytics API response:', response);
       
       if (response.success && response.data) {
-        // Check if we have real data
-        if (response.data.totalReferrals > 0 || (response.data.topReferrers && response.data.topReferrers.length > 0)) {
-          setAnalyticsData(response.data);
-          console.log('Referral analytics loaded successfully');
-        } else {
-          // Use test data if API returns empty
-          console.log('No analytics data from API, using test data for demonstration');
-          setAnalyticsData(getTestAnalyticsData());
-        }
+        setAnalyticsData(response.data);
       } else {
-        // Use test data if API doesn't return data yet
-        console.log('Using test data for demonstration');
-        setAnalyticsData(getTestAnalyticsData());
+        setAnalyticsData({ totalReferrals: 0, activeReferrers: 0, conversionRate: 0, topReferrers: [], referralSources: [], monthlyTrends: [] });
       }
-    } catch (error) {
-      console.error('Error loading referral analytics:', error);
-      // Use test data on error
-      console.log('Using test data for demonstration');
-      setAnalyticsData(getTestAnalyticsData());
+    } catch (err: any) {
+      console.error('Error loading referral analytics:', err);
+      setError(err?.message || 'Failed to load referral analytics');
+      setAnalyticsData({ totalReferrals: 0, activeReferrers: 0, conversionRate: 0, topReferrers: [], referralSources: [], monthlyTrends: [] });
     } finally {
       setLoading(false);
     }
@@ -416,47 +403,55 @@ const ReferralAnalytics: React.FC = () => {
     ];
   };
 
-  // Load invitations data
+  // Build invitations from donors with referrals (real data)
+  const buildInvitationsFromDonors = (donors: any[]): any[] => {
+    const invitations: any[] = [];
+    donors.forEach((donor) => {
+      const refs = donor.referrals || donor.referral_stats?.referrals || [];
+      refs.forEach((r: any) => {
+        invitations.push({
+          id: r.id,
+          referrer_id: donor.user_id || donor.id,
+          referrer_name: donor.name || donor.email?.split('@')[0],
+          referrer_email: donor.email,
+          email: r.email || r.referred_email,
+          referral_code: r.code || r.referral_token,
+          referral_link: `${typeof window !== 'undefined' ? window.location.origin : ''}/signup?ref=${donor.user_id || donor.id}`,
+          status: r.status || 'pending',
+          created_at: r.created_at,
+          signed_up_at: r.first_payment_at ? r.created_at : null,
+          paid_at: r.first_payment_at,
+          cancelled_at: null
+        });
+      });
+    });
+    return invitations;
+  };
+
+  // Load invitations data - use real API or derive from donors with referrals
   const loadInvitations = async () => {
     setInvitationsLoading(true);
     
     try {
-      console.log('Loading referral invitations from API...');
       const status = invitationStatusFilter !== 'all' ? invitationStatusFilter : undefined;
       const response = await analyticsAPI.getReferralInvitations('30d', status);
-      console.log('Referral invitations API response:', response);
       
       if (response.success && response.data) {
-        // Transform API data to match our table structure
         const invitations = Array.isArray(response.data) 
           ? response.data 
           : response.data.invitations || [];
-        
-        if (invitations.length > 0) {
-          setInvitationsData(invitations);
-          console.log('Referral invitations loaded successfully');
-        } else {
-          // Use test data if API returns empty
-          console.log('No invitations from API, using test data for demonstration');
-          setInvitationsData(getTestInvitationsData());
-        }
+        setInvitationsData(invitations);
+      } else if (donorsData.length > 0) {
+        setInvitationsData(buildInvitationsFromDonors(donorsData));
       } else {
-        // If API doesn't return invitations yet, use test data
-        if (analyticsData?.referrals && analyticsData.referrals.length > 0) {
-          setInvitationsData(analyticsData.referrals);
-        } else {
-          console.log('Using test data for demonstration');
-          setInvitationsData(getTestInvitationsData());
-        }
+        setInvitationsData([]);
       }
     } catch (error) {
       console.error('Error loading referral invitations:', error);
-      // Fallback: try to use referrals from analytics data, otherwise use test data
-      if (analyticsData?.referrals && analyticsData.referrals.length > 0) {
-        setInvitationsData(analyticsData.referrals);
+      if (donorsData.length > 0) {
+        setInvitationsData(buildInvitationsFromDonors(donorsData));
       } else {
-        console.log('Using test data for demonstration');
-        setInvitationsData(getTestInvitationsData());
+        setInvitationsData([]);
       }
     } finally {
       setInvitationsLoading(false);
@@ -504,22 +499,17 @@ const ReferralAnalytics: React.FC = () => {
     }
   };
 
-  // Load data on component mount
+  // Load data on component mount - real data only
   useEffect(() => {
-    // Load test data immediately for demonstration
-    setAnalyticsData(getTestAnalyticsData());
-    setInvitationsData(getTestInvitationsData());
-    // Also try to load from API (will replace test data if real data exists)
+    loadReferralAnalytics();
     loadAllDonors();
   }, []);
 
-  // Load invitations when analytics data is available or filter changes
+  // Load invitations when donors data is available or filter changes
   useEffect(() => {
-    if (analyticsData) {
-      loadInvitations();
-    }
+    loadInvitations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analyticsData, invitationStatusFilter]);
+  }, [donorsData, invitationStatusFilter]);
 
   const handleTimeFilterChange = ({ key }: { key: string }) => {
     if (key === 'Custom Date') {
@@ -881,15 +871,28 @@ const ReferralAnalytics: React.FC = () => {
     },
   ];
 
+  // Generate Referral modal state
+  const [generateReferralModalVisible, setGenerateReferralModalVisible] = useState(false);
+  const [resendPendingLoading, setResendPendingLoading] = useState(false);
+
   // Handler functions
-  const handleResendInvitation = (invitation: any) => {
-    message.info(`Resending invitation to ${invitation.email || 'user'}...`);
-    // TODO: Implement API call to resend invitation
-    console.log('Resend invitation:', invitation);
+  const handleResendInvitation = async (invitation: any) => {
+    try {
+      message.loading({ content: `Resending invitation to ${invitation.email || 'user'}...`, key: 'resend' });
+      const response = await analyticsAPI.resendReferralInvitation(invitation.id || invitation.referrer_id);
+      if (response?.success) {
+        message.success({ content: 'Invitation resent successfully!', key: 'resend' });
+        loadInvitations();
+      } else {
+        message.error({ content: response?.error || 'Failed to resend invitation', key: 'resend' });
+      }
+    } catch (err: any) {
+      message.error({ content: err?.message || 'Failed to resend invitation', key: 'resend' });
+    }
   };
 
   const handleCopyReferralLink = (invitation: any) => {
-    const link = invitation.referral_link || `https://yourapp.com/invite/${invitation.referral_code}`;
+    const link = invitation.referral_link || `${typeof window !== 'undefined' ? window.location.origin : ''}/signup?ref=${invitation.referrer_id || invitation.referral_code}`;
     navigator.clipboard.writeText(link).then(() => {
       message.success('Referral link copied to clipboard!');
     }).catch(() => {
@@ -899,22 +902,37 @@ const ReferralAnalytics: React.FC = () => {
 
   const handleSendNewInvitations = () => {
     message.info('Send New Invitations feature - Coming soon!');
-    // TODO: Open modal to send bulk invitations
   };
 
-  const handleResendPending = () => {
+  const handleResendPending = async () => {
     const pendingInvitations = invitationsData.filter((inv: any) => inv.status === 'pending');
     if (pendingInvitations.length === 0) {
       message.warning('No pending invitations to resend');
       return;
     }
-    message.info(`Resending ${pendingInvitations.length} pending invitations...`);
-    // TODO: Implement bulk resend
+    setResendPendingLoading(true);
+    try {
+      const ids = pendingInvitations.map((inv: any) => inv.id).filter(Boolean);
+      if (ids.length === 0) {
+        message.warning('Pending invitations do not support resend yet. Backend support may be required.');
+        return;
+      }
+      const response = await analyticsAPI.resendReferralInvitations(ids);
+      if (response?.success) {
+        message.success(`Resent ${ids.length} pending invitation(s) successfully!`);
+        loadInvitations();
+      } else {
+        message.error(response?.error || 'Failed to resend invitations');
+      }
+    } catch (err: any) {
+      message.error(err?.message || 'Failed to resend invitations. Backend support may be required.');
+    } finally {
+      setResendPendingLoading(false);
+    }
   };
 
   const handleGenerateReferralLinks = () => {
-    message.info('Generate Referral Links feature - Coming soon!');
-    // TODO: Open modal to generate referral links for users
+    setGenerateReferralModalVisible(true);
   };
 
   // Open credit grant modal
@@ -1692,6 +1710,7 @@ const ReferralAnalytics: React.FC = () => {
                             <Button 
                               icon={<MailOutlined />}
                               onClick={handleResendPending}
+                              loading={resendPendingLoading}
                               disabled={invitationStats.pending === 0}
                               style={{
                                 backgroundColor: invitationStats.pending > 0 ? '#DB8633' : undefined,
@@ -1784,6 +1803,55 @@ const ReferralAnalytics: React.FC = () => {
           </Spin>
         </Content>
       </Layout>
+
+      {/* Generate Referral Links Modal */}
+      <Modal
+        title={
+          <Space>
+            <LinkOutlined />
+            <span>Generate Referral Link</span>
+          </Space>
+        }
+        open={generateReferralModalVisible}
+        onCancel={() => setGenerateReferralModalVisible(false)}
+        footer={null}
+        width={500}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+            Select a donor to generate their unique referral link. Share this link so they can invite friends.
+          </Text>
+          <Select
+            placeholder="Search and select a donor..."
+            style={{ width: '100%' }}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={filteredDonors.map((d: any) => ({
+              value: d.user_id || d.id,
+              label: `${d.name || d.email} (${d.email})`
+            }))}
+            onChange={(userId) => {
+              const donor = filteredDonors.find((d: any) => (d.user_id || d.id) === userId);
+              if (donor) {
+                const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/signup?ref=${userId}`;
+                navigator.clipboard.writeText(link).then(() => {
+                  message.success('Referral link copied to clipboard!');
+                });
+              }
+            }}
+            notFoundContent={donorsLoading ? <Spin size="small" /> : <Empty description="No donors found" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+          />
+        </div>
+        {filteredDonors.length > 0 && (
+          <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Tip: Select a donor above to copy their link. Or copy from the Referral Leaders table.
+            </Text>
+          </div>
+        )}
+      </Modal>
 
       {/* Credit Grant Modal */}
       <Modal
