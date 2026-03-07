@@ -623,12 +623,12 @@ const Invitations: React.FC = () => {
           <div className="content-wrapper">
 
           {/* Filters */}
-          <Card style={{ marginBottom: 24 }}>
-            <Space size="middle" wrap>
+          <div className="search-filter-bar">
+            <div className="search-section">
               <Search
                 placeholder="Search by name, company, or email"
                 allowClear
-                style={{ width: 300 }}
+                className="invitation-search"
                 onSearch={(value) => {
                   setSearchText(value);
                   setCurrentPage(1);
@@ -640,49 +640,54 @@ const Invitations: React.FC = () => {
                   }
                 }}
               />
-              <Select
-                placeholder="Filter by Type"
-                style={{ width: 150 }}
-                value={typeFilter}
-                onChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <Option value="all">All Types</Option>
-                <Option value="beneficiary">Beneficiary</Option>
-                <Option value="vendor">Vendor</Option>
-              </Select>
-              <Select
-                placeholder="Filter by Status"
-                style={{ width: 150 }}
-                value={statusFilter}
-                onChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <Option value="all">All Statuses</Option>
-                <Option value="pending">Pending</Option>
-                <Option value="approved">Approved</Option>
-                <Option value="rejected">Rejected</Option>
-                <Option value="contacted">Contacted</Option>
-              </Select>
-              <Button
-                onClick={() => {
-                  setTypeFilter('all');
-                  setStatusFilter('all');
-                  setSearchText('');
-                  setCurrentPage(1);
-                }}
-              >
-                Clear Filters
-              </Button>
-            </Space>
-          </Card>
+            </div>
+            <div className="filter-section">
+              <Text strong className="filter-label">Filters</Text>
+              <div className="filter-dropdowns">
+                <Select
+                  placeholder="Filter by Type"
+                  className="filter-dropdown"
+                  value={typeFilter}
+                  onChange={(value) => {
+                    setTypeFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <Option value="all">All Types</Option>
+                  <Option value="beneficiary">Beneficiary</Option>
+                  <Option value="vendor">Vendor</Option>
+                </Select>
+                <Select
+                  placeholder="Filter by Status"
+                  className="filter-dropdown"
+                  value={statusFilter}
+                  onChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <Option value="all">All Statuses</Option>
+                  <Option value="pending">Pending</Option>
+                  <Option value="approved">Approved</Option>
+                  <Option value="rejected">Rejected</Option>
+                  <Option value="contacted">Contacted</Option>
+                </Select>
+                <Button
+                  onClick={() => {
+                    setTypeFilter('all');
+                    setStatusFilter('all');
+                    setSearchText('');
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </div>
 
           {/* Table */}
-          <Card>
+          <div className="invitations-table">
             <Spin spinning={loading}>
               {error && (
                 <div style={{ marginBottom: 16, color: 'red' }}>
@@ -716,7 +721,7 @@ const Invitations: React.FC = () => {
                 scroll={{ x: 1500 }}
               />
             </Spin>
-          </Card>
+          </div>
           </div>
         </Content>
       </Layout>

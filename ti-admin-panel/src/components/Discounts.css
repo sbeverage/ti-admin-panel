@@ -300,6 +300,10 @@
   color: #ffffff;
 }
 
+.discount-search .ant-input-search-button .anticon {
+  color: #ffffff !important;
+}
+
 .discount-search .ant-input-search-button:hover,
 .discount-search .ant-input-search-button:focus,
 .discount-search .ant-input-search-button:active {
