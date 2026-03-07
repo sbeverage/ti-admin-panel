@@ -1957,8 +1957,10 @@ export const oneTimeGiftsAPI = {
 
 export const beneficiaryAPI = {
   // Get all beneficiaries/charities
-  getBeneficiaries: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/charities?page=${page}&limit=${limit}`, {
+  getBeneficiaries: async (page = 1, limit = 20, options?: { includeInactive?: boolean }): Promise<PaginatedResponse<any>> => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (options?.includeInactive) params.set('includeInactive', 'true');
+    const response = await fetch(`${API_CONFIG.baseURL}/charities?${params}`, {
       headers: API_CONFIG.headers
     });
     

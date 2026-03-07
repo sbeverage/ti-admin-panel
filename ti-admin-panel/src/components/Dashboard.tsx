@@ -72,6 +72,28 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Get start date for period filtering (records created on or after this date)
+  const getPeriodStartDate = (): Date | null => {
+    const period = getSelectedPeriod();
+    if (period === 'all') return null;
+    const now = new Date();
+    const days = parseInt(period.replace('d', ''), 10) || 30;
+    const start = new Date(now);
+    start.setDate(start.getDate() - days);
+    return start;
+  };
+
+  // Filter records by created_at/createdAt within the selected period
+  const filterByPeriod = <T extends { created_at?: string; createdAt?: string }>(items: T[]): T[] => {
+    const start = getPeriodStartDate();
+    if (!start || !items?.length) return items || [];
+    return items.filter((item) => {
+      const dateStr = (item as any).created_at ?? (item as any).createdAt;
+      const created = dateStr ? new Date(dateStr) : null;
+      return created && !isNaN(created.getTime()) && created >= start;
+    });
+  };
+
   // Load dashboard data from API
   const loadDashboardData = async () => {
     setLoading(true);
@@ -84,12 +106,12 @@ const Dashboard: React.FC = () => {
       // Import API functions
       const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI, dashboardAPI: { getChartData } } = await import('../services/api');
       
-      // Load dashboard stats, approvals, chart data, and all donors in parallel
+      // Load dashboard stats, approvals, chart data; fetch full lists for period filtering
       const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
         dashboardAPI.getDashboardStats(selectedPeriod).catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        vendorAPI.getVendors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        beneficiaryAPI.getBeneficiaries(1, 1000, { includeInactive: true }).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null }))
       ]);
@@ -103,62 +125,57 @@ const Dashboard: React.FC = () => {
         donationsChart: donationsChartData
       });
       
-      // Calculate active vs inactive donors
-      // Active = has monthly subscription, Inactive = has account but no monthly subscription
+      // Apply period filter to counts (when period !== 'all')
+      const donorsInPeriod = filterByPeriod(donorsResponse.data || []);
+      const vendorsInPeriod = filterByPeriod(vendorsResponse.data || []);
+      const beneficiariesInPeriod = filterByPeriod(beneficiariesResponse.data || []);
+
+      // Calculate active vs inactive donors (within period)
       let activeDonorsCount = 0;
       let inactiveDonorsCount = 0;
-      
-      if (donorsResponse.success && donorsResponse.data) {
-        donorsResponse.data.forEach((donor: any) => {
-          // Check if donor has an active monthly subscription
-          const hasMonthlyDonation = donor.monthly_donation?.active === true || 
-                                     donor.subscription?.active === true ||
-                                     donor.has_active_subscription === true;
-          
-          if (hasMonthlyDonation) {
-            activeDonorsCount++;
-          } else {
-            // Has account but no monthly donation = inactive
-            inactiveDonorsCount++;
-          }
-        });
-      }
-      
-      // Use stats from dashboard API if available, otherwise calculate from individual endpoints
+      donorsInPeriod.forEach((donor: any) => {
+        const hasMonthlyDonation = donor.monthly_donation?.active === true ||
+                                   donor.subscription?.active === true ||
+                                   donor.has_active_subscription === true;
+        if (hasMonthlyDonation) activeDonorsCount++;
+        else inactiveDonorsCount++;
+      });
+
+      const periodFiltered = selectedPeriod !== 'all';
+      const totalDonorsCount = periodFiltered ? donorsInPeriod.length : (donorsResponse.pagination?.total ?? donorsResponse.data?.length ?? 0);
+      const totalVendorsCount = periodFiltered ? vendorsInPeriod.length : (vendorsResponse.pagination?.total ?? vendorsResponse.data?.length ?? 0);
+      const totalBeneficiariesCount = periodFiltered ? beneficiariesInPeriod.length : (beneficiariesResponse.pagination?.total ?? beneficiariesResponse.data?.length ?? 0);
+
       let stats: any = {};
-      
-      if (statsResponse.success && statsResponse.data) {
-        // Use data from dashboard stats endpoint
+      if (statsResponse.success && statsResponse.data && !periodFiltered) {
         stats = {
-          totalVendors: statsResponse.data.totalVendors || vendorsResponse.pagination?.total || 0,
-          totalDonors: statsResponse.data.totalDonors || donorsResponse.pagination?.total || 0,
-          totalBeneficiaries: statsResponse.data.totalBeneficiaries || beneficiariesResponse.pagination?.total || 0,
+          totalVendors: statsResponse.data.totalVendors ?? totalVendorsCount,
+          totalDonors: statsResponse.data.totalDonors ?? totalDonorsCount,
+          totalBeneficiaries: statsResponse.data.totalBeneficiaries ?? totalBeneficiariesCount,
           totalTenants: statsResponse.data.totalTenants || 0,
           totalRevenue: statsResponse.data.totalRevenue || statsResponse.data.totalDonations || 0,
           totalDonations: statsResponse.data.totalDonations || statsResponse.data.totalRevenue || 0,
           totalOneTimeGift: statsResponse.data.totalOneTimeGift || 0,
-          activeDonors: activeDonorsCount || statsResponse.data.activeDonors || 0,
+          activeDonors: statsResponse.data.activeDonors ?? activeDonorsCount,
           inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
           activeDiscounts: statsResponse.data.activeDiscounts || 0,
-          // Chart data for donations
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
           donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
       } else {
-        // Fallback: calculate from individual endpoints
         stats = {
-          totalVendors: vendorsResponse.pagination?.total || 0,
-          totalDonors: donorsResponse.pagination?.total || 0,
-          totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
+          totalVendors: totalVendorsCount,
+          totalDonors: totalDonorsCount,
+          totalBeneficiaries: totalBeneficiariesCount,
           totalTenants: 0,
-          totalRevenue: 0,
-          totalDonations: 0,
-          totalOneTimeGift: 0,
+          totalRevenue: statsResponse.data?.totalRevenue || statsResponse.data?.totalDonations || 0,
+          totalDonations: statsResponse.data?.totalDonations || statsResponse.data?.totalRevenue || 0,
+          totalOneTimeGift: statsResponse.data?.totalOneTimeGift || 0,
           activeDonors: activeDonorsCount,
           inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
-          activeDiscounts: 0,
+          activeDiscounts: statsResponse.data?.activeDiscounts || 0,
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
           donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
@@ -311,9 +328,8 @@ const Dashboard: React.FC = () => {
       const { vendorAPI, beneficiaryAPI } = await import('../services/api');
 
       if (activeApprovalTab === 'beneficiaries') {
-        const payload = field === 'active'
-          ? { is_active: nextValue }
-          : { is_enabled: nextValue };
+        // Backend expects isActive (camelCase); charities only have is_active (both toggles map to it)
+        const payload = { is_active: nextValue, isActive: nextValue };
         const response = await beneficiaryAPI.updateBeneficiary(targetId, payload);
         if (response?.success === false) {
           throw new Error(response?.error || 'Failed to update beneficiary');
@@ -368,7 +384,7 @@ const Dashboard: React.FC = () => {
       const { vendorAPI, beneficiaryAPI } = await import('../services/api');
       
       if (activeApprovalTab === 'beneficiaries') {
-        const response = await beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [] }));
+        const response = await beneficiaryAPI.getBeneficiaries(1, 5, { includeInactive: true }).catch(() => ({ success: false, data: [] }));
         if (response.success && response.data) {
           const data = response.data.map((b: any) => {
             let cityState = 'N/A';
