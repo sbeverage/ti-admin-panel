@@ -442,7 +442,7 @@ const Reporting: React.FC = () => {
         { text: 'Has Bank Info', value: 'has' },
         { text: 'No Bank Info', value: 'missing' }
       ],
-      onFilter: (value, record: PayoutData) => {
+      onFilter: (value: unknown, record: PayoutData) => {
         if (value === 'has') return record.bankInfo.hasBankInfo;
         if (value === 'missing') return !record.bankInfo.hasBankInfo;
         return true;

@@ -240,48 +240,42 @@ const GeographicAnalytics: React.FC = () => {
     },
   ];
 
-  // Geographic Overview Data
+  // Geographic Overview Data - real data only, no dummy growth percentages
   const geographicOverviewData = [
     { 
       title: 'Active Countries', 
-      value: geographicData?.totalCountries || '--', 
+      value: geographicData?.totalCountries ?? '--', 
       icon: <GlobalOutlined />, 
-      growth: '+2.1%', 
       color: '#DB8633' 
     },
     { 
       title: 'Total States', 
-      value: geographicData?.totalStates || '--', 
+      value: geographicData?.totalStates ?? '--', 
       icon: <HomeOutlined />, 
-      growth: '+8.7%', 
       color: '#324E58' 
     },
     { 
       title: 'Total Cities', 
-      value: geographicData?.totalCities || '--', 
+      value: geographicData?.totalCities ?? '--', 
       icon: <EnvironmentOutlined />, 
-      growth: '+15.3%', 
       color: '#324E58' 
     },
     { 
       title: 'Top Country', 
       value: geographicData?.topCountries?.[0]?.name || '--', 
       icon: <CrownOutlined />, 
-      growth: '+12.4%', 
       color: '#324E58' 
     },
     { 
       title: 'Top State', 
       value: geographicData?.topStates?.[0]?.name || '--', 
       icon: <RiseOutlined />, 
-      growth: '+18.7%', 
       color: '#DB8633' 
     },
     { 
       title: 'Top City', 
       value: geographicData?.topCities?.[0]?.city || '--', 
       icon: <StarOutlined />, 
-      growth: '+25.1%', 
       color: '#DB8633' 
     },
   ];
@@ -578,9 +572,6 @@ const GeographicAnalytics: React.FC = () => {
                           value={card.value}
                           valueStyle={{ color: card.color }}
                         />
-                        <div className="growth-indicator">
-                          <Text type="secondary">{card.growth}</Text>
-                        </div>
                       </div>
                     </div>
                   </Card>

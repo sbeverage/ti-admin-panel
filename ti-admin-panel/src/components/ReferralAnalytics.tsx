@@ -1230,9 +1230,6 @@ const ReferralAnalytics: React.FC = () => {
                           value={card.value}
                           valueStyle={{ color: card.color }}
                         />
-                        <div className="growth-indicator">
-                          <Text type="secondary">{card.growth}</Text>
-                        </div>
                       </div>
                     </div>
                   </Card>
