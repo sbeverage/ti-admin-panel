@@ -672,17 +672,20 @@ const Vendor: React.FC = () => {
   const uniqueLocations = Array.from(new Set(vendorsData.map(vendor => vendor.cityState).filter(Boolean)));
 
   const filteredVendors = vendorsData.filter((vendor) => {
-    const matchesStatus = showInactive ? true : vendor.status === 'active';
+    const matchesStatus = selectedStatus
+      ? vendor.status === selectedStatus
+      : showInactive
+      ? true
+      : vendor.status === 'active';
     const matchesCategory = selectedCategory ? vendor.category === selectedCategory : true;
     const matchesLocation = selectedLocation ? vendor.cityState === selectedLocation : true;
-    const matchesStatusFilter = selectedStatus ? vendor.status === selectedStatus : true;
     const matchesSearch = searchTerm
       ? [vendor.name, vendor.contactName, vendor.email, vendor.contact, vendor.category, vendor.cityState]
           .filter(Boolean)
           .some((value: string) => value.toLowerCase().includes(searchTerm.toLowerCase()))
       : true;
 
-    return matchesStatus && matchesCategory && matchesLocation && matchesStatusFilter && matchesSearch;
+    return matchesStatus && matchesCategory && matchesLocation && matchesSearch;
   });
 
   return (
@@ -736,7 +739,10 @@ const Vendor: React.FC = () => {
         <Header className="vendor-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Vendors</Title>
-            <Text type="secondary" className="vendors-count">{totalVendors} Vendors Found</Text>
+            <Text type="secondary" className="vendors-count">
+              {filteredVendors.length} Vendor{filteredVendors.length !== 1 ? 's' : ''} Found
+              {filteredVendors.length !== totalVendors && ` (of ${totalVendors} total)`}
+            </Text>
           </div>
           <div className="header-right">
             <Button 

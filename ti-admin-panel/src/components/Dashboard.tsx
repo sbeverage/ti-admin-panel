@@ -51,6 +51,27 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const getSelectedPeriod = () => {
+    switch (selectedTimeFilterKey) {
+      case 'All':
+        return 'all';
+      case '1 Week':
+        return '7d';
+      case '15 Days':
+        return '15d';
+      case '1 Month':
+        return '30d';
+      case '3 Months':
+        return '90d';
+      case '6 Months':
+        return '180d';
+      case 'One Year':
+        return '365d';
+      default:
+        return '30d';
+    }
+  };
+
   // Load dashboard data from API
   const loadDashboardData = async () => {
     setLoading(true);
@@ -58,6 +79,7 @@ const Dashboard: React.FC = () => {
     
     try {
       console.log('📊 Loading dashboard data from API...');
+      const selectedPeriod = getSelectedPeriod();
       
       // Import API functions
       const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI, dashboardAPI: { getChartData } } = await import('../services/api');
@@ -69,7 +91,7 @@ const Dashboard: React.FC = () => {
         vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        getChartData('donations', '30d').catch(() => ({ success: false, data: null }))
+        getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null }))
       ]);
       
       console.log('📊 Dashboard responses:', {
@@ -225,9 +247,6 @@ const Dashboard: React.FC = () => {
 
 
   // Load data on component mount and when navigating back to dashboard
-  useEffect(() => {
-    loadDashboardData();
-  }, []); // Initial load
   
   // Refresh dashboard data when the page becomes visible (e.g., after creating a vendor)
   useEffect(() => {
@@ -269,6 +288,7 @@ const Dashboard: React.FC = () => {
       const end = customDateRange[1].format('MM/DD/YYYY');
       setSelectedTimeFilterKey('Custom Date');
       setSelectedTimeFilterLabel(`${start} - ${end}`);
+      message.info('Custom date range is not supported yet. Showing latest period.');
     }
     setCustomDateOpen(false);
   };
@@ -335,6 +355,10 @@ const Dashboard: React.FC = () => {
       loadApprovalsData();
     }
   }, [activeApprovalTab]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [selectedTimeFilterKey]);
 
   const loadApprovalsData = async () => {
     try {

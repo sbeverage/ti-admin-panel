@@ -73,6 +73,11 @@ const Beneficiaries: React.FC = () => {
   const [selectedBeneficiaryData, setSelectedBeneficiaryData] = useState<any | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
   const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCause, setSelectedCause] = useState<string | undefined>(undefined);
+  const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
+  const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState(0);
@@ -275,6 +280,36 @@ const Beneficiaries: React.FC = () => {
     // This would typically update the backend
     console.log(`Toggling ${field} for beneficiary ${key}`);
   };
+
+  const uniqueCauses = Array.from(new Set(beneficiariesData.map((b) => b.beneficiaryCause).filter(Boolean)));
+  const uniqueTypes = Array.from(new Set(beneficiariesData.map((b) => b.beneficiaryType).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(beneficiariesData.map((b) => b.cityState).filter(Boolean)));
+
+  const filteredBeneficiaries = beneficiariesData.filter((beneficiary) => {
+    const matchesSearch = searchTerm
+      ? [beneficiary.beneficiaryName, beneficiary.email, beneficiary.contactName, beneficiary.contactNumber, beneficiary.cityState]
+          .filter(Boolean)
+          .some((value: string) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+      : true;
+
+    const matchesCause = selectedCause ? beneficiary.beneficiaryCause === selectedCause : true;
+    const matchesType = selectedType ? beneficiary.beneficiaryType === selectedType : true;
+    const matchesLocation = selectedLocation ? beneficiary.cityState === selectedLocation : true;
+
+    const matchesDuration = selectedDuration
+      ? (() => {
+          const durationValue =
+            beneficiary?.rawData?.duration ||
+            beneficiary?.rawData?.program_duration ||
+            beneficiary?.rawData?.project_duration ||
+            beneficiary?.rawData?.beneficiary_duration ||
+            '';
+          return String(durationValue).toLowerCase() === selectedDuration.toLowerCase();
+        })()
+      : true;
+
+    return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration;
+  });
 
   const handleInviteBeneficiary = () => {
     setInviteModalVisible(true);
@@ -816,7 +851,8 @@ const Beneficiaries: React.FC = () => {
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>
             <Text type="secondary" className="beneficiaries-count">
-              {totalBeneficiaries} Beneficiaries Found
+              {filteredBeneficiaries.length} Beneficiar{filteredBeneficiaries.length !== 1 ? 'ies' : 'y'} Found
+              {filteredBeneficiaries.length !== totalBeneficiaries && ` (of ${totalBeneficiaries} total)`}
             </Text>
           </div>
           <div className="header-right">
@@ -843,6 +879,8 @@ const Beneficiaries: React.FC = () => {
                   enterButton={<SearchOutlined />}
                   size="large"
                   className="beneficiary-search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
               
@@ -853,17 +891,24 @@ const Beneficiaries: React.FC = () => {
                     placeholder="Select Cause"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedCause}
+                    onChange={(value) => setSelectedCause(value)}
+                    allowClear
                   >
-                    <Option value="health">Health and Medical</Option>
-                    <Option value="education">Education</Option>
-                    <Option value="environment">Environment</Option>
-                    <Option value="children">Children and Youth</Option>
+                    {uniqueCauses.map((cause) => (
+                      <Option key={cause} value={cause}>
+                        {cause}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Duration"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedDuration}
+                    onChange={(value) => setSelectedDuration(value)}
+                    allowClear
                   >
                     <Option value="short">Short Term</Option>
                     <Option value="long">Long Term</Option>
@@ -874,20 +919,30 @@ const Beneficiaries: React.FC = () => {
                     placeholder="Beneficiary Type"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedType}
+                    onChange={(value) => setSelectedType(value)}
+                    allowClear
                   >
-                    <Option value="international">International</Option>
-                    <Option value="national">National</Option>
-                    <Option value="local">Local</Option>
+                    {uniqueTypes.map((type) => (
+                      <Option key={type} value={type}>
+                        {type}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="City, State"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedLocation}
+                    onChange={(value) => setSelectedLocation(value)}
+                    allowClear
                   >
-                    <Option value="springfield">Springfield, IL</Option>
-                    <Option value="portland">Portland, OR</Option>
-                    <Option value="charleston">Charleston, SC</Option>
+                    {uniqueLocations.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
                   </Select>
                 </div>
               </div>
@@ -897,7 +952,7 @@ const Beneficiaries: React.FC = () => {
             <div className="beneficiaries-table-section">
               <Spin spinning={loading}>
                 <Table
-                  dataSource={beneficiariesData}
+                  dataSource={filteredBeneficiaries}
                   columns={columns}
                   pagination={false}
                   size="middle"
