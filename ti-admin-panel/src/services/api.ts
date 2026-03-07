@@ -1433,17 +1433,22 @@ export const dashboardAPI = {
 
 // Pending Approvals API functions
 export const approvalsAPI = {
-  // Get pending approvals
+  // Get pending approvals - returns empty data on failure (endpoint may not exist yet)
   getPendingApprovals: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/approvals?page=${page}&limit=${limit}`, {
-      headers: API_CONFIG.headers
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/approvals?page=${page}&limit=${limit}`, {
+        headers: API_CONFIG.headers
+      });
+      
+      if (!response.ok) {
+        return { success: true, data: [], pagination: { page, limit, total: 0, pages: 0 } };
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch {
+      return { success: true, data: [], pagination: { page, limit, total: 0, pages: 0 } };
     }
-    
-    return response.json();
   },
 
   // Approve item

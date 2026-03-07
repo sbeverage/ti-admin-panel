@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
@@ -51,7 +51,6 @@ const PendingApprovals: React.FC = () => {
   const [selectedDocumentFilter, setSelectedDocumentFilter] = useState('all');
   const [approvalsData, setApprovalsData] = useState<ApprovalItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [totalApprovals, setTotalApprovals] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,17 +60,14 @@ const PendingApprovals: React.FC = () => {
   } = theme.useToken();
 
   // Load pending approvals from API
+  // Gracefully handles missing endpoint / empty data - shows empty state instead of errors
   const loadApprovals = async () => {
     setLoading(true);
-    setError(null);
     
     try {
-      console.log('Loading pending approvals from API...');
       const response = await approvalsAPI.getPendingApprovals(currentPage, pageSize);
-      console.log('Approvals API response:', response);
       
-      if (response.success) {
-        // Transform API data to match our interface
+      if (response?.success && Array.isArray(response.data)) {
         const transformedData = response.data.map((approval: any) => ({
           key: approval.id.toString(),
           name: approval.name || 'Unknown',
@@ -91,16 +87,14 @@ const PendingApprovals: React.FC = () => {
         }));
         
         setApprovalsData(transformedData);
-        setTotalApprovals(response.pagination?.total || transformedData.length);
-        console.log('Approvals loaded successfully');
+        setTotalApprovals(response.pagination?.total ?? transformedData.length);
       } else {
-        setError('Failed to load pending approvals');
+        // No error state - treat as empty (endpoint may not exist yet)
         setApprovalsData([]);
         setTotalApprovals(0);
       }
-    } catch (error) {
-      console.error('Error loading approvals:', error);
-      setError('Failed to load pending approvals');
+    } catch {
+      // Gracefully handle API errors - show empty state, no error message
       setApprovalsData([]);
       setTotalApprovals(0);
     } finally {
@@ -759,7 +753,20 @@ const PendingApprovals: React.FC = () => {
                 scroll={{ x: 1800 }}
                 bordered={false}
                 locale={{
-                  emptyText: error ? `Error: ${error}` : 'No pending approvals found'
+                  emptyText: (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span>
+                          No pending {activeTab === 'vendors' ? 'vendors' : 'beneficiaries'} yet.
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            When vendors and beneficiaries have their own admin panels and create accounts, they will appear here for approval.
+                          </Text>
+                        </span>
+                      }
+                    />
+                  )
                 }}
               />
               </Spin>
