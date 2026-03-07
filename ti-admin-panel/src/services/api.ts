@@ -1919,8 +1919,14 @@ export const beneficiaryAPI = {
   // Get all beneficiaries/charities
   getBeneficiaries: async (page = 1, limit = 20, options?: { includeInactive?: boolean }): Promise<PaginatedResponse<any>> => {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-    if (options?.includeInactive) params.set('includeInactive', 'true');
-    const response = await fetch(`${API_CONFIG.baseURL}/charities?${params}`, {
+    if (options?.includeInactive) {
+      params.set('includeInactive', 'true');
+      params.set('include_inactive', 'true'); // Some backends expect snake_case
+    }
+    // Cache-bust for admin panel to avoid stale responses
+    params.set('_t', String(Date.now()));
+    const url = `${API_CONFIG.baseURL}/charities?${params}`;
+    const response = await fetch(url, {
       headers: API_CONFIG.headers
     });
     

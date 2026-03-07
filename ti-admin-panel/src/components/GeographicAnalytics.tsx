@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown, Spin, message } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown, Spin, message, Alert, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
@@ -279,18 +279,40 @@ const GeographicAnalytics: React.FC = () => {
     },
     { 
       title: 'Top City', 
-      value: geographicData?.topCities?.[0]?.name || '--', 
+      value: geographicData?.topCities?.[0]?.city || '--', 
       icon: <StarOutlined />, 
       growth: '+25.1%', 
       color: '#DB8633' 
     },
   ];
 
-  // No hardcoded data - use API data only
+  // Transform API data for Regional Performance table (topStates -> region rows)
+  const regionTableData = (geographicData?.topStates || []).map((state: any, index: number) => ({
+    key: state.name || index,
+    rank: index + 1,
+    region: state.name || 'Unknown',
+    avatar: (state.name || '?').charAt(0).toUpperCase(),
+    states: [state.name || 'Unknown'],
+    population: '--',
+    donors: state.donors || 0,
+    vendors: state.vendors || 0,
+    beneficiaries: state.beneficiaries || 0,
+    totalDonations: state.totalDonations || '$0',
+    growth: '--',
+    status: 'stable',
+  }));
 
-  // No hardcoded data - use API data only
-
-  // No hardcoded data - use API data only
+  // Transform API data for City Performance table
+  const cityTableData = (geographicData?.topCities || []).map((city: any, index: number) => ({
+    key: `${city.city}-${city.state}-${index}`,
+    city: city.city || 'Unknown',
+    state: city.state || 'Unknown',
+    region: city.state || 'Unknown',
+    donors: city.donors || 0,
+    vendors: city.vendors || 0,
+    donations: city.donations || '$0',
+    growth: '--',
+  }));
 
   const regionColumns = [
     {
@@ -317,11 +339,11 @@ const GeographicAnalytics: React.FC = () => {
           <div className="region-details">
             <Text strong>{text}</Text>
             <div className="region-states">
-              {record.states.slice(0, 4).map((state: string, index: number) => (
+              {(record.states || []).slice(0, 4).map((state: string, index: number) => (
                 <Tag key={index} className="state-tag">{state}</Tag>
               ))}
-              {record.states.length > 4 && (
-                <Tag className="more-states">+{record.states.length - 4}</Tag>
+              {(record.states || []).length > 4 && (
+                <Tag className="more-states">+{(record.states || []).length - 4}</Tag>
               )}
             </div>
           </div>
@@ -528,6 +550,17 @@ const GeographicAnalytics: React.FC = () => {
         </Header>
 
         <Content className="standard-content">
+          {error && (
+            <Alert
+              message="Failed to load geographic analytics"
+              description={error}
+              type="error"
+              showIcon
+              closable
+              onClose={() => setError(null)}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           <Spin spinning={loading}>
             <div className="content-wrapper">
               {/* Overview Cards */}
@@ -576,7 +609,25 @@ const GeographicAnalytics: React.FC = () => {
                           <Col span={16}>
                             <Card title="Regional Growth Trends" className="chart-card">
                               <div className="regional-growth">
-                                {/* No data available */}
+                                {(geographicData?.topStates?.length ?? 0) > 0 ? (
+                                  <List
+                                    size="small"
+                                    dataSource={geographicData.topStates.slice(0, 8)}
+                                    renderItem={(item: any, idx: number) => (
+                                      <List.Item>
+                                        <Space>
+                                          <span className="rank-number">{idx + 1}</span>
+                                          <Text strong>{item.name}</Text>
+                                          <Tag>Donors: {item.donors || 0}</Tag>
+                                          <Tag>Vendors: {item.vendors || 0}</Tag>
+                                          <Text type="secondary">{item.totalDonations || '$0'}</Text>
+                                        </Space>
+                                      </List.Item>
+                                    )}
+                                  />
+                                ) : (
+                                  <Text type="secondary">No regional data available for the selected period.</Text>
+                                )}
                               </div>
                             </Card>
                           </Col>
@@ -588,8 +639,8 @@ const GeographicAnalytics: React.FC = () => {
                                     <EnvironmentOutlined style={{ color: '#324E58' }} />
                                   </div>
                                   <div className="stat-content">
-                                    <Text strong>Coverage</Text>
-                                    <Text type="secondary">2.4M km²</Text>
+                                    <Text strong>Countries</Text>
+                                    <Text type="secondary">{geographicData?.totalCountries ?? '--'}</Text>
                                   </div>
                                 </div>
                                 <Divider />
@@ -598,8 +649,8 @@ const GeographicAnalytics: React.FC = () => {
                                     <UserOutlined style={{ color: '#DB8633' }} />
                                   </div>
                                   <div className="stat-content">
-                                    <Text strong>Population</Text>
-                                    <Text type="secondary">45.2M people</Text>
+                                    <Text strong>States</Text>
+                                    <Text type="secondary">{geographicData?.totalStates ?? '--'}</Text>
                                   </div>
                                 </div>
                                 <Divider />
@@ -609,7 +660,7 @@ const GeographicAnalytics: React.FC = () => {
                                   </div>
                                   <div className="stat-content">
                                     <Text strong>Cities</Text>
-                                    <Text type="secondary">156 cities</Text>
+                                    <Text type="secondary">{geographicData?.totalCities ?? '--'}</Text>
                                   </div>
                                 </div>
                                 <Divider />
@@ -618,8 +669,8 @@ const GeographicAnalytics: React.FC = () => {
                                     <DollarOutlined style={{ color: '#DB8633' }} />
                                   </div>
                                   <div className="stat-content">
-                                    <Text strong>Total Value</Text>
-                                    <Text type="secondary">$8.2M</Text>
+                                    <Text strong>Top State</Text>
+                                    <Text type="secondary">{geographicData?.topStates?.[0]?.name ?? '--'}</Text>
                                   </div>
                                 </div>
                               </div>
@@ -640,11 +691,12 @@ const GeographicAnalytics: React.FC = () => {
                     children: (
                       <div className="regions-content">
                         <Table 
-                          dataSource={[]} 
+                          dataSource={regionTableData} 
                           columns={regionColumns}
                           pagination={false}
                           className="regions-table"
                           rowClassName="region-row"
+                          locale={{ emptyText: <Empty description="No regional data for the selected period" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
                         />
                       </div>
                     )
@@ -660,11 +712,12 @@ const GeographicAnalytics: React.FC = () => {
                     children: (
                       <div className="cities-content">
                         <Table 
-                          dataSource={[]} 
+                          dataSource={cityTableData} 
                           columns={cityColumns}
                           pagination={{ pageSize: 10 }}
                           className="cities-table"
                           rowClassName="city-row"
+                          locale={{ emptyText: <Empty description="No city data for the selected period" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
                         />
                       </div>
                     )

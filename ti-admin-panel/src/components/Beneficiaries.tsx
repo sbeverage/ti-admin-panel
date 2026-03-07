@@ -203,9 +203,10 @@ const Beneficiaries: React.FC = () => {
                              '';
           
           const createdAt = beneficiary.createdAt || beneficiary.created_at || beneficiary.dateOfJoin || beneficiary.date_of_join;
+          // Resolve isActive - do NOT default to true when API omits the field (some APIs omit is_active when false)
           const isActive = beneficiary.isActive !== undefined ? beneficiary.isActive : 
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
-                          (beneficiary.active !== undefined ? beneficiary.active : true));
+                          (beneficiary.active !== undefined ? beneficiary.active : undefined));
           
           // Extract logo URL - prioritize logo over main image for table display
           // Logo should be displayed next to the name in the table
@@ -368,13 +369,39 @@ const Beneficiaries: React.FC = () => {
         })()
       : true;
 
+    // Resolve active status from transformed data or rawData (handles API format variations)
+    // Some APIs omit is_active when false - treat missing as inactive when filtering for inactive
+    const rawActive = beneficiary.active ?? beneficiary.rawData?.is_active ?? beneficiary.rawData?.isActive;
+    const hasExplicitValue =
+      beneficiary.active !== undefined ||
+      beneficiary.rawData?.is_active !== undefined ||
+      beneficiary.rawData?.isActive !== undefined;
+    const isActiveResolved = hasExplicitValue
+      ? (rawActive === true || rawActive === 'true' || rawActive === 1 || rawActive === '1')
+      : selectedActiveStatus === 'inactive'
+        ? false
+        : true;
     const matchesActiveStatus = selectedActiveStatus
-      ? (beneficiary.active === true && selectedActiveStatus === 'active') ||
-        (beneficiary.active === false && selectedActiveStatus === 'inactive')
+      ? (selectedActiveStatus === 'active' && isActiveResolved) ||
+        (selectedActiveStatus === 'inactive' && !isActiveResolved)
       : true;
 
     return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration && matchesActiveStatus;
   });
+
+  // Debug: when Inactive filter shows nothing, log what we have
+  if (selectedActiveStatus === 'inactive' && filteredBeneficiaries.length === 0 && allBeneficiariesData.length > 0) {
+    const breakdown = allBeneficiariesData.reduce(
+      (acc, b) => {
+        const raw = b.active ?? b.rawData?.is_active ?? b.rawData?.isActive;
+        const key = raw === true || raw === 'true' ? 'active' : raw === false || raw === 'false' || raw === 0 ? 'inactive' : 'undefined';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+    console.warn('🔍 Inactive filter: 0 results. Total beneficiaries:', allBeneficiariesData.length, 'Breakdown:', breakdown);
+  }
 
   const sortedBeneficiaries = [...filteredBeneficiaries].sort((a, b) => {
     if (!sortField || !sortOrder) return 0;
