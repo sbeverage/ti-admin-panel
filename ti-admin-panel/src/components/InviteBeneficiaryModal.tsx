@@ -394,6 +394,41 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     setSaving(true);
     
     try {
+      const fetchAllBeneficiaries = async () => {
+        const collected: any[] = [];
+        let page = 1;
+        const limit = 200;
+        let total = 0;
+        let response: any = null;
+
+        do {
+          response = await beneficiaryAPI.getBeneficiaries(page, limit);
+          if (response?.success && Array.isArray(response.data)) {
+            collected.push(...response.data);
+          }
+          total = response?.pagination?.total || collected.length;
+          page += 1;
+        } while (collected.length < total);
+
+        return collected;
+      };
+
+      const existingBeneficiaries = await fetchAllBeneficiaries();
+      const normalizedName = (allData.beneficiaryName || '').toString().trim().toLowerCase();
+      const normalizedEmail = (allData.primaryEmail || '').toString().trim().toLowerCase();
+      const duplicateBeneficiary = existingBeneficiaries.find((beneficiary: any) => {
+        const existingName = (beneficiary.name || beneficiary.beneficiaryName || '').toString().trim().toLowerCase();
+        const existingEmail = (beneficiary.email || beneficiary.primary_email || beneficiary.primaryEmail || '').toString().trim().toLowerCase();
+        return (normalizedEmail && existingEmail && existingEmail === normalizedEmail) ||
+          (normalizedName && existingName && existingName === normalizedName);
+      });
+
+      if (duplicateBeneficiary) {
+        message.error('A beneficiary with this email or name already exists.');
+        setSaving(false);
+        return;
+      }
+
       // Transform data to API format
       // CRITICAL: Only include fields that definitely exist in the backend schema
       // We use a conservative approach to avoid 400 errors
