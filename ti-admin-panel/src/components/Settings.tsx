@@ -450,15 +450,21 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleNotificationChange = (key: string, checked: boolean) => {
+  const handleNotificationChange = async (key: string, checked: boolean) => {
+    const nextNotifications = {
+      ...(personalProfile?.notifications || { email: true, push: true, sms: false }),
+      [key]: checked
+    };
     setPersonalProfile((prev: any) => ({
       ...prev,
-      notifications: {
-        ...(prev?.notifications || { email: true, push: true, sms: false }),
-        [key]: checked
-      }
+      notifications: nextNotifications
     }));
-    message.success('Notification settings updated!');
+    try {
+      await settingsAPI.updateSettings({ notifications: nextNotifications });
+      message.success('Notification settings updated!');
+    } catch (err) {
+      message.error('Failed to save notification preferences');
+    }
   };
 
   return (
@@ -597,25 +603,34 @@ const Settings: React.FC = () => {
                           <Card title="Notification Preferences" className="settings-card">
                             <div className="notification-settings">
                               <div className="notification-item">
-                                <Text>Email Notifications</Text>
+                                <div>
+                                  <Text>Email Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Receive email for all notifications shown in the bell</Text>
+                                  </div>
+                                </div>
                                 <Switch
                                   checked={personalProfile?.notifications?.email ?? true}
                                   onChange={(checked) => handleNotificationChange('email', checked)}
                                 />
                               </div>
                               <div className="notification-item">
-                                <Text>Push Notifications</Text>
-                                <Switch
-                                  checked={personalProfile?.notifications?.push ?? true}
-                                  onChange={(checked) => handleNotificationChange('push', checked)}
-                                />
+                                <div>
+                                  <Text>Push Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Coming soon</Text>
+                                  </div>
+                                </div>
+                                <Switch disabled checked={false} />
                               </div>
                               <div className="notification-item">
-                                <Text>SMS Notifications</Text>
-                                <Switch
-                                  checked={personalProfile?.notifications?.sms ?? false}
-                                  onChange={(checked) => handleNotificationChange('sms', checked)}
-                                />
+                                <div>
+                                  <Text>SMS Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Coming soon</Text>
+                                  </div>
+                                </div>
+                                <Switch disabled checked={false} />
                               </div>
                             </div>
                           </Card>

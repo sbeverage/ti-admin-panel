@@ -354,6 +354,10 @@
   color: #324E58;
 }
 
+.notification-item-hint {
+  margin-top: 4px;
+}
+
 /* Team Management */
 .team-header {
   display: flex;
