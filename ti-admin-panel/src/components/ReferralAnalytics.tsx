@@ -37,6 +37,13 @@ import {
 import './ReferralAnalytics.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
+import {
+  REFERRAL_TIER_COUNT,
+  paidRecognitionTiersUnlockedCount,
+  formatMilestoneSummary,
+  recognitionLabelForThreshold,
+  milestoneToPaidFriendsThreshold,
+} from '../constants/referralRewards';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -488,7 +495,7 @@ const ReferralAnalytics: React.FC = () => {
         values.description,
         values.expiresInDays
       );
-      message.success(`Successfully granted $${values.amount} credit to ${selectedDonor.name}`);
+      message.success(`Successfully granted $${values.amount} account credit to ${selectedDonor.name}`);
       setCreditGrantModalVisible(false);
       creditGrantForm.resetFields();
       setSelectedDonor(null);
@@ -1049,7 +1056,7 @@ const ReferralAnalytics: React.FC = () => {
       ),
     },
     {
-      title: 'Successful',
+      title: 'Paid referrals',
       dataIndex: 'successful',
       key: 'successful',
       width: 140,
@@ -1059,7 +1066,7 @@ const ReferralAnalytics: React.FC = () => {
           <Text strong style={{ fontSize: '20px', color: '#52c41a', display: 'block' }}>
             {successful}
           </Text>
-          <Text type="secondary" style={{ fontSize: '11px' }}>converted</Text>
+          <Text type="secondary" style={{ fontSize: '11px' }}>paid</Text>
         </div>
       ),
     },
@@ -1085,15 +1092,15 @@ const ReferralAnalytics: React.FC = () => {
       ),
     },
     {
-      title: 'Points Earned',
-      dataIndex: 'pointsEarned',
-      key: 'pointsEarned',
+      title: 'Recognition tiers',
+      dataIndex: 'recognitionTiersUnlocked',
+      key: 'recognitionTiersUnlocked',
       width: 160,
       align: 'center' as const,
-      render: (points: number) => (
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+      render: (n: number) => (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
           gap: '8px',
           padding: '8px 12px',
@@ -1103,7 +1110,7 @@ const ReferralAnalytics: React.FC = () => {
         }}>
           <TrophyOutlined style={{ color: '#DB8633', fontSize: '18px' }} />
           <Text strong style={{ fontSize: '16px', color: '#DB8633' }}>
-            {points.toLocaleString()}
+            {n}/{REFERRAL_TIER_COUNT}
           </Text>
         </div>
       ),
@@ -1334,17 +1341,26 @@ const ReferralAnalytics: React.FC = () => {
                           </div>
                         ) : analyticsData?.topReferrers && analyticsData.topReferrers.length > 0 ? (
                           <Table 
-                            dataSource={analyticsData.topReferrers.map((referrer: any, index: number) => ({
-                              ...referrer,
-                              key: referrer.user_id || index,
-                              rank: index + 1,
-                              avatar: referrer.name ? referrer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U',
-                              referrals: referrer.total_referrals || referrer.referrals || 0,
-                              successful: referrer.successful_referrals || referrer.successful || 0,
-                              conversionRate: referrer.conversion_rate ? `${referrer.conversion_rate}%` : '0%',
-                              pointsEarned: referrer.points_earned || 0,
-                              totalValue: referrer.total_value ? `$${referrer.total_value.toFixed(2)}` : '$0.00'
-                            }))} 
+                            dataSource={analyticsData.topReferrers.map((referrer: any, index: number) => {
+                              const paid = referrer.successful_referrals ?? referrer.successful ?? 0;
+                              const tiersFromApi =
+                                typeof referrer.tiers_unlocked === 'number'
+                                  ? referrer.tiers_unlocked
+                                  : typeof referrer.tiersUnlocked === 'number'
+                                    ? referrer.tiersUnlocked
+                                    : paidRecognitionTiersUnlockedCount(Number(paid) || 0);
+                              return {
+                                ...referrer,
+                                key: referrer.user_id || index,
+                                rank: index + 1,
+                                avatar: referrer.name ? referrer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U',
+                                referrals: referrer.total_referrals || referrer.referrals || 0,
+                                successful: paid,
+                                conversionRate: referrer.conversion_rate ? `${referrer.conversion_rate}%` : '0%',
+                                recognitionTiersUnlocked: tiersFromApi,
+                                totalValue: referrer.total_value ? `$${referrer.total_value.toFixed(2)}` : '$0.00'
+                              };
+                            })} 
                             columns={referralColumns}
                             pagination={false}
                             className="referrers-table"
@@ -1419,7 +1435,7 @@ const ReferralAnalytics: React.FC = () => {
                                   )
                                 },
                                 {
-                                  title: 'Successful',
+                                  title: 'Paid referrals',
                                   key: 'successful',
                                   width: 120,
                                   align: 'center' as const,
@@ -1451,7 +1467,9 @@ const ReferralAnalytics: React.FC = () => {
                                   render: (_: any, record: any) => (
                                     <Space>
                                       {record.milestones?.length > 0 ? (
-                                        <Tooltip title={record.milestones.map((m: any) => m.milestone_type).join(', ')}>
+                                        <Tooltip
+                                          title={record.milestones.map((m: any) => formatMilestoneSummary(m)).join(' · ')}
+                                        >
                                           <Badge count={record.milestones.length} style={{ backgroundColor: '#DB8633' }}>
                                             <TrophyOutlined style={{ fontSize: '20px', color: '#DB8633' }} />
                                           </Badge>
@@ -1463,16 +1481,44 @@ const ReferralAnalytics: React.FC = () => {
                                   )
                                 },
                                 {
-                                  title: 'Active Credits',
-                                  key: 'active_credits',
-                                  width: 140,
+                                  title: 'Recognition tiers',
+                                  key: 'recognition_tiers',
+                                  width: 130,
                                   align: 'center' as const,
                                   render: (_: any, record: any) => {
-                                    const credits = record.referral_stats?.active_credits || record.active_credits || 0;
+                                    const paid =
+                                      record.referral_stats?.successful_referrals ??
+                                      record.successful_referrals ??
+                                      0;
+                                    const n = paidRecognitionTiersUnlockedCount(Number(paid) || 0);
                                     return (
                                       <Text strong style={{ fontSize: '16px', color: '#DB8633' }}>
-                                        ${credits.toFixed(2)}
+                                        {n}/{REFERRAL_TIER_COUNT}
                                       </Text>
+                                    );
+                                  }
+                                },
+                                {
+                                  title: 'Website spotlight',
+                                  key: 'website_spotlight',
+                                  width: 130,
+                                  align: 'center' as const,
+                                  render: (_: any, record: any) => {
+                                    const paid =
+                                      record.referral_stats?.successful_referrals ??
+                                      record.successful_referrals ??
+                                      0;
+                                    const eligible = Number(paid) >= 5;
+                                    const featured = Boolean(record.featured_on_website);
+                                    return (
+                                      <Space direction="vertical" size={0} style={{ textAlign: 'center' }}>
+                                        {eligible ? (
+                                          <Tag color="blue">Eligible (≥5 paid)</Tag>
+                                        ) : (
+                                          <Text type="secondary">—</Text>
+                                        )}
+                                        {featured ? <Tag color="green">Featured on site</Tag> : null}
+                                      </Space>
                                     );
                                   }
                                 },
@@ -1483,7 +1529,7 @@ const ReferralAnalytics: React.FC = () => {
                                   fixed: 'right' as const,
                                   render: (_: any, record: any) => (
                                     <Space>
-                                      <Tooltip title="Grant Credit">
+                                      <Tooltip title="Manual account credit only — referral rewards are recognition (badges / spotlight), not cash.">
                                         <Button
                                           type="primary"
                                           icon={<PlusOutlined />}
@@ -1495,7 +1541,7 @@ const ReferralAnalytics: React.FC = () => {
                                             color: '#ffffff'
                                           }}
                                         >
-                                          Grant Credit
+                                          Account credit
                                         </Button>
                                       </Tooltip>
                                     </Space>
@@ -1570,19 +1616,54 @@ const ReferralAnalytics: React.FC = () => {
                                         <Card size="small" title={<><TrophyOutlined /> Milestones</>}>
                                           {record.milestones && record.milestones.length > 0 ? (
                                             <Space direction="vertical" style={{ width: '100%' }}>
-                                              {record.milestones.map((milestone: any, idx: number) => (
-                                                <div key={idx} style={{ padding: '8px', background: '#fff', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
-                                                  <Text strong>{milestone.milestone_type?.replace('_', ' ').toUpperCase()}</Text>
-                                                  <br />
-                                                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                    Unlocked: {milestone.unlocked_at ? new Date(milestone.unlocked_at).toLocaleDateString() : 'N/A'}
-                                                  </Text>
-                                                  <br />
-                                                  <Text style={{ color: '#DB8633', fontWeight: 600 }}>
-                                                    Reward: ${milestone.reward_value || 0}
-                                                  </Text>
-                                                </div>
-                                              ))}
+                                              {record.milestones.map((milestone: any, idx: number) => {
+                                                const th = milestoneToPaidFriendsThreshold(milestone);
+                                                const title =
+                                                  th != null
+                                                    ? recognitionLabelForThreshold(th)
+                                                    : String(milestone.milestone_type || 'Milestone').replace(/_/g, ' ');
+                                                const desc = milestone.reward_description
+                                                  ? String(milestone.reward_description)
+                                                  : null;
+                                                const badgeName = milestone.badge_name
+                                                  ? String(milestone.badge_name)
+                                                  : null;
+                                                const rewardVal = Number(milestone.reward_value) || 0;
+                                                return (
+                                                  <div key={idx} style={{ padding: '8px', background: '#fff', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
+                                                    <Text strong>{title}</Text>
+                                                    {badgeName ? (
+                                                      <>
+                                                        <br />
+                                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                          Badge: <Text code>{badgeName}</Text>
+                                                        </Text>
+                                                      </>
+                                                    ) : null}
+                                                    <br />
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                      Unlocked:{' '}
+                                                      {milestone.unlocked_at
+                                                        ? new Date(milestone.unlocked_at).toLocaleDateString()
+                                                        : 'N/A'}
+                                                    </Text>
+                                                    {desc ? (
+                                                      <>
+                                                        <br />
+                                                        <Text style={{ fontSize: '12px' }}>{desc}</Text>
+                                                      </>
+                                                    ) : null}
+                                                    {rewardVal > 0 ? (
+                                                      <>
+                                                        <br />
+                                                        <Text style={{ color: '#DB8633', fontWeight: 600 }}>
+                                                          Credit (legacy): ${rewardVal.toFixed(2)}
+                                                        </Text>
+                                                      </>
+                                                    ) : null}
+                                                  </div>
+                                                );
+                                              })}
                                             </Space>
                                           ) : (
                                             <Empty description="No milestones unlocked" image={Empty.PRESENTED_IMAGE_SIMPLE} />
@@ -1590,18 +1671,24 @@ const ReferralAnalytics: React.FC = () => {
                                         </Card>
                                       </Col>
 
-                                      {/* Credits */}
+                                      {/* Account credits — referral program is recognition-only; amounts are legacy/manual */}
                                       <Col span={12}>
-                                        <Card size="small" title={<><DollarOutlined /> Credits</>}>
+                                        <Card
+                                          size="small"
+                                          title={<><DollarOutlined /> Account credits</>}
+                                        >
+                                          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 8 }}>
+                                            Referrals no longer earn donor cash credits. Balances below are manual or historical only.
+                                          </Text>
                                           <Space direction="vertical" style={{ width: '100%' }}>
                                             <div>
-                                              <Text type="secondary">Active Credits: </Text>
+                                              <Text type="secondary">Active: </Text>
                                               <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
                                                 ${(record.referral_stats?.active_credits || record.active_credits || 0).toFixed(2)}
                                               </Text>
                                             </div>
                                             <div>
-                                              <Text type="secondary">Total Earned: </Text>
+                                              <Text type="secondary">Total recorded: </Text>
                                               <Text strong style={{ color: '#DB8633', fontSize: '16px' }}>
                                                 ${(record.referral_stats?.total_credits_earned || record.total_credits_earned || 0).toFixed(2)}
                                               </Text>
@@ -1624,7 +1711,7 @@ const ReferralAnalytics: React.FC = () => {
                                 showSizeChanger: true,
                                 showTotal: (total) => `Total ${total} donors`
                               }}
-                              scroll={{ x: 1200 }}
+                              scroll={{ x: 1400 }}
                             />
                           ) : (
                             <Empty description="No donors found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
@@ -1810,7 +1897,8 @@ const ReferralAnalytics: React.FC = () => {
       >
         <div style={{ marginBottom: 16 }}>
           <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-            Select a donor to generate their unique referral link. Share this link so they can invite friends.
+            Select a donor to copy their referral link. Friends who become paying donors unlock recognition tiers (badges /
+            spotlight), not cash credits.
           </Text>
           <Select
             placeholder="Search and select a donor..."
@@ -1844,12 +1932,12 @@ const ReferralAnalytics: React.FC = () => {
         )}
       </Modal>
 
-      {/* Credit Grant Modal */}
+      {/* Manual account credit — not part of referral recognition */}
       <Modal
         title={
           <Space>
             <DollarOutlined />
-            <span>Grant Credit to {selectedDonor?.name || 'Donor'}</span>
+            <span>Grant account credit — {selectedDonor?.name || 'Donor'}</span>
           </Space>
         }
         open={creditGrantModalVisible}
@@ -1861,6 +1949,10 @@ const ReferralAnalytics: React.FC = () => {
         footer={null}
         width={600}
       >
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          Use for manual goodwill or billing adjustments only. The referral program awards recognition (tiers at 1, 3, and 5
+          paid referrals), not automatic credits.
+        </Text>
         <Form
           form={creditGrantForm}
           layout="vertical"
@@ -1871,7 +1963,7 @@ const ReferralAnalytics: React.FC = () => {
           }}
         >
           <Form.Item
-            label="Credit Amount"
+            label="Credit amount"
             name="amount"
             rules={[
               { required: true, message: 'Please enter credit amount' },
@@ -1895,7 +1987,7 @@ const ReferralAnalytics: React.FC = () => {
           >
             <TextArea
               rows={3}
-              placeholder="Reason for granting this credit..."
+              placeholder="Reason for this manual credit (e.g. support escalation, promo)..."
             />
           </Form.Item>
 
@@ -1924,7 +2016,7 @@ const ReferralAnalytics: React.FC = () => {
                   color: '#ffffff'
                 }}
               >
-                Grant Credit
+                Grant account credit
               </Button>
               <Button
                 onClick={() => {
