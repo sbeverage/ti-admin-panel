@@ -33,8 +33,20 @@ function normalizeAdminBaseUrl(input: string): string {
 const getBaseURL = () =>
   normalizeAdminBaseUrl(process.env.REACT_APP_API_BASE_URL?.trim() || DEFAULT_ADMIN_BASE_URL);
 
+/**
+ * Dashboard copy/paste often wraps secrets in quotes or adds CR — Edge compares exact bytes to ADMIN_SECRET_KEY.
+ */
+function normalizeEnvSecret(raw: string | undefined): string | undefined {
+  if (raw == null) return undefined;
+  let s = raw.trim().replace(/^\uFEFF/, '').replace(/\r/g, '');
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
+  }
+  return s.length > 0 ? s : undefined;
+}
+
 const getAdminHeaders = (): Record<string, string> => ({
-  'X-Admin-Secret': process.env.REACT_APP_ADMIN_SECRET?.trim() || DEFAULT_ADMIN_SECRET,
+  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || DEFAULT_ADMIN_SECRET,
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -78,7 +90,7 @@ function adminRequestErrorMessage(status: number, errorText: string): string {
       return 'Supabase blocked the request (invalid anon JWT). In Vercel, set REACT_APP_SUPABASE_ANON_KEY to the anon key from Supabase → Project Settings → API (same value for apikey and Bearer).';
     }
     if (/unauthorized admin/i.test(msg)) {
-      return 'Admin auth failed. In Vercel, set REACT_APP_ADMIN_SECRET to match the Edge Function secret ADMIN_SECRET_KEY in Supabase.';
+      return 'Admin auth failed. Set REACT_APP_ADMIN_SECRET equal to Supabase Edge secret ADMIN_SECRET_KEY and redeploy. Remove quotes/extra characters in Vercel if you pasted the value, or delete the var to use the built-in default only when it matches Supabase.';
     }
   }
   return msg;

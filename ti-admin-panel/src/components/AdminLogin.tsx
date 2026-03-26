@@ -48,7 +48,7 @@ function hintFromParsedDiag(parsed: unknown, summary: string): string | null {
       return 'Anon key or Bearer token rejected at the gateway. Set REACT_APP_SUPABASE_ANON_KEY to the project anon key and redeploy.';
     }
     if (snip.includes('unauthorized admin')) {
-      return 'X-Admin-Secret is wrong or missing from the build. Match REACT_APP_ADMIN_SECRET to ADMIN_SECRET_KEY on the Edge function and redeploy.';
+      return 'REACT_APP_ADMIN_SECRET must equal ADMIN_SECRET_KEY in Supabase (Edge secrets), then redeploy. In Vercel, remove wrapping quotes/spaces from the value; the app now strips quotes/CR. Or delete REACT_APP_ADMIN_SECRET to fall back to the default only if it still matches Supabase.';
     }
     if (snip.includes('invalid email or password') || sum.includes('invalid email or password')) {
       return 'API and secrets are working; credentials failed. Reset password below, or in Supabase verify admin_team_members has your email, status active, and a password_hash.';
