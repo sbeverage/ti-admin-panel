@@ -1,23 +1,52 @@
 // API Configuration - Supabase Edge Function (Migrated from AWS)
-// Now using Supabase Edge Functions instead of AWS Elastic Beanstalk
-const getBaseURL = () => {
-  // Supabase Edge Function URL (always use this - backend migrated to Supabase)
-  const SUPABASE_EDGE_FUNCTION_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
-  
-  // Always use Supabase URL (ignore any environment variable overrides)
-  console.log('🔒 Using Supabase Edge Function URL:', SUPABASE_EDGE_FUNCTION_URL);
-  return SUPABASE_EDGE_FUNCTION_URL;
-};
+// Gateway validates `apikey` + `Authorization` (anon JWT). Admin routes also require `X-Admin-Secret`
+// matching Edge Function secret `ADMIN_SECRET_KEY` (set in Supabase Dashboard).
+
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
+
+const DEFAULT_ADMIN_BASE_URL =
+  'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
+
+const DEFAULT_ADMIN_SECRET = '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e';
+
+const SUPABASE_ANON_KEY =
+  process.env.REACT_APP_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+
+/**
+ * Team/settings endpoints live under /admin/... on the Edge function.
+ * If REACT_APP_API_BASE_URL stops at …/functions/v1/api (no /admin), requests hit 404 "Route not found" (verified via curl).
+ */
+function normalizeAdminBaseUrl(input: string): string {
+  let raw = input.trim().replace(/\/+$/, '');
+  // If someone pasted a full team-login URL as the "base", strip the action suffix (would otherwise double paths).
+  raw = raw.replace(
+    /\/settings\/team\/(?:login|reset-password|change-password)(?:\/)?$/i,
+    ''
+  );
+  if (/\/functions\/v1\/api$/i.test(raw) && !/\/admin$/i.test(raw)) {
+    raw = `${raw}/admin`;
+  }
+  return raw;
+}
+
+const getBaseURL = () =>
+  normalizeAdminBaseUrl(process.env.REACT_APP_API_BASE_URL?.trim() || DEFAULT_ADMIN_BASE_URL);
+
+const getAdminHeaders = (): Record<string, string> => ({
+  'X-Admin-Secret': process.env.REACT_APP_ADMIN_SECRET?.trim() || DEFAULT_ADMIN_SECRET,
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+});
 
 const API_CONFIG = {
-  baseURL: getBaseURL(),
-  headers: {
-    'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
-    'Content-Type': 'application/json',
-    // Supabase Edge Functions require apikey header
-    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
-  }
+  get baseURL() {
+    return getBaseURL();
+  },
+  get headers() {
+    return getAdminHeaders();
+  },
 };
 
 const normalizeBaseUrl = (baseUrl: string) => baseUrl.replace(/\/+$/, '');
@@ -31,6 +60,46 @@ const buildPublicUrl = (path: string) => {
   const base = normalizeBaseUrl(API_CONFIG.baseURL);
   return base.endsWith('/admin') ? `${base.replace(/\/admin$/, '')}${path}` : `${base}${path}`;
 };
+
+/** Map Edge / gateway errors to something operators can fix in Vercel env. */
+function adminRequestErrorMessage(status: number, errorText: string): string {
+  let parsed: { message?: string; error?: string; code?: number } = {};
+  try {
+    parsed = JSON.parse(errorText) as typeof parsed;
+  } catch {
+    return errorText?.trim() || `Request failed (${status})`;
+  }
+  const msg = String(parsed.message || parsed.error || errorText || `HTTP ${status}`);
+  if (status === 404 && (/not found/i.test(msg) || /route not found/i.test(msg))) {
+    return 'API URL not found (404). Set REACT_APP_API_BASE_URL to …/functions/v1/api/admin (or …/functions/v1/api — the app will append /admin). No trailing slash.';
+  }
+  if (status === 401) {
+    if (/invalid jwt/i.test(msg) || (parsed.code === 401 && /jwt/i.test(msg))) {
+      return 'Supabase blocked the request (invalid anon JWT). In Vercel, set REACT_APP_SUPABASE_ANON_KEY to the anon key from Supabase → Project Settings → API (same value for apikey and Bearer).';
+    }
+    if (/unauthorized admin/i.test(msg)) {
+      return 'Admin auth failed. In Vercel, set REACT_APP_ADMIN_SECRET to match the Edge Function secret ADMIN_SECRET_KEY in Supabase.';
+    }
+  }
+  return msg;
+}
+
+/** Session key for last admin login attempt (browser-only; works on Vercel). */
+export const TI_ADMIN_LOGIN_DEBUG_KEY = 'ti_admin_login_debug';
+
+function recordAdminLoginDebug(info: Record<string, unknown>) {
+  const payload = { ...info, t: Date.now() };
+  try {
+    sessionStorage.setItem(TI_ADMIN_LOGIN_DEBUG_KEY, JSON.stringify(payload));
+  } catch {
+    /* private mode / quota */
+  }
+  console.warn('[ti-admin-login]', payload);
+  /* Last attempt mirror for DevTools when sessionStorage is blocked (type `__TI_ADMIN_LOGIN_LAST__` in console). */
+  if (typeof window !== 'undefined') {
+    (window as unknown as { __TI_ADMIN_LOGIN_LAST__: typeof payload }).__TI_ADMIN_LOGIN_LAST__ = payload;
+  }
+}
 
 // Log configuration for debugging
 console.log('🚀 API Config loaded:');
@@ -1734,18 +1803,99 @@ export const settingsAPI = {
 
   // Admin team login
   loginTeamMember: async (payload: { email: string; password: string }): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_CONFIG.baseURL}/settings/team/login`, {
-      method: 'POST',
-      headers: API_CONFIG.headers,
-      body: JSON.stringify(payload)
-    });
+    const loginUrl = `${API_CONFIG.baseURL}/settings/team/login`;
+    let pathname = loginUrl;
+    try {
+      pathname = new URL(loginUrl).pathname;
+    } catch {
+      /* keep full string if non-absolute */
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify(payload),
+      });
+    } catch (e: unknown) {
+      const netMsg = e instanceof Error ? e.message : 'Network error';
+      recordAdminLoginDebug({
+        ok: false,
+        kind: 'network',
+        pathname,
+        resolvedBase: API_CONFIG.baseURL,
+        baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
+        message: netMsg,
+      });
+      throw new Error(
+        `${netMsg} — Check connection, ad blockers, and that the API URL is reachable (CORS). See console [ti-admin-login] and sessionStorage ti_admin_login_debug.`
+      );
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      recordAdminLoginDebug({
+        ok: false,
+        kind: 'http',
+        status: response.status,
+        pathname,
+        resolvedBase: API_CONFIG.baseURL,
+        baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
+        snippet: errorText.slice(0, 200),
+      });
+      // #region agent log
+      fetch('http://127.0.0.1:7442/ingest/660b7c22-9c13-4e3a-8381-0603cbcfbf1c', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '13604a' },
+        body: JSON.stringify({
+          sessionId: '13604a',
+          runId: 'admin-login',
+          hypothesisId: 'H404-H401',
+          location: 'api.ts:loginTeamMember:error',
+          message: 'admin login non-OK',
+          data: {
+            status: response.status,
+            pathDupSlash: /^https?:\/\/[^/]+\/.*\/\//.test(loginUrl),
+            baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
+            bodySnippet: errorText.slice(0, 160),
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
+      throw new Error(adminRequestErrorMessage(response.status, errorText));
     }
 
-    return response.json();
+    let data: ApiResponse<any>;
+    try {
+      data = await response.json();
+    } catch {
+      recordAdminLoginDebug({
+        ok: false,
+        kind: 'bad-json',
+        status: response.status,
+        pathname,
+      });
+      throw new Error('Login response was not valid JSON. Check REACT_APP_API_BASE_URL and network/proxy.');
+    }
+    if (data && data.success === false) {
+      recordAdminLoginDebug({
+        ok: false,
+        kind: 'success-false',
+        pathname,
+        snippet: JSON.stringify(data).slice(0, 200),
+      });
+      throw new Error(data.error || data.message || 'Login failed');
+    }
+    recordAdminLoginDebug({
+      ok: true,
+      kind: 'ok',
+      status: response.status,
+      pathname,
+      hasData: !!data?.data,
+    });
+    return data;
   },
 
   // Reset admin team member password
@@ -1758,7 +1908,7 @@ export const settingsAPI = {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      throw new Error(adminRequestErrorMessage(response.status, errorText));
     }
 
     return response.json();
