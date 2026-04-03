@@ -96,28 +96,9 @@ function adminRequestErrorMessage(status: number, errorText: string): string {
   return msg;
 }
 
-/** Session key for last admin login attempt (browser-only; works on Vercel). */
-export const TI_ADMIN_LOGIN_DEBUG_KEY = 'ti_admin_login_debug';
-
-function recordAdminLoginDebug(info: Record<string, unknown>) {
-  const payload = { ...info, t: Date.now() };
-  try {
-    sessionStorage.setItem(TI_ADMIN_LOGIN_DEBUG_KEY, JSON.stringify(payload));
-  } catch {
-    /* private mode / quota */
-  }
-  console.warn('[ti-admin-login]', payload);
-  /* Last attempt mirror for DevTools when sessionStorage is blocked (type `__TI_ADMIN_LOGIN_LAST__` in console). */
-  if (typeof window !== 'undefined') {
-    (window as unknown as { __TI_ADMIN_LOGIN_LAST__: typeof payload }).__TI_ADMIN_LOGIN_LAST__ = payload;
-  }
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Config:', { baseURL: API_CONFIG.baseURL, nodeEnv: process.env.NODE_ENV });
 }
-
-// Log configuration for debugging
-console.log('🚀 API Config loaded:');
-console.log('   - Environment:', process.env.NODE_ENV);
-console.log('   - Base URL:', API_CONFIG.baseURL);
-console.log('   - HTTPS Enforced: ✅');
 
 // Backend is fully operational - disable mock data
 const USE_MOCK_DATA = false; // Using real backend now!
@@ -194,25 +175,6 @@ const mockVendors: Vendor[] = [
     updated_at: "2024-01-02T00:00:00Z"
   }
 ];
-
-const mockDonors = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "555-0123",
-    total_donated: 500.00,
-    last_donation: "2024-01-01T00:00:00Z",
-    created_at: "2024-01-01T00:00:00Z"
-  }
-];
-
-const mockDashboardStats = {
-  totalVendors: 5,
-  totalDonors: 25,
-  totalBeneficiaries: 100,
-  totalRevenue: 15000.00
-};
 
 // Types for API responses
 export interface Vendor {
@@ -1816,13 +1778,6 @@ export const settingsAPI = {
   // Admin team login
   loginTeamMember: async (payload: { email: string; password: string }): Promise<ApiResponse<any>> => {
     const loginUrl = `${API_CONFIG.baseURL}/settings/team/login`;
-    let pathname = loginUrl;
-    try {
-      pathname = new URL(loginUrl).pathname;
-    } catch {
-      /* keep full string if non-absolute */
-    }
-
     let response: Response;
     try {
       response = await fetch(loginUrl, {
@@ -1832,50 +1787,13 @@ export const settingsAPI = {
       });
     } catch (e: unknown) {
       const netMsg = e instanceof Error ? e.message : 'Network error';
-      recordAdminLoginDebug({
-        ok: false,
-        kind: 'network',
-        pathname,
-        resolvedBase: API_CONFIG.baseURL,
-        baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
-        message: netMsg,
-      });
       throw new Error(
-        `${netMsg} — Check connection, ad blockers, and that the API URL is reachable (CORS). See console [ti-admin-login] and sessionStorage ti_admin_login_debug.`
+        `${netMsg} — Check your connection, ad blockers, and that the API URL is reachable (CORS).`
       );
     }
 
     if (!response.ok) {
       const errorText = await response.text();
-      recordAdminLoginDebug({
-        ok: false,
-        kind: 'http',
-        status: response.status,
-        pathname,
-        resolvedBase: API_CONFIG.baseURL,
-        baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
-        snippet: errorText.slice(0, 200),
-      });
-      // #region agent log
-      fetch('http://127.0.0.1:7442/ingest/660b7c22-9c13-4e3a-8381-0603cbcfbf1c', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '13604a' },
-        body: JSON.stringify({
-          sessionId: '13604a',
-          runId: 'admin-login',
-          hypothesisId: 'H404-H401',
-          location: 'api.ts:loginTeamMember:error',
-          message: 'admin login non-OK',
-          data: {
-            status: response.status,
-            pathDupSlash: /^https?:\/\/[^/]+\/.*\/\//.test(loginUrl),
-            baseEndsWithAdmin: API_CONFIG.baseURL.endsWith('/admin'),
-            bodySnippet: errorText.slice(0, 160),
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
       throw new Error(adminRequestErrorMessage(response.status, errorText));
     }
 
@@ -1883,30 +1801,11 @@ export const settingsAPI = {
     try {
       data = await response.json();
     } catch {
-      recordAdminLoginDebug({
-        ok: false,
-        kind: 'bad-json',
-        status: response.status,
-        pathname,
-      });
       throw new Error('Login response was not valid JSON. Check REACT_APP_API_BASE_URL and network/proxy.');
     }
     if (data && data.success === false) {
-      recordAdminLoginDebug({
-        ok: false,
-        kind: 'success-false',
-        pathname,
-        snippet: JSON.stringify(data).slice(0, 200),
-      });
       throw new Error(data.error || data.message || 'Login failed');
     }
-    recordAdminLoginDebug({
-      ok: true,
-      kind: 'ok',
-      status: response.status,
-      pathname,
-      hasData: !!data?.data,
-    });
     return data;
   },
 

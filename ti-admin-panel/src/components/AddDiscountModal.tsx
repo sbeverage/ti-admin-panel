@@ -20,7 +20,6 @@ import {
   PercentageOutlined,
   ShoppingOutlined,
   TagOutlined,
-  CloseOutlined,
   PlusOutlined
 } from '@ant-design/icons';
 import { discountAPI } from '../services/api';
@@ -83,36 +82,6 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
     setDiscountType(value);
     // Reset discount value when type changes
     form.setFieldsValue({ discountValue: undefined });
-  };
-
-  const getDiscountTypeIcon = (type: DiscountType) => {
-    switch (type) {
-      case 'percentage':
-        return <PercentageOutlined />;
-      case 'fixed':
-        return <DollarOutlined />;
-      case 'bogo':
-        return <ShoppingOutlined />;
-      case 'free':
-        return <GiftOutlined />;
-      default:
-        return <TagOutlined />;
-    }
-  };
-
-  const getDiscountTypeLabel = (type: DiscountType) => {
-    switch (type) {
-      case 'percentage':
-        return 'Percentage Off';
-      case 'fixed':
-        return 'Fixed Amount Off';
-      case 'bogo':
-        return 'Buy One Get One';
-      case 'free':
-        return 'Free Item';
-      default:
-        return 'Select Type';
-    }
   };
 
   const formatDiscountPreview = (values: any) => {

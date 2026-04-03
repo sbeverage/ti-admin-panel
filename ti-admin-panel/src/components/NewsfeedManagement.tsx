@@ -868,7 +868,7 @@ const NewsfeedManagement: React.FC = () => {
                     <div style={{ marginBottom: 16 }}>
                       <img 
                         src={selectedPost.image} 
-                        alt="Post image" 
+                        alt="Newsfeed post attachment" 
                         style={{ width: '100%', borderRadius: '8px' }}
                       />
                     </div>

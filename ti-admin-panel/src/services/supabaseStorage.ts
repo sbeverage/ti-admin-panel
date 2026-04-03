@@ -7,10 +7,6 @@ export interface UploadResult {
   error?: string;
 }
 
-// Supabase configuration
-const SUPABASE_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A';
-
 // Upload image to Supabase Storage via backend API
 // Backend uses service role key for secure uploads
 export const uploadToSupabase = async (
