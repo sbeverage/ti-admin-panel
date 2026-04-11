@@ -78,9 +78,7 @@ const Discounts: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading discounts from API...');
       const response = await discountAPI.getDiscounts(currentPage, pageSize);
-      console.log('Discount API response:', response);
       
       if (response.success) {
         // Transform API data to match our table structure
@@ -124,7 +122,6 @@ const Discounts: React.FC = () => {
         
         setDiscountsData(filteredData);
         setTotalDiscounts(response.pagination?.total || filteredData.length);
-        console.log('Discounts loaded successfully');
       } else {
         setError('Failed to load discounts');
         setDiscountsData([]);

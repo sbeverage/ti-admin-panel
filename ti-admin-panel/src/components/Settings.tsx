@@ -60,13 +60,10 @@ const Settings: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading settings data from API...');
       const [settingsResponse, teamResponse] = await Promise.all([
         settingsAPI.getSettings(),
         settingsAPI.getTeamMembers()
       ]);
-      
-      console.log('Settings API responses:', { settingsResponse, teamResponse });
       
       if (settingsResponse.success) {
         setSettingsData(settingsResponse.data);
@@ -383,7 +380,6 @@ const Settings: React.FC = () => {
 
   const handleProfileUpdate = async (values: any) => {
     try {
-      console.log('Updating profile:', values);
       const response = await settingsAPI.updateSettings(values);
       
       if (response.success) {
@@ -400,7 +396,6 @@ const Settings: React.FC = () => {
 
   const handlePasswordChange = async (values: any) => {
     try {
-      console.log('Changing password');
       const storedUsername = localStorage.getItem('admin_username');
       const matchedEmail = teamMembers?.find((member: any) =>
         member?.email === storedUsername || member?.name === storedUsername

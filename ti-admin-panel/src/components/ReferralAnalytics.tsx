@@ -223,7 +223,6 @@ const ReferralAnalytics: React.FC = () => {
     }
   };
 
-
   // Test data for demonstration
   const getTestInvitationsData = () => {
     const now = new Date();
@@ -524,7 +523,6 @@ const ReferralAnalytics: React.FC = () => {
       return;
     }
     setSelectedTimeFilter(key);
-    console.log('Time filter changed to:', key);
   };
 
   useEffect(() => {

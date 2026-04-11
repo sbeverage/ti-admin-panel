@@ -102,7 +102,6 @@ const PendingApprovals: React.FC = () => {
     }
   };
 
-
   // Load data on component mount and when page changes
   useEffect(() => {
     loadApprovals();
@@ -167,13 +166,11 @@ const PendingApprovals: React.FC = () => {
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1); // Reset to first page when searching
-    console.log(`Searching for: ${value}`);
   };
 
   const clearSearch = () => {
@@ -462,7 +459,6 @@ const PendingApprovals: React.FC = () => {
 
   const handleApprove = async (record: ApprovalItem) => {
     try {
-      console.log('Approving item:', record);
       const response = await approvalsAPI.approveItem(parseInt(record.key), record.itemType);
       
       if (response.success) {
@@ -480,7 +476,6 @@ const PendingApprovals: React.FC = () => {
 
   const handleReject = async (record: ApprovalItem) => {
     try {
-      console.log('Rejecting item:', record);
       const response = await approvalsAPI.rejectItem(parseInt(record.key), record.itemType, 'Rejected by admin');
       
       if (response.success) {

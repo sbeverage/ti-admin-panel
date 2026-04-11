@@ -190,8 +190,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
 
   const handleNext = async () => {
     try {
-      console.log('🔍 Current step:', currentStep);
-      console.log('📝 All form values:', form.getFieldsValue());
       
       if (currentStep === 0) {
         // Step 0: Basic Details - validate required fields only
@@ -200,18 +198,15 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           'street', 'phoneNumber', 'city', 'state', 'zipCode', 'category', 'description'
         ];
         const values = await form.validateFields(fieldsToValidate);
-        console.log('✅ Step 0 validation passed');
         setBasicDetails(values);
         setCurrentStep(1);
       } else if (currentStep === 1) {
         // Step 1: Discounts - all fields optional, just get values
         const allValues = form.getFieldsValue();
-        console.log('✅ Step 1 - collecting discount values (optional)');
         setPriceDiscounts(allValues);
         setCurrentStep(2);
       } else {
         // Step 2: Work Schedule - all fields optional, just get values
-        console.log('🚀 Step 2 - Preparing to submit...');
         const allValues = form.getFieldsValue();
         const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         const missingSchedule = days.find((day) => {
@@ -229,7 +224,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           message.error(`Please set both start and end times for ${dayLabel}, or mark it as closed.`);
           return;
         }
-        console.log('📦 All collected values:', { ...basicDetails, ...priceDiscounts, ...allValues });
         setWorkSchedule(allValues);
         await handleSubmit({ ...basicDetails, ...priceDiscounts, ...allValues });
       }
@@ -248,10 +242,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   };
 
   const handleSubmit = async (allData: any) => {
-    console.log('🎯 handleSubmit CALLED!');
-    console.log('📦 Submitting vendor data:', allData);
-    console.log('🖼️ Logo file list:', logoFileList);
-    console.log('📸 Product images file list:', productImagesFileList);
     
     setSaving(true);
     try {
@@ -354,8 +344,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         }
       };
 
-      console.log('Sending vendor data to API:', vendorData);
-
       // Store form data in description as JSON since backend doesn't support custom fields
       const formData = {
         tags: allData.tags || [],
@@ -372,19 +360,13 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       };
 
       // Create vendor
-      console.log('About to call vendorAPI.createVendor with:', vendorDataWithImages);
       const vendorResponse = await vendorAPI.createVendor(vendorDataWithImages);
-      console.log('Vendor API response:', vendorResponse);
-      console.log('Response success:', vendorResponse?.success);
-      console.log('Response data:', vendorResponse?.data);
-      console.log('Response error:', vendorResponse?.error);
       
       // Check if vendor was created (handle both response formats)
       const vendorCreated = vendorResponse?.success && vendorResponse?.data;
       if (vendorCreated && vendorResponse.data) {
         const vendorId = vendorResponse.data.id;
         if (!vendorId) {
-          console.warn('Vendor created but missing ID in response:', vendorResponse);
           message.warning('Vendor created, but discount setup could not be saved. Please add discounts from the vendor profile.');
           onSubmit(allData);
           setTimeout(() => {
@@ -392,14 +374,11 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           }, 100);
           return;
         }
-        console.log('✅ Vendor created successfully with ID:', vendorId);
         
         // Upload logo to Supabase Storage if provided
         if (!logoUrl && logoFileList.length > 0 && logoFileList[0].originFileObj) {
           try {
-            console.log('Uploading logo to Supabase Storage...');
             const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
-            console.log('Logo upload response:', logoUploadResponse);
             if (logoUploadResponse.success) {
               message.success('Logo uploaded successfully!');
             }
@@ -487,18 +466,14 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               isActive: true
             };
 
-            console.log('Creating discount:', discountData);
             const discountResponse = await discountAPI.createDiscount(discountData);
-            console.log('Discount API response:', discountResponse);
 
             if (discountResponse.success && discountResponse.data) {
               createdCount += 1;
               if (productImagesFileList.length > 0) {
                 try {
-                  console.log('Uploading discount image to Supabase Storage...');
                   const discountId = discountResponse.data.id;
                   const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
-                  console.log('Discount image upload response:', imageUploadResponse);
                   if (imageUploadResponse.success) {
                     message.success('Discount image uploaded successfully!');
                   }
@@ -508,7 +483,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 }
               }
             } else {
-              console.warn('Discount creation failed:', discountResponse);
             }
           }
 
@@ -563,7 +537,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     }
   };
 
-
   const handleSaveAndAddNew = async () => {
     try {
       const values = await form.validateFields();
@@ -603,7 +576,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       // Show success message
       message.success("Discount added successfully! You can now add another discount for this vendor.");
     } catch (error) {
-      console.log("Validation failed:", error);
     }
   };  const handlePrev = () => {
     setCurrentStep(currentStep - 1);
@@ -664,7 +636,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     multiple: false,
     customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
       try {
-        console.log('Uploading file:', file.name, 'Type:', file.type);
 
         onProgress({ percent: 20 });
         const result = await uploadToSupabase(file, bucketName, folder);
@@ -702,11 +673,9 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     },
     onChange: (info: any) => {
       if (info.file.status === 'done') {
-        console.log('Upload completed:', info.file.name);
       } else if (info.file.status === 'error') {
         console.error('Upload error:', info.file.error);
       } else if (info.file.status === 'uploading') {
-        console.log('Uploading:', info.file.name);
       }
     },
   });
@@ -825,13 +794,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                     }
                     options={categoryOptions}
                     onChange={(value) => {
-                      console.log('Selected category:', value);
                       setSelectedCategory(value);
                     }}
                     onDropdownVisibleChange={(open) => {
                       if (open) {
-                        console.log('Category options:', categoryOptions);
-                        console.log('Looking for coworking:', categoryOptions.find(opt => opt.value === 'coworking'));
                       }
                     }}
                   />
@@ -1039,8 +1005,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               </Col>
             </Row>
 
-
-
             {/* Pricing Tier */}
             <Row gutter={[24, 16]}>
               <Col span={24}>
@@ -1198,7 +1162,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Button 
                 type="primary" 
                 onClick={() => {
-                  console.log('🖱️ Submit/Next button clicked! Current step:', currentStep);
                   handleNext();
                 }}
                 className="next-btn"

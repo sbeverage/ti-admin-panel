@@ -238,7 +238,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     const timerName = `Vendor Profile API Call ${vendorIdNum}-${Date.now()}`;
     
     try {
-      console.log('Loading vendor profile data...');
       console.time(timerName);
       
       // Load vendor data with timeout
@@ -248,40 +247,30 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       ]) as any;
       
       console.timeEnd(timerName);
-      console.log('Vendor API response:', vendorResponse);
       if (vendorResponse.success && vendorResponse.data) {
         const vendor = vendorResponse.data;
-        console.log('Vendor data from API:', vendor);
         
         // Load discounts for this vendor with timeout (optional - don't fail if endpoint doesn't exist)
         let discounts = [];
         try {
-          console.log('🔍 Fetching discounts for vendor ID:', vendorIdNum);
           
           // First, try to fetch all discounts directly to see what we get
           try {
             const allDiscountsTest = await discountAPI.getDiscounts(1, 1000);
-            console.log('🧪 TEST: All discounts response:', allDiscountsTest);
-            console.log('🧪 TEST: All discounts data:', allDiscountsTest.data);
-            console.log('🧪 TEST: Total discounts found:', allDiscountsTest.data?.length || 0);
             
             if (allDiscountsTest.data && Array.isArray(allDiscountsTest.data)) {
               const vendorDiscounts = allDiscountsTest.data.filter((d: any) => {
                 const vid = d.vendor_id || d.vendorId;
                 const matches = vid === vendorIdNum || vid === Number(vendorIdNum) || String(vid) === String(vendorIdNum);
                 if (matches) {
-                  console.log('✅ TEST: Found matching discount:', d.id, 'vendor_id:', vid);
                 }
                 return matches;
               });
-              console.log('🧪 TEST: Filtered discounts for vendor:', vendorDiscounts);
               if (vendorDiscounts.length > 0) {
                 discounts = vendorDiscounts;
-                console.log(`✅ TEST: Using ${discounts.length} discounts from direct fetch`);
               }
             }
           } catch (testError) {
-            console.log('🧪 TEST: Direct fetch failed, trying vendor-specific endpoint:', testError);
           }
           
           // If we didn't get discounts from direct fetch, try the vendor-specific endpoint
@@ -291,24 +280,18 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               timeoutPromise
             ]) as any;
             
-            console.log('📦 Discounts API response:', discountsResponse);
             
             if (discountsResponse && discountsResponse.success) {
               discounts = Array.isArray(discountsResponse.data) ? discountsResponse.data : [];
-              console.log(`✅ Loaded ${discounts.length} discounts:`, discounts);
             } else {
-              console.log('⚠️ Discounts response not successful:', discountsResponse);
               discounts = [];
             }
           }
         } catch (discountError) {
           console.error('❌ Error loading discounts:', discountError);
-          console.log('Discounts endpoint not available, continuing without discounts:', discountError);
           discounts = [];
         }
         
-        console.log(`🎯 Final discounts array for vendor ${vendorIdNum}:`, discounts);
-        console.log(`🎯 Final discounts count:`, discounts.length);
         
         // Parse form data from description field (stored as JSON)
         // Handle both JSON and plain text descriptions
@@ -318,15 +301,12 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             // Try to parse as JSON first
             try {
               formData = JSON.parse(vendor.description);
-              console.log('Parsed form data from description (JSON):', formData);
             } catch (jsonError) {
               // If JSON parsing fails, treat as plain text
-              console.log('Description is plain text, not JSON:', vendor.description);
               formData = { description: vendor.description };
             }
           }
         } catch (error) {
-          console.log('Could not parse form data from description:', error);
           // Fallback: use description as plain text
           if (vendor.description) {
             formData = { description: vendor.description };
@@ -334,7 +314,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         }
 
         // Transform API data to match our interface
-        console.log('Transforming vendor data for profile...');
         const transformedData: VendorData = {
           id: vendor.id.toString(),
           vendorName: vendor.name,
@@ -404,19 +383,15 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           image_upload_status: formData.image_upload_status
         };
 
-        console.log('Setting vendor data:', transformedData);
         // Store original vendor object for reference (especially for address structure, hours, social_links)
         (transformedData as any).originalVendor = vendor;
         setVendorData(transformedData);
         setFormData(transformedData);
         setSelectedCategory(transformedData.category || '');
-        console.log('Vendor profile data loaded successfully');
-        console.log('Original vendor object stored:', vendor);
       } else {
         console.error('❌ Vendor API response failed:', vendorResponse);
         message.error('Failed to load vendor data');
         // No data available
-        console.log('No vendor data available');
         setVendorData(null);
         setFormData(null);
         setSelectedCategory('');
@@ -428,7 +403,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       } catch {}
       console.error('Error loading vendor data:', error);
       console.error('Error details:', error);
-      console.log('API failed, showing fallback vendor data');
       message.error('Failed to load vendor data.');
       setVendorData(null);
       setFormData(null);
@@ -440,13 +414,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     }
   };
 
-
   const handleEdit = () => {
-    console.log('✏️ Edit button clicked - entering edit mode');
-    console.log('✏️ Current vendorData:', vendorData);
     setIsEditing(true);
     setFormData({ ...vendorData });
-    console.log('✏️ isEditing set to true, formData updated');
   };
 
   const handleCancel = () => {
@@ -455,21 +425,14 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   };
 
   const handleSave = async () => {
-    console.log('💾 ========================================');
-    console.log('💾 SAVE BUTTON CLICKED - Starting vendor update...');
-    console.log('💾 Current formData:', JSON.stringify(formData, null, 2));
-    console.log('💾 Current vendorData:', JSON.stringify(vendorData, null, 2));
-    console.log('💾 ========================================');
     
     if (saving) {
-      console.warn('💾 Already saving, ignoring duplicate save request');
       return;
     }
     
     setSaving(true);
     try {
       const vendorIdNum = parseInt(vendorId);
-      console.log('💾 Parsed vendor ID:', vendorIdNum);
       
       // Get the original vendor data to preserve fields we're not updating
       const originalVendor = vendorData as any;
@@ -486,7 +449,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         category: formData.category || originalVendor?.category || originalVendorFromAPI?.category || '',
       };
       
-      console.log('💾 Constructed apiData:', apiData);
       
       // Preserve hours if available (work schedule)
       if (originalVendorFromAPI?.hours) {
@@ -507,7 +469,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         ? originalVendor.tags
         : [];
       apiData.tags = tagsToSave;
-      console.log('🏷️ Tags to save:', tagsToSave);
       
       // Handle description field - it stores JSON with tags, pricingTier, and description text
       // Parse existing description to preserve other fields, then update with new values
@@ -517,7 +478,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         if (originalVendorFromAPI?.description) {
           try {
             descriptionData = JSON.parse(originalVendorFromAPI.description);
-            console.log('📝 Parsed existing description JSON:', descriptionData);
           } catch {
             // If not JSON, treat as plain text
             descriptionData = { description: originalVendorFromAPI.description };
@@ -530,7 +490,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }
         }
       } catch (error) {
-        console.log('Could not parse description, using as plain text');
         descriptionData = { description: formData.description || originalVendor?.description || 'No description provided' };
       }
       
@@ -552,8 +511,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       
       // Stringify the description data to match InviteVendorModal format
       apiData.description = JSON.stringify(descriptionData);
-      console.log('📝 Description JSON to save:', descriptionData);
-      console.log('📝 Description string to save:', apiData.description);
       
       // Handle address - use original API address structure if available
       if (originalVendorFromAPI?.address && typeof originalVendorFromAPI.address === 'object') {
@@ -621,13 +578,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       // CRITICAL: Prioritize formData.logo_url (what user just uploaded) over everything else
       // Backend might expect logoUrl (camelCase) which saves to logo_url column
       const logoUrl = formData.logo_url || formData.logoUrl || vendorData?.logo_url || originalVendorFromAPI?.logo_url;
-      console.log('🖼️ Logo URL resolution:', {
-        'formData.logo_url': formData.logo_url,
-        'formData.logoUrl': formData.logoUrl,
-        'vendorData?.logo_url': vendorData?.logo_url,
-        'originalVendorFromAPI?.logo_url': originalVendorFromAPI?.logo_url,
-        'final logoUrl': logoUrl
-      });
       
       // Always send logo_url field if we have a value (even if empty string, to preserve existing)
       // Only skip if it's explicitly null (user removed it)
@@ -636,22 +586,18 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         apiData.logoUrl = logoUrl; // Backend expects camelCase
         apiData.logo_url = logoUrl; // Also send snake_case for compatibility
         apiData.logo = logoUrl; // Send plain 'logo' as well
-        console.log('✅ logoUrl included in apiData:', logoUrl);
       } else if (logoUrl === null && formData.logo_url === null) {
         // User explicitly removed the logo - send null to clear it
         apiData.logoUrl = null;
         apiData.logo_url = null;
         apiData.logo = null;
-        console.log('🗑️ Logo explicitly removed by user - sending null to clear');
       } else {
         // Logo URL is missing but wasn't explicitly removed - preserve existing
-        console.warn('⚠️ Logo URL is missing but not explicitly removed - preserving existing logo_url');
         const existingLogoUrl = originalVendorFromAPI?.logo_url || vendorData?.logo_url;
         if (existingLogoUrl) {
           apiData.logoUrl = existingLogoUrl;
           apiData.logo_url = existingLogoUrl;
           apiData.logo = existingLogoUrl;
-          console.log('✅ Preserving existing logo_url:', existingLogoUrl);
         }
       }
       
@@ -673,7 +619,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         const fallbackName = originalVendorFromAPI?.name || originalVendor?.companyName || originalVendor?.vendorName;
         if (fallbackName) {
           apiData.name = fallbackName;
-          console.log('⚠️ Using fallback name from original vendor:', fallbackName);
         } else {
           message.error('Company name is required');
           setSaving(false);
@@ -686,7 +631,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         const fallbackEmail = originalVendorFromAPI?.email || originalVendor?.email || originalVendor?.primaryEmail;
         if (fallbackEmail) {
           apiData.email = fallbackEmail;
-          console.log('⚠️ Using fallback email from original vendor:', fallbackEmail);
         } else {
           message.error('Email is required');
           setSaving(false);
@@ -694,17 +638,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         }
       }
       
-      console.log('💾 Updating vendor with data:', JSON.stringify(apiData, null, 2));
-      console.log('💾 Vendor ID:', vendorIdNum);
-      console.log('💾 About to call vendorAPI.updateVendor...');
       
       try {
         const result = await vendorAPI.updateVendor(vendorIdNum, apiData);
-        console.log('💾 Vendor update result received:', result);
-        console.log('💾 Result success:', result.success);
-        console.log('💾 Result data:', result.data);
-        console.log('💾 Result error:', result.error);
-        console.log('💾 Full result object:', JSON.stringify(result, null, 2));
         
         // Check for success - be explicit about what constitutes success
         const isSuccess = result.success === true || 
@@ -718,11 +654,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           
           // WORKAROUND: If we sent a logo_url but backend returned null, make a separate API call to update it
           if (savedLogoUrl && savedLogoUrl !== '' && !backendReturnedLogoUrl) {
-            console.warn('⚠️ Backend did not save logo_url, attempting separate update...');
             try {
               const logoUpdateResult = await vendorAPI.updateVendorLogoUrl(vendorIdNum, savedLogoUrl);
               if (logoUpdateResult.success) {
-                console.log('✅ Logo URL updated successfully via separate API call');
               } else {
                 console.error('❌ Failed to update logo URL separately:', logoUpdateResult.error);
                 // Continue anyway - logo is preserved in UI
@@ -765,7 +699,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               tags: formData.tags || vendorData?.tags,
               description: apiResponse.description || formData.description || vendorData?.description
             };
-            console.log('💾 Updated data with logo_url:', savedLogoUrl);
             setVendorData((prev: VendorData | null) => prev ? { ...prev, ...updatedData } as VendorData : null);
             setFormData((prev: any) => ({ ...prev, ...updatedData }));
           } else {
@@ -779,8 +712,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           // Reload vendor data to get the latest from API (including logo_url)
           // CRITICAL: Preserve logo_url during reload in case backend returns null
           // Don't show loading spinner during reload to avoid window appearing to close/reopen
-          console.log('🔄 Reloading vendor data after successful update...');
-          console.log('🔄 Preserving logo_url during reload:', savedLogoUrl);
           try {
             await loadVendorData(false, savedLogoUrl); // Pass logoUrlToPreserve to prevent loss
           } catch (reloadError) {
@@ -888,7 +819,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               <Select
                 value={formData.category}
                 onChange={(value) => {
-                  console.log('Selected category:', value);
                   handleInputChange('category', value);
                   setSelectedCategory(value);
                 }}
@@ -924,8 +854,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                       { value: 'coworking', label: 'Coworking' },
                       { value: 'other', label: 'Other' }
                     ];
-                    console.log('Category options:', categoryOptions);
-                    console.log('Looking for coworking:', categoryOptions.find(opt => opt.value === 'coworking'));
                   }
                 }}
                 options={[
@@ -1344,10 +1272,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     );
   };
 
-
-
-
-
   const renderStats = () => (
     <Card title="Quick Stats" className="profile-section-card">
       <Row gutter={[24, 16]}>
@@ -1387,19 +1311,15 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             <ImageUpload
               currentImageUrl={formData?.logo_url || vendorData?.logo_url}
               onImageChange={(url) => {
-                console.log('🖼️ Logo URL changed:', url);
                 const logoUrl = url || '';
                 // Update formData immediately so it shows in the UI and gets saved
                 // CRITICAL: This is what gets sent to the backend when Save is clicked
                 setFormData((prev: any) => {
                   const updated = { ...prev, logo_url: logoUrl };
-                  console.log('🖼️ Updated formData with logo_url:', logoUrl);
-                  console.log('🖼️ formData after update:', updated);
                   return updated;
                 });
                 // Also update vendorData for immediate display
                 setVendorData((prev: VendorData | null) => prev ? { ...prev, logo_url: logoUrl } : null);
-                console.log('🖼️ Updated vendorData and formData with logo URL:', logoUrl);
                 // Note: User must click Save button to persist to database
               }}
               title="Upload Vendor Logo"
@@ -1557,12 +1477,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           
           <div className="header-actions">
             {(() => {
-              console.log('🔍 Rendering header actions, isEditing:', isEditing, 'saving:', saving);
               return isEditing ? (
                 <Space>
                   <Button 
                     onClick={(e) => {
-                      console.log('❌ Cancel button clicked');
                       handleCancel();
                     }} 
                     icon={<CloseOutlined />}
@@ -1573,19 +1491,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                     type="primary"
                     htmlType="button"
                     onClick={(e) => {
-                      console.log('💾💾💾 SAVE BUTTON CLICKED - EVENT FIRED 💾💾💾');
-                      console.log('💾 Button event:', e);
-                      console.log('💾 isEditing:', isEditing);
-                      console.log('💾 saving:', saving);
-                      console.log('💾 vendorData:', vendorData);
-                      console.log('💾 formData:', formData);
                       e.preventDefault();
                       e.stopPropagation();
                       e.nativeEvent?.stopImmediatePropagation();
                       try {
-                        console.log('💾 About to call handleSave...');
                         handleSave();
-                        console.log('💾 handleSave called (async, may not be complete)');
                       } catch (error) {
                         console.error('❌ Error calling handleSave:', error);
                         message.error('Failed to save. Please check console for details.');
@@ -1607,7 +1517,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
                 <Button
                   type="primary"
                   onClick={(e) => {
-                    console.log('✏️ Edit Profile button clicked');
                     handleEdit();
                   }}
                   icon={<EditOutlined />}

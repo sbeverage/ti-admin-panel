@@ -17,7 +17,7 @@ else
 fi
 
 echo "🏗️ Building application..."
-CI=false node node_modules/.bin/react-scripts build
+node node_modules/.bin/react-scripts build
 
 echo "✅ Build complete!"
 

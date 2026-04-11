@@ -64,7 +64,6 @@ const Donors: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading donors from API...');
       const collected: any[] = [];
       let page = 1;
       const limit = Math.max(pageSize, 200);
@@ -73,7 +72,6 @@ const Donors: React.FC = () => {
 
       do {
         response = await donorAPI.getDonors(page, limit);
-        console.log('Donor API response:', response);
         if (response?.success && Array.isArray(response.data)) {
           collected.push(...response.data);
         }
@@ -131,7 +129,6 @@ const Donors: React.FC = () => {
         )).sort() as string[];
         setCitiesList(cities);
         
-        console.log('Donors loaded successfully');
       } else {
         setError('Failed to load donors');
         setDonorsData([]);
@@ -143,7 +140,6 @@ const Donors: React.FC = () => {
       
       // Check if it's a 404 error (endpoint not ready)
       if (error.message && error.message.includes('404')) {
-        console.log('⚠️ Donor endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Donor" button to add donors.');
         setDonorsData([]);
         setAllDonorsData([]);
@@ -316,8 +312,6 @@ const Donors: React.FC = () => {
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    // Here you would typically fetch new data based on the selected time period
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -456,10 +450,9 @@ const Donors: React.FC = () => {
       sorter: true,
       sortOrder: sortField === 'name' ? sortOrder : null,
       render: (text: string, record: any) => (
-        <Space 
+        <Space
           onClick={(e) => {
             e.stopPropagation();
-            console.log('Clicked on name column');
             handleEditDonor(record);
           }}
           className="donor-name-cell"
@@ -740,8 +733,6 @@ const Donors: React.FC = () => {
 
   const handleInviteDonor = async (values: any): Promise<boolean> => {
     try {
-      console.log('Creating new donor:', values);
-      
       const isCoworking = values.coworking === 'Yes' || values.coworking === true;
       const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
         ? parseFloat(String(values.sponsorAmount).replace('$', ''))
@@ -807,11 +798,6 @@ const Donors: React.FC = () => {
   };
 
   const handleEditDonor = (record: any) => {
-    console.log('=== handleEditDonor CALLED ===');
-    console.log('Opening edit modal for donor:', record);
-    console.log('Record keys:', record ? Object.keys(record) : 'NO RECORD');
-    console.log('Record data:', JSON.stringify(record, null, 2));
-    
     if (!record) {
       console.error('No record provided to handleEditDonor');
       message.error('Cannot edit: No donor selected');
@@ -824,18 +810,8 @@ const Donors: React.FC = () => {
       return;
     }
     
-    console.log('Setting editingDonor and opening modal...');
-    console.log('Before: isEditModalVisible =', isEditModalVisible, 'editingDonor =', editingDonor);
-    
     setEditingDonor(record);
     setIsEditModalVisible(true);
-    
-    // Force a re-render check
-    setTimeout(() => {
-      console.log('After (delayed): isEditModalVisible should be true now');
-    }, 100);
-    
-    console.log('Modal state set to visible');
   };
 
   const handleUpdateDonor = async (values: any) => {
@@ -885,8 +861,6 @@ const Donors: React.FC = () => {
       //   donorData.notes = values.notes;
       // }
       
-      console.log('Updating donor:', editingDonor.id, donorData);
-      console.log('Donor data payload:', JSON.stringify(donorData, null, 2));
       const response = await donorAPI.updateDonor(editingDonor.id, donorData);
       
       if (response.success || response.data) {
@@ -1274,7 +1248,6 @@ const Donors: React.FC = () => {
         visible={isEditModalVisible}
         donor={editingDonor}
         onCancel={() => {
-          console.log('Edit modal cancelled');
           setIsEditModalVisible(false);
           setEditingDonor(null);
         }}

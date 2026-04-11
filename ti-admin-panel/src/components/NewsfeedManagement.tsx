@@ -107,8 +107,7 @@ const NewsfeedManagement: React.FC = () => {
     } else if (key === 'newsfeed-management') {
       navigate('/newsfeed-management');
     } else if (key === 'ads-management') {
-      // TODO: Handle ads management navigation
-      console.log('Ads Management clicked');
+      navigate('/newsfeed-management');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
     } else if (key === 'invitations') {

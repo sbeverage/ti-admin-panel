@@ -63,7 +63,6 @@ const Vendor: React.FC = () => {
     // No mock data fallback - use real API data only
 
     try {
-      console.log('🔄 Loading vendors from API...');
       console.time('API Call'); // Start timing
       const collected: any[] = [];
       let page = 1;
@@ -73,7 +72,6 @@ const Vendor: React.FC = () => {
 
       do {
         response = await vendorAPI.getVendors(page, limit);
-        console.log('📦 Vendor API response:', response);
         if (response?.success && Array.isArray(response.data)) {
           collected.push(...response.data);
         }
@@ -81,7 +79,6 @@ const Vendor: React.FC = () => {
         page += 1;
       } while (collected.length < total);
       console.timeEnd('API Call'); // End timing
-      console.log('📋 Total vendors loaded:', collected.length);
       
       // Ensure data is an array before processing - handle all cases
       let vendorsData: VendorType[] = [];
@@ -89,19 +86,12 @@ const Vendor: React.FC = () => {
       if (collected.length > 0) {
         vendorsData = collected;
       } else {
-        console.warn('⚠️ response.data is undefined:', response);
         vendorsData = [];
       }
       
-      console.log('📋 Vendors data array:', vendorsData);
-      console.log('📋 Array length:', vendorsData.length);
-      console.log('📋 Is array?', Array.isArray(vendorsData));
-      console.log('📋 Full response object:', response);
       
       if (response?.success && vendorsData.length > 0) {
         // Transform API data to match our table structure
-        console.log('🔄 Transforming vendor data...');
-        console.log('📋 Vendors to transform:', vendorsData.length);
           const transformedData = vendorsData.map((vendor: VendorType) => {
             const rawStatus = ((vendor as any).status ?? ((vendor as any).is_active !== false ? 'active' : 'inactive')).toString().toLowerCase();
             const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
@@ -138,16 +128,11 @@ const Vendor: React.FC = () => {
             logo_url: vendor.logo_url || null // Include logo URL for display
           });
         });
-        console.log('Transformed data:', transformedData);
-        console.log('Sample vendor status:', transformedData[0]?.status);
-        console.log('Setting vendors data...');
         setVendorsData(transformedData);
         setAllVendorsData(transformedData);
         setTotalVendors(transformedData.length);
-        console.log('Vendors data set successfully');
       } else if (response?.success && vendorsData.length === 0) {
         // Success but no vendors yet
-        console.log('✅ API call successful, but no vendors found');
         setVendorsData([]);
         setAllVendorsData([]);
         setTotalVendors(0);
@@ -166,7 +151,6 @@ const Vendor: React.FC = () => {
       setLoading(false);
     }
   };
-
 
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     try {
@@ -239,7 +223,6 @@ const Vendor: React.FC = () => {
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleInviteVendor = () => {
@@ -252,7 +235,6 @@ const Vendor: React.FC = () => {
 
   const handleInviteVendorModalSubmit = async (values: any) => {
     // The modal already handles vendor creation, we just need to refresh the list
-    console.log('Vendor creation completed, refreshing vendor list...');
     setInviteVendorModalVisible(false);
     // Refresh the vendor list with a small delay to ensure backend processing is complete
     setTimeout(() => {
@@ -271,11 +253,9 @@ const Vendor: React.FC = () => {
   };
 
   const handleVendorUpdate = async (updatedData: any) => {
-    console.log('🔄 Vendor.tsx: handleVendorUpdate called with:', updatedData);
     
     // If updateData indicates success, just refresh the list (update was already done in VendorProfile)
     if (updatedData?.success === true) {
-      console.log('🔄 Vendor.tsx: Update already successful, just refreshing list');
       loadVendors();
       return;
     }
@@ -284,9 +264,7 @@ const Vendor: React.FC = () => {
     try {
       if (selectedVendorId && updatedData && typeof updatedData === 'object' && !updatedData.success) {
         const vendorId = parseInt(selectedVendorId);
-        console.log('🔄 Vendor.tsx: Legacy update path - Updating vendor ID:', vendorId);
         const result = await vendorAPI.updateVendor(vendorId, updatedData);
-        console.log('🔄 Vendor.tsx: Update result:', result);
         if (result.success || result.data) {
           message.success('Vendor updated successfully!');
           loadVendors();
@@ -297,7 +275,6 @@ const Vendor: React.FC = () => {
         }
       } else {
         // Just refresh the list
-        console.log('🔄 Vendor.tsx: No update needed, just refreshing list');
         loadVendors();
       }
     } catch (error: any) {
@@ -311,7 +288,6 @@ const Vendor: React.FC = () => {
   };
 
   const handleEditVendor = (record: any) => {
-    console.log('Edit vendor:', record);
     // Open the vendor profile in edit mode
     setSelectedVendorId(record.key);
     setProfileVisible(true);
@@ -365,14 +341,10 @@ const Vendor: React.FC = () => {
   };
 
   const handleToggleStatus = async (record: any) => {
-    console.log('Toggle status clicked for vendor:', record);
-    console.log('Current status:', record.status);
     
     const newStatus = record.status === 'active' ? 'inactive' : 'active';
     const action = newStatus === 'active' ? 'activate' : 'deactivate';
     
-    console.log('New status will be:', newStatus);
-    console.log('Action:', action);
     
     try {
       setLoading(true);
@@ -380,7 +352,6 @@ const Vendor: React.FC = () => {
       // Call API to update status
       const response = await vendorAPI.updateVendorStatus(parseInt(record.key), newStatus);
       
-      console.log('API response:', response);
       
       if (response.success) {
         message.success(`Vendor ${action}d successfully`);
@@ -465,7 +436,6 @@ const Vendor: React.FC = () => {
       onClick: () => handleTimeFilterChange('all-time')
     }
   ];
-
 
   const menuItems = [
     {

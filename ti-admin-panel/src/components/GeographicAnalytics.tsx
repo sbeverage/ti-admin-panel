@@ -95,14 +95,11 @@ const GeographicAnalytics: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading geographic analytics from API...');
       const selectedPeriod = getSelectedPeriod();
       const response = await analyticsAPI.getGeographicAnalytics(selectedPeriod);
-      console.log('Geographic analytics API response:', response);
       
       if (response.success) {
         setGeographicData(response.data);
-        console.log('Geographic analytics loaded successfully');
       } else {
         setError('Failed to load geographic analytics');
         setGeographicData(null);
@@ -116,14 +113,12 @@ const GeographicAnalytics: React.FC = () => {
     }
   };
 
-
   const handleTimeFilterChange = ({ key }: { key: string }) => {
     if (key === 'Custom Date') {
       message.info('Custom date range is not supported yet.');
       return;
     }
     setSelectedTimeFilter(key);
-    console.log('Time filter changed to:', key);
   };
 
   useEffect(() => {

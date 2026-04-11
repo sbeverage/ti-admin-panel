@@ -40,7 +40,6 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
         values.location = values.cityState; // For API compatibility
       }
       
-      console.log('📦 Donor data:', values);
       
       const success = await onSubmit(values);
       if (success) {

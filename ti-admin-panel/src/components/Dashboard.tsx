@@ -100,7 +100,6 @@ const Dashboard: React.FC = () => {
     setError(null);
     
     try {
-      console.log('📊 Loading dashboard data from API...');
       const selectedPeriod = getSelectedPeriod();
       
       // Import API functions
@@ -115,15 +114,6 @@ const Dashboard: React.FC = () => {
         donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null }))
       ]);
-      
-      console.log('📊 Dashboard responses:', {
-        stats: statsResponse,
-        approvals: approvalsResponse,
-        vendors: vendorsResponse,
-        beneficiaries: beneficiariesResponse,
-        donors: donorsResponse,
-        donationsChart: donationsChartData
-      });
       
       // Apply period filter to counts (when period !== 'all')
       const donorsInPeriod = filterByPeriod(donorsResponse.data || []);
@@ -181,7 +171,6 @@ const Dashboard: React.FC = () => {
         };
       }
       
-      console.log('📊 Final dashboard stats:', stats);
       setDashboardStats(stats);
       
       // Load recent approvals data with proper city/state parsing and logos
@@ -269,7 +258,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('📊 Dashboard visible - refreshing data...');
         loadDashboardData();
       }
     };

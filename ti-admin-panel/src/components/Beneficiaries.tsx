@@ -96,7 +96,6 @@ const Beneficiaries: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading beneficiaries from API...');
       const collected: any[] = [];
       let page = 1;
       const limit = Math.max(pageSize, 200);
@@ -105,7 +104,6 @@ const Beneficiaries: React.FC = () => {
 
       do {
         response = await beneficiaryAPI.getBeneficiaries(page, limit, { includeInactive: true });
-        console.log('Beneficiary API response:', response);
         if (response?.success && Array.isArray(response.data)) {
           collected.push(...response.data);
         }
@@ -115,21 +113,8 @@ const Beneficiaries: React.FC = () => {
       
       if (response?.success) {
         // Log the actual API response structure for debugging
-        console.log('📊 Raw API response data:', collected);
         if (collected.length > 0) {
           const sample = collected[0];
-          console.log('📋 Sample beneficiary object:', sample);
-          console.log('📋 All keys in beneficiary object:', Object.keys(sample));
-          console.log('📋 Full beneficiary data structure:', JSON.stringify(sample, null, 2));
-          console.log('📋 Image fields:', {
-            imageUrl: sample.imageUrl,
-            image_url: sample.image_url,
-            main_image: sample.main_image,
-            main_image_url: sample.main_image_url,
-            logo: sample.logo,
-            logo_url: sample.logo_url,
-            image: sample.image
-          });
         }
         
         // Transform API data to match our table structure
@@ -146,22 +131,6 @@ const Beneficiaries: React.FC = () => {
         
         const transformedData = filteredData.map((beneficiary: any) => {
           // Log the raw beneficiary data for debugging
-          console.log('🔍 Processing beneficiary:', beneficiary.name || beneficiary.id, {
-            phone: beneficiary.phone,
-            phoneNumber: beneficiary.phoneNumber,
-            contactNumber: beneficiary.contactNumber,
-            contact_number: beneficiary.contact_number,
-            contact_name: beneficiary.contact_name,
-            contactName: beneficiary.contactName,
-            primaryContact: beneficiary.primaryContact,
-            email: beneficiary.email,
-            primaryEmail: beneficiary.primaryEmail,
-            bank_account: beneficiary.bank_account,
-            bankAccount: beneficiary.bankAccount,
-            location: beneficiary.location,
-            city: beneficiary.city,
-            state: beneficiary.state
-          });
           
           // Extract all possible field variations from API
           const name = beneficiary.name || beneficiary.beneficiaryName || 'Unknown';
@@ -264,7 +233,6 @@ const Beneficiaries: React.FC = () => {
         setBeneficiariesData(transformedData);
         setAllBeneficiariesData(transformedData);
         setTotalBeneficiaries(transformedData.length);
-        console.log('Beneficiaries loaded successfully');
       } else {
         setError('Failed to load beneficiaries');
         setBeneficiariesData([]);
@@ -276,7 +244,6 @@ const Beneficiaries: React.FC = () => {
       
       // Check if it's a 404 error (endpoint not ready)
       if (error.message && error.message.includes('404')) {
-        console.log('⚠️ Beneficiary endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Beneficiary" button to add beneficiaries.');
         setBeneficiariesData([]);
         setAllBeneficiariesData([]);
@@ -291,7 +258,6 @@ const Beneficiaries: React.FC = () => {
       setLoading(false);
     }
   };
-
 
   // Load data on component mount and when page changes
   useEffect(() => {
@@ -400,7 +366,6 @@ const Beneficiaries: React.FC = () => {
       },
       {} as Record<string, number>
     );
-    console.warn('🔍 Inactive filter: 0 results. Total beneficiaries:', allBeneficiariesData.length, 'Breakdown:', breakdown);
   }
 
   const sortedBeneficiaries = [...filteredBeneficiaries].sort((a, b) => {
@@ -429,7 +394,6 @@ const Beneficiaries: React.FC = () => {
   const handleInviteModalSubmit = async (values: any) => {
     // The InviteBeneficiaryModal handles the API call itself
     // This callback is called after successful creation to refresh the list
-    console.log('Beneficiary created, refreshing list...');
     setInviteModalVisible(false);
     // Refresh the beneficiaries list to show the newly created beneficiary with all fields
     await loadBeneficiaries();
@@ -448,7 +412,6 @@ const Beneficiaries: React.FC = () => {
   };
 
   const handleBeneficiaryUpdate = async (updatedData: any) => {
-    console.log('Beneficiary updated:', updatedData);
     // Refresh the beneficiaries list to show updated data
     await loadBeneficiaries();
     // Close the profile
@@ -483,7 +446,6 @@ const Beneficiaries: React.FC = () => {
       setLoading(true);
       // Convert to number if it's a string
       const idToDelete = typeof beneficiaryId === 'string' ? parseInt(beneficiaryId) : beneficiaryId;
-      console.log('Deleting beneficiary with ID:', idToDelete);
       const response = await beneficiaryAPI.deleteBeneficiary(idToDelete);
       const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
@@ -907,8 +869,6 @@ const Beneficiaries: React.FC = () => {
       title: 'System Settings & Configuration'
     },
   ];
-
-
 
   return (
     <Layout className="standard-layout">

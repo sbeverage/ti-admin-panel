@@ -101,7 +101,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 
   const handleNext = async () => {
     try {
-      console.log('🎯 Beneficiary form - Current step:', currentStep);
       
       if (currentStep === 0) {
         const values = await form.validateFields();
@@ -112,8 +111,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         //   return;
         // }
         
-        console.log('✅ Step 0 validated:', values);
-        console.log('📝 Step 0 beneficiaryName:', values.beneficiaryName);
         
         // CRITICAL: Save to state AND ensure form instance preserves these values
         setBasicDetails(values);
@@ -124,8 +121,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         
         // VERIFY: Double-check the name is preserved
         const verifyFormValues = form.getFieldsValue();
-        console.log('✅ VERIFIED: Form values after step 0:', verifyFormValues);
-        console.log('✅ VERIFIED: beneficiaryName in form:', verifyFormValues.beneficiaryName);
         if (!verifyFormValues.beneficiaryName) {
           console.error('❌ CRITICAL: beneficiaryName NOT in form after setting!', {
             values,
@@ -137,19 +132,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         setCurrentStep(1);
       } else if (currentStep === 1) {
         const values = await form.validateFields();
-        console.log('✅ Step 1 validated:', values);
-        console.log('📝 Step 1 Impact & Story fields:', {
-          whyThisMatters: values.whyThisMatters,
-          successStory: values.successStory,
-          storyAuthor: values.storyAuthor,
-          livesImpacted: values.livesImpacted,
-          programsActive: values.programsActive,
-          directToProgramsPercentage: values.directToProgramsPercentage,
-          impactStatement1: values.impactStatement1,
-          impactStatement2: values.impactStatement2,
-          hasImpactStatement1: !!values.impactStatement1,
-          hasImpactStatement2: !!values.impactStatement2
-        });
         
         setImpactStory(values);
         // Merge with existing form values (preserve step 0 data)
@@ -159,18 +141,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         
         // VERIFY: Double-check the Impact & Story fields are preserved
         const verifyFormValues = form.getFieldsValue();
-        console.log('✅ VERIFIED: Form values after step 1:', {
-          whyThisMatters: verifyFormValues.whyThisMatters,
-          successStory: verifyFormValues.successStory,
-          storyAuthor: verifyFormValues.storyAuthor,
-          hasWhyThisMatters: !!verifyFormValues.whyThisMatters,
-          hasSuccessStory: !!verifyFormValues.successStory
-        });
         
         setCurrentStep(2);
       } else if (currentStep === 2) {
         const values = await form.validateFields();
-        console.log('✅ Step 2 validated:', values);
         setTrustTransparency(values);
         // Merge with existing form values (preserve step 0 and 1 data)
         const currentFormValues = form.getFieldsValue();
@@ -179,7 +153,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       } else {
         // Final step - validate current step and collect all data
         const values = await form.validateFields();
-        console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
         // Get ALL form values from form instance
@@ -188,36 +161,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         const allFormValues = form.getFieldsValue(); // Gets all preserved form values
         
         // DEBUG: Check what's actually in the form right now
-        console.log('🔍 DEBUG: Form state check before submission:', {
-          allFormValues,
-          basicDetails,
-          formHasBeneficiaryName: !!allFormValues.beneficiaryName,
-          basicDetailsHasBeneficiaryName: !!basicDetails?.beneficiaryName,
-          allFormValuesKeys: Object.keys(allFormValues || {}),
-          basicDetailsKeys: Object.keys(basicDetails || {})
-        });
         
-        console.log('📋 All form values from form instance (all fields):', allFormValues);
-        console.log('📋 State variables:', { 
-          basicDetails, 
-          impactStory, 
-          trustTransparency, 
-          step3Values: values 
-        });
         
         // VERIFY Impact & Story data is in state
-        console.log('🔍 VERIFY Impact & Story in state:', {
-          impactStoryState: impactStory,
-          hasWhyThisMatters: !!impactStory?.whyThisMatters,
-          hasSuccessStory: !!impactStory?.successStory,
-          hasStoryAuthor: !!impactStory?.storyAuthor,
-          hasImpactStatement1: !!impactStory?.impactStatement1,
-          hasImpactStatement2: !!impactStory?.impactStatement2,
-          whyThisMattersValue: impactStory?.whyThisMatters,
-          successStoryValue: impactStory?.successStory,
-          impactStatement1Value: impactStory?.impactStatement1,
-          impactStatement2Value: impactStory?.impactStatement2
-        });
         
         // CRITICAL FIX: Merge state variables with form values
         // Priority: Non-empty values > form values > state variables
@@ -254,44 +200,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         allData.logoUrl = logoUrl;
         allData.additionalImages = additionalImages.filter(img => img);
         
-        console.log('📦 Combined data for submission:', allData);
-        console.log('🔍 CRITICAL CHECK: beneficiaryName in allData:', {
-          allDataBeneficiaryName: allData.beneficiaryName,
-          allDataName: allData.name,
-          allDataCharityName: allData.charityName,
-          hasBeneficiaryName: !!allData.beneficiaryName,
-          allDataKeys: Object.keys(allData)
-        });
         
         // VERIFY Impact & Story data is in allData
-        console.log('🔍 VERIFY Impact & Story in allData:', {
-          whyThisMatters: allData.whyThisMatters,
-          successStory: allData.successStory,
-          storyAuthor: allData.storyAuthor,
-          impactStatement1: allData.impactStatement1,
-          impactStatement2: allData.impactStatement2,
-          hasWhyThisMatters: !!allData.whyThisMatters,
-          hasSuccessStory: !!allData.successStory,
-          hasStoryAuthor: !!allData.storyAuthor,
-          hasImpactStatement1: !!allData.impactStatement1,
-          hasImpactStatement2: !!allData.impactStatement2,
-          fromImpactStory: impactStory?.whyThisMatters,
-          fromAllFormValues: allFormValues?.whyThisMatters,
-          impactStatement1FromState: impactStory?.impactStatement1,
-          impactStatement1FromForm: allFormValues?.impactStatement1
-        });
-        console.log('📦 Beneficiary name check (detailed):', {
-          fromBasicDetails: basicDetails?.beneficiaryName,
-          fromImpactStory: impactStory?.beneficiaryName,
-          fromTrustTransparency: trustTransparency?.beneficiaryName,
-          fromStep3Values: values?.beneficiaryName,
-          fromAllFormValues: allFormValues?.beneficiaryName,
-          fromAllData: allData.beneficiaryName,
-          finalValue: allData.beneficiaryName,
-          basicDetailsFull: basicDetails,
-          allFormValuesFull: allFormValues,
-          allDataKeys: Object.keys(allData)
-        });
         
         // Validate that we have the required beneficiaryName before submitting
         // Try multiple sources and field name variations
@@ -306,16 +216,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           ''
         );
         
-        console.log('🔍 Final beneficiary name check before submission:', {
-          allDataBeneficiaryName: allData.beneficiaryName,
-          allDataName: allData.name,
-          basicDetailsBeneficiaryName: basicDetails?.beneficiaryName,
-          basicDetailsName: basicDetails?.name,
-          allFormValuesBeneficiaryName: allFormValues?.beneficiaryName,
-          allFormValuesName: allFormValues?.name,
-          finalCharityName: charityName,
-          isEmpty: !charityName
-        });
         
         if (!charityName) {
           console.error('❌ Beneficiary name is missing from all sources!', {
@@ -366,31 +266,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   };
 
   const handleSubmit = async (allData: any) => {
-    console.log('🚀 Submitting beneficiary data:', allData);
-    console.log('🚀 AllData keys:', Object.keys(allData));
-    console.log('🚀 AllData values:', {
-      beneficiaryName: allData.beneficiaryName,
-      category: allData.category,
-      type: allData.type,
-      city: allData.city,
-      state: allData.state,
-      zipCode: allData.zipCode,
-      location: allData.location,
-      primaryContact: allData.primaryContact,
-      phoneNumber: allData.phoneNumber,
-      primaryEmail: allData.primaryEmail,
-      about: allData.about,
-      whyThisMatters: allData.whyThisMatters,
-      successStory: allData.successStory,
-      storyAuthor: allData.storyAuthor,
-      impactStatement1: allData.impactStatement1,
-      impactStatement2: allData.impactStatement2,
-      ein: allData.ein,
-      website: allData.website,
-      isActive: allData.isActive,
-      mainImageUrl: allData.mainImageUrl || mainImageUrl,
-      logoUrl: allData.logoUrl || logoUrl
-    });
     setSaving(true);
     
     try {
@@ -438,12 +313,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // The name should already be validated and set in allData.beneficiaryName above
       const charityName = allData.beneficiaryName?.trim() || '';
       
-      console.log('📝 Charity name check (in handleSubmit):', {
-        rawBeneficiaryName: allData.beneficiaryName,
-        trimmed: charityName,
-        isEmpty: !charityName,
-        allDataKeys: Object.keys(allData)
-      });
       
       // This should never happen since we validate above, but double-check
       if (!charityName) {
@@ -581,7 +450,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       fieldsToRemove.forEach(field => {
         if (beneficiaryData.hasOwnProperty(field)) {
-          console.warn(`⚠️ Removing potentially problematic field: ${field}`);
           delete beneficiaryData[field];
         }
       });
@@ -593,77 +461,32 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       }
       
       // Logging for debugging
-      console.log('📦 Formatted beneficiary data:', beneficiaryData);
-      console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
-      console.log('📦 Payload size:', Object.keys(beneficiaryData).length, 'fields');
       
       // CRITICAL: Verify Impact & Story fields are in payload
-      console.log('🔍 VERIFY Impact & Story in payload:', {
-        why_this_matters: beneficiaryData.why_this_matters,
-        success_story: beneficiaryData.success_story,
-        story_author: beneficiaryData.story_author,
-        impact_statement_1: beneficiaryData.impact_statement_1,
-        impact_statement_2: beneficiaryData.impact_statement_2,
-        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
-        hasSuccessStory: !!beneficiaryData.success_story,
-        hasStoryAuthor: !!beneficiaryData.story_author,
-        hasImpactStatement1: !!beneficiaryData.impact_statement_1,
-        hasImpactStatement2: !!beneficiaryData.impact_statement_2,
-        whyThisMattersLength: beneficiaryData.why_this_matters?.length || 0,
-        successStoryLength: beneficiaryData.success_story?.length || 0,
-        impactStatement1Length: beneficiaryData.impact_statement_1?.length || 0,
-        impactStatement2Length: beneficiaryData.impact_statement_2?.length || 0
-      });
       
-      console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
       
       // Verify critical fields are removed
       const criticalRemovedFields = ['verification_status', 'communities_served', 'email', 'likes', 'mutual'];
       criticalRemovedFields.forEach(field => {
         const isRemoved = !beneficiaryData.hasOwnProperty(field);
-        console.log(`✅ Verified: ${field} NOT in payload:`, isRemoved);
         if (!isRemoved) {
           console.error(`❌ CRITICAL: ${field} is still in payload!`);
         }
       });
       
-      console.log('📦 Core fields being sent:', {
-        name: beneficiaryData.name,
-        category: beneficiaryData.category,
-        type: beneficiaryData.type,
-        city: beneficiaryData.city,
-        state: beneficiaryData.state,
-        zip_code: beneficiaryData.zip_code,
-        location: beneficiaryData.location,
-        phone: beneficiaryData.phone,
-        contact_name: beneficiaryData.contact_name,
-        ein: beneficiaryData.ein,
-        website: beneficiaryData.website,
-        is_active: beneficiaryData.is_active,
-        hasAbout: !!beneficiaryData.about,
-        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
-        hasImage: !!beneficiaryData.imageUrl,
-        hasLogo: !!beneficiaryData.logoUrl
-      });
       
       // Call API
-      console.log('📡 Calling API with payload:', beneficiaryData);
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
-      console.log('📡 API response:', response);
       
       // Handle different response formats
       // Backend might return: { success: true, data: {...} } OR just the data directly
       const responseData = response.data || response;
       const isSuccess = response.success !== false; // Default to true if not specified
       
-      console.log('📡 Response success:', isSuccess);
-      console.log('📡 Response data:', responseData);
       
       if (responseData) {
         const beneficiaryId = responseData.id || responseData;
-        console.log('📡 Created beneficiary ID:', beneficiaryId);
         if (typeof responseData === 'object') {
-          console.log('📡 Created beneficiary is_active:', responseData.is_active || responseData.isActive);
         }
       }
       

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import AdminLogin from './components/AdminLogin';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './components/Dashboard';
 import Donors from './components/Donors';
 import Vendor from './components/Vendor';
@@ -57,6 +58,7 @@ function App() {
   // Show main app if authenticated
   return (
     <div className="App">
+      <ErrorBoundary>
       <Router>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -75,6 +77,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
+      </ErrorBoundary>
     </div>
   );
 }

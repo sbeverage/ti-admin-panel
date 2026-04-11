@@ -162,8 +162,6 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       delete discountData.maxDiscount;
       delete discountData.max_discount;
 
-      console.log('Creating/updating discount:', discountData);
-
       let response;
       if (editingDiscount) {
         // Update existing discount

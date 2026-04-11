@@ -379,8 +379,6 @@ const ApiRateLimiting: React.FC = () => {
   const handleSaveRule = async (values: any) => {
     try {
       setLoading(true);
-      // Here you would typically save to your backend
-      console.log('Saving rate limit rule:', values);
       message.success('Rate limit rule updated successfully');
       setEditingRule(null);
       form.resetFields();
