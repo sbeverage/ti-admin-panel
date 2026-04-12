@@ -22,8 +22,6 @@ import {
   DownloadOutlined,
   EditOutlined,
   PrinterOutlined,
-  FileExcelOutlined,
-  FilePdfOutlined,
   ReloadOutlined,
   CalculatorOutlined,
   ReconciliationOutlined,
@@ -69,7 +67,6 @@ interface PayoutData {
 }
 
 const Reporting: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [payoutData, setPayoutData] = useState<PayoutData[]>([]);

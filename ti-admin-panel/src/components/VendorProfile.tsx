@@ -235,18 +235,14 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     });
 
     const vendorIdNum = parseInt(vendorId);
-    const timerName = `Vendor Profile API Call ${vendorIdNum}-${Date.now()}`;
-    
+
     try {
-      console.time(timerName);
-      
       // Load vendor data with timeout
       const vendorResponse = await Promise.race([
         vendorAPI.getVendor(vendorIdNum),
         timeoutPromise
       ]) as any;
       
-      console.timeEnd(timerName);
       if (vendorResponse.success && vendorResponse.data) {
         const vendor = vendorResponse.data;
         
@@ -397,12 +393,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         setSelectedCategory('');
       }
     } catch (error) {
-      // End timer if it was started
-      try {
-        console.timeEnd(timerName);
-      } catch {}
       console.error('Error loading vendor data:', error);
-      console.error('Error details:', error);
       message.error('Failed to load vendor data.');
       setVendorData(null);
       setFormData(null);

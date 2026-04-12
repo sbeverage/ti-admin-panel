@@ -9,34 +9,16 @@ import {
   StarOutlined,
   RiseOutlined,
   SettingOutlined,
-  CalendarOutlined,
   CrownOutlined,
-  FileTextOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
-  BellOutlined,
-  PictureOutlined,
-  LikeOutlined,
-  MessageOutlined,
-  ShareAltOutlined,
-  MoreOutlined,
-  ShoppingOutlined,
-  BankOutlined,
   GiftOutlined,
   DollarOutlined,
   CheckCircleFilled,
   DownOutlined,
-  FallOutlined,
   EnvironmentOutlined,
   GlobalOutlined,
-  CompassOutlined,
-  BarChartOutlined,
-  PieChartOutlined,
-  LineChartOutlined,
-  FlagOutlined,
   HomeOutlined,
-  ShopOutlined,
-  HeartOutlined,
   TrophyOutlined,
   TeamOutlined,
   CalculatorOutlined,
@@ -52,7 +34,6 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const GeographicAnalytics: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeTab, setActiveTab] = useState('overview');

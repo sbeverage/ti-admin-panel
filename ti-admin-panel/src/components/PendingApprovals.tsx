@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
+  CrownOutlined, ExclamationCircleOutlined,
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
   EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined,
@@ -38,7 +38,6 @@ interface ApprovalItem {
 }
 
 const PendingApprovals: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -54,10 +53,6 @@ const PendingApprovals: React.FC = () => {
   const [totalApprovals, setTotalApprovals] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   // Load pending approvals from API
   // Gracefully handles missing endpoint / empty data - shows empty state instead of errors

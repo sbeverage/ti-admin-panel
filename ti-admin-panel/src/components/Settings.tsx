@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Dropdown, Spin } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import UserProfile from './UserProfile';
 import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined,   LockOutlined,
-  TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
-  ApiOutlined, GlobalOutlined, LogoutOutlined, CalculatorOutlined, MailOutlined
+  ExclamationCircleOutlined, MenuOutlined, BellOutlined, UserAddOutlined,
+  EditOutlined, GiftOutlined, LockOutlined,
+  TeamOutlined, SecurityScanOutlined,
+  ApiOutlined, GlobalOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import './Settings.css';
 import ApiRateLimiting from './ApiRateLimiting';
@@ -24,7 +21,6 @@ const { TabPane } = Tabs;
 
 const Settings: React.FC = () => {
   const isSuperAdmin = localStorage.getItem('admin_is_super_admin') === 'true';
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showApiRateLimiting, setShowApiRateLimiting] = useState(false);
@@ -51,9 +47,6 @@ const Settings: React.FC = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   // Load settings data from API
   const loadSettingsData = async () => {

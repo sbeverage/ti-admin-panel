@@ -4,10 +4,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined,
+  ExclamationCircleOutlined,
+  MenuOutlined, SearchOutlined, UserAddOutlined,
+  SortAscendingOutlined, EditOutlined,
+  GiftOutlined, TeamOutlined, GlobalOutlined,
   CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
@@ -24,7 +24,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 const Vendor: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -63,7 +62,6 @@ const Vendor: React.FC = () => {
     // No mock data fallback - use real API data only
 
     try {
-      console.time('API Call'); // Start timing
       const collected: any[] = [];
       let page = 1;
       const limit = Math.max(pageSize, 200);
@@ -78,8 +76,7 @@ const Vendor: React.FC = () => {
         total = response?.pagination?.total || collected.length;
         page += 1;
       } while (collected.length < total);
-      console.timeEnd('API Call'); // End timing
-      
+
       // Ensure data is an array before processing - handle all cases
       let vendorsData: VendorType[] = [];
       

@@ -10,8 +10,6 @@ import {
   RiseOutlined,
   SettingOutlined,
   CalendarOutlined,
-  CrownOutlined,
-  FileTextOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
   ShoppingOutlined,
@@ -20,7 +18,6 @@ import {
   DollarOutlined,
   CheckCircleFilled,
   DownOutlined,
-  FallOutlined,
   TeamOutlined,
   GlobalOutlined,
   ReloadOutlined,
@@ -37,7 +34,6 @@ const { Title, Text } = Typography;
 
 
 const Dashboard: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilterKey, setSelectedTimeFilterKey] = useState('1 Month');
   const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');

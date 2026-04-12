@@ -8,7 +8,7 @@ import {
   MenuOutlined, SearchOutlined, ShopOutlined, HeartOutlined,
   TeamOutlined, GlobalOutlined, CalculatorOutlined, ExclamationCircleOutlined,
   CheckCircleOutlined, CloseCircleOutlined, MailOutlined, EyeOutlined,
-  StarOutlined, RiseOutlined, GiftOutlined, BankOutlined, CalendarOutlined
+  StarOutlined, RiseOutlined, GiftOutlined
 } from '@ant-design/icons';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -37,7 +37,6 @@ interface Invitation {
 }
 
 const Invitations: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);

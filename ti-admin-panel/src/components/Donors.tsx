@@ -4,10 +4,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
+  ExclamationCircleOutlined,
+  MenuOutlined, SearchOutlined, UserAddOutlined,
+  SortAscendingOutlined, EditOutlined,
+  GiftOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
   MailOutlined, EnvironmentOutlined, CalculatorOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
@@ -24,7 +24,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 const Donors: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);

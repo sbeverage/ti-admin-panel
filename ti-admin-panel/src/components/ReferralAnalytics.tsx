@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress, Tooltip, Modal, Form, InputNumber, Divider, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from './UserProfile';
@@ -9,7 +9,6 @@ import {
   StarOutlined,
   RiseOutlined,
   SettingOutlined,
-  CalendarOutlined,
   CrownOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
@@ -52,7 +51,6 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const ReferralAnalytics: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
   const [activeTab, setActiveTab] = useState('overview');
