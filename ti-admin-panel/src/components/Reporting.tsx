@@ -806,16 +806,26 @@ const Reporting: React.FC = () => {
               </Space>
             }
             extra={
-              <Badge count={payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} showZero={false}>
-                <Button
-                  type={needsReviewFilter ? 'primary' : 'default'}
-                  icon={<ReconciliationOutlined />}
-                  onClick={() => setNeedsReviewFilter(!needsReviewFilter)}
-                  style={needsReviewFilter ? { backgroundColor: '#ff4d4f', borderColor: '#ff4d4f' } : {}}
-                >
-                  {payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} Need Review
-                </Button>
-              </Badge>
+              (() => {
+                const reviewCount = payoutData.filter(p => p.reconciliationStatus === 'needs_review').length;
+                return reviewCount > 0 ? (
+                  <Button
+                    type={needsReviewFilter ? 'primary' : 'default'}
+                    icon={<ReconciliationOutlined />}
+                    onClick={() => setNeedsReviewFilter(!needsReviewFilter)}
+                    style={needsReviewFilter ? { backgroundColor: '#ff4d4f', borderColor: '#ff4d4f' } : { color: '#ff4d4f', borderColor: '#ff4d4f' }}
+                  >
+                    {reviewCount} Need Review
+                  </Button>
+                ) : (
+                  <Button
+                    icon={<ReconciliationOutlined />}
+                    disabled
+                  >
+                    All Reconciled
+                  </Button>
+                );
+              })()
             }
           >
             <Table

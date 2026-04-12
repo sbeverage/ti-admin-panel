@@ -43,6 +43,10 @@ const Dashboard: React.FC = () => {
   const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');
   const [donorChartFilter, setDonorChartFilter] = useState('1 Month');
   const [donationChartFilter, setDonationChartFilter] = useState('1 Month');
+  const [donorChartStats, setDonorChartStats] = useState<{ total: number; active: number; inactive: number } | null>(null);
+  const [donationChartStats, setDonationChartStats] = useState<{ total: number } | null>(null);
+  const [donorChartLoading, setDonorChartLoading] = useState(false);
+  const [donationChartLoading, setDonationChartLoading] = useState(false);
   const [customDateOpen, setCustomDateOpen] = useState(false);
   const [customDateRange, setCustomDateRange] = useState<any>(null);
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
@@ -53,24 +57,63 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getSelectedPeriod = () => {
-    switch (selectedTimeFilterKey) {
-      case 'All':
-        return 'all';
-      case '1 Week':
-        return '7d';
-      case '15 Days':
-        return '15d';
-      case '1 Month':
-        return '30d';
-      case '3 Months':
-        return '90d';
-      case '6 Months':
-        return '180d';
-      case 'One Year':
-        return '365d';
-      default:
-        return '30d';
+  const filterLabelToPeriod = (label: string): string => {
+    switch (label) {
+      case 'All': return 'all';
+      case '1 Week': return '7d';
+      case '15 Days': return '15d';
+      case '1 Month': return '30d';
+      case '3 Months': return '90d';
+      case '6 Months': return '180d';
+      case 'One Year': return '365d';
+      default: return '30d';
+    }
+  };
+
+  const getSelectedPeriod = () => filterLabelToPeriod(selectedTimeFilterKey);
+
+  // Load donor chart data independently
+  const loadDonorChartData = async (period: string) => {
+    setDonorChartLoading(true);
+    try {
+      const { donorAPI } = await import('../services/api');
+      const resp = await donorAPI.getDonors(1, 1000);
+      const donors: any[] = resp.data || [];
+      let filtered = donors;
+      if (period !== 'all') {
+        const days = parseInt(period.replace('d', ''), 10) || 30;
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        filtered = donors.filter((d: any) => {
+          const created = d.created_at ? new Date(d.created_at) : null;
+          return created && !isNaN(created.getTime()) && created >= start;
+        });
+      }
+      let active = 0, inactive = 0;
+      filtered.forEach((d: any) => {
+        const hasMonthly = d.monthly_donation?.active === true || d.subscription?.active === true || d.has_active_subscription === true;
+        if (hasMonthly) active++; else inactive++;
+      });
+      setDonorChartStats({ total: filtered.length, active, inactive });
+    } catch {
+      // keep existing stats on error
+    } finally {
+      setDonorChartLoading(false);
+    }
+  };
+
+  // Load donation chart data independently
+  const loadDonationChartData = async (period: string) => {
+    setDonationChartLoading(true);
+    try {
+      const { dashboardAPI } = await import('../services/api');
+      const statsResp = await dashboardAPI.getDashboardStats(period);
+      const total = statsResp?.data?.totalDonations || statsResp?.data?.totalRevenue || 0;
+      setDonationChartStats({ total });
+    } catch {
+      // keep existing stats on error
+    } finally {
+      setDonationChartLoading(false);
     }
   };
 
@@ -371,6 +414,14 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, [selectedTimeFilterKey]);
+
+  useEffect(() => {
+    loadDonorChartData(filterLabelToPeriod(donorChartFilter));
+  }, [donorChartFilter]);
+
+  useEffect(() => {
+    loadDonationChartData(filterLabelToPeriod(donationChartFilter));
+  }, [donationChartFilter]);
 
   const loadApprovalsData = async () => {
     try {
@@ -1002,21 +1053,23 @@ const Dashboard: React.FC = () => {
                             </Dropdown>
                           </div>
                           <div className="chart-content">
+                            <Spin spinning={donorChartLoading}>
                             <div className="chart-total">
-                              <span className="total-number">{dashboardStats?.totalDonors || '--'}</span>
+                              <span className="total-number">{donorChartStats !== null ? donorChartStats.total : (dashboardStats?.totalDonors ?? '--')}</span>
                               <span className="total-label">Total Donors</span>
                             </div>
                             <div className="donut-chart"></div>
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>{dashboardStats?.activeDonors || '--'} Active Donors</span>
+                                <span>{donorChartStats !== null ? donorChartStats.active : (dashboardStats?.activeDonors ?? '--')} Active Donors</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>{dashboardStats?.inactiveDonors || '--'} In-Active Donors</span>
+                                <span>{donorChartStats !== null ? donorChartStats.inactive : (dashboardStats?.inactiveDonors ?? '--')} In-Active Donors</span>
                               </div>
                             </div>
+                            </Spin>
                           </div>
                         </Card>
                       </Col>
@@ -1037,8 +1090,13 @@ const Dashboard: React.FC = () => {
                             </Dropdown>
                           </div>
                           <div className="chart-content">
+                            <Spin spinning={donationChartLoading}>
                             <div className="chart-total">
-                              <span className="total-number">{dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--'}</span>
+                              <span className="total-number">
+                                {donationChartStats !== null
+                                  ? (donationChartStats.total ? `$${donationChartStats.total.toLocaleString()}` : '$0')
+                                  : (dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--')}
+                              </span>
                               <span className="total-label">Total Donations</span>
                             </div>
                             <div className="line-chart">
@@ -1068,6 +1126,7 @@ const Dashboard: React.FC = () => {
                                 <span>Trend: {dashboardStats?.donationsTrend ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs last month` : '--'}</span>
                               </div>
                             </div>
+                            </Spin>
                           </div>
                         </Card>
                       </Col>

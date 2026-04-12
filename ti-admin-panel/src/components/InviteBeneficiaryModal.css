@@ -183,9 +183,24 @@
 
 /* Ensure text doesn't overlap the border - extra padding for scrollbar */
 .beneficiary-form .ant-input-textarea textarea.ant-input {
-  padding: 12px 20px 12px 20px !important;
-  padding-right: 28px !important; /* Extra space when scrollbar is visible */
+  padding: 12px 16px !important;
   min-height: 100px;
+  vertical-align: top;
+  display: block;
+}
+
+/* Center placeholder text in textareas */
+.beneficiary-form textarea.ant-input::placeholder,
+.beneficiary-form .ant-input-textarea textarea::placeholder {
+  text-align: center;
+  line-height: 80px; /* visually centers short placeholders */
+}
+
+/* Once user starts typing, left-align actual content */
+.beneficiary-form textarea.ant-input:not(:placeholder-shown),
+.beneficiary-form .ant-input-textarea textarea:not(:placeholder-shown) {
+  text-align: left;
+  line-height: 1.6;
 }
 
 .beneficiary-form .ant-input[type="text"] {

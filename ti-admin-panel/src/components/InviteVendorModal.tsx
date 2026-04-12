@@ -603,9 +603,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       form.setFieldsValue({ logo: newFileList[0].name });
     }
     
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
+    if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   };
@@ -614,16 +612,14 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     let newFileList = [...info.fileList];
     newFileList = newFileList.slice(-5); // Keep up to 5 files
     setProductImagesFileList(newFileList);
-    
+
     // Set form value for validation
     const uploadedFiles = newFileList.filter(file => file.status === 'done');
     if (uploadedFiles.length > 0) {
       form.setFieldsValue({ productImages: uploadedFiles.map(file => file.response?.url || file.name) });
     }
-    
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
+
+    if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   };

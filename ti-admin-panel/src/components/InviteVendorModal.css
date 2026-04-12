@@ -158,6 +158,18 @@
   box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2) !important;
 }
 
+/* Center placeholder text in vendor form textareas */
+.vendor-form textarea.ant-input::placeholder,
+.vendor-form .ant-input-textarea textarea::placeholder {
+  text-align: center;
+  line-height: 60px;
+}
+.vendor-form textarea.ant-input:not(:placeholder-shown),
+.vendor-form .ant-input-textarea textarea:not(:placeholder-shown) {
+  text-align: left;
+  line-height: 1.6;
+}
+
 /* Upload Sections */
 .upload-logo-section,
 .upload-images-section {
