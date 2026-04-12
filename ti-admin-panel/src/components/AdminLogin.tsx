@@ -33,6 +33,7 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
         localStorage.setItem('admin_authenticated', 'true');
         localStorage.setItem('admin_username', displayName);
         localStorage.setItem('admin_email', response.data.email || values.email);
+        localStorage.setItem('admin_is_super_admin', response.data.is_super_admin ? 'true' : 'false');
         onLogin(displayName);
       } else if (response.success === false) {
         message.error(response.error || 'Invalid email or password');

@@ -30,6 +30,7 @@ export const useAuth = () => {
           localStorage.removeItem('admin_username');
           localStorage.removeItem('admin_email');
           localStorage.removeItem('admin_session_expiry');
+          localStorage.removeItem('admin_is_super_admin');
           setAuthState({ isAuthenticated: false, username: null, loading: false });
           return;
         }
@@ -62,6 +63,7 @@ export const useAuth = () => {
     localStorage.removeItem('admin_username');
     localStorage.removeItem('admin_email');
     localStorage.removeItem('admin_session_expiry');
+    localStorage.removeItem('admin_is_super_admin');
 
     setAuthState({
       isAuthenticated: false,

@@ -23,6 +23,7 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 
 const Settings: React.FC = () => {
+  const isSuperAdmin = localStorage.getItem('admin_is_super_admin') === 'true';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -303,26 +304,21 @@ const Settings: React.FC = () => {
       render: (text: string) => <Text type="secondary">{text}</Text>,
       width: 180,
     },
-    {
+    ...(isSuperAdmin ? [{
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: any) => (
+      render: (_text: string, record: any) => (
         <Space>
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
+          <Button
+            type="text"
+            icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
             className="edit-user-btn"
-          />
-          <Button 
-            type="text" 
-            icon={<MoreOutlined />} 
-            className="more-actions-btn"
           />
         </Space>
       ),
       width: 120,
-    },
+    }] : []),
   ];
 
   const handleEditUser = (user: any) => {
@@ -707,14 +703,16 @@ const Settings: React.FC = () => {
                           <Title level={4} style={{ margin: 0 }}>Team Members</Title>
                           <Text type="secondary">{teamMembers.length} team members</Text>
                         </div>
-                        <Button 
-                          type="primary" 
-                          icon={<UserAddOutlined />}
-                          onClick={handleAddUser}
-                          className="add-team-member-btn"
-                        >
-                          Add Team Member
-                        </Button>
+                        {isSuperAdmin && (
+                          <Button
+                            type="primary"
+                            icon={<UserAddOutlined />}
+                            onClick={handleAddUser}
+                            className="add-team-member-btn"
+                          >
+                            Add Team Member
+                          </Button>
+                        )}
                       </div>
                       <Table
                         columns={teamColumns}
