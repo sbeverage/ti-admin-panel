@@ -1180,16 +1180,8 @@ const ReferralAnalytics: React.FC = () => {
 
       <Sider 
         trigger={null} 
-        collapsible
-        collapsed={collapsed}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
-        breakpoint="lg"
-        onBreakpoint={(broken) => {
-          if (broken) {
-            setCollapsed(true);
-          }
-        }}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -1222,12 +1214,6 @@ const ReferralAnalytics: React.FC = () => {
       <Layout className="standard-main-content">
         <Header className="standard-header">
           <div className="header-left">
-            <Button
-              type="text"
-              icon={<MenuOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="mobile-menu-btn"
-            />
             <Title level={2} className="page-title">Referral Analytics</Title>
             <Text type="secondary" className="page-subtitle">Track and analyze referral performance</Text>
           </div>

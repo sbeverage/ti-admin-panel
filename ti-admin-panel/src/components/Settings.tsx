@@ -482,10 +482,8 @@ const Settings: React.FC = () => {
       {/* Sidebar */}
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        trigger={null}
         width={280}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">

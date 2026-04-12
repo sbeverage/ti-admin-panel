@@ -588,7 +588,8 @@
     padding-top: 0 !important;
   }
   
-  /* Enhanced header responsiveness */
+  /* ── Headers ──────────────────────────────────────────────────────────── */
+  /* Add right-padding so title/buttons never slide under the fixed hamburger */
   .standard-header,
   .dashboard-header,
   .donors-header,
@@ -603,133 +604,130 @@
   .newsfeed-header,
   .referral-analytics-header,
   .geographic-analytics-header {
-    padding: 16px !important;
+    padding: 16px 72px 16px 16px !important; /* right clears 40px btn + 16px gap */
     flex-direction: column !important;
-    gap: 16px !important;
+    gap: 12px !important;
     align-items: flex-start !important;
     height: auto !important;
     min-height: auto !important;
   }
-  
-  /* Enhanced content responsiveness */
+
+  /* Header left/right sections: full width, wrap action buttons */
+  .header-left,
+  .header-right {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .header-right {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Page title sizing */
+  .header-left h2.ant-typography,
+  .header-left .ant-typography h2 {
+    font-size: 20px !important;
+    margin: 0 !important;
+  }
+
+  /* ── Content & cards ─────────────────────────────────────────────────── */
   .standard-content,
   .dashboard-content,
   .donors-content,
-  .beneficiaries-content {
+  .beneficiaries-content,
+  .vendor-content,
+  .discounts-content,
+  .settings-content,
+  .reporting-content {
     padding: 16px !important;
   }
-  
-  /* Enhanced card responsiveness */
+
   .overview-cards .ant-col,
   .summary-cards .ant-col {
     width: 100% !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 12px !important;
   }
-  
-  /* Enhanced table responsiveness */
+
+  .ant-card {
+    margin-bottom: 12px !important;
+  }
+
+  .ant-card-body {
+    padding: 16px !important;
+  }
+
+  .ant-statistic-title  { font-size: 12px !important; }
+  .ant-statistic-content { font-size: 20px !important; }
+
+  /* ── Filter / search bars ───────────────────────────────────────────── */
+  /* Let filter rows wrap so items don't overflow viewport */
+  .filter-section,
+  .search-filter-section,
+  .filters-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .filter-section .ant-select,
+  .search-filter-section .ant-select,
+  .filters-row .ant-select {
+    min-width: 0 !important;
+    flex: 1 1 140px !important;
+  }
+
+  /* ── Tables ─────────────────────────────────────────────────────────── */
   .ant-table-wrapper {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    position: relative !important;
   }
-  
+
   .ant-table {
     font-size: 12px !important;
     min-width: 600px !important;
   }
-  
-  /* Better table container */
+
   .ant-table-container {
     border-radius: 8px !important;
-    overflow: hidden !important;
+    overflow-x: auto !important;
   }
-  
-  /* Card wrapper for tables */
-  .ant-card .ant-table-wrapper {
-    margin: -16px !important;
-    padding: 16px !important;
-  }
-  
+
   .ant-table-thead > tr > th {
     padding: 10px 8px !important;
     font-size: 11px !important;
     white-space: nowrap !important;
     font-weight: 600 !important;
   }
-  
+
   .ant-table-tbody > tr > td {
     padding: 10px 8px !important;
     font-size: 12px !important;
-  }
-  
-  /* Make tables horizontally scrollable on mobile */
-  .ant-table-container {
-    overflow-x: auto !important;
-  }
-  
-  /* Better table cell content wrapping */
-  .ant-table-tbody > tr > td {
     word-break: break-word !important;
     max-width: 150px !important;
   }
-  
-  /* Enhanced button responsiveness */
-  .ant-btn {
-    height: 36px !important;
-    font-size: 14px !important;
-    padding: 4px 12px !important;
-  }
-  
+
+  /* ── Buttons ─────────────────────────────────────────────────────────── */
+  /* Don't shrink all buttons globally — just ensure they wrap */
   .ant-btn-sm {
     height: 28px !important;
     font-size: 12px !important;
     padding: 0 8px !important;
   }
-  
-  /* Enhanced form responsiveness */
-  .ant-form-item {
-    margin-bottom: 16px !important;
-  }
-  
-  .ant-input,
-  .ant-select {
-    height: 36px !important;
-    font-size: 14px !important;
-  }
-  
-  /* Card responsiveness */
-  .ant-card {
-    margin-bottom: 16px !important;
-  }
-  
-  .ant-card-body {
-    padding: 16px !important;
-  }
-  
-  /* Statistic cards on mobile */
-  .ant-statistic-title {
-    font-size: 12px !important;
-  }
-  
-  .ant-statistic-content {
-    font-size: 20px !important;
-  }
-  
-  /* Menu item icons consistency */
+
+  /* ── Forms & inputs ──────────────────────────────────────────────────── */
+  .ant-form-item { margin-bottom: 16px !important; }
+
+  /* ── Sidebar menu icons ──────────────────────────────────────────────── */
   .standard-menu .ant-menu-item-icon {
     font-size: 16px !important;
     width: 16px !important;
     height: 16px !important;
   }
-  
-  /* Ensure only one hamburger menu button is visible */
-  .mobile-menu-btn-right {
-    display: flex !important;
-  }
-  
-  .mobile-menu-btn {
-    display: none !important;
-  }
+
+  /* Only show the right-side hamburger; hide the legacy left-side one */
+  .mobile-menu-btn-right { display: flex !important; }
+  .mobile-menu-btn        { display: none !important; }
 }
 
 /* Extra Small Devices */
@@ -826,17 +824,12 @@
   .geographic-analytics-header {
     flex-direction: row !important;
     align-items: center !important;
-    padding: 12px 16px !important;
+    padding: 8px 64px 8px 12px !important; /* right clears hamburger */
   }
-  
+
   .mobile-menu-btn-right {
     top: 8px !important;
     right: 8px !important;
-  }
-  
-  .mobile-menu-btn {
-    top: 8px !important;
-    left: 8px !important;
   }
 }
 

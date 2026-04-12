@@ -834,9 +834,7 @@ const Dashboard: React.FC = () => {
       <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        trigger={null}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">

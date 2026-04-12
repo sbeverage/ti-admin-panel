@@ -568,9 +568,7 @@ const PendingApprovals: React.FC = () => {
       <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        trigger={null}
       >
         <div className="logo-section" style={{
           padding: '20px 16px 12px 16px',

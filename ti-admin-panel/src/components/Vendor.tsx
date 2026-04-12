@@ -727,8 +727,7 @@ const Vendor: React.FC = () => {
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
+        trigger={null}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
