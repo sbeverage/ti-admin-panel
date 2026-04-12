@@ -152,7 +152,7 @@
   color: #ff4d4f;
 }
 
-.beneficiary-form .ant-input,
+.beneficiary-form .ant-input:not(textarea),
 .beneficiary-form .ant-select-selector,
 .beneficiary-form .ant-input-affix-wrapper {
   border-radius: 8px;
@@ -173,6 +173,8 @@
 .beneficiary-form textarea.ant-input {
   border-radius: 8px;
   border: 1px solid #d9d9d9;
+  height: auto !important;
+  min-height: 100px;
   padding: 12px 16px !important;
   line-height: 1.6;
   resize: vertical;

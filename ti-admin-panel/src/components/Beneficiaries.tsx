@@ -1025,22 +1025,21 @@ const Beneficiaries: React.FC = () => {
                     <Option value="inactive">Inactive</Option>
                   </Select>
 
-                  {(searchTerm || selectedCause || selectedDuration || selectedType || selectedLocation || selectedActiveStatus) && (
-                    <Button
-                      size="large"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedCause(undefined);
-                        setSelectedDuration(undefined);
-                        setSelectedType(undefined);
-                        setSelectedLocation(undefined);
-                        setSelectedActiveStatus(undefined);
-                      }}
-                      style={{ color: '#DB8633', borderColor: '#DB8633' }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
+                  <Button
+                    size="large"
+                    disabled={!searchTerm && !selectedCause && !selectedDuration && !selectedType && !selectedLocation && !selectedActiveStatus}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCause(undefined);
+                      setSelectedDuration(undefined);
+                      setSelectedType(undefined);
+                      setSelectedLocation(undefined);
+                      setSelectedActiveStatus(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </div>
             </div>

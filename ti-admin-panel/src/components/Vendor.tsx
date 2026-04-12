@@ -856,20 +856,19 @@ const Vendor: React.FC = () => {
                     disabled
                   />
 
-                  {(searchTerm || selectedCategory || selectedStatus || selectedLocation) && (
-                    <Button
-                      size="large"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedCategory(undefined);
-                        setSelectedStatus(undefined);
-                        setSelectedLocation(undefined);
-                      }}
-                      style={{ color: '#DB8633', borderColor: '#DB8633' }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
+                  <Button
+                    size="large"
+                    disabled={!searchTerm && !selectedCategory && !selectedStatus && !selectedLocation}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategory(undefined);
+                      setSelectedStatus(undefined);
+                      setSelectedLocation(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </div>
               

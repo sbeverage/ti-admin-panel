@@ -677,6 +677,19 @@
     flex: 1 1 140px !important;
   }
 
+  /* When filter-dropdowns switches to column layout, reset flex on selects
+     so flex-basis doesn't apply to height (making selects 140px tall) */
+  .filter-dropdowns .ant-select,
+  .filter-dropdowns .filter-dropdown {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .filter-dropdowns .ant-select-selector {
+    height: 44px !important;
+  }
+
   /* ── Tables ─────────────────────────────────────────────────────────── */
   .ant-table-wrapper {
     overflow-x: auto !important;

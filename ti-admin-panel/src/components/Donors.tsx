@@ -1153,22 +1153,21 @@ const Donors: React.FC = () => {
                     <Option value="no">No</Option>
                   </Select>
 
-                  {(searchText || selectedBeneficiary || selectedDuration || selectedUserStatus || selectedCityState || selectedCoworking) && (
-                    <Button
-                      size="large"
-                      onClick={() => {
-                        setSearchText('');
-                        setSelectedBeneficiary(undefined);
-                        setSelectedDuration(undefined);
-                        setSelectedUserStatus(undefined);
-                        setSelectedCityState(undefined);
-                        setSelectedCoworking(undefined);
-                      }}
-                      style={{ color: '#DB8633', borderColor: '#DB8633' }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
+                  <Button
+                    size="large"
+                    disabled={!searchText && !selectedBeneficiary && !selectedDuration && !selectedUserStatus && !selectedCityState && !selectedCoworking}
+                    onClick={() => {
+                      setSearchText('');
+                      setSelectedBeneficiary(undefined);
+                      setSelectedDuration(undefined);
+                      setSelectedUserStatus(undefined);
+                      setSelectedCityState(undefined);
+                      setSelectedCoworking(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </div>
               
