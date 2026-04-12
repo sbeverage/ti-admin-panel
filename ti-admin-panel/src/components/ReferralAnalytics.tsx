@@ -873,6 +873,9 @@ const ReferralAnalytics: React.FC = () => {
   // Generate Referral modal state
   const [generateReferralModalVisible, setGenerateReferralModalVisible] = useState(false);
   const [resendPendingLoading, setResendPendingLoading] = useState(false);
+  const [sendInviteModalVisible, setSendInviteModalVisible] = useState(false);
+  const [sendInviteLoading, setSendInviteLoading] = useState(false);
+  const [sendInviteForm] = Form.useForm();
 
   // Handler functions
   const handleResendInvitation = async (invitation: any) => {
@@ -900,7 +903,35 @@ const ReferralAnalytics: React.FC = () => {
   };
 
   const handleSendNewInvitations = () => {
-    message.info('Send New Invitations feature - Coming soon!');
+    setSendInviteModalVisible(true);
+  };
+
+  const handleSendInviteSubmit = async () => {
+    try {
+      const values = await sendInviteForm.validateFields();
+      setSendInviteLoading(true);
+      const emails: string[] = values.emails
+        .split(/[\n,;]+/)
+        .map((e: string) => e.trim())
+        .filter(Boolean);
+      if (emails.length === 0) {
+        message.error('Please enter at least one email address');
+        return;
+      }
+      const response = await analyticsAPI.sendReferralInvitationsByEmail(emails);
+      if (response?.success) {
+        message.success(`Invitation${emails.length > 1 ? 's' : ''} sent to ${emails.length} recipient${emails.length > 1 ? 's' : ''}!`);
+      } else {
+        message.warning(response?.error || response?.message || 'Some invitations could not be sent.');
+      }
+      sendInviteForm.resetFields();
+      setSendInviteModalVisible(false);
+      loadInvitations();
+    } catch {
+      // validation error — stay open
+    } finally {
+      setSendInviteLoading(false);
+    }
   };
 
   const handleResendPending = async () => {
@@ -2026,6 +2057,38 @@ const ReferralAnalytics: React.FC = () => {
                 Cancel
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+      {/* Send New Invitations Modal */}
+      <Modal
+        title={
+          <Space>
+            <MailOutlined />
+            <span>Send New Invitations</span>
+          </Space>
+        }
+        open={sendInviteModalVisible}
+        onCancel={() => {
+          setSendInviteModalVisible(false);
+          sendInviteForm.resetFields();
+        }}
+        onOk={handleSendInviteSubmit}
+        okText="Send Invitations"
+        confirmLoading={sendInviteLoading}
+        width={480}
+      >
+        <Form form={sendInviteForm} layout="vertical" requiredMark="optional">
+          <Form.Item
+            name="emails"
+            label="Email Addresses"
+            rules={[{ required: true, message: 'Please enter at least one email address' }]}
+            extra="Separate multiple emails with commas, semicolons, or new lines."
+          >
+            <Input.TextArea
+              rows={5}
+              placeholder="e.g. alice@example.com, bob@example.com"
+            />
           </Form.Item>
         </Form>
       </Modal>

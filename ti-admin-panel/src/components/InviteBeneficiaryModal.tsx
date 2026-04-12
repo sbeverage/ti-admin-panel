@@ -826,9 +826,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Form.Item
               name="storyAuthor"
               label="Story Author"
-              rules={[{ max: 50, message: 'Author name must be 50 characters or less' }]}
+              rules={[{ max: 200, message: 'Author name must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Sarah M., Program Director" maxLength={50} />
+              <Input placeholder="e.g., Sarah M., Program Director" maxLength={200} />
             </Form.Item>
 
             <Divider>Impact Metrics</Divider>
@@ -898,15 +898,17 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Form.Item
               name="impactStatement1"
               label="Impact Statement 1"
+              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Every $25 provides a family with essential supplies for one week" />
+              <Input placeholder="e.g., Every $25 provides a family with essential supplies for one week" maxLength={200} showCount />
             </Form.Item>
-            
+
             <Form.Item
               name="impactStatement2"
               label="Impact Statement 2"
+              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Every $100 helps provide emergency housing for families in crisis" />
+              <Input placeholder="e.g., Every $100 helps provide emergency housing for families in crisis" maxLength={200} showCount />
             </Form.Item>
           </div>
         );

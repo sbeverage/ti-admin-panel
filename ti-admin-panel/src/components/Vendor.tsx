@@ -305,22 +305,7 @@ const Vendor: React.FC = () => {
         try {
           setLoading(true);
           
-          // Call real API
-          const mockSuccess = false; // Set to true to test error handling
-          
-          if (mockSuccess) {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Remove vendor from local state (mock deletion)
-            setVendorsData(prevVendors => 
-              prevVendors.filter(vendor => vendor.key !== record.key)
-            );
-            setTotalVendors(prev => prev - 1);
-            
-            message.success('Vendor deleted successfully (Mock Mode)');
-          } else {
-            const response = await vendorAPI.deleteVendor(parseInt(record.key));
+          const response = await vendorAPI.deleteVendor(parseInt(record.key));
             const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
             if (isSuccess) {
               message.success('Vendor deleted successfully');
@@ -329,7 +314,6 @@ const Vendor: React.FC = () => {
               message.error(response?.error || response?.message || 'Failed to delete vendor');
               throw new Error('Delete failed');
             }
-          }
         } catch (error) {
           console.error('Error deleting vendor:', error);
           message.error('Failed to delete vendor. Please try again.');
@@ -872,6 +856,21 @@ const Vendor: React.FC = () => {
                     size="large"
                     disabled
                   />
+
+                  {(searchTerm || selectedCategory || selectedStatus || selectedLocation) && (
+                    <Button
+                      size="large"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedCategory(undefined);
+                        setSelectedStatus(undefined);
+                        setSelectedLocation(undefined);
+                      }}
+                      style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
                 </div>
               </div>
               

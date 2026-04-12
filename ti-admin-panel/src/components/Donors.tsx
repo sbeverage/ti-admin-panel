@@ -773,10 +773,11 @@ const Donors: React.FC = () => {
         loadDonors();
         return true;
       } else {
-        message.error('Failed to create donor');
+        const errMsg = response.error || response.message || 'Failed to create donor';
+        message.error(errMsg);
         addNotification({
           title: 'Donor invite failed',
-          message: 'Failed to create donor.',
+          message: errMsg,
           level: 'error',
         });
         return false;
@@ -1153,6 +1154,23 @@ const Donors: React.FC = () => {
                     <Option value="yes">Yes</Option>
                     <Option value="no">No</Option>
                   </Select>
+
+                  {(searchText || selectedBeneficiary || selectedDuration || selectedUserStatus || selectedCityState || selectedCoworking) && (
+                    <Button
+                      size="large"
+                      onClick={() => {
+                        setSearchText('');
+                        setSelectedBeneficiary(undefined);
+                        setSelectedDuration(undefined);
+                        setSelectedUserStatus(undefined);
+                        setSelectedCityState(undefined);
+                        setSelectedCoworking(undefined);
+                      }}
+                      style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
                 </div>
               </div>
               

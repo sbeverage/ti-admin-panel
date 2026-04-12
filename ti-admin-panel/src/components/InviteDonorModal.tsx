@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { UserAddOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, CalendarOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import './InviteDonorModal.css';
 
@@ -262,11 +263,12 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
                 label="Last Donated Date"
                 className="form-item full-width"
               >
-                <DatePicker 
+                <DatePicker
                   placeholder="Select last donated date"
                   size="large"
                   style={{ width: '100%' }}
                   format="MMMM DD, YYYY"
+                  disabledDate={(current) => current && current > dayjs().endOf('day')}
                 />
               </Form.Item>
             </div>

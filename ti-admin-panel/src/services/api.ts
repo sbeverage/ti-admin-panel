@@ -9,9 +9,11 @@ const DEFAULT_SUPABASE_ANON_KEY =
 const DEFAULT_ADMIN_BASE_URL =
   'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
 
-// REACT_APP_ADMIN_SECRET must be set in your Vercel environment variables.
-// It must match ADMIN_SECRET_KEY set in the Supabase Edge Function dashboard.
-// If not set, all admin API calls will return 401 Unauthorized.
+// Built-in default — must match ADMIN_SECRET_KEY in the Supabase Edge Function dashboard.
+// REACT_APP_ADMIN_SECRET in Vercel overrides this; delete the Vercel var to use this default.
+// Value must be the raw secret with no quotes or extra whitespace.
+const DEFAULT_ADMIN_SECRET =
+  '2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25';
 
 const SUPABASE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
@@ -54,7 +56,7 @@ function normalizeEnvSecret(raw: string | undefined): string | undefined {
 }
 
 const getAdminHeaders = (): Record<string, string> => ({
-  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || '',
+  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || DEFAULT_ADMIN_SECRET,
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -1122,6 +1124,22 @@ export const analyticsAPI = {
         method: 'POST',
         headers: API_CONFIG.headers,
         body: JSON.stringify({ invitationIds }),
+      }
+    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  sendReferralInvitationsByEmail: async (emails: string[]): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/referrals/invitations/send`,
+      {
+        method: 'POST',
+        headers: API_CONFIG.headers,
+        body: JSON.stringify({ emails }),
       }
     );
     if (!response.ok) {

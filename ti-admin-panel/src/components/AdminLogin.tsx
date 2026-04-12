@@ -124,17 +124,15 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
                 label="Password"
                 rules={[
                   { required: true, message: 'Please enter your password' },
-                  { min: 8, message: 'Password must be at least 8 characters' },
                   {
                     validator: (_, value) => {
-                      if (!value || value.length < 8) return Promise.resolve();
+                      if (!value) return Promise.resolve();
+                      if (value.length < 8) return Promise.reject('Password must be at least 8 characters');
                       const hasUpper = /[A-Z]/.test(value);
                       const hasLower = /[a-z]/.test(value);
                       const hasNumber = /[0-9]/.test(value);
                       if (!hasUpper || !hasLower || !hasNumber) {
-                        return Promise.reject(
-                          'Password must include uppercase, lowercase, and a number'
-                        );
+                        return Promise.reject('Password must include uppercase, lowercase, and a number');
                       }
                       return Promise.resolve();
                     }

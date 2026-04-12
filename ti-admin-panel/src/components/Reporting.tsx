@@ -808,7 +808,7 @@ const Reporting: React.FC = () => {
               </Space>
             }
             extra={
-              <Badge count={payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} showZero>
+              <Badge count={payoutData.filter(p => p.reconciliationStatus === 'needs_review').length} showZero={false}>
                 <Button
                   type={needsReviewFilter ? 'primary' : 'default'}
                   icon={<ReconciliationOutlined />}

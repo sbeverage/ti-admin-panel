@@ -358,12 +358,22 @@
   height: 40px;
   font-weight: 500;
   padding: 0 24px;
+  min-width: 120px;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 .next-btn:hover {
   background: #C6762A !important;
   border-color: #C6762A !important;
   color: #ffffff !important;
+}
+
+.next-btn.ant-btn-loading,
+.next-btn[disabled] {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: rgba(255,255,255,0.8) !important;
+  opacity: 0.85;
 }
 
 /* Responsive Design */
@@ -592,3 +602,16 @@
   color: #C6762A !important;
 }
 /* Force rebuild Tue Oct 21 20:45:43 EDT 2025 */
+
+/* Textarea placeholder vertical alignment fix */
+.invite-beneficiary-modal .ant-input,
+.invite-beneficiary-modal textarea.ant-input {
+  vertical-align: top;
+  resize: vertical;
+}
+
+.invite-beneficiary-modal .ant-input-textarea textarea {
+  vertical-align: top;
+  display: block;
+  padding-top: 8px;
+}

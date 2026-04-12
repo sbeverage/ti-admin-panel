@@ -502,8 +502,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       if (descriptionData.logo_file_name) {
         // Keep existing logo_file_name
       }
-      if (descriptionData.product_images) {
-        // Keep existing product_images
+      // Update product_images from formData if user modified them
+      if (formData?.product_images !== undefined) {
+        descriptionData.product_images = formData.product_images;
       }
       if (descriptionData.image_upload_status) {
         // Keep existing image_upload_status
@@ -1365,25 +1366,82 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       <Card title="Product Images" className="profile-section-card">
         <div className="product-images-section">
           <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
-            Upload product images to showcase your offerings
+            {isEditing ? 'Upload product images to showcase your offerings' : 'Product images for this vendor'}
           </Text>
-          <div className="product-images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-            {/* Placeholder for product images - can be expanded later */}
-            <div style={{ 
-              border: '2px dashed #d9d9d9', 
-              borderRadius: '8px', 
-              padding: '20px', 
-              textAlign: 'center',
-              backgroundColor: '#fafafa'
-            }}>
-              <PictureOutlined style={{ fontSize: '32px', color: '#d9d9d9' }} />
-              <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
-                Product Images
-              </Text>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                Coming Soon
-              </Text>
-            </div>
+          <div className="product-images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+            {(formData?.product_images || vendorData?.product_images || []).map((imgUrl: string, idx: number) => (
+              <div key={idx} style={{ position: 'relative' }}>
+                <Image
+                  src={imgUrl}
+                  alt={`Product image ${idx + 1}`}
+                  style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: '8px', border: '1px solid #d9d9d9' }}
+                />
+                {isEditing && (
+                  <Button
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    style={{ position: 'absolute', top: 4, right: 4 }}
+                    onClick={() => {
+                      const updated = (formData?.product_images || []).filter((_: string, i: number) => i !== idx);
+                      setFormData((prev: any) => ({ ...prev, product_images: updated }));
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+            {isEditing && (
+              <Upload
+                accept="image/*"
+                showUploadList={false}
+                beforeUpload={async (file) => {
+                  const { uploadToSupabase, validateImageFile } = await import('../services/supabaseStorage');
+                  const validation = validateImageFile(file);
+                  if (!validation.valid) { message.error(validation.error); return false; }
+                  setUploading(true);
+                  try {
+                    const result = await uploadToSupabase(file, 'vendor-logos', 'vendors/products');
+                    if (result.success && result.url) {
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        product_images: [...(prev?.product_images || []), result.url]
+                      }));
+                      message.success('Product image uploaded!');
+                    } else {
+                      message.error(result.error || 'Upload failed');
+                    }
+                  } catch { message.error('Upload failed. Please try again.'); }
+                  finally { setUploading(false); }
+                  return false;
+                }}
+              >
+                <div style={{
+                  border: '2px dashed #d9d9d9',
+                  borderRadius: '8px',
+                  height: 150,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#fafafa',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1
+                }}>
+                  {uploading ? <Spin /> : <PlusOutlined style={{ fontSize: '24px', color: '#DB8633' }} />}
+                  <Text type="secondary" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    {uploading ? 'Uploading…' : 'Add Image'}
+                  </Text>
+                </div>
+              </Upload>
+            )}
+            {!isEditing && !(formData?.product_images || vendorData?.product_images || []).length && (
+              <div style={{ border: '2px dashed #d9d9d9', borderRadius: '8px', padding: '20px', textAlign: 'center', backgroundColor: '#fafafa' }}>
+                <PictureOutlined style={{ fontSize: '32px', color: '#d9d9d9' }} />
+                <Text type="secondary" style={{ display: 'block', marginTop: '8px', fontSize: '12px' }}>
+                  No product images. Click "Edit Profile" to add images.
+                </Text>
+              </div>
+            )}
           </div>
         </div>
       </Card>

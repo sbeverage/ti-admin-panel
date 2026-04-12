@@ -378,10 +378,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         // Upload logo to Supabase Storage if provided
         if (!logoUrl && logoFileList.length > 0 && logoFileList[0].originFileObj) {
           try {
-            const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
-            if (logoUploadResponse.success) {
-              message.success('Logo uploaded successfully!');
-            }
+            await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
           } catch (error) {
             console.error('Logo upload failed:', error);
             message.warning('Vendor created but logo upload failed. You can upload it later.');

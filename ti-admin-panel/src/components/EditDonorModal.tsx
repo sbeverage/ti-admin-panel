@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography, Tabs, Card, Tag, Divider, Spin, Empty } from 'antd';
+import dayjs from 'dayjs';
 import { 
   EditOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, 
   CalendarOutlined, EnvironmentOutlined, ArrowLeftOutlined, CreditCardOutlined,
@@ -407,11 +408,12 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                       label="Last Donated Date"
                       className="form-item full-width"
                     >
-                      <DatePicker 
+                      <DatePicker
                         placeholder="Select last donated date"
                         size="large"
                         style={{ width: '100%' }}
                         format="MMMM DD, YYYY"
+                        disabledDate={(current) => current && current > dayjs().endOf('day')}
                       />
                     </Form.Item>
                   </div>

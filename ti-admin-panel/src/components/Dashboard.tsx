@@ -41,6 +41,8 @@ const Dashboard: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedTimeFilterKey, setSelectedTimeFilterKey] = useState('1 Month');
   const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');
+  const [donorChartFilter, setDonorChartFilter] = useState('1 Month');
+  const [donationChartFilter, setDonationChartFilter] = useState('1 Month');
   const [customDateOpen, setCustomDateOpen] = useState(false);
   const [customDateRange, setCustomDateRange] = useState<any>(null);
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
@@ -103,7 +105,8 @@ const Dashboard: React.FC = () => {
       const selectedPeriod = getSelectedPeriod();
       
       // Import API functions
-      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI, dashboardAPI: { getChartData } } = await import('../services/api');
+      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI } = await import('../services/api');
+      const { getChartData } = dashboardAPI;
       
       // Load dashboard stats, approvals, chart data; fetch full lists for period filtering
       const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
@@ -487,6 +490,30 @@ const Dashboard: React.FC = () => {
         ? <CheckCircleFilled style={{ color: '#DB8633' }} />
         : undefined,
       onClick: () => handleTimeFilterChange(option)
+    }))
+  };
+
+  const donorChartFilterMenu = {
+    selectedKeys: [donorChartFilter],
+    items: timeFilterOptions.filter(o => o !== 'Custom Date').map((option) => ({
+      key: option,
+      label: option,
+      icon: donorChartFilter === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined,
+      onClick: () => setDonorChartFilter(option)
+    }))
+  };
+
+  const donationChartFilterMenu = {
+    selectedKeys: [donationChartFilter],
+    items: timeFilterOptions.filter(o => o !== 'Custom Date').map((option) => ({
+      key: option,
+      label: option,
+      icon: donationChartFilter === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined,
+      onClick: () => setDonationChartFilter(option)
     }))
   };
 
@@ -965,13 +992,13 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Breakdown of Donors</div>
                             <Dropdown
-                              menu={timeFilterMenu}
+                              menu={donorChartFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>{selectedTimeFilterLabel}</span>
+                                <span>{donorChartFilter}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
@@ -1000,13 +1027,13 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Donations</div>
                             <Dropdown
-                              menu={timeFilterMenu}
+                              menu={donationChartFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>{selectedTimeFilterLabel}</span>
+                                <span>{donationChartFilter}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
