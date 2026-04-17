@@ -4,15 +4,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined,
+  ExclamationCircleOutlined,
+  MenuOutlined, SearchOutlined, UserAddOutlined,
+  SortAscendingOutlined, EditOutlined,
+  GiftOutlined, TeamOutlined, GlobalOutlined,
   CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
 import { vendorAPI, Vendor as VendorType } from '../services/api';
+import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Vendor.css';
@@ -23,7 +24,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 const Vendor: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -34,8 +34,15 @@ const Vendor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [allVendorsData, setAllVendorsData] = useState<any[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
   const [showInactive, setShowInactive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedStatus, setSelectedStatus] = useState<string | undefined>();
+  const [selectedLocation, setSelectedLocation] = useState<string | undefined>();
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,7 +53,7 @@ const Vendor: React.FC = () => {
   // Load vendors from API
   useEffect(() => {
     loadVendors();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
   const loadVendors = async () => {
     setLoading(true);
@@ -55,44 +62,48 @@ const Vendor: React.FC = () => {
     // No mock data fallback - use real API data only
 
     try {
-      console.log('🔄 Loading vendors from API...');
-      console.time('API Call'); // Start timing
-      const response = await vendorAPI.getVendors(currentPage, pageSize);
-      console.timeEnd('API Call'); // End timing
-      console.log('📦 Vendor API response:', response);
-      console.log('✅ Response success:', response.success);
-      console.log('📊 Response data length:', response.data?.length);
-      console.log('📄 Response pagination:', response.pagination);
-      console.log('📋 Response data sample:', response.data?.[0]);
-      
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await vendorAPI.getVendors(page, limit);
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
+
       // Ensure data is an array before processing - handle all cases
       let vendorsData: VendorType[] = [];
       
-      if (response && response.data) {
-        if (Array.isArray(response.data)) {
-          vendorsData = response.data;
-        } else {
-          console.warn('⚠️ response.data is not an array:', response.data);
-          vendorsData = [];
-        }
+      if (collected.length > 0) {
+        vendorsData = collected;
       } else {
-        console.warn('⚠️ response.data is undefined:', response);
         vendorsData = [];
       }
       
-      console.log('📋 Vendors data array:', vendorsData);
-      console.log('📋 Array length:', vendorsData.length);
-      console.log('📋 Is array?', Array.isArray(vendorsData));
-      console.log('📋 Full response object:', response);
       
-      if (response.success && vendorsData.length > 0) {
+      if (response?.success && vendorsData.length > 0) {
         // Transform API data to match our table structure
-        console.log('🔄 Transforming vendor data...');
-        console.log('📋 Vendors to transform:', vendorsData.length);
-        const transformedData = vendorsData.map((vendor: VendorType) => ({
+          const transformedData = vendorsData.map((vendor: VendorType) => {
+            const rawStatus = ((vendor as any).status ?? ((vendor as any).is_active !== false ? 'active' : 'inactive')).toString().toLowerCase();
+            const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
+            const isActive = normalizedStatus === 'active';
+            const isEnabled =
+              (vendor as any).is_enabled !== undefined
+                ? Boolean((vendor as any).is_enabled)
+                : (vendor as any).enabled !== undefined
+                ? Boolean((vendor as any).enabled)
+                : isActive;
+
+            return ({
             key: vendor.id.toString(),
             name: vendor.name,
-            contactName: vendor.email, // Using email as contact name for now
+            contactName: (vendor as any).contact_name || (vendor as any).contactName || vendor.name || vendor.email,
             email: vendor.email,
             contact: vendor.phone,
             category: vendor.category || 'Uncategorized',
@@ -103,22 +114,24 @@ const Vendor: React.FC = () => {
               : 'Location not specified',
             tier: '$$', // Default tier, could be calculated based on data
             discount: 10, // Default discount, should come from discounts API
-            active: true, // Default active status
-            enabled: true, // Default enabled status
-            status: vendor.status || 'active', // Use vendor status from API, default to active
+            active: (vendor as any).is_active !== undefined
+              ? Boolean((vendor as any).is_active)
+              : (vendor as any).active !== undefined
+              ? Boolean((vendor as any).active)
+              : isActive,
+            enabled: isEnabled,
+            status: normalizedStatus, // Use normalized vendor status
             avatar: vendor.name.charAt(0).toUpperCase(),
             logo_url: vendor.logo_url || null // Include logo URL for display
-          }));
-        console.log('Transformed data:', transformedData);
-        console.log('Sample vendor status:', transformedData[0]?.status);
-        console.log('Setting vendors data...');
+          });
+        });
         setVendorsData(transformedData);
-        setTotalVendors(response.pagination?.total || 0);
-        console.log('Vendors data set successfully');
-      } else if (response.success && vendorsData.length === 0) {
+        setAllVendorsData(transformedData);
+        setTotalVendors(transformedData.length);
+      } else if (response?.success && vendorsData.length === 0) {
         // Success but no vendors yet
-        console.log('✅ API call successful, but no vendors found');
         setVendorsData([]);
+        setAllVendorsData([]);
         setTotalVendors(0);
       } else {
         console.error('❌ Failed to load vendors:', response);
@@ -129,40 +142,84 @@ const Vendor: React.FC = () => {
       console.error('Error loading vendors:', error);
       console.error('Error details:', error);
       setVendorsData([]);
+      setAllVendorsData([]);
       setTotalVendors(0);
       setError('Failed to load vendors');
       setLoading(false);
     }
   };
 
-
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     try {
-      const vendorId = parseInt(key);
-      const currentVendor = vendorsData.find(v => v.key === key);
-      if (currentVendor) {
-        const updatedData = { [field]: !currentVendor[field] };
-        await vendorAPI.updateVendor(vendorId, updatedData);
-        
-        // Update local state
-        setVendorsData(prevData =>
-          prevData.map(item =>
-            item.key === key
-              ? { ...item, [field]: !item[field] }
-              : item
-          )
-        );
-        message.success(`Vendor ${field} status updated successfully`);
+      const vendorId = parseInt(key, 10);
+      const currentVendor = allVendorsData.find(v => v.key === key);
+      if (!currentVendor) return;
+
+      let response;
+      if (field === 'active') {
+        const nextStatus = currentVendor.status === 'active' ? 'inactive' : 'active';
+        const action = nextStatus === 'active' ? 'activate' : 'deactivate';
+        response = await vendorAPI.updateVendorStatus(vendorId, nextStatus);
+        if (response.success) {
+          setAllVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key
+                ? { ...item, status: nextStatus, active: nextStatus === 'active', enabled: nextStatus === 'active' }
+                : item
+            )
+          );
+          setVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key
+                ? { ...item, status: nextStatus, active: nextStatus === 'active', enabled: nextStatus === 'active' }
+                : item
+            )
+          );
+          message.success(`Vendor ${action}d successfully`);
+          loadVendors(); // Refresh from server
+        } else {
+          message.error(`Failed to ${action} vendor: ${response.error || 'Unknown error'}`);
+        }
+      } else {
+        const nextEnabled = !currentVendor.enabled;
+        response = await vendorAPI.updateVendor(vendorId, { is_enabled: nextEnabled });
+        if (response.success) {
+          setAllVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key ? { ...item, enabled: nextEnabled } : item
+            )
+          );
+          setVendorsData(prevData =>
+            prevData.map(item =>
+              item.key === key ? { ...item, enabled: nextEnabled } : item
+            )
+          );
+          message.success(`Vendor ${nextEnabled ? 'enabled' : 'disabled'} successfully`);
+          loadVendors(); // Refresh from server
+        } else {
+          message.error(`Failed to update vendor: ${response.error || 'Unknown error'}`);
+        }
+      }
+      if (!response.success) {
+        addNotification({
+          title: 'Vendor update failed',
+          message: response.error || `Failed to update vendor ${field}.`,
+          level: 'error',
+        });
       }
     } catch (error) {
       console.error(`Error updating vendor ${field}:`, error);
       message.error(`Failed to update vendor ${field} status`);
+      addNotification({
+        title: 'Vendor update failed',
+        message: `Failed to update vendor ${field} status.`,
+        level: 'error',
+      });
     }
   };
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleInviteVendor = () => {
@@ -175,7 +232,6 @@ const Vendor: React.FC = () => {
 
   const handleInviteVendorModalSubmit = async (values: any) => {
     // The modal already handles vendor creation, we just need to refresh the list
-    console.log('Vendor creation completed, refreshing vendor list...');
     setInviteVendorModalVisible(false);
     // Refresh the vendor list with a small delay to ensure backend processing is complete
     setTimeout(() => {
@@ -194,11 +250,9 @@ const Vendor: React.FC = () => {
   };
 
   const handleVendorUpdate = async (updatedData: any) => {
-    console.log('🔄 Vendor.tsx: handleVendorUpdate called with:', updatedData);
     
     // If updateData indicates success, just refresh the list (update was already done in VendorProfile)
     if (updatedData?.success === true) {
-      console.log('🔄 Vendor.tsx: Update already successful, just refreshing list');
       loadVendors();
       return;
     }
@@ -207,9 +261,7 @@ const Vendor: React.FC = () => {
     try {
       if (selectedVendorId && updatedData && typeof updatedData === 'object' && !updatedData.success) {
         const vendorId = parseInt(selectedVendorId);
-        console.log('🔄 Vendor.tsx: Legacy update path - Updating vendor ID:', vendorId);
         const result = await vendorAPI.updateVendor(vendorId, updatedData);
-        console.log('🔄 Vendor.tsx: Update result:', result);
         if (result.success || result.data) {
           message.success('Vendor updated successfully!');
           loadVendors();
@@ -220,7 +272,6 @@ const Vendor: React.FC = () => {
         }
       } else {
         // Just refresh the list
-        console.log('🔄 Vendor.tsx: No update needed, just refreshing list');
         loadVendors();
       }
     } catch (error: any) {
@@ -234,7 +285,6 @@ const Vendor: React.FC = () => {
   };
 
   const handleEditVendor = (record: any) => {
-    console.log('Edit vendor:', record);
     // Open the vendor profile in edit mode
     setSelectedVendorId(record.key);
     setProfileVisible(true);
@@ -252,26 +302,15 @@ const Vendor: React.FC = () => {
         try {
           setLoading(true);
           
-          // Call real API
-          const mockSuccess = false; // Set to true to test error handling
-          
-          if (mockSuccess) {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Remove vendor from local state (mock deletion)
-            setVendorsData(prevVendors => 
-              prevVendors.filter(vendor => vendor.key !== record.key)
-            );
-            setTotalVendors(prev => prev - 1);
-            
-            message.success('Vendor deleted successfully (Mock Mode)');
-          } else {
-            // Call real API (when it's back online)
-            await vendorAPI.deleteVendor(parseInt(record.key));
-            message.success('Vendor deleted successfully');
-            loadVendors();
-          }
+          const response = await vendorAPI.deleteVendor(parseInt(record.key));
+            const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
+            if (isSuccess) {
+              message.success('Vendor deleted successfully');
+              await loadVendors();
+            } else {
+              message.error(response?.error || response?.message || 'Failed to delete vendor');
+              throw new Error('Delete failed');
+            }
         } catch (error) {
           console.error('Error deleting vendor:', error);
           message.error('Failed to delete vendor. Please try again.');
@@ -283,14 +322,10 @@ const Vendor: React.FC = () => {
   };
 
   const handleToggleStatus = async (record: any) => {
-    console.log('Toggle status clicked for vendor:', record);
-    console.log('Current status:', record.status);
     
     const newStatus = record.status === 'active' ? 'inactive' : 'active';
     const action = newStatus === 'active' ? 'activate' : 'deactivate';
     
-    console.log('New status will be:', newStatus);
-    console.log('Action:', action);
     
     try {
       setLoading(true);
@@ -298,18 +333,32 @@ const Vendor: React.FC = () => {
       // Call API to update status
       const response = await vendorAPI.updateVendorStatus(parseInt(record.key), newStatus);
       
-      console.log('API response:', response);
       
       if (response.success) {
         message.success(`Vendor ${action}d successfully`);
+        addNotification({
+          title: `Vendor ${action}d`,
+          message: record.name || 'Vendor status updated',
+          level: 'success',
+        });
         // Reload vendors to get updated data
         loadVendors();
       } else {
         message.error(`Failed to ${action} vendor: ${response.error}`);
+        addNotification({
+          title: `Vendor ${action} failed`,
+          message: response.error || 'Status update failed',
+          level: 'error',
+        });
       }
     } catch (error) {
       console.error(`Error ${action}ing vendor:`, error);
       message.error(`Failed to ${action} vendor. Please try again.`);
+      addNotification({
+        title: `Vendor ${action} failed`,
+        message: 'Status update failed. Please try again.',
+        level: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -324,8 +373,6 @@ const Vendor: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
     } else if (key === 'invitations') {
@@ -371,7 +418,6 @@ const Vendor: React.FC = () => {
     }
   ];
 
-
   const menuItems = [
     {
       key: 'dashboard',
@@ -402,12 +448,6 @@ const Vendor: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -457,6 +497,8 @@ const Vendor: React.FC = () => {
       ),
       dataIndex: 'name',
       key: 'name',
+      sorter: true,
+      sortOrder: sortField === 'name' ? sortOrder : null,
       render: (text: string, record: any) => (
         <Space>
           <Avatar 
@@ -619,10 +661,47 @@ const Vendor: React.FC = () => {
     setCurrentPage(page);
   };
 
-  // Filter vendors based on status
-  const filteredVendors = showInactive 
-    ? vendorsData 
-    : vendorsData.filter(vendor => vendor.status === 'active');
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, selectedCategory, selectedStatus, selectedLocation, showInactive]);
+
+  const uniqueCategories = Array.from(new Set(allVendorsData.map(vendor => vendor.category).filter(Boolean)));
+  const uniqueStatuses = Array.from(new Set(allVendorsData.map(vendor => vendor.status).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(allVendorsData.map(vendor => vendor.cityState).filter(Boolean)));
+
+  const filteredVendors = allVendorsData.filter((vendor) => {
+    const matchesStatus = selectedStatus
+      ? vendor.status === selectedStatus
+      : showInactive
+      ? true
+      : vendor.status === 'active';
+    const matchesCategory = selectedCategory ? vendor.category === selectedCategory : true;
+    const matchesLocation = selectedLocation ? vendor.cityState === selectedLocation : true;
+    const matchesSearch = searchTerm
+      ? [vendor.name, vendor.contactName, vendor.email, vendor.contact, vendor.category, vendor.cityState]
+          .filter(Boolean)
+          .some((value: string) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+      : true;
+
+    return matchesStatus && matchesCategory && matchesLocation && matchesSearch;
+  });
+
+  const sortedVendors = [...filteredVendors].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedVendors = sortedVendors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <Layout className="vendor-layout">
@@ -645,8 +724,7 @@ const Vendor: React.FC = () => {
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
         width={280}
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
+        trigger={null}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -675,7 +753,10 @@ const Vendor: React.FC = () => {
         <Header className="vendor-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Vendors</Title>
-            <Text type="secondary" className="vendors-count">{totalVendors} Vendors Found</Text>
+            <Text type="secondary" className="vendors-count">
+              {filteredVendors.length} Vendor{filteredVendors.length !== 1 ? 's' : ''} Found
+              {filteredVendors.length !== totalVendors && ` (of ${totalVendors} total)`}
+            </Text>
           </div>
           <div className="header-right">
             <Button 
@@ -685,7 +766,7 @@ const Vendor: React.FC = () => {
               className="invite-vendor-btn"
               onClick={handleInviteVendor}
             >
-              + Invite A Vendor
+              Invite A Vendor
             </Button>
           </div>
         </Header>
@@ -701,6 +782,8 @@ const Vendor: React.FC = () => {
                   enterButton={<SearchOutlined />}
                   size="large"
                   className="vendor-search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
               
@@ -722,42 +805,67 @@ const Vendor: React.FC = () => {
                     placeholder="Select Category"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedCategory}
+                    onChange={(value) => setSelectedCategory(value)}
+                    allowClear
                   >
-                    <Option value="technology">Technology</Option>
-                    <Option value="energy">Energy</Option>
-                    <Option value="healthcare">Healthcare</Option>
-                    <Option value="education">Education</Option>
+                    {uniqueCategories.map((category) => (
+                      <Option key={category} value={category}>
+                        {category}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Status"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedStatus}
+                    onChange={(value) => setSelectedStatus(value)}
+                    allowClear
                   >
-                    <Option value="active">Active</Option>
-                    <Option value="inactive">Inactive</Option>
-                    <Option value="pending">Pending</Option>
+                    {uniqueStatuses.map((status) => (
+                      <Option key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Location"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedLocation}
+                    onChange={(value) => setSelectedLocation(value)}
+                    allowClear
                   >
-                    <Option value="san-francisco">San Francisco, CA</Option>
-                    <Option value="portland">Portland, OR</Option>
-                    <Option value="boston">Boston, MA</Option>
+                    {uniqueLocations.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Rating"
                     className="filter-dropdown"
                     size="large"
+                    disabled
+                  />
+
+                  <Button
+                    size="large"
+                    disabled={!searchTerm && !selectedCategory && !selectedStatus && !selectedLocation}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategory(undefined);
+                      setSelectedStatus(undefined);
+                      setSelectedLocation(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
                   >
-                    <Option value="4.5+">4.5+ Stars</Option>
-                    <Option value="4.0+">4.0+ Stars</Option>
-                    <Option value="3.5+">3.5+ Stars</Option>
-                  </Select>
+                    Clear All
+                  </Button>
                 </div>
               </div>
               
@@ -768,7 +876,7 @@ const Vendor: React.FC = () => {
             <div className="vendors-table-section">
               <Spin spinning={loading}>
               <Table
-                dataSource={filteredVendors}
+                dataSource={paginatedVendors}
                 columns={columns}
                 pagination={false}
                 size="middle"
@@ -776,6 +884,15 @@ const Vendor: React.FC = () => {
                 rowClassName="vendor-row"
                 scroll={{ x: 1800 }}
                 bordered={false}
+                onChange={(_, __, sorter) => {
+                  if (Array.isArray(sorter)) {
+                    return;
+                  }
+                  const nextField = (sorter as any).field as string | undefined;
+                  const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                  setSortField(nextField || null);
+                  setSortOrder(nextOrder || null);
+                }}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No vendors found'
                   }}
@@ -786,7 +903,7 @@ const Vendor: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalVendors}
+                  total={filteredVendors.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}

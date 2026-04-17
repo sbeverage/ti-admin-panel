@@ -232,6 +232,79 @@
   transition: all 0.3s ease;
 }
 
+/* Search + Filter Bar (match Donors) */
+.search-filter-bar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+  margin-top: 4px;
+}
+
+.newsfeed-search {
+  width: 100%;
+}
+
+.newsfeed-search .ant-input {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.newsfeed-search .ant-input-search-button {
+  border-radius: 0 8px 8px 0;
+  background: #DB8633;
+  border-color: #DB8633;
+  color: #ffffff;
+}
+
+.newsfeed-search .ant-input-search-button:hover,
+.newsfeed-search .ant-input-search-button:focus,
+.newsfeed-search .ant-input-search-button:active {
+  background: #c6762a !important;
+  border-color: #c6762a !important;
+  color: #ffffff !important;
+}
+
+.newsfeed-search .ant-input-search-button .anticon {
+  color: #ffffff !important;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  color: #324E58 !important;
+  margin-right: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-dropdown {
+  min-width: 150px;
+}
+
 .newsfeed-management .ant-input-affix-wrapper:hover,
 .newsfeed-management .ant-input-affix-wrapper:focus,
 .newsfeed-management .ant-input-affix-wrapper-focused {

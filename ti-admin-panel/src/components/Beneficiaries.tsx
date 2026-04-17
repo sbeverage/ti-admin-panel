@@ -26,8 +26,6 @@ import {
   StarOutlined,
   SettingOutlined,
   MenuOutlined,
-  BellOutlined,
-  PictureOutlined,
   MoreOutlined,
   SearchOutlined,
   DownOutlined,
@@ -41,9 +39,6 @@ import {
   RiseOutlined,
   GiftOutlined,
   BankOutlined,
-  CalendarOutlined,
-  CrownOutlined,
-  FileTextOutlined,
   ExclamationCircleOutlined,
   SortAscendingOutlined,
   MailOutlined
@@ -63,7 +58,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 const Beneficiaries: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -73,6 +67,15 @@ const Beneficiaries: React.FC = () => {
   const [selectedBeneficiaryData, setSelectedBeneficiaryData] = useState<any | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
   const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
+  const [allBeneficiariesData, setAllBeneficiariesData] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCause, setSelectedCause] = useState<string | undefined>(undefined);
+  const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
+  const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
+  const [selectedActiveStatus, setSelectedActiveStatus] = useState<'active' | 'inactive' | undefined>(undefined);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState(0);
@@ -87,33 +90,31 @@ const Beneficiaries: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading beneficiaries from API...');
-      const response = await beneficiaryAPI.getBeneficiaries(currentPage, pageSize);
-      console.log('Beneficiary API response:', response);
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await beneficiaryAPI.getBeneficiaries(page, limit, { includeInactive: true });
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
       
-      if (response.success) {
+      if (response?.success) {
         // Log the actual API response structure for debugging
-        console.log('📊 Raw API response data:', response.data);
-        if (response.data && response.data.length > 0) {
-          const sample = response.data[0];
-          console.log('📋 Sample beneficiary object:', sample);
-          console.log('📋 All keys in beneficiary object:', Object.keys(sample));
-          console.log('📋 Full beneficiary data structure:', JSON.stringify(sample, null, 2));
-          console.log('📋 Image fields:', {
-            imageUrl: sample.imageUrl,
-            image_url: sample.image_url,
-            main_image: sample.main_image,
-            main_image_url: sample.main_image_url,
-            logo: sample.logo,
-            logo_url: sample.logo_url,
-            image: sample.image
-          });
+        if (collected.length > 0) {
+          const sample = collected[0];
         }
         
         // Transform API data to match our table structure
         // Handle both new charity structure and legacy beneficiary structure
         // Filter out soft-deleted records (if backend returns them)
-        const filteredData = response.data.filter((beneficiary: any) => {
+        const filteredData = collected.filter((beneficiary: any) => {
           // Exclude soft-deleted records (backend uses is_active=false for soft deletes)
           return !beneficiary.deleted_at &&
                  !beneficiary.deletedAt &&
@@ -126,22 +127,6 @@ const Beneficiaries: React.FC = () => {
         
         const transformedData = filteredData.map((beneficiary: any) => {
           // Log the raw beneficiary data for debugging
-          console.log('🔍 Processing beneficiary:', beneficiary.name || beneficiary.id, {
-            phone: beneficiary.phone,
-            phoneNumber: beneficiary.phoneNumber,
-            contactNumber: beneficiary.contactNumber,
-            contact_number: beneficiary.contact_number,
-            contact_name: beneficiary.contact_name,
-            contactName: beneficiary.contactName,
-            primaryContact: beneficiary.primaryContact,
-            email: beneficiary.email,
-            primaryEmail: beneficiary.primaryEmail,
-            bank_account: beneficiary.bank_account,
-            bankAccount: beneficiary.bankAccount,
-            location: beneficiary.location,
-            city: beneficiary.city,
-            state: beneficiary.state
-          });
           
           // Extract all possible field variations from API
           const name = beneficiary.name || beneficiary.beneficiaryName || 'Unknown';
@@ -183,9 +168,10 @@ const Beneficiaries: React.FC = () => {
                              '';
           
           const createdAt = beneficiary.createdAt || beneficiary.created_at || beneficiary.dateOfJoin || beneficiary.date_of_join;
+          // Resolve isActive - do NOT default to true when API omits the field (some APIs omit is_active when false)
           const isActive = beneficiary.isActive !== undefined ? beneficiary.isActive : 
                           (beneficiary.is_active !== undefined ? beneficiary.is_active : 
-                          (beneficiary.active !== undefined ? beneficiary.active : true));
+                          (beneficiary.active !== undefined ? beneficiary.active : undefined));
           
           // Extract logo URL - prioritize logo over main image for table display
           // Logo should be displayed next to the name in the table
@@ -241,11 +227,12 @@ const Beneficiaries: React.FC = () => {
         });
         
         setBeneficiariesData(transformedData);
-        setTotalBeneficiaries(response.pagination?.total || transformedData.length);
-        console.log('Beneficiaries loaded successfully');
+        setAllBeneficiariesData(transformedData);
+        setTotalBeneficiaries(transformedData.length);
       } else {
         setError('Failed to load beneficiaries');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       }
     } catch (error: any) {
@@ -253,13 +240,14 @@ const Beneficiaries: React.FC = () => {
       
       // Check if it's a 404 error (endpoint not ready)
       if (error.message && error.message.includes('404')) {
-        console.log('⚠️ Beneficiary endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Beneficiary" button to add beneficiaries.');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       } else {
         setError('Failed to load beneficiaries');
         setBeneficiariesData([]);
+        setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       }
     } finally {
@@ -267,16 +255,129 @@ const Beneficiaries: React.FC = () => {
     }
   };
 
-
   // Load data on component mount and when page changes
   useEffect(() => {
     loadBeneficiaries();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    // This would typically update the backend
-    console.log(`Toggling ${field} for beneficiary ${key}`);
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const beneficiaryId = parseInt(key, 10);
+    if (isNaN(beneficiaryId)) return;
+    const record = allBeneficiariesData.find((b) => b.key === key);
+    if (!record) return;
+    const nextActive = field === 'active' ? !record.active : record.active;
+    const nextEnabled = field === 'enabled' ? !record.enabled : record.enabled;
+    try {
+      const payload = field === 'active'
+        ? { is_active: nextActive, isActive: nextActive }
+        : { is_enabled: nextEnabled, isEnabled: nextEnabled };
+      const response = await beneficiaryAPI.updateBeneficiary(beneficiaryId, payload);
+      if (response?.success !== false) {
+        setAllBeneficiariesData(prev =>
+          prev.map(item =>
+            item.key === key
+              ? { ...item, active: nextActive, enabled: nextEnabled }
+              : item
+          )
+        );
+        setBeneficiariesData(prev =>
+          prev.map(item =>
+            item.key === key
+              ? { ...item, active: nextActive, enabled: nextEnabled }
+              : item
+          )
+        );
+        message.success(`${field === 'active' ? 'Active' : 'Enabled'} status updated`);
+        loadBeneficiaries(); // Refresh from server to stay in sync
+      } else {
+        message.error('Failed to update status');
+      }
+    } catch (err: any) {
+      console.error('Toggle error:', err);
+      message.error(err?.message || 'Failed to update status');
+    }
   };
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, selectedCause, selectedDuration, selectedType, selectedLocation, selectedActiveStatus]);
+
+  const uniqueCauses = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryCause).filter(Boolean)));
+  const uniqueTypes = Array.from(new Set(allBeneficiariesData.map((b) => b.beneficiaryType).filter(Boolean)));
+  const uniqueLocations = Array.from(new Set(allBeneficiariesData.map((b) => b.cityState).filter(Boolean)));
+
+  const filteredBeneficiaries = allBeneficiariesData.filter((beneficiary) => {
+    const matchesSearch = searchTerm
+      ? [beneficiary.beneficiaryName, beneficiary.email, beneficiary.contactName, beneficiary.contactNumber, beneficiary.cityState]
+          .filter(Boolean)
+          .some((value: string) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+      : true;
+
+    const matchesCause = selectedCause ? beneficiary.beneficiaryCause === selectedCause : true;
+    const matchesType = selectedType ? beneficiary.beneficiaryType === selectedType : true;
+    const matchesLocation = selectedLocation ? beneficiary.cityState === selectedLocation : true;
+
+    const matchesDuration = selectedDuration
+      ? (() => {
+          const durationValue =
+            beneficiary?.rawData?.duration ||
+            beneficiary?.rawData?.program_duration ||
+            beneficiary?.rawData?.project_duration ||
+            beneficiary?.rawData?.beneficiary_duration ||
+            '';
+          return String(durationValue).toLowerCase() === selectedDuration.toLowerCase();
+        })()
+      : true;
+
+    // Resolve active status from transformed data or rawData (handles API format variations)
+    // Some APIs omit is_active when false - treat missing as inactive when filtering for inactive
+    const rawActive = beneficiary.active ?? beneficiary.rawData?.is_active ?? beneficiary.rawData?.isActive;
+    const hasExplicitValue =
+      beneficiary.active !== undefined ||
+      beneficiary.rawData?.is_active !== undefined ||
+      beneficiary.rawData?.isActive !== undefined;
+    const isActiveResolved = hasExplicitValue
+      ? (rawActive === true || rawActive === 'true' || rawActive === 1 || rawActive === '1')
+      : selectedActiveStatus === 'inactive'
+        ? false
+        : true;
+    const matchesActiveStatus = selectedActiveStatus
+      ? (selectedActiveStatus === 'active' && isActiveResolved) ||
+        (selectedActiveStatus === 'inactive' && !isActiveResolved)
+      : true;
+
+    return matchesSearch && matchesCause && matchesType && matchesLocation && matchesDuration && matchesActiveStatus;
+  });
+
+  // Debug: when Inactive filter shows nothing, log what we have
+  if (selectedActiveStatus === 'inactive' && filteredBeneficiaries.length === 0 && allBeneficiariesData.length > 0) {
+    const breakdown = allBeneficiariesData.reduce(
+      (acc, b) => {
+        const raw = b.active ?? b.rawData?.is_active ?? b.rawData?.isActive;
+        const key = raw === true || raw === 'true' ? 'active' : raw === false || raw === 'false' || raw === 0 ? 'inactive' : 'undefined';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+  }
+
+  const sortedBeneficiaries = [...filteredBeneficiaries].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedBeneficiaries = sortedBeneficiaries.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const handleInviteBeneficiary = () => {
     setInviteModalVisible(true);
@@ -289,7 +390,6 @@ const Beneficiaries: React.FC = () => {
   const handleInviteModalSubmit = async (values: any) => {
     // The InviteBeneficiaryModal handles the API call itself
     // This callback is called after successful creation to refresh the list
-    console.log('Beneficiary created, refreshing list...');
     setInviteModalVisible(false);
     // Refresh the beneficiaries list to show the newly created beneficiary with all fields
     await loadBeneficiaries();
@@ -308,7 +408,6 @@ const Beneficiaries: React.FC = () => {
   };
 
   const handleBeneficiaryUpdate = async (updatedData: any) => {
-    console.log('Beneficiary updated:', updatedData);
     // Refresh the beneficiaries list to show updated data
     await loadBeneficiaries();
     // Close the profile
@@ -343,12 +442,13 @@ const Beneficiaries: React.FC = () => {
       setLoading(true);
       // Convert to number if it's a string
       const idToDelete = typeof beneficiaryId === 'string' ? parseInt(beneficiaryId) : beneficiaryId;
-      console.log('Deleting beneficiary with ID:', idToDelete);
       const response = await beneficiaryAPI.deleteBeneficiary(idToDelete);
+      const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
-      if (response.success || response.data) {
+      if (isSuccess) {
         message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
         setIsDeleteBeneficiaryModalVisible(false);
+        setDeletingBeneficiary(null);
         
         // Immediately remove from local state (in case backend does soft delete)
         const deletedKey = deletingBeneficiary.key || deletingBeneficiary.id?.toString();
@@ -359,11 +459,10 @@ const Beneficiaries: React.FC = () => {
         ));
         setTotalBeneficiaries(prev => Math.max(0, prev - 1));
         
-        setDeletingBeneficiary(null);
-        // Also refresh from API to ensure consistency
+        // Refresh from API to ensure consistency
         await loadBeneficiaries();
       } else {
-        message.error(response.error || response.message || 'Failed to delete beneficiary');
+        message.error(response?.error || response?.message || 'Failed to delete beneficiary');
       }
     } catch (error: any) {
       console.error('Error deleting beneficiary:', error);
@@ -387,8 +486,6 @@ const Beneficiaries: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -441,6 +538,8 @@ const Beneficiaries: React.FC = () => {
       ),
       dataIndex: 'beneficiaryName',
       key: 'beneficiaryName',
+      sorter: true,
+      sortOrder: sortField === 'beneficiaryName' ? sortOrder : null,
       render: (text: string, record: any) => (
         <Space>
           <Avatar 
@@ -730,12 +829,6 @@ const Beneficiaries: React.FC = () => {
       title: 'Discount Management'
     },
     {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
@@ -773,8 +866,6 @@ const Beneficiaries: React.FC = () => {
     },
   ];
 
-
-
   return (
     <Layout className="standard-layout">
       {/* Mobile Menu Button - Right Side */}
@@ -795,10 +886,8 @@ const Beneficiaries: React.FC = () => {
       {/* Sidebar */}
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        trigger={null}
         width={280}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -826,7 +915,8 @@ const Beneficiaries: React.FC = () => {
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>
             <Text type="secondary" className="beneficiaries-count">
-              {totalBeneficiaries} Beneficiaries Found
+              {filteredBeneficiaries.length} Beneficiar{filteredBeneficiaries.length !== 1 ? 'ies' : 'y'} Found
+              {filteredBeneficiaries.length !== totalBeneficiaries && ` (of ${totalBeneficiaries} total)`}
             </Text>
           </div>
           <div className="header-right">
@@ -837,7 +927,7 @@ const Beneficiaries: React.FC = () => {
               className="invite-beneficiary-btn"
               onClick={handleInviteBeneficiary}
             >
-              + Invite A Beneficiary
+              Invite A Beneficiary
             </Button>
           </div>
         </Header>
@@ -853,6 +943,8 @@ const Beneficiaries: React.FC = () => {
                   enterButton={<SearchOutlined />}
                   size="large"
                   className="beneficiary-search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
               
@@ -863,17 +955,24 @@ const Beneficiaries: React.FC = () => {
                     placeholder="Select Cause"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedCause}
+                    onChange={(value) => setSelectedCause(value)}
+                    allowClear
                   >
-                    <Option value="health">Health and Medical</Option>
-                    <Option value="education">Education</Option>
-                    <Option value="environment">Environment</Option>
-                    <Option value="children">Children and Youth</Option>
+                    {uniqueCauses.map((cause) => (
+                      <Option key={cause} value={cause}>
+                        {cause}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="Select Duration"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedDuration}
+                    onChange={(value) => setSelectedDuration(value)}
+                    allowClear
                   >
                     <Option value="short">Short Term</Option>
                     <Option value="long">Long Term</Option>
@@ -884,21 +983,59 @@ const Beneficiaries: React.FC = () => {
                     placeholder="Beneficiary Type"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedType}
+                    onChange={(value) => setSelectedType(value)}
+                    allowClear
                   >
-                    <Option value="international">International</Option>
-                    <Option value="national">National</Option>
-                    <Option value="local">Local</Option>
+                    {uniqueTypes.map((type) => (
+                      <Option key={type} value={type}>
+                        {type}
+                      </Option>
+                    ))}
                   </Select>
                   
                   <Select
                     placeholder="City, State"
                     className="filter-dropdown"
                     size="large"
+                    value={selectedLocation}
+                    onChange={(value) => setSelectedLocation(value)}
+                    allowClear
                   >
-                    <Option value="springfield">Springfield, IL</Option>
-                    <Option value="portland">Portland, OR</Option>
-                    <Option value="charleston">Charleston, SC</Option>
+                    {uniqueLocations.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
                   </Select>
+
+                  <Select
+                    placeholder="Active / Inactive"
+                    className="filter-dropdown"
+                    size="large"
+                    value={selectedActiveStatus}
+                    onChange={(value) => setSelectedActiveStatus(value)}
+                    allowClear
+                  >
+                    <Option value="active">Active</Option>
+                    <Option value="inactive">Inactive</Option>
+                  </Select>
+
+                  <Button
+                    size="large"
+                    disabled={!searchTerm && !selectedCause && !selectedDuration && !selectedType && !selectedLocation && !selectedActiveStatus}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCause(undefined);
+                      setSelectedDuration(undefined);
+                      setSelectedType(undefined);
+                      setSelectedLocation(undefined);
+                      setSelectedActiveStatus(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </div>
             </div>
@@ -907,7 +1044,7 @@ const Beneficiaries: React.FC = () => {
             <div className="beneficiaries-table-section">
               <Spin spinning={loading}>
                 <Table
-                  dataSource={beneficiariesData}
+                  dataSource={paginatedBeneficiaries}
                   columns={columns}
                   pagination={false}
                   size="middle"
@@ -915,6 +1052,15 @@ const Beneficiaries: React.FC = () => {
                   rowClassName="beneficiary-row"
                   scroll={{ x: 1800 }}
                   bordered={false}
+                  onChange={(_, __, sorter) => {
+                    if (Array.isArray(sorter)) {
+                      return;
+                    }
+                    const nextField = (sorter as any).field as string | undefined;
+                    const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                    setSortField(nextField || null);
+                    setSortOrder(nextOrder || null);
+                  }}
                   locale={{
                     emptyText: error ? `Error: ${error}` : 'No beneficiaries found'
                   }}
@@ -925,7 +1071,7 @@ const Beneficiaries: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalBeneficiaries}
+                  total={filteredBeneficiaries.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}

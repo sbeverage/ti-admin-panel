@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Dropdown, Spin } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import UserProfile from './UserProfile';
 import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, ShopOutlined, GiftOutlined, BankOutlined,   LockOutlined,
-  TeamOutlined, SecurityScanOutlined, BellOutlined as NotificationOutlined,
-  ApiOutlined, GlobalOutlined, LogoutOutlined, CalculatorOutlined, MailOutlined
+  ExclamationCircleOutlined, MenuOutlined, BellOutlined, UserAddOutlined,
+  EditOutlined, GiftOutlined, LockOutlined,
+  TeamOutlined, SecurityScanOutlined,
+  ApiOutlined, GlobalOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
 import './Settings.css';
 import ApiRateLimiting from './ApiRateLimiting';
@@ -23,7 +20,7 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 
 const Settings: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const isSuperAdmin = localStorage.getItem('admin_is_super_admin') === 'true';
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showApiRateLimiting, setShowApiRateLimiting] = useState(false);
@@ -34,11 +31,22 @@ const Settings: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addUserForm] = Form.useForm();
+  const [editUserForm] = Form.useForm();
+  const [profileForm] = Form.useForm();
+  const [personalProfile, setPersonalProfile] = useState<any>({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    }
+  });
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   // Load settings data from API
   const loadSettingsData = async () => {
@@ -46,18 +54,18 @@ const Settings: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading settings data from API...');
       const [settingsResponse, teamResponse] = await Promise.all([
         settingsAPI.getSettings(),
         settingsAPI.getTeamMembers()
       ]);
       
-      console.log('Settings API responses:', { settingsResponse, teamResponse });
-      
       if (settingsResponse.success) {
         setSettingsData(settingsResponse.data);
         // Update personal profile with loaded data
         if (settingsResponse.data) {
+          if (settingsResponse.data.email) {
+            localStorage.setItem('admin_email', settingsResponse.data.email);
+          }
           setPersonalProfile((prev: any) => ({
             ...prev,
             ...settingsResponse.data,
@@ -75,6 +83,33 @@ const Settings: React.FC = () => {
       
       if (teamResponse.success) {
         setTeamMembers(teamResponse.data);
+        const cachedEmail = localStorage.getItem('admin_email');
+        const storedUsername = localStorage.getItem('admin_username');
+        let matchedMember: any = null;
+        if (cachedEmail && teamResponse.data?.length) {
+          matchedMember = teamResponse.data.find((m: any) => m?.email === cachedEmail);
+        }
+        if (!matchedMember && storedUsername && teamResponse.data?.length) {
+          matchedMember = teamResponse.data.find((m: any) =>
+            m?.email === storedUsername || m?.name === storedUsername
+          );
+          if (matchedMember?.email) {
+            localStorage.setItem('admin_email', matchedMember.email);
+          }
+        }
+        // Prefill personal profile from current team member (#61)
+        if (matchedMember) {
+          setPersonalProfile((prev: any) => ({
+            ...prev,
+            name: matchedMember.name || prev.name,
+            email: matchedMember.email || prev.email,
+            role: matchedMember.role || prev.role,
+            phone: matchedMember.phone || prev.phone,
+            notifications: settingsResponse?.success && settingsResponse?.data?.notifications
+              ? settingsResponse.data.notifications
+              : (prev.notifications || { email: true, push: true, sms: false })
+          }));
+        }
       } else {
         setError('Failed to load team members');
         setTeamMembers([]);
@@ -96,6 +131,29 @@ const Settings: React.FC = () => {
     loadSettingsData();
   }, []);
 
+  useEffect(() => {
+    if (editingUser && isEditUserModalVisible) {
+      editUserForm.setFieldsValue({
+        name: editingUser.name,
+        email: editingUser.email,
+        role: editingUser.role,
+        status: editingUser.status
+      });
+    }
+  }, [editingUser, isEditUserModalVisible, editUserForm]);
+
+  // Prefill Personal Info form when data loads (#61)
+  useEffect(() => {
+    if (personalProfile && (personalProfile.name || personalProfile.email)) {
+      profileForm.setFieldsValue({
+        name: personalProfile.name || '',
+        email: personalProfile.email || '',
+        phone: personalProfile.phone || '',
+        role: personalProfile.role || ''
+      });
+    }
+  }, [personalProfile, profileForm]);
+
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === 'dashboard') {
       navigate('/dashboard');
@@ -105,8 +163,6 @@ const Settings: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'pending-approvals') {
       navigate('/pending-approvals');
     } else if (key === 'invitations') {
@@ -123,18 +179,6 @@ const Settings: React.FC = () => {
       navigate('/settings');
     }
   };
-
-  const [personalProfile, setPersonalProfile] = useState<any>({
-    name: '',
-    email: '',
-    phone: '',
-    role: '',
-    notifications: {
-      email: true,
-      push: true,
-      sms: false
-    }
-  });
 
   const menuItems = [
     {
@@ -166,12 +210,6 @@ const Settings: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -259,26 +297,21 @@ const Settings: React.FC = () => {
       render: (text: string) => <Text type="secondary">{text}</Text>,
       width: 180,
     },
-    {
+    ...(isSuperAdmin ? [{
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: any) => (
+      render: (_text: string, record: any) => (
         <Space>
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
+          <Button
+            type="text"
+            icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
             className="edit-user-btn"
-          />
-          <Button 
-            type="text" 
-            icon={<MoreOutlined />} 
-            className="more-actions-btn"
           />
         </Space>
       ),
       width: 120,
-    },
+    }] : []),
   ];
 
   const handleEditUser = (user: any) => {
@@ -287,7 +320,47 @@ const Settings: React.FC = () => {
   };
 
   const handleAddUser = () => {
+    addUserForm.resetFields();
     setIsAddUserModalVisible(true);
+  };
+
+  const handleAddUserSubmit = async (values: any) => {
+    try {
+      const response = await settingsAPI.addTeamMember(values);
+      if (response.success) {
+        message.success('Team member added successfully!');
+        setIsAddUserModalVisible(false);
+        addUserForm.resetFields();
+        loadSettingsData();
+      } else {
+        message.error(response.error || 'Failed to add team member');
+      }
+    } catch (error: any) {
+      console.error('Error adding team member:', error);
+      message.error(error.message || 'Failed to add team member. Please try again.');
+    }
+  };
+
+  const handleEditUserSubmit = async (values: any) => {
+    if (!editingUser?.id) {
+      message.error('Missing team member ID.');
+      return;
+    }
+
+    try {
+      const response = await settingsAPI.updateTeamMember(editingUser.id, values);
+      if (response.success) {
+        message.success('Team member updated successfully!');
+        setIsEditUserModalVisible(false);
+        setEditingUser(null);
+        loadSettingsData();
+      } else {
+        message.error(response.error || 'Failed to update team member');
+      }
+    } catch (error: any) {
+      console.error('Error updating team member:', error);
+      message.error(error.message || 'Failed to update team member. Please try again.');
+    }
   };
 
   const handleTabChange = (key: string) => {
@@ -296,7 +369,6 @@ const Settings: React.FC = () => {
 
   const handleProfileUpdate = async (values: any) => {
     try {
-      console.log('Updating profile:', values);
       const response = await settingsAPI.updateSettings(values);
       
       if (response.success) {
@@ -313,8 +385,43 @@ const Settings: React.FC = () => {
 
   const handlePasswordChange = async (values: any) => {
     try {
-      console.log('Changing password');
-      const response = await settingsAPI.updateSettings({ password: values.newPassword });
+      const storedUsername = localStorage.getItem('admin_username');
+      const matchedEmail = teamMembers?.find((member: any) =>
+        member?.email === storedUsername || member?.name === storedUsername
+      )?.email;
+      let email = localStorage.getItem('admin_email')
+        || (storedUsername && storedUsername.includes('@') ? storedUsername : null)
+        || matchedEmail
+        || personalProfile?.email
+        || settingsData?.email;
+
+      if (!email) {
+        try {
+          const teamResponse = await settingsAPI.getTeamMembers();
+          if (teamResponse.success) {
+            const fallbackEmail = teamResponse.data?.find((member: any) =>
+              member?.email === storedUsername || member?.name === storedUsername
+            )?.email;
+            if (fallbackEmail) {
+              localStorage.setItem('admin_email', fallbackEmail);
+              email = fallbackEmail;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching team members for email fallback:', error);
+        }
+      }
+
+      if (!email) {
+        message.error('Missing admin email. Please log in again.');
+        return;
+      }
+
+      const response = await settingsAPI.changeTeamMemberPassword({
+        email,
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword
+      });
       
       if (response.success) {
         message.success('Password changed successfully!');
@@ -327,15 +434,21 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleNotificationChange = (key: string, checked: boolean) => {
+  const handleNotificationChange = async (key: string, checked: boolean) => {
+    const nextNotifications = {
+      ...(personalProfile?.notifications || { email: true, push: true, sms: false }),
+      [key]: checked
+    };
     setPersonalProfile((prev: any) => ({
       ...prev,
-      notifications: {
-        ...(prev?.notifications || { email: true, push: true, sms: false }),
-        [key]: checked
-      }
+      notifications: nextNotifications
     }));
-    message.success('Notification settings updated!');
+    try {
+      await settingsAPI.updateSettings({ notifications: nextNotifications });
+      message.success('Notification settings updated!');
+    } catch (err) {
+      message.error('Failed to save notification preferences');
+    }
   };
 
   return (
@@ -358,10 +471,8 @@ const Settings: React.FC = () => {
       {/* Sidebar */}
       <Sider
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
+        trigger={null}
         width={280}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -416,8 +527,9 @@ const Settings: React.FC = () => {
                         <Col xs={24} lg={16}>
                           <Card title="Personal Information" className="settings-card">
                             <Form
+                              form={profileForm}
                               layout="vertical"
-                              initialValues={personalProfile}
+                              requiredMark="optional"
                               onFinish={handleProfileUpdate}
                             >
                               <Row gutter={16}>
@@ -473,25 +585,34 @@ const Settings: React.FC = () => {
                           <Card title="Notification Preferences" className="settings-card">
                             <div className="notification-settings">
                               <div className="notification-item">
-                                <Text>Email Notifications</Text>
+                                <div>
+                                  <Text>Email Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Receive email for all notifications shown in the bell</Text>
+                                  </div>
+                                </div>
                                 <Switch
                                   checked={personalProfile?.notifications?.email ?? true}
                                   onChange={(checked) => handleNotificationChange('email', checked)}
                                 />
                               </div>
                               <div className="notification-item">
-                                <Text>Push Notifications</Text>
-                                <Switch
-                                  checked={personalProfile?.notifications?.push ?? true}
-                                  onChange={(checked) => handleNotificationChange('push', checked)}
-                                />
+                                <div>
+                                  <Text>Push Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Coming soon</Text>
+                                  </div>
+                                </div>
+                                <Switch disabled checked={false} />
                               </div>
                               <div className="notification-item">
-                                <Text>SMS Notifications</Text>
-                                <Switch
-                                  checked={personalProfile?.notifications?.sms ?? false}
-                                  onChange={(checked) => handleNotificationChange('sms', checked)}
-                                />
+                                <div>
+                                  <Text>SMS Notifications</Text>
+                                  <div className="notification-item-hint">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Coming soon</Text>
+                                  </div>
+                                </div>
+                                <Switch disabled checked={false} />
                               </div>
                             </div>
                           </Card>
@@ -513,6 +634,7 @@ const Settings: React.FC = () => {
                       <Card title="Change Password" className="settings-card">
                         <Form
                           layout="vertical"
+                          requiredMark="optional"
                           onFinish={handlePasswordChange}
                         >
                           <Form.Item
@@ -574,14 +696,16 @@ const Settings: React.FC = () => {
                           <Title level={4} style={{ margin: 0 }}>Team Members</Title>
                           <Text type="secondary">{teamMembers.length} team members</Text>
                         </div>
-                        <Button 
-                          type="primary" 
-                          icon={<UserAddOutlined />}
-                          onClick={handleAddUser}
-                          className="add-team-member-btn"
-                        >
-                          Add Team Member
-                        </Button>
+                        {isSuperAdmin && (
+                          <Button
+                            type="primary"
+                            icon={<UserAddOutlined />}
+                            onClick={handleAddUser}
+                            className="add-team-member-btn"
+                          >
+                            Add Team Member
+                          </Button>
+                        )}
                       </div>
                       <Table
                         columns={teamColumns}
@@ -605,7 +729,10 @@ const Settings: React.FC = () => {
                       <div className="api-rate-limiting-section">
                         <div className="api-rate-limiting-header">
                           <Title level={4} style={{ margin: 0 }}>API Rate Limiting Configuration</Title>
-                          <Text type="secondary">Configure and monitor API rate limiting rules to protect your system</Text>
+                          <Text type="secondary">
+                            Rate limiting controls how many API requests can be made in a given time window (e.g., 60 requests per minute).
+                            This helps prevent abuse, ensures fair usage, and protects your backend from overload. Configure limits per endpoint and user type.
+                          </Text>
                         </div>
                         <div className="api-rate-limiting-content">
                           <Card className="api-rate-limiting-card">
@@ -678,11 +805,14 @@ const Settings: React.FC = () => {
       <Modal
         title="Add Team Member"
         open={isAddUserModalVisible}
-        onCancel={() => setIsAddUserModalVisible(false)}
+        onCancel={() => {
+          setIsAddUserModalVisible(false);
+          addUserForm.resetFields();
+        }}
         footer={null}
         width={600}
       >
-        <Form layout="vertical">
+        <Form form={addUserForm} layout="vertical" requiredMark="optional" onFinish={handleAddUserSubmit}>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -751,12 +881,15 @@ const Settings: React.FC = () => {
       <Modal
         title="Edit Team Member"
         open={isEditUserModalVisible}
-        onCancel={() => setIsEditUserModalVisible(false)}
+        onCancel={() => {
+          setIsEditUserModalVisible(false);
+          setEditingUser(null);
+        }}
         footer={null}
         width={600}
       >
         {editingUser && (
-          <Form layout="vertical" initialValues={editingUser}>
+          <Form form={editUserForm} layout="vertical" requiredMark="optional" onFinish={handleEditUserSubmit}>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item

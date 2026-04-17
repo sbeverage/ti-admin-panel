@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, FileTextOutlined, ExclamationCircleOutlined,
-  MenuOutlined, BellOutlined, SearchOutlined, MoreOutlined, UserAddOutlined,
-  FilterOutlined, SortAscendingOutlined, SortDescendingOutlined, EditOutlined,
-  DownOutlined, GiftOutlined, BankOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
+  ExclamationCircleOutlined,
+  MenuOutlined, SearchOutlined, UserAddOutlined,
+  SortAscendingOutlined, EditOutlined,
+  GiftOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
   MailOutlined, EnvironmentOutlined, CalculatorOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
 import { donorAPI, beneficiaryAPI } from '../services/api';
+import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import './Donors.css';
@@ -23,7 +24,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 const Donors: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -34,6 +34,7 @@ const Donors: React.FC = () => {
   const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
   const [deletingUser, setDeletingUser] = useState<any>(null);
   const [donorsData, setDonorsData] = useState<any[]>([]);
+  const [allDonorsData, setAllDonorsData] = useState<any[]>([]);
   const [filteredDonorsData, setFilteredDonorsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,8 @@ const Donors: React.FC = () => {
   const [selectedUserStatus, setSelectedUserStatus] = useState<string | undefined>(undefined);
   const [selectedCityState, setSelectedCityState] = useState<string | undefined>(undefined);
   const [selectedCoworking, setSelectedCoworking] = useState<string | undefined>(undefined);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
   const [citiesList, setCitiesList] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -60,13 +63,24 @@ const Donors: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading donors from API...');
-      const response = await donorAPI.getDonors(currentPage, pageSize);
-      console.log('Donor API response:', response);
+      const collected: any[] = [];
+      let page = 1;
+      const limit = Math.max(pageSize, 200);
+      let total = 0;
+      let response: any = null;
+
+      do {
+        response = await donorAPI.getDonors(page, limit);
+        if (response?.success && Array.isArray(response.data)) {
+          collected.push(...response.data);
+        }
+        total = response?.pagination?.total || collected.length;
+        page += 1;
+      } while (collected.length < total);
       
-      if (response.success) {
+      if (response?.success) {
         // Transform API data to match our table structure
-        const transformedData = response.data.map((donor: any) => ({
+        const transformedData = collected.map((donor: any) => ({
           key: donor.id.toString(),
           id: donor.id, // Store original ID for API calls
           name: donor.name || 'Unknown',
@@ -102,8 +116,9 @@ const Donors: React.FC = () => {
         }));
         
         setDonorsData(transformedData);
+        setAllDonorsData(transformedData);
         setFilteredDonorsData(transformedData);
-        setTotalDonors(response.pagination?.total || transformedData.length);
+        setTotalDonors(transformedData.length);
         
         // Extract unique cities/states for filter
         const cities = Array.from(new Set(
@@ -113,10 +128,10 @@ const Donors: React.FC = () => {
         )).sort() as string[];
         setCitiesList(cities);
         
-        console.log('Donors loaded successfully');
       } else {
         setError('Failed to load donors');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       }
     } catch (error: any) {
@@ -124,13 +139,14 @@ const Donors: React.FC = () => {
       
       // Check if it's a 404 error (endpoint not ready)
       if (error.message && error.message.includes('404')) {
-        console.log('⚠️ Donor endpoint not ready yet');
         setError('Backend endpoint is being prepared. Use "Invite Donor" button to add donors.');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       } else {
         setError('Failed to load donors');
         setDonorsData([]);
+        setAllDonorsData([]);
         setTotalDonors(0);
       }
     } finally {
@@ -155,15 +171,15 @@ const Donors: React.FC = () => {
   useEffect(() => {
     loadDonors();
     loadBeneficiaries();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
   // Apply filters when filter values change
   useEffect(() => {
     applyFilters();
-  }, [donorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+  }, [allDonorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
 
   const applyFilters = () => {
-    let filtered = [...donorsData];
+    let filtered = [...allDonorsData];
 
     // Search filter
     if (searchText) {
@@ -246,21 +262,55 @@ const Donors: React.FC = () => {
     setFilteredDonorsData(filtered);
   };
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setDonorsData(prevData =>
-      prevData.map(item =>
-        item.key === key
-          ? { ...item, [field]: !item[field] }
-          : item
-      )
-    );
-    console.log(`Toggled ${field} for key ${key}`);
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+
+  const sortedDonors = [...filteredDonorsData].sort((a, b) => {
+    if (!sortField || !sortOrder) return 0;
+    const valueA = (a as any)[sortField];
+    const valueB = (b as any)[sortField];
+    const normalizedA = valueA ? valueA.toString().toLowerCase() : '';
+    const normalizedB = valueB ? valueB.toString().toLowerCase() : '';
+    const comparison = normalizedA.localeCompare(normalizedB);
+    return sortOrder === 'ascend' ? comparison : -comparison;
+  });
+
+  const paginatedDonors = sortedDonors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const donorId = parseInt(key, 10);
+    if (isNaN(donorId)) return;
+    const donor = allDonorsData.find((d) => d.key === key);
+    if (!donor) return;
+    const nextVal = !donor[field];
+    const payload = field === 'active' ? { is_active: nextVal } : { is_enabled: nextVal };
+    try {
+      const response = await donorAPI.updateDonor(donorId, payload);
+      if (response?.success !== false) {
+        const update = (prev: any[]) =>
+          prev.map((d) => (d.key === key ? { ...d, [field]: nextVal } : d));
+        setDonorsData(update);
+        setAllDonorsData(update);
+        setFilteredDonorsData(update);
+        message.success('Donor updated');
+        loadDonors(); // Refresh from server
+      } else {
+        message.error('Failed to update donor');
+      }
+    } catch (err) {
+      console.error('Error updating donor:', err);
+      message.error('Failed to update donor');
+    }
   };
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    // Here you would typically fetch new data based on the selected time period
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -272,8 +322,6 @@ const Donors: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -351,12 +399,6 @@ const Donors: React.FC = () => {
       title: 'Discount Management'
     },
     {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
-    },
-    {
       key: 'pending-approvals',
       icon: <ExclamationCircleOutlined />,
       label: 'Pending Approvals',
@@ -404,23 +446,25 @@ const Donors: React.FC = () => {
       ),
       dataIndex: 'name',
       key: 'name',
+      sorter: true,
+      sortOrder: sortField === 'name' ? sortOrder : null,
       render: (text: string, record: any) => (
-        <Space 
+        <Space
           onClick={(e) => {
             e.stopPropagation();
-            console.log('Clicked on name column');
             handleEditDonor(record);
           }}
+          className="donor-name-cell"
           style={{ cursor: 'pointer', width: '100%' }}
         >
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.avatar}
           </Avatar>
-          <Text strong style={{ cursor: 'pointer' }}>{text}</Text>
+          <Text strong className="donor-name-text" style={{ cursor: 'pointer' }}>{text}</Text>
         </Space>
       ),
       fixed: 'left' as const,
-      width: 200,
+      width: 260,
     },
     {
       title: 'Emails',
@@ -686,16 +730,22 @@ const Donors: React.FC = () => {
     if (size) setPageSize(size);
   };
 
-  const handleInviteDonor = async (values: any) => {
+  const handleInviteDonor = async (values: any): Promise<boolean> => {
     try {
-      console.log('Creating new donor:', values);
-      
-      const donorData = {
+      const isCoworking = values.coworking === 'Yes' || values.coworking === true;
+      const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
+        ? parseFloat(String(values.sponsorAmount).replace('$', ''))
+        : (isCoworking ? 15 : 0);
+
+      const donorData: any = {
         name: values.name,
         email: values.email,
         phone: values.contact,
-        beneficiary_id: values.beneficiary,
-        coworking: values.coworking || false,
+        coworking: isCoworking,
+        sponsor_amount: sponsorAmount,
+        sponsorAmount: sponsorAmount,
+        invite_type: isCoworking ? 'coworking' : 'standard',
+        inviteType: isCoworking ? 'coworking' : 'standard',
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''
@@ -703,29 +753,51 @@ const Donors: React.FC = () => {
         is_active: true,
         is_enabled: true
       };
+
+      if (values.beneficiary) {
+        donorData.beneficiary_id = Number(values.beneficiary);
+      }
       
       const response = await donorAPI.createDonor(donorData);
       
       if (response.success) {
         message.success('Donor created successfully!');
+        addNotification({
+          title: 'Donor invited',
+          message: `${values.name} (${values.email})`,
+          level: 'success',
+        });
         setIsInviteModalVisible(false);
         // Refresh the donors list
         loadDonors();
+        return true;
       } else {
-        message.error('Failed to create donor');
+        const errMsg = response.error || response.message || 'Failed to create donor';
+        message.error(errMsg);
+        addNotification({
+          title: 'Donor invite failed',
+          message: errMsg,
+          level: 'error',
+        });
+        return false;
       }
     } catch (error) {
       console.error('Error creating donor:', error);
-      message.error('Failed to create donor. Please try again.');
+      const errorMessage =
+        error instanceof Error && error.message
+          ? `Failed to create donor: ${error.message}`
+          : 'Failed to create donor. Please try again.';
+      message.error(errorMessage);
+      addNotification({
+        title: 'Donor invite failed',
+        message: errorMessage,
+        level: 'error',
+      });
+      return false;
     }
   };
 
   const handleEditDonor = (record: any) => {
-    console.log('=== handleEditDonor CALLED ===');
-    console.log('Opening edit modal for donor:', record);
-    console.log('Record keys:', record ? Object.keys(record) : 'NO RECORD');
-    console.log('Record data:', JSON.stringify(record, null, 2));
-    
     if (!record) {
       console.error('No record provided to handleEditDonor');
       message.error('Cannot edit: No donor selected');
@@ -738,18 +810,8 @@ const Donors: React.FC = () => {
       return;
     }
     
-    console.log('Setting editingDonor and opening modal...');
-    console.log('Before: isEditModalVisible =', isEditModalVisible, 'editingDonor =', editingDonor);
-    
     setEditingDonor(record);
     setIsEditModalVisible(true);
-    
-    // Force a re-render check
-    setTimeout(() => {
-      console.log('After (delayed): isEditModalVisible should be true now');
-    }, 100);
-    
-    console.log('Modal state set to visible');
   };
 
   const handleUpdateDonor = async (values: any) => {
@@ -779,6 +841,14 @@ const Donors: React.FC = () => {
           zipCode: values.zipCode || '',
           street: '' // Street address not currently in form, but backend expects it
         },
+        beneficiary_id: values.beneficiary ? Number(values.beneficiary) : undefined,
+        donation_amount: values.donation !== undefined && values.donation !== null && values.donation !== ''
+          ? parseFloat(String(values.donation).replace('$', ''))
+          : undefined,
+        one_time_donation: values.oneTime !== undefined && values.oneTime !== null && values.oneTime !== ''
+          ? parseFloat(String(values.oneTime).replace('$', ''))
+          : undefined,
+        coworking: values.coworking,
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
         is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true
         // Note: 'notes' field removed - column doesn't exist in users table
@@ -791,8 +861,6 @@ const Donors: React.FC = () => {
       //   donorData.notes = values.notes;
       // }
       
-      console.log('Updating donor:', editingDonor.id, donorData);
-      console.log('Donor data payload:', JSON.stringify(donorData, null, 2));
       const response = await donorAPI.updateDonor(editingDonor.id, donorData);
       
       if (response.success || response.data) {
@@ -836,11 +904,21 @@ const Donors: React.FC = () => {
       
       if (response.success || response.data) {
         message.success(`Invitation email resent successfully to ${record.email || record.name}`);
+        addNotification({
+          title: 'Donor invite resent',
+          message: record.email || record.name || 'Invitation resent',
+          level: 'success',
+        });
         // Optionally refresh the donor list
         await loadDonors();
       } else {
         const errorMsg = response.error || response.message || 'Failed to resend invitation email';
         message.error(errorMsg);
+        addNotification({
+          title: 'Resend invitation failed',
+          message: errorMsg,
+          level: 'error',
+        });
       }
     } catch (error: any) {
       console.error('Error resending invitation:', error);
@@ -867,6 +945,11 @@ const Donors: React.FC = () => {
       } else {
         message.error(`❌ ${errorMessage}`);
       }
+      addNotification({
+        title: 'Resend invitation failed',
+        message: errorMessage,
+        level: 'error',
+      });
     } finally {
       setResendingInvitation(null);
     }
@@ -886,15 +969,20 @@ const Donors: React.FC = () => {
     try {
       setLoading(true);
       const response = await donorAPI.deleteDonor(deletingUser.id);
+      const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
-      if (response.success || response.data) {
+      if (isSuccess) {
         message.success(`Donor ${deletingUser.name || deletingUser.email} deleted successfully`);
+        addNotification({
+          title: 'Donor deleted',
+          message: deletingUser.email || deletingUser.name || 'Donor deleted',
+          level: 'warning',
+        });
         setIsDeleteUserModalVisible(false);
         setDeletingUser(null);
-        // Refresh donors list
         await loadDonors();
       } else {
-        message.error(response.message || 'Failed to delete donor');
+        message.error(response?.message || response?.error || 'Failed to delete donor');
       }
     } catch (error: any) {
       console.error('Error deleting donor:', error);
@@ -918,9 +1006,7 @@ const Donors: React.FC = () => {
         <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        trigger={null}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -962,7 +1048,7 @@ const Donors: React.FC = () => {
               className="invite-donor-btn"
               onClick={() => setIsInviteModalVisible(true)}
             >
-              + Invite A Donor
+              Invite A Donor
             </Button>
           </div>
         </Header>
@@ -1065,6 +1151,22 @@ const Donors: React.FC = () => {
                     <Option value="yes">Yes</Option>
                     <Option value="no">No</Option>
                   </Select>
+
+                  <Button
+                    size="large"
+                    disabled={!searchText && !selectedBeneficiary && !selectedDuration && !selectedUserStatus && !selectedCityState && !selectedCoworking}
+                    onClick={() => {
+                      setSearchText('');
+                      setSelectedBeneficiary(undefined);
+                      setSelectedDuration(undefined);
+                      setSelectedUserStatus(undefined);
+                      setSelectedCityState(undefined);
+                      setSelectedCoworking(undefined);
+                    }}
+                    style={{ color: '#DB8633', borderColor: '#DB8633' }}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </div>
               
@@ -1075,14 +1177,8 @@ const Donors: React.FC = () => {
             <div className="donors-table-section">
               <Spin spinning={loading}>
                 
-                {donorsData.length === 0 && !loading && (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <Text>No donors found. Use "Invite A Donor" button to add one.</Text>
-                  </div>
-                )}
-                
                 <Table
-                  dataSource={filteredDonorsData}
+                  dataSource={paginatedDonors}
                   columns={columns}
                   pagination={false}
                   size="middle"
@@ -1092,6 +1188,15 @@ const Donors: React.FC = () => {
                   bordered={false}
                   rowKey={(record) => record.key || record.id || 'unknown'}
                   virtual={false}
+                  onChange={(_, __, sorter) => {
+                    if (Array.isArray(sorter)) {
+                      return;
+                    }
+                    const nextField = (sorter as any).field as string | undefined;
+                    const nextOrder = (sorter as any).order as 'ascend' | 'descend' | null | undefined;
+                    setSortField(nextField || null);
+                    setSortOrder(nextOrder || null);
+                  }}
                   onRow={(record, index) => {
                     return {
                       onClick: (event: React.MouseEvent) => {
@@ -1120,7 +1225,9 @@ const Donors: React.FC = () => {
                     };
                   }}
                   locale={{
-                    emptyText: error ? `Error: ${error}` : 'No donors found'
+                    emptyText: error
+                      ? `Error: ${error}`
+                      : 'No donors found. Use "Invite A Donor" button to add one.'
                   }}
                 />
               </Spin>
@@ -1129,7 +1236,7 @@ const Donors: React.FC = () => {
               <div className="pagination-section">
                 <Pagination
                   current={currentPage}
-                  total={totalDonors}
+                  total={filteredDonorsData.length}
                   pageSize={pageSize}
                   showSizeChanger={false}
                   showQuickJumper={false}
@@ -1147,6 +1254,7 @@ const Donors: React.FC = () => {
         visible={isInviteModalVisible}
         onCancel={() => setIsInviteModalVisible(false)}
         onSubmit={handleInviteDonor}
+        beneficiaries={beneficiariesList}
       />
 
       {/* Edit Donor Modal */}
@@ -1154,11 +1262,11 @@ const Donors: React.FC = () => {
         visible={isEditModalVisible}
         donor={editingDonor}
         onCancel={() => {
-          console.log('Edit modal cancelled');
           setIsEditModalVisible(false);
           setEditingDonor(null);
         }}
         onSubmit={handleUpdateDonor}
+        beneficiaries={beneficiariesList}
       />
 
       {/* Delete User Confirmation Modal */}

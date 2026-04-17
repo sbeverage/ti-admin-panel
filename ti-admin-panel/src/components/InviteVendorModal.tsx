@@ -13,6 +13,8 @@ import {
   InboxOutlined
 } from '@ant-design/icons';
 import { vendorAPI, discountAPI } from '../services/api';
+import { uploadToSupabase } from '../services/supabaseStorage';
+import { addNotification } from '../services/notifications';
 import './InviteVendorModal.css';
 
 const { Title, Text } = Typography;
@@ -43,6 +45,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   const [logoFileList, setLogoFileList] = useState<any[]>([]);
   const [productImagesFileList, setProductImagesFileList] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedPricingTier, setSelectedPricingTier] = useState<string>('');
 
   // Predefined categories for consistency
   const categoryOptions = [
@@ -174,10 +177,19 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     }
   ];
 
+  React.useEffect(() => {
+    if (currentStep === 1) {
+      const formTier = form.getFieldValue('pricingTier');
+      const storedTier = formTier || priceDiscounts?.pricingTier || '';
+      if (storedTier) {
+        setSelectedPricingTier(storedTier);
+        form.setFieldsValue({ pricingTier: storedTier });
+      }
+    }
+  }, [currentStep, form, priceDiscounts]);
+
   const handleNext = async () => {
     try {
-      console.log('🔍 Current step:', currentStep);
-      console.log('📝 All form values:', form.getFieldsValue());
       
       if (currentStep === 0) {
         // Step 0: Basic Details - validate required fields only
@@ -186,20 +198,32 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           'street', 'phoneNumber', 'city', 'state', 'zipCode', 'category', 'description'
         ];
         const values = await form.validateFields(fieldsToValidate);
-        console.log('✅ Step 0 validation passed');
         setBasicDetails(values);
         setCurrentStep(1);
       } else if (currentStep === 1) {
         // Step 1: Discounts - all fields optional, just get values
         const allValues = form.getFieldsValue();
-        console.log('✅ Step 1 - collecting discount values (optional)');
         setPriceDiscounts(allValues);
         setCurrentStep(2);
       } else {
         // Step 2: Work Schedule - all fields optional, just get values
-        console.log('🚀 Step 2 - Preparing to submit...');
         const allValues = form.getFieldsValue();
-        console.log('📦 All collected values:', { ...basicDetails, ...priceDiscounts, ...allValues });
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const missingSchedule = days.find((day) => {
+          const isClosed = allValues[`${day}Closed`];
+          const startTime = allValues[`${day}Start`];
+          const endTime = allValues[`${day}End`];
+          if (isClosed) {
+            return false;
+          }
+          return !startTime || !endTime;
+        });
+
+        if (missingSchedule) {
+          const dayLabel = `${missingSchedule.charAt(0).toUpperCase()}${missingSchedule.slice(1)}`;
+          message.error(`Please set both start and end times for ${dayLabel}, or mark it as closed.`);
+          return;
+        }
         setWorkSchedule(allValues);
         await handleSubmit({ ...basicDetails, ...priceDiscounts, ...allValues });
       }
@@ -218,13 +242,39 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
   };
 
   const handleSubmit = async (allData: any) => {
-    console.log('🎯 handleSubmit CALLED!');
-    console.log('📦 Submitting vendor data:', allData);
-    console.log('🖼️ Logo file list:', logoFileList);
-    console.log('📸 Product images file list:', productImagesFileList);
     
     setSaving(true);
     try {
+      const fetchAllVendors = async () => {
+        const collected: any[] = [];
+        let page = 1;
+        const limit = 200;
+        let total = 0;
+
+        do {
+          const response = await vendorAPI.getVendors(page, limit);
+          if (!response.success || !Array.isArray(response.data)) {
+            throw new Error(response.error || response.message || 'Failed to load vendors');
+          }
+          collected.push(...response.data);
+          total = response.pagination?.total || collected.length;
+          page += 1;
+        } while (collected.length < total);
+
+        return collected;
+      };
+
+      const existingVendors = await fetchAllVendors();
+      const normalizedEmail = (allData.primaryEmail || '').toString().trim().toLowerCase();
+      const duplicateVendor = existingVendors.find((vendor: any) =>
+        (vendor.email || '').toString().trim().toLowerCase() === normalizedEmail
+      );
+
+      if (duplicateVendor) {
+        message.error('A vendor with this email already exists.');
+        setSaving(false);
+        return;
+      }
       
       // Get uploaded file URLs (for now using mock URLs until we fix the upload endpoint)
       const logoUrl = logoFileList.length > 0 && logoFileList[0].response ? logoFileList[0].response.url : null;
@@ -294,8 +344,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         }
       };
 
-      console.log('Sending vendor data to API:', vendorData);
-
       // Store form data in description as JSON since backend doesn't support custom fields
       const formData = {
         tags: allData.tags || [],
@@ -312,36 +360,81 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       };
 
       // Create vendor
-      console.log('About to call vendorAPI.createVendor with:', vendorDataWithImages);
       const vendorResponse = await vendorAPI.createVendor(vendorDataWithImages);
-      console.log('Vendor API response:', vendorResponse);
-      console.log('Response success:', vendorResponse?.success);
-      console.log('Response data:', vendorResponse?.data);
-      console.log('Response error:', vendorResponse?.error);
       
       // Check if vendor was created (handle both response formats)
       const vendorCreated = vendorResponse?.success && vendorResponse?.data;
       if (vendorCreated && vendorResponse.data) {
         const vendorId = vendorResponse.data.id;
-        console.log('✅ Vendor created successfully with ID:', vendorId);
+        if (!vendorId) {
+          message.warning('Vendor created, but discount setup could not be saved. Please add discounts from the vendor profile.');
+          onSubmit(allData);
+          setTimeout(() => {
+            handleCancel();
+          }, 100);
+          return;
+        }
         
         // Upload logo to Supabase Storage if provided
-        if (logoFileList.length > 0 && logoFileList[0].originFileObj) {
+        if (!logoUrl && logoFileList.length > 0 && logoFileList[0].originFileObj) {
           try {
-            console.log('Uploading logo to Supabase Storage...');
-            const logoUploadResponse = await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
-            console.log('Logo upload response:', logoUploadResponse);
-            if (logoUploadResponse.success) {
-              message.success('Logo uploaded successfully!');
-            }
+            await vendorAPI.uploadVendorLogo(vendorId, logoFileList[0].originFileObj);
           } catch (error) {
             console.error('Logo upload failed:', error);
             message.warning('Vendor created but logo upload failed. You can upload it later.');
           }
         }
         
-        // Create discounts for this vendor if any were provided
-        if (allData.discountName && allData.discountType && allData.discountValue) {
+      const normalizeDiscountType = (type?: string) => {
+        if (!type) return undefined;
+        if (type === 'dollar') return 'fixed';
+        return type;
+      };
+
+      const buildDiscountPayloads = () => {
+        const payloads: any[] = [];
+        const sourceDiscounts = discounts.length > 0
+          ? discounts
+          : (allData.discountName || allData.discountType || allData.discountValue || allData.discountOn || allData.promoCode)
+          ? [allData]
+          : [];
+
+        sourceDiscounts.forEach((discount: any) => {
+          if (!discount.discountName || !discount.discountType) return;
+
+          const normalizedType = normalizeDiscountType(discount.discountType);
+          const rawValue = discount.discountValue;
+          let discountValue = rawValue !== undefined && rawValue !== null && rawValue !== ''
+            ? parseFloat(rawValue)
+            : undefined;
+
+          if (normalizedType === 'bogo' && !discountValue) {
+            discountValue = 50;
+          }
+          if (normalizedType === 'free' && !discountValue) {
+            discountValue = 100;
+          }
+
+          payloads.push({
+            title: discount.discountName,
+            description: discount.discountOn || discount.discountName,
+            discountType: normalizedType,
+            discountValue,
+            discountCode: discount.promoCode || null,
+            frequency: discount.frequency || null,
+            additionalTerms: discount.additionalTerms || null,
+            approvedBy: discount.approvedBy || null,
+            approvalDate: discount.approvalDate || null,
+          });
+        });
+
+        return payloads;
+      };
+
+      const discountPayloads = buildDiscountPayloads();
+
+      // Create discounts for this vendor if any were provided
+      if (discountPayloads.length > 0) {
           try {
             // Backend expects camelCase field names
             // Tags should be an array for JSONB format in Supabase
@@ -350,38 +443,34 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               : allData.tags 
               ? [allData.tags] 
               : [];
-            
+          
+          let createdCount = 0;
+          for (const payload of discountPayloads) {
             const discountData = {
               vendorId: vendorId,
-              title: allData.discountName,
-              description: allData.discountOn || allData.discountName,
-              discountType: allData.discountType,
-              discountValue: parseFloat(allData.discountValue),
-              discountCode: allData.promoCode || null,
+              title: payload.title,
+              description: payload.description,
+              discountType: payload.discountType,
+              discountValue: payload.discountValue,
+              discountCode: payload.discountCode,
               category: allData.category || null,
-              tags: tagsArray.length > 0 ? tagsArray : null, // Send as array for JSONB
+              tags: tagsArray.length > 0 ? tagsArray : null,
               minPurchase: allData.minPurchase ? parseFloat(allData.minPurchase) : undefined,
               maxDiscount: allData.maxDiscount ? parseFloat(allData.maxDiscount) : undefined,
-              terms: allData.additionalTerms || null,
+              terms: payload.additionalTerms || null,
               startDate: allData.startDate ? new Date(allData.startDate).toISOString() : new Date().toISOString(),
-              endDate: allData.endDate ? new Date(allData.endDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+              endDate: allData.endDate ? new Date(allData.endDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
               isActive: true
             };
-            
-            console.log('Creating discount:', discountData);
+
             const discountResponse = await discountAPI.createDiscount(discountData);
-            console.log('Discount API response:', discountResponse);
-            
+
             if (discountResponse.success && discountResponse.data) {
-              message.success('Discount created successfully!');
-              
-              // Upload discount image to Supabase Storage if provided
+              createdCount += 1;
               if (productImagesFileList.length > 0) {
                 try {
-                  console.log('Uploading discount image to Supabase Storage...');
                   const discountId = discountResponse.data.id;
                   const imageUploadResponse = await discountAPI.uploadDiscountImage(discountId, productImagesFileList[0].originFileObj);
-                  console.log('Discount image upload response:', imageUploadResponse);
                   if (imageUploadResponse.success) {
                     message.success('Discount image uploaded successfully!');
                   }
@@ -391,16 +480,27 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 }
               }
             } else {
-              console.warn('Discount creation failed, but vendor was created successfully');
-              message.warning('Vendor created! Discount setup can be completed later from the vendor profile.');
             }
+          }
+
+          if (createdCount > 0) {
+            message.success(`Discount${createdCount > 1 ? 's' : ''} created successfully!`);
+          } else {
+            message.warning('Vendor created! Discount setup can be completed later from the vendor profile.');
+          }
           } catch (error) {
             console.error('Error creating discount:', error);
-            message.warning('Vendor created successfully! Discount setup can be completed later from the vendor profile.');
+            const errorMessage = error instanceof Error ? error.message : 'Discount creation failed';
+            message.warning(`Vendor created. Discount setup failed: ${errorMessage}`);
           }
         }
         
         message.success('Vendor created successfully!');
+        addNotification({
+          title: 'Vendor invited',
+          message: allData.companyName || 'Vendor created',
+          level: 'success',
+        });
         // Call onSubmit callback first to trigger parent refresh
         onSubmit(allData);
         // Small delay to ensure backend has finished processing
@@ -412,17 +512,27 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
         console.error('Response details:', JSON.stringify(vendorResponse, null, 2));
         const errorMessage = vendorResponse?.error || vendorResponse?.message || 'Unknown error';
         message.error(`Failed to create vendor: ${errorMessage}`);
+        addNotification({
+          title: 'Vendor invite failed',
+          message: errorMessage,
+          level: 'error',
+        });
         setSaving(false);
         return; // Don't close modal on error
       }
     } catch (error) {
       console.error('Error creating vendor:', error);
-      message.error(`Failed to create vendor: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Please try again.';
+      message.error(`Failed to create vendor: ${errorMessage}`);
+      addNotification({
+        title: 'Vendor invite failed',
+        message: errorMessage,
+        level: 'error',
+      });
     } finally {
       setSaving(false);
     }
   };
-
 
   const handleSaveAndAddNew = async () => {
     try {
@@ -463,7 +573,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       // Show success message
       message.success("Discount added successfully! You can now add another discount for this vendor.");
     } catch (error) {
-      console.log("Validation failed:", error);
     }
   };  const handlePrev = () => {
     setCurrentStep(currentStep - 1);
@@ -477,6 +586,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     setWorkSchedule({});
     setLogoFileList([]);
     setProductImagesFileList([]);
+    setSelectedPricingTier('');
     onCancel();
   };
 
@@ -493,9 +603,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
       form.setFieldsValue({ logo: newFileList[0].name });
     }
     
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
+    if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   };
@@ -504,47 +612,39 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     let newFileList = [...info.fileList];
     newFileList = newFileList.slice(-5); // Keep up to 5 files
     setProductImagesFileList(newFileList);
-    
+
     // Set form value for validation
     const uploadedFiles = newFileList.filter(file => file.status === 'done');
     if (uploadedFiles.length > 0) {
       form.setFieldsValue({ productImages: uploadedFiles.map(file => file.response?.url || file.name) });
     }
-    
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
+
+    if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   };
 
-  const uploadProps = {
+  const createUploadProps = (bucketName: string, folder: string) => ({
     name: 'file',
     multiple: false,
     customRequest: async ({ file, onSuccess, onError, onProgress }: any) => {
       try {
-        console.log('Uploading file:', file.name, 'Type:', file.type);
-        
-        // For now, we'll create a mock URL and store the file for later upload
-        // This allows the form to work while we figure out the correct upload endpoint
-        const mockUrl = `https://mdqgndyhzlnwojtubouh.supabase.co/storage/v1/object/public/beneficiary-images/mock-${Date.now()}-${file.name}`;
-        
-        // Simulate upload progress
-        onProgress({ percent: 50 });
-        setTimeout(() => {
-          onProgress({ percent: 100 });
-          
+
+        onProgress({ percent: 20 });
+        const result = await uploadToSupabase(file, bucketName, folder);
+        onProgress({ percent: 100 });
+
+        if (result.success && result.url) {
           onSuccess({
-            url: mockUrl,
+            url: result.url,
             name: file.name,
             status: 'done',
-            file: file // Store the actual file for later processing
+            file: file
           });
-          
-        message.success(`${file.name} ready for upload (Note: Upload endpoint needs backend configuration)`);
-        console.log('File prepared for upload:', file.name);
-        }, 1000);
-        
+          message.success(`${file.name} uploaded successfully`);
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
       } catch (error) {
         console.error('Upload error:', error);
         onError(error);
@@ -566,14 +666,15 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
     },
     onChange: (info: any) => {
       if (info.file.status === 'done') {
-        console.log('Upload completed:', info.file.name);
       } else if (info.file.status === 'error') {
         console.error('Upload error:', info.file.error);
       } else if (info.file.status === 'uploading') {
-        console.log('Uploading:', info.file.name);
       }
     },
-  };
+  });
+
+  const logoUploadProps = createUploadProps('vendor-logos', 'vendors/logos');
+  const productImagesUploadProps = createUploadProps('vendor-logos', 'vendors/products');
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -585,7 +686,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact Information *"
+                  label="Primary Contact"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
@@ -594,7 +695,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
-                  label="Primary Contact Email *"
+                  label="Primary Contact Email"
                   rules={[{ required: true, message: 'Please enter primary email' }]}
                 >
                   <Input placeholder="Enter primary contact email" />
@@ -605,7 +706,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="companyName"
-                  label="Company Name *"
+                  label="Company Name"
                   rules={[{ required: true, message: 'Please enter company name' }]}
                 >
                   <Input placeholder="Enter company name" />
@@ -614,7 +715,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="websiteLink"
-                  label="Website Link *"
+                  label="Website Link"
                   rules={[{ required: true, message: 'Please enter website link' }]}
                 >
                   <Input placeholder="Enter website link" />
@@ -625,7 +726,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="street"
-                  label="Street Address *"
+                  label="Street Address"
                   rules={[{ required: true, message: 'Please enter street address' }]}
                 >
                   <Input placeholder="Enter street address" />
@@ -634,7 +735,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="phoneNumber"
-                  label="Company Phone Number *"
+                  label="Company Phone Number"
                   rules={[{ required: true, message: 'Please enter phone number' }]}
                 >
                   <Input placeholder="Enter company phone number" />
@@ -645,7 +746,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="city"
-                  label="City *"
+                  label="City"
                   rules={[{ required: true, message: 'Please enter city' }]}
                 >
                   <Input placeholder="Enter city" />
@@ -654,7 +755,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="state"
-                  label="State *"
+                  label="State"
                   rules={[{ required: true, message: 'Please enter state' }]}
                 >
                   <Input placeholder="Enter state" />
@@ -663,7 +764,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="zipCode"
-                  label="ZIP Code *"
+                  label="ZIP Code"
                   rules={[{ required: true, message: 'Please enter ZIP code' }]}
                 >
                   <Input placeholder="Enter ZIP code" />
@@ -674,7 +775,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="category"
-                  label="Category *"
+                  label="Category"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
                   <Select 
@@ -686,13 +787,10 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                     }
                     options={categoryOptions}
                     onChange={(value) => {
-                      console.log('Selected category:', value);
                       setSelectedCategory(value);
                     }}
                     onDropdownVisibleChange={(open) => {
                       if (open) {
-                        console.log('Category options:', categoryOptions);
-                        console.log('Looking for coworking:', categoryOptions.find(opt => opt.value === 'coworking'));
                       }
                     }}
                   />
@@ -702,7 +800,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="tags"
                   label="Tags"
-                  rules={[{ required: false, message: 'Please select tags' }]}
                 >
                   <Select
                     mode="multiple"
@@ -726,7 +823,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="description"
-                  label="Description *"
+                  label="Description"
                   rules={[{ required: true, message: 'Please enter description' }]}
                 >
                   <TextArea rows={4} placeholder="Enter company description" />
@@ -739,10 +836,9 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="logo"
                   label="Upload Logo"
-                  rules={[{ required: false, message: 'Please upload a logo' }]}
                 >
                   <Dragger
-                    {...uploadProps}
+                    {...logoUploadProps}
                     fileList={logoFileList}
                     onChange={handleLogoUpload}
                     className="logo-upload"
@@ -763,7 +859,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                   label="Upload Product Images"
                 >
                   <Dragger
-                    {...uploadProps}
+                    {...productImagesUploadProps}
                     multiple={true}
                     fileList={productImagesFileList}
                     onChange={handleProductImagesUpload}
@@ -774,7 +870,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                     </p>
                     <p className="ant-upload-text">Click or drag images to this area to upload</p>
                     <p className="ant-upload-hint">
-                      Upload minimum 3 additional images. Max 5 files, 10MB each
+                      Optional. Up to 5 files, 10MB each
                     </p>
                   </Dragger>
                 </Form.Item>
@@ -794,7 +890,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="discountName"
                   label="Discount Name"
-                  rules={[{ required: false, message: 'Please enter discount name' }]}
                 >
                   <Input placeholder="e.g., Summer Special, Happy Hour" />
                 </Form.Item>
@@ -803,7 +898,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="discountType"
                   label="Discount Type"
-                  rules={[{ required: false, message: 'Please select discount type' }]}
                 >
                   <Select placeholder="Select discount type">
                     <Option value="free">Free</Option>
@@ -821,7 +915,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="discountValue"
                   label="Discount Value"
-                  rules={[{ required: false, message: 'Please enter discount value' }]}
                 >
                   <Input 
                     placeholder={form.getFieldValue('discountType') === 'percentage' ? 'e.g., 20' : 
@@ -836,7 +929,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="discountOn"
                   label="Discount On"
-                  rules={[{ required: false, message: 'Please specify what the discount applies to' }]}
                 >
                   <Input placeholder="e.g., appetizers, desserts, clothing items, services" />
                 </Form.Item>
@@ -849,7 +941,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="frequency"
                   label="Monthly Frequency"
-                  rules={[{ required: false, message: 'Please select monthly frequency' }]}
                 >
                   <Select placeholder="How many times per month can users get this discount?">
                     <Option value="1">1 time per month</Option>
@@ -865,7 +956,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="promoCode"
                   label="Promo Code"
-                  rules={[{ required: false, message: 'Please enter promo code' }]}
                 >
                   <Input placeholder="e.g., SUMMER20, HAPPYHOUR" />
                 </Form.Item>
@@ -878,7 +968,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="additionalTerms"
                   label="Additional Terms"
-                  rules={[{ required: false }]}
                 >
                   <TextArea 
                     rows={3} 
@@ -894,7 +983,6 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
                 <Form.Item
                   name="approvedBy"
                   label="Approved By"
-                  rules={[{ required: false, message: 'Please enter who approved this discount' }]}
                 >
                   <Input placeholder="e.g., John Smith, Marketing Manager" />
                 </Form.Item>
@@ -910,17 +998,27 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               </Col>
             </Row>
 
-
-
             {/* Pricing Tier */}
             <Row gutter={[24, 16]}>
               <Col span={24}>
                 <Title level={5}>Select the tier that best describes your location pricing</Title>
+                <Form.Item name="pricingTier" style={{ display: 'none' }}>
+                  <Input />
+                </Form.Item>
                 <div className="pricing-tiers">
-                  <Button className="pricing-tier-btn" value="$">$</Button>
-                  <Button className="pricing-tier-btn" value="$$">$$</Button>
-                  <Button className="pricing-tier-btn" value="$$$">$$$</Button>
-                  <Button className="pricing-tier-btn" value="$$$$">$$$$</Button>
+                  {['$', '$$', '$$$', '$$$$'].map((tier) => (
+                    <Button
+                      key={tier}
+                      className="pricing-tier-btn"
+                      type={selectedPricingTier === tier ? 'primary' : 'default'}
+                      onClick={() => {
+                        setSelectedPricingTier(tier);
+                        form.setFieldsValue({ pricingTier: tier });
+                      }}
+                    >
+                      {tier}
+                    </Button>
+                  ))}
                 </div>
               </Col>
             </Row>
@@ -1007,6 +1105,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
             icon={<ArrowLeftOutlined />} 
             onClick={handleCancel}
             className="back-btn"
+            disabled={saving}
           />
           <div className="header-content">
             <Title level={3} className="modal-title">Invite Vendor</Title>
@@ -1025,7 +1124,7 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           <Steps
             direction="vertical"
             current={currentStep}
-            onChange={setCurrentStep}
+            onChange={saving ? undefined : setCurrentStep}
             items={steps.map((step, index) => ({
               title: step.title,
               description: step.description,
@@ -1038,7 +1137,9 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
           <Form
             form={form}
             layout="vertical"
+            requiredMark="optional"
             className="vendor-form"
+            disabled={saving}
           >
             {renderStepContent()}
             <div className="form-actions">
@@ -1054,15 +1155,16 @@ const InviteVendorModal: React.FC<InviteVendorModalProps> = ({
               <Button 
                 type="primary" 
                 onClick={() => {
-                  console.log('🖱️ Submit/Next button clicked! Current step:', currentStep);
                   handleNext();
                 }}
                 className="next-btn"
                 loading={saving}
                 disabled={saving}
               >
-                {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
-                {!saving && <ArrowRightOutlined />}
+                <span className="next-btn-label">
+                  {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+                </span>
+                <ArrowRightOutlined style={{ visibility: saving ? 'hidden' : 'visible' }} />
               </Button>
             </div>
           </Form>

@@ -71,7 +71,7 @@ const API_CONFIG = {
     ? '/api/admin'  // Use proxy in development
     : 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin',  // Production Supabase Edge Function URL
   headers: {
-    'X-Admin-Secret': '6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e',
+    'X-Admin-Secret': '2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25',
     'Content-Type': 'application/json',
     'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A',
     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.h3VxeP8bhJ5bM6vGmQBmNLZFfJLm2lMhHqQ3B2jFj0A'
@@ -83,7 +83,7 @@ const API_CONFIG = {
 
 ```env
 REACT_APP_API_BASE_URL=https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin
-REACT_APP_ADMIN_SECRET=6f5c7ad726f7f9b145ab3f7f58c4f9a301a746406f3e16f6ae438f36e7dcfe0e
+REACT_APP_ADMIN_SECRET=2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25
 NODE_ENV=production
 ```
 

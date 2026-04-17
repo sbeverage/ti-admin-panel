@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 
+// Session expires after 8 hours of inactivity
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+
 interface AuthState {
   isAuthenticated: boolean;
   username: string | null;
@@ -14,11 +17,25 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    // Check if user is already authenticated
     const checkAuth = () => {
       const isAuth = localStorage.getItem('admin_authenticated') === 'true';
       const username = localStorage.getItem('admin_username');
-      
+      const expiryStr = localStorage.getItem('admin_session_expiry');
+
+      if (isAuth && expiryStr) {
+        const expiry = parseInt(expiryStr, 10);
+        if (Date.now() > expiry) {
+          // Session expired — clear everything
+          localStorage.removeItem('admin_authenticated');
+          localStorage.removeItem('admin_username');
+          localStorage.removeItem('admin_email');
+          localStorage.removeItem('admin_session_expiry');
+          localStorage.removeItem('admin_is_super_admin');
+          setAuthState({ isAuthenticated: false, username: null, loading: false });
+          return;
+        }
+      }
+
       setAuthState({
         isAuthenticated: isAuth,
         username: isAuth ? username : null,
@@ -30,8 +47,10 @@ export const useAuth = () => {
   }, []);
 
   const login = (username: string) => {
+    const expiry = Date.now() + SESSION_DURATION_MS;
     localStorage.setItem('admin_authenticated', 'true');
     localStorage.setItem('admin_username', username);
+    localStorage.setItem('admin_session_expiry', String(expiry));
     setAuthState({
       isAuthenticated: true,
       username,
@@ -40,18 +59,18 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem('admin_authenticated');
     localStorage.removeItem('admin_username');
-    
-    // Update state
+    localStorage.removeItem('admin_email');
+    localStorage.removeItem('admin_session_expiry');
+    localStorage.removeItem('admin_is_super_admin');
+
     setAuthState({
       isAuthenticated: false,
       username: null,
       loading: false
     });
-    
-    // Force redirect to login page
+
     window.location.href = '/';
   };
 

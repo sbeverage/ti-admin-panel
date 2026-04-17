@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message, DatePicker, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { dashboardAPI } from '../services/api';
@@ -10,24 +10,21 @@ import {
   RiseOutlined,
   SettingOutlined,
   CalendarOutlined,
-  CrownOutlined,
-  FileTextOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
-  BellOutlined,
   ShoppingOutlined,
   BankOutlined,
   GiftOutlined,
   DollarOutlined,
   CheckCircleFilled,
   DownOutlined,
-  FallOutlined,
   TeamOutlined,
   GlobalOutlined,
   ReloadOutlined,
   CalculatorOutlined,
   MailOutlined
 } from '@ant-design/icons';
+import NotificationsDropdown from './NotificationsDropdown';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -37,9 +34,17 @@ const { Title, Text } = Typography;
 
 
 const Dashboard: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const [selectedTimeFilterKey, setSelectedTimeFilterKey] = useState('1 Month');
+  const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');
+  const [donorChartFilter, setDonorChartFilter] = useState('1 Month');
+  const [donationChartFilter, setDonationChartFilter] = useState('1 Month');
+  const [donorChartStats, setDonorChartStats] = useState<{ total: number; active: number; inactive: number } | null>(null);
+  const [donationChartStats, setDonationChartStats] = useState<{ total: number } | null>(null);
+  const [donorChartLoading, setDonorChartLoading] = useState(false);
+  const [donationChartLoading, setDonationChartLoading] = useState(false);
+  const [customDateOpen, setCustomDateOpen] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState<any>(null);
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
@@ -48,98 +53,166 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const filterLabelToPeriod = (label: string): string => {
+    switch (label) {
+      case 'All': return 'all';
+      case '1 Week': return '7d';
+      case '15 Days': return '15d';
+      case '1 Month': return '30d';
+      case '3 Months': return '90d';
+      case '6 Months': return '180d';
+      case 'One Year': return '365d';
+      default: return '30d';
+    }
+  };
+
+  const getSelectedPeriod = () => filterLabelToPeriod(selectedTimeFilterKey);
+
+  // Load donor chart data independently
+  const loadDonorChartData = async (period: string) => {
+    setDonorChartLoading(true);
+    try {
+      const { donorAPI } = await import('../services/api');
+      const resp = await donorAPI.getDonors(1, 1000);
+      const donors: any[] = resp.data || [];
+      let filtered = donors;
+      if (period !== 'all') {
+        const days = parseInt(period.replace('d', ''), 10) || 30;
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        filtered = donors.filter((d: any) => {
+          const created = d.created_at ? new Date(d.created_at) : null;
+          return created && !isNaN(created.getTime()) && created >= start;
+        });
+      }
+      let active = 0, inactive = 0;
+      filtered.forEach((d: any) => {
+        const hasMonthly = d.monthly_donation?.active === true || d.subscription?.active === true || d.has_active_subscription === true;
+        if (hasMonthly) active++; else inactive++;
+      });
+      setDonorChartStats({ total: filtered.length, active, inactive });
+    } catch {
+      // keep existing stats on error
+    } finally {
+      setDonorChartLoading(false);
+    }
+  };
+
+  // Load donation chart data independently
+  const loadDonationChartData = async (period: string) => {
+    setDonationChartLoading(true);
+    try {
+      const { dashboardAPI } = await import('../services/api');
+      const statsResp = await dashboardAPI.getDashboardStats(period);
+      const total = statsResp?.data?.totalDonations || statsResp?.data?.totalRevenue || 0;
+      setDonationChartStats({ total });
+    } catch {
+      // keep existing stats on error
+    } finally {
+      setDonationChartLoading(false);
+    }
+  };
+
+  // Get start date for period filtering (records created on or after this date)
+  const getPeriodStartDate = (): Date | null => {
+    const period = getSelectedPeriod();
+    if (period === 'all') return null;
+    const now = new Date();
+    const days = parseInt(period.replace('d', ''), 10) || 30;
+    const start = new Date(now);
+    start.setDate(start.getDate() - days);
+    return start;
+  };
+
+  // Filter records by created_at/createdAt within the selected period
+  const filterByPeriod = <T extends { created_at?: string; createdAt?: string }>(items: T[]): T[] => {
+    const start = getPeriodStartDate();
+    if (!start || !items?.length) return items || [];
+    return items.filter((item) => {
+      const dateStr = (item as any).created_at ?? (item as any).createdAt;
+      const created = dateStr ? new Date(dateStr) : null;
+      return created && !isNaN(created.getTime()) && created >= start;
+    });
+  };
+
   // Load dashboard data from API
   const loadDashboardData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('📊 Loading dashboard data from API...');
+      const selectedPeriod = getSelectedPeriod();
       
       // Import API functions
-      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI, dashboardAPI: { getChartData } } = await import('../services/api');
+      const { dashboardAPI, approvalsAPI, vendorAPI, beneficiaryAPI, donorAPI } = await import('../services/api');
+      const { getChartData } = dashboardAPI;
       
-      // Load dashboard stats, approvals, chart data, and all donors in parallel
+      // Load dashboard stats, approvals, chart data; fetch full lists for period filtering
       const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
-        dashboardAPI.getDashboardStats().catch(() => ({ success: false, data: null })),
+        dashboardAPI.getDashboardStats(selectedPeriod).catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        vendorAPI.getVendors(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        vendorAPI.getVendors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
+        beneficiaryAPI.getBeneficiaries(1, 1000, { includeInactive: true }).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        getChartData('donations', '30d').catch(() => ({ success: false, data: null }))
+        getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null }))
       ]);
       
-      console.log('📊 Dashboard responses:', {
-        stats: statsResponse,
-        approvals: approvalsResponse,
-        vendors: vendorsResponse,
-        beneficiaries: beneficiariesResponse,
-        donors: donorsResponse,
-        donationsChart: donationsChartData
-      });
-      
-      // Calculate active vs inactive donors
-      // Active = has monthly subscription, Inactive = has account but no monthly subscription
+      // Apply period filter to counts (when period !== 'all')
+      const donorsInPeriod = filterByPeriod(donorsResponse.data || []);
+      const vendorsInPeriod = filterByPeriod(vendorsResponse.data || []);
+      const beneficiariesInPeriod = filterByPeriod(beneficiariesResponse.data || []);
+
+      // Calculate active vs inactive donors (within period)
       let activeDonorsCount = 0;
       let inactiveDonorsCount = 0;
-      
-      if (donorsResponse.success && donorsResponse.data) {
-        donorsResponse.data.forEach((donor: any) => {
-          // Check if donor has an active monthly subscription
-          const hasMonthlyDonation = donor.monthly_donation?.active === true || 
-                                     donor.subscription?.active === true ||
-                                     donor.has_active_subscription === true;
-          
-          if (hasMonthlyDonation) {
-            activeDonorsCount++;
-          } else {
-            // Has account but no monthly donation = inactive
-            inactiveDonorsCount++;
-          }
-        });
-      }
-      
-      // Use stats from dashboard API if available, otherwise calculate from individual endpoints
+      donorsInPeriod.forEach((donor: any) => {
+        const hasMonthlyDonation = donor.monthly_donation?.active === true ||
+                                   donor.subscription?.active === true ||
+                                   donor.has_active_subscription === true;
+        if (hasMonthlyDonation) activeDonorsCount++;
+        else inactiveDonorsCount++;
+      });
+
+      const periodFiltered = selectedPeriod !== 'all';
+      const totalDonorsCount = periodFiltered ? donorsInPeriod.length : (donorsResponse.pagination?.total ?? donorsResponse.data?.length ?? 0);
+      const totalVendorsCount = periodFiltered ? vendorsInPeriod.length : (vendorsResponse.pagination?.total ?? vendorsResponse.data?.length ?? 0);
+      const totalBeneficiariesCount = periodFiltered ? beneficiariesInPeriod.length : (beneficiariesResponse.pagination?.total ?? beneficiariesResponse.data?.length ?? 0);
+
       let stats: any = {};
-      
-      if (statsResponse.success && statsResponse.data) {
-        // Use data from dashboard stats endpoint
+      if (statsResponse.success && statsResponse.data && !periodFiltered) {
         stats = {
-          totalVendors: statsResponse.data.totalVendors || vendorsResponse.pagination?.total || 0,
-          totalDonors: statsResponse.data.totalDonors || donorsResponse.pagination?.total || 0,
-          totalBeneficiaries: statsResponse.data.totalBeneficiaries || beneficiariesResponse.pagination?.total || 0,
+          totalVendors: statsResponse.data.totalVendors ?? totalVendorsCount,
+          totalDonors: statsResponse.data.totalDonors ?? totalDonorsCount,
+          totalBeneficiaries: statsResponse.data.totalBeneficiaries ?? totalBeneficiariesCount,
           totalTenants: statsResponse.data.totalTenants || 0,
           totalRevenue: statsResponse.data.totalRevenue || statsResponse.data.totalDonations || 0,
           totalDonations: statsResponse.data.totalDonations || statsResponse.data.totalRevenue || 0,
           totalOneTimeGift: statsResponse.data.totalOneTimeGift || 0,
-          activeDonors: activeDonorsCount || statsResponse.data.activeDonors || 0,
+          activeDonors: statsResponse.data.activeDonors ?? activeDonorsCount,
           inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
           activeDiscounts: statsResponse.data.activeDiscounts || 0,
-          // Chart data for donations
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
           donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
       } else {
-        // Fallback: calculate from individual endpoints
         stats = {
-          totalVendors: vendorsResponse.pagination?.total || 0,
-          totalDonors: donorsResponse.pagination?.total || 0,
-          totalBeneficiaries: beneficiariesResponse.pagination?.total || 0,
+          totalVendors: totalVendorsCount,
+          totalDonors: totalDonorsCount,
+          totalBeneficiaries: totalBeneficiariesCount,
           totalTenants: 0,
-          totalRevenue: 0,
-          totalDonations: 0,
-          totalOneTimeGift: 0,
+          totalRevenue: statsResponse.data?.totalRevenue || statsResponse.data?.totalDonations || 0,
+          totalDonations: statsResponse.data?.totalDonations || statsResponse.data?.totalRevenue || 0,
+          totalOneTimeGift: statsResponse.data?.totalOneTimeGift || 0,
           activeDonors: activeDonorsCount,
           inactiveDonors: inactiveDonorsCount,
           pendingApprovals: approvalsResponse.pagination?.total || 0,
-          activeDiscounts: 0,
+          activeDiscounts: statsResponse.data?.activeDiscounts || 0,
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
           donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
         };
       }
       
-      console.log('📊 Final dashboard stats:', stats);
       setDashboardStats(stats);
       
       // Load recent approvals data with proper city/state parsing and logos
@@ -158,6 +231,7 @@ const Dashboard: React.FC = () => {
         }
         
         return {
+          id: b.id,
           key: b.id?.toString() || Math.random().toString(),
           beneficiary: b.name || 'Unknown',
           email: b.email || 'N/A',
@@ -184,6 +258,7 @@ const Dashboard: React.FC = () => {
         }
         
         return {
+          id: v.id,
           key: v.id?.toString() || Math.random().toString(),
           beneficiary: v.name || 'Unknown',
           email: v.email || 'N/A',
@@ -220,15 +295,11 @@ const Dashboard: React.FC = () => {
 
 
   // Load data on component mount and when navigating back to dashboard
-  useEffect(() => {
-    loadDashboardData();
-  }, []); // Initial load
   
   // Refresh dashboard data when the page becomes visible (e.g., after creating a vendor)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('📊 Dashboard visible - refreshing data...');
         loadDashboardData();
       }
     };
@@ -246,42 +317,114 @@ const Dashboard: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const handleTimeFilterChange = ({ key }: { key: string }) => {
-    setSelectedTimeFilter(key);
-    // Here you would typically fetch new data based on the selected time period
-    console.log('Time filter changed to:', key);
+  const handleTimeFilterChange = (key: string) => {
+    if (key === 'Custom Date') {
+      setCustomDateOpen(true);
+      return;
+    }
+
+    setSelectedTimeFilterKey(key);
+    setSelectedTimeFilterLabel(key);
   };
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    setApprovalsData(prevData => 
-      prevData.map(item => 
-        item.key === key 
-          ? { ...item, [field]: !item[field] }
+  const handleCustomDateApply = () => {
+    if (customDateRange?.[0] && customDateRange?.[1]) {
+      const start = customDateRange[0].format('MM/DD/YYYY');
+      const end = customDateRange[1].format('MM/DD/YYYY');
+      setSelectedTimeFilterKey('Custom Date');
+      setSelectedTimeFilterLabel(`${start} - ${end}`);
+      // Custom date range not supported by backend yet; data shows latest period
+    }
+    setCustomDateOpen(false);
+  };
+
+  const handleToggleChange = async (record: any, field: 'active' | 'enabled') => {
+    const nextValue = !record[field];
+    const targetId = Number(record.id ?? record.key ?? record.rawData?.id);
+    if (!targetId || isNaN(targetId)) {
+      message.error('Invalid record ID.');
+      return;
+    }
+
+    setApprovalsData(prevData =>
+      prevData.map(item =>
+        item.key === record.key
+          ? { ...item, [field]: nextValue }
           : item
       )
     );
-    
-    // Here you would typically make an API call to update the backend
-    console.log(`Toggled ${field} for key ${key}`);
+
+    try {
+      const { vendorAPI, beneficiaryAPI } = await import('../services/api');
+
+      if (activeApprovalTab === 'beneficiaries') {
+        // Backend expects isActive (camelCase); charities only have is_active (both toggles map to it)
+        const payload = { is_active: nextValue, isActive: nextValue };
+        const response = await beneficiaryAPI.updateBeneficiary(targetId, payload);
+        if (response?.success === false) {
+          throw new Error(response?.error || 'Failed to update beneficiary');
+        }
+      } else {
+        let response;
+        if (field === 'active') {
+          response = await vendorAPI.updateVendorStatus(targetId, nextValue ? 'active' : 'inactive');
+        } else {
+          response = await vendorAPI.updateVendor(targetId, { is_enabled: nextValue });
+        }
+        if (response?.success === false) {
+          throw new Error(response?.error || 'Failed to update vendor');
+        }
+      }
+
+      const label = activeApprovalTab === 'beneficiaries' ? 'Beneficiary' : 'Vendor';
+      const statusText = field === 'active'
+        ? (nextValue ? 'activated' : 'deactivated')
+        : (nextValue ? 'enabled' : 'disabled');
+      message.success(`${label} ${statusText}.`);
+      // Refresh from server to ensure UI stays in sync
+      loadApprovalsData();
+    } catch (error: any) {
+      console.error('Toggle update error:', error);
+      setApprovalsData(prevData =>
+        prevData.map(item =>
+          item.key === record.key
+            ? { ...item, [field]: !nextValue }
+            : item
+        )
+      );
+      message.error(error?.message || `Failed to update ${field} status.`);
+    }
   };
 
   const handleViewAllBeneficiaries = () => {
     navigate('/beneficiaries');
   };
 
-  // Load approvals data when tab changes
+  // Load approvals data when tab changes or dashboard stats load
   useEffect(() => {
     if (dashboardStats) {
       loadApprovalsData();
     }
-  }, [activeApprovalTab]);
+  }, [activeApprovalTab, dashboardStats]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [selectedTimeFilterKey]);
+
+  useEffect(() => {
+    loadDonorChartData(filterLabelToPeriod(donorChartFilter));
+  }, [donorChartFilter]);
+
+  useEffect(() => {
+    loadDonationChartData(filterLabelToPeriod(donationChartFilter));
+  }, [donationChartFilter]);
 
   const loadApprovalsData = async () => {
     try {
       const { vendorAPI, beneficiaryAPI } = await import('../services/api');
       
       if (activeApprovalTab === 'beneficiaries') {
-        const response = await beneficiaryAPI.getBeneficiaries(1, 5).catch(() => ({ success: false, data: [] }));
+        const response = await beneficiaryAPI.getBeneficiaries(1, 5, { includeInactive: true }).catch(() => ({ success: false, data: [] }));
         if (response.success && response.data) {
           const data = response.data.map((b: any) => {
             let cityState = 'N/A';
@@ -298,13 +441,14 @@ const Dashboard: React.FC = () => {
             }
             
             return {
+              id: b.id,
               key: b.id?.toString() || Math.random().toString(),
               beneficiary: b.name || 'Unknown',
               email: b.email || 'N/A',
               cityState: cityState,
               cause: b.category || 'N/A',
-              active: b.is_active !== false,
-              enabled: b.is_enabled !== false,
+              active: (b.is_active ?? b.isActive) !== false,
+              enabled: (b.is_enabled ?? b.isEnabled ?? b.is_active ?? b.isActive) !== false,
               logo: b.logo_url || b.logo || null,
             };
           });
@@ -328,6 +472,7 @@ const Dashboard: React.FC = () => {
             }
             
             return {
+              id: v.id,
               key: v.id?.toString() || Math.random().toString(),
               beneficiary: v.name || 'Unknown',
               email: v.email || 'N/A',
@@ -355,8 +500,6 @@ const Dashboard: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -374,20 +517,52 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const timeFilterMenu = (
-    <Menu onClick={handleTimeFilterChange}>
-      <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
-        All
-      </Menu.Item>
-      <Menu.Item key="1 Week">1 Week</Menu.Item>
-      <Menu.Item key="15 Days">15 Days</Menu.Item>
-      <Menu.Item key="1 Month">1 Month</Menu.Item>
-      <Menu.Item key="3 Months">3 Months</Menu.Item>
-      <Menu.Item key="6 Months">6 Months</Menu.Item>
-      <Menu.Item key="One Year">One Year</Menu.Item>
-      <Menu.Item key="Custom Date">Custom Date</Menu.Item>
-    </Menu>
-  );
+  const timeFilterOptions = [
+    'All',
+    '1 Week',
+    '15 Days',
+    '1 Month',
+    '3 Months',
+    '6 Months',
+    'One Year',
+    'Custom Date'
+  ];
+
+  const timeFilterMenu = {
+    selectedKeys: [selectedTimeFilterKey],
+    items: timeFilterOptions.map((option) => ({
+      key: option,
+      label: option,
+      icon: selectedTimeFilterKey === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined,
+      onClick: () => handleTimeFilterChange(option)
+    }))
+  };
+
+  const donorChartFilterMenu = {
+    selectedKeys: [donorChartFilter],
+    items: timeFilterOptions.filter(o => o !== 'Custom Date').map((option) => ({
+      key: option,
+      label: option,
+      icon: donorChartFilter === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined,
+      onClick: () => setDonorChartFilter(option)
+    }))
+  };
+
+  const donationChartFilterMenu = {
+    selectedKeys: [donationChartFilter],
+    items: timeFilterOptions.filter(o => o !== 'Custom Date').map((option) => ({
+      key: option,
+      label: option,
+      icon: donationChartFilter === option
+        ? <CheckCircleFilled style={{ color: '#DB8633' }} />
+        : undefined,
+      onClick: () => setDonationChartFilter(option)
+    }))
+  };
 
   const menuItems = [
     {
@@ -419,12 +594,6 @@ const Dashboard: React.FC = () => {
       icon: <GiftOutlined />,
       label: 'Discounts',
       title: 'Discount Management'
-    },
-    {
-      key: 'tenants',
-      icon: <BankOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'pending-approvals',
@@ -549,7 +718,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${active ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'active')}
+            onClick={() => handleToggleChange(record, 'active')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -564,7 +733,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${enabled ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'enabled')}
+            onClick={() => handleToggleChange(record, 'enabled')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -617,7 +786,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${active ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'active')}
+            onClick={() => handleToggleChange(record, 'active')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -632,7 +801,7 @@ const Dashboard: React.FC = () => {
         <div className="toggle-switch">
           <div 
             className={`toggle ${enabled ? 'active' : 'inactive'}`}
-            onClick={() => handleToggleChange(record.key, 'enabled')}
+            onClick={() => handleToggleChange(record, 'enabled')}
           >
             <div className="toggle-slider"></div>
           </div>
@@ -712,9 +881,7 @@ const Dashboard: React.FC = () => {
       <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        trigger={null}
       >
         <div className="standard-logo-section">
           <div className="standard-logo-container">
@@ -761,8 +928,7 @@ const Dashboard: React.FC = () => {
             >
               Refresh
             </Button>
-            <Button type="text" icon={<BellOutlined />} />
-            <Avatar size={32} icon={<UserOutlined />} />
+            <NotificationsDropdown />
           </div>
         </Header>
 
@@ -773,20 +939,20 @@ const Dashboard: React.FC = () => {
               <div className="summary-header">
                 <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
                 <Dropdown
-                  overlay={timeFilterMenu}
+                  menu={timeFilterMenu}
                   trigger={['click']}
                   placement="bottomRight"
                 >
                   <Button className="time-filter-button">
                     <CalendarOutlined />
-                    <span>{selectedTimeFilter}</span>
+                    <span>{selectedTimeFilterLabel}</span>
                     <DownOutlined />
                   </Button>
                 </Dropdown>
               </div>
 
               <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donors"
@@ -795,7 +961,7 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Vendors"
@@ -804,19 +970,7 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Tenants"
-                      value={dashboardStats?.totalTenants || '--'}
-                      prefix={<BankOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
                       title="Total Beneficiaries"
@@ -825,6 +979,18 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                  <Card className="summary-card">
+                    <Statistic
+                      title="Active Donors"
+                      value={dashboardStats?.activeDonors || '--'}
+                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]} className="summary-cards">
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic
@@ -843,33 +1009,12 @@ const Dashboard: React.FC = () => {
                     />
                   </Card>
                 </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Active Donors"
-                      value={dashboardStats?.activeDonors || '--'}
-                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                   <Card className="summary-card">
                     <Statistic
                       title="Pending Approvals"
                       value={dashboardStats?.pendingApprovals || '--'}
                       prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Revenue"
-                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
-                      prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
                 </Col>
@@ -892,33 +1037,35 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Breakdown of Donors</div>
                             <Dropdown
-                              overlay={timeFilterMenu}
+                              menu={donorChartFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>This Month</span>
+                                <span>{donorChartFilter}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
                           </div>
                           <div className="chart-content">
+                            <Spin spinning={donorChartLoading}>
                             <div className="chart-total">
-                              <span className="total-number">{dashboardStats?.totalDonors || '--'}</span>
+                              <span className="total-number">{donorChartStats !== null ? donorChartStats.total : (dashboardStats?.totalDonors ?? '--')}</span>
                               <span className="total-label">Total Donors</span>
                             </div>
                             <div className="donut-chart"></div>
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>{dashboardStats?.activeDonors || '--'} Active Donors</span>
+                                <span>{donorChartStats !== null ? donorChartStats.active : (dashboardStats?.activeDonors ?? '--')} Active Donors</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>{dashboardStats?.inactiveDonors || '--'} In-Active Donors</span>
+                                <span>{donorChartStats !== null ? donorChartStats.inactive : (dashboardStats?.inactiveDonors ?? '--')} In-Active Donors</span>
                               </div>
                             </div>
+                            </Spin>
                           </div>
                         </Card>
                       </Col>
@@ -927,20 +1074,25 @@ const Dashboard: React.FC = () => {
                           <div className="chart-header">
                             <div className="chart-title">Donations</div>
                             <Dropdown
-                              overlay={timeFilterMenu}
+                              menu={donationChartFilterMenu}
                               trigger={['click']}
                               placement="bottomRight"
                             >
                               <Button className="chart-filter-button">
                                 <CalendarOutlined />
-                                <span>This Month</span>
+                                <span>{donationChartFilter}</span>
                                 <DownOutlined />
                               </Button>
                             </Dropdown>
                           </div>
                           <div className="chart-content">
+                            <Spin spinning={donationChartLoading}>
                             <div className="chart-total">
-                              <span className="total-number">{dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--'}</span>
+                              <span className="total-number">
+                                {donationChartStats !== null
+                                  ? (donationChartStats.total ? `$${donationChartStats.total.toLocaleString()}` : '$0')
+                                  : (dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--')}
+                              </span>
                               <span className="total-label">Total Donations</span>
                             </div>
                             <div className="line-chart">
@@ -970,6 +1122,7 @@ const Dashboard: React.FC = () => {
                                 <span>Trend: {dashboardStats?.donationsTrend ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs last month` : '--'}</span>
                               </div>
                             </div>
+                            </Spin>
                           </div>
                         </Card>
                       </Col>
@@ -985,13 +1138,21 @@ const Dashboard: React.FC = () => {
                 <Card className="approvals-card">
                   <div className="tab-header">
                     <Typography.Title level={2}>Recent Approvals</Typography.Title>
-                    <Typography.Link 
-                      onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')} 
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor')}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          (activeApprovalTab === 'beneficiaries' ? navigate('/beneficiaries') : navigate('/vendor'));
+                        }
+                      }}
                       className="view-all-link"
                       style={{ color: '#DB8633' }}
                     >
                       View all {activeApprovalTab === 'beneficiaries' ? 'Beneficiaries' : 'Vendors'}
-                    </Typography.Link>
+                    </span>
                   </div>
                   <Tabs 
                     activeKey={activeApprovalTab} 
@@ -1007,10 +1168,7 @@ const Dashboard: React.FC = () => {
                       {
                         key: 'beneficiaries',
                         label: (
-                          <span 
-                            onClick={() => navigate('/beneficiaries')}
-                            style={{ color: '#DB8633', cursor: 'pointer' }}
-                          >
+                          <span style={{ color: '#DB8633' }}>
                             Beneficiaries
                           </span>
                         ),
@@ -1027,10 +1185,7 @@ const Dashboard: React.FC = () => {
                       {
                         key: 'vendors', 
                         label: (
-                          <span 
-                            onClick={() => navigate('/vendor')}
-                            style={{ color: '#DB8633', cursor: 'pointer' }}
-                          >
+                          <span style={{ color: '#DB8633' }}>
                             Vendors
                           </span>
                         ),
@@ -1052,6 +1207,20 @@ const Dashboard: React.FC = () => {
           </Spin>
         </Content>
       </Layout>
+
+      <Modal
+        title="Select Custom Date Range"
+        open={customDateOpen}
+        onCancel={() => setCustomDateOpen(false)}
+        onOk={handleCustomDateApply}
+        okText="Apply"
+      >
+        <DatePicker.RangePicker
+          style={{ width: '100%' }}
+          onChange={(range) => setCustomDateRange(range)}
+          value={customDateRange}
+        />
+      </Modal>
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarVisible && (

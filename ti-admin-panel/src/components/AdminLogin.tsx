@@ -1,39 +1,78 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
-import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { Form, Input, Button, Card, Typography, message, Modal } from 'antd';
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { settingsAPI } from '../services/api';
 import './AdminLogin.css';
 
 const { Title, Text } = Typography;
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
 }
 
 const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [resetForm] = Form.useForm();
 
   const handleSubmit = async (values: LoginFormData) => {
     setLoading(true);
-    
+
     try {
-      // Simulate API call - replace with real authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check credentials (in production, this would be server-side)
-      if (values.username === 'admin' && values.password === 'Thr1v3@dm1n!') {
+      const response = await settingsAPI.loginTeamMember({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (response.data && response.success !== false) {
+        const displayName = response.data.name || response.data.email || values.email;
         message.success('Login successful!');
         localStorage.setItem('admin_authenticated', 'true');
-        localStorage.setItem('admin_username', values.username);
-        onLogin(values.username);
+        localStorage.setItem('admin_username', displayName);
+        localStorage.setItem('admin_email', response.data.email || values.email);
+        localStorage.setItem('admin_is_super_admin', response.data.is_super_admin ? 'true' : 'false');
+        onLogin(displayName);
+      } else if (response.success === false) {
+        message.error(response.error || 'Invalid email or password');
       } else {
-        message.error('Invalid username or password');
+        message.error(
+          'Unexpected login response (missing profile data). Try again or check the Network tab.'
+        );
       }
-    } catch (error) {
-      message.error('Login failed. Please try again.');
+    } catch (error: any) {
+      const errorMessage =
+        typeof error?.message === 'string' && error.message.trim()
+          ? error.message
+          : 'Login failed. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      const values = await resetForm.validateFields();
+      setResetLoading(true);
+      const response = await settingsAPI.resetTeamMemberPassword({ email: values.email });
+      if (response.success) {
+        message.success('Password reset email sent. Check your inbox.');
+        setResetModalVisible(false);
+        resetForm.resetFields();
+      } else {
+        message.error(response.error || 'Failed to send reset email');
+      }
+    } catch (error: any) {
+      const errorMessage =
+        typeof error?.message === 'string' && error.message.trim()
+          ? error.message
+          : 'Failed to send reset email. Please try again.';
+      message.error(errorMessage);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -44,9 +83,9 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
           <Card className="login-card">
             <div className="login-header">
               <div className="logo-container">
-                <img 
-                  src="/piggy-logo.png" 
-                  alt="Thrive Initiative" 
+                <img
+                  src="/piggy-logo.png"
+                  alt="Thrive Initiative"
                   className="login-logo"
                 />
               </div>
@@ -64,26 +103,41 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               onFinish={handleSubmit}
               layout="vertical"
               size="large"
+              requiredMark="optional"
               className="login-form"
             >
               <Form.Item
-                name="username"
+                name="email"
+                label="Email"
                 rules={[
-                  { required: true, message: 'Please enter your username' },
-                  { min: 3, message: 'Username must be at least 3 characters' }
+                  { required: true, message: 'Please enter your email' },
+                  { type: 'email', message: 'Please enter a valid email' }
                 ]}
               >
                 <Input
-                  placeholder="Enter Username"
+                  placeholder="Enter Email"
                   className="login-input"
                 />
               </Form.Item>
 
               <Form.Item
                 name="password"
+                label="Password"
                 rules={[
                   { required: true, message: 'Please enter your password' },
-                  { min: 8, message: 'Password must be at least 8 characters' }
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      if (value.length < 8) return Promise.reject('Password must be at least 8 characters');
+                      const hasUpper = /[A-Z]/.test(value);
+                      const hasLower = /[a-z]/.test(value);
+                      const hasNumber = /[0-9]/.test(value);
+                      if (!hasUpper || !hasLower || !hasNumber) {
+                        return Promise.reject('Password must include uppercase, lowercase, and a number');
+                      }
+                      return Promise.resolve();
+                    }
+                  }
                 ]}
               >
                 <Input.Password
@@ -94,7 +148,14 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
               </Form.Item>
 
               <div className="forgot-password">
-                <a href="#" className="forgot-link">Forgot your password?</a>
+                <Button
+                  type="link"
+                  className="forgot-link"
+                  onClick={() => setResetModalVisible(true)}
+                  style={{ padding: 0, height: 'auto' }}
+                >
+                  Forgot your password?
+                </Button>
               </div>
 
               <Form.Item className="login-button-container">
@@ -118,6 +179,32 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
           </Card>
         </div>
       </div>
+
+      <Modal
+        title="Reset Password"
+        open={resetModalVisible}
+        onCancel={() => {
+          setResetModalVisible(false);
+          resetForm.resetFields();
+        }}
+        onOk={handleResetPassword}
+        okText="Send Reset Email"
+        confirmLoading={resetLoading}
+        width={420}
+      >
+        <Form form={resetForm} layout="vertical" requiredMark="optional">
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input placeholder="Enter email address" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

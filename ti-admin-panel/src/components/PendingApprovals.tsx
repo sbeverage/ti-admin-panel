@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
-import { approvalsAPI } from '../services/api';
+import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
-  CalendarOutlined, CrownOutlined, ExclamationCircleOutlined,
+  CrownOutlined, ExclamationCircleOutlined,
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
   EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined,
@@ -28,6 +28,7 @@ interface ApprovalItem {
   type: string;
   location: string;
   registrationDate: string;
+  createdAt: number | null;
   documentsSubmitted: string;
   verificationStatus: string;
   active: boolean;
@@ -37,7 +38,6 @@ interface ApprovalItem {
 }
 
 const PendingApprovals: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
@@ -50,27 +50,19 @@ const PendingApprovals: React.FC = () => {
   const [selectedDocumentFilter, setSelectedDocumentFilter] = useState('all');
   const [approvalsData, setApprovalsData] = useState<ApprovalItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [totalApprovals, setTotalApprovals] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-
   // Load pending approvals from API
+  // Gracefully handles missing endpoint / empty data - shows empty state instead of errors
   const loadApprovals = async () => {
     setLoading(true);
-    setError(null);
     
     try {
-      console.log('Loading pending approvals from API...');
       const response = await approvalsAPI.getPendingApprovals(currentPage, pageSize);
-      console.log('Approvals API response:', response);
       
-      if (response.success) {
-        // Transform API data to match our interface
+      if (response?.success && Array.isArray(response.data)) {
         const transformedData = response.data.map((approval: any) => ({
           key: approval.id.toString(),
           name: approval.name || 'Unknown',
@@ -80,6 +72,7 @@ const PendingApprovals: React.FC = () => {
           type: approval.type || 'vendor',
           location: approval.location || 'N/A',
           registrationDate: approval.created_at ? new Date(approval.created_at).toLocaleDateString() : 'N/A',
+          createdAt: approval.created_at ? new Date(approval.created_at).getTime() : null,
           documentsSubmitted: approval.documents_submitted || 'N/A',
           verificationStatus: approval.verification_status || 'pending',
           active: approval.is_active || false,
@@ -89,16 +82,14 @@ const PendingApprovals: React.FC = () => {
         }));
         
         setApprovalsData(transformedData);
-        setTotalApprovals(response.pagination?.total || transformedData.length);
-        console.log('Approvals loaded successfully');
+        setTotalApprovals(response.pagination?.total ?? transformedData.length);
       } else {
-        setError('Failed to load pending approvals');
+        // No error state - treat as empty (endpoint may not exist yet)
         setApprovalsData([]);
         setTotalApprovals(0);
       }
-    } catch (error) {
-      console.error('Error loading approvals:', error);
-      setError('Failed to load pending approvals');
+    } catch {
+      // Gracefully handle API errors - show empty state, no error message
       setApprovalsData([]);
       setTotalApprovals(0);
     } finally {
@@ -106,42 +97,75 @@ const PendingApprovals: React.FC = () => {
     }
   };
 
-
   // Load data on component mount and when page changes
   useEffect(() => {
     loadApprovals();
   }, [currentPage, pageSize, activeTab]);
 
-  const handleToggleChange = (key: string, field: 'active' | 'enabled') => {
-    if (activeTab === 'vendors') {
-      setVendorsData(prevData =>
-        prevData.map(item =>
-          item.key === key
-            ? { ...item, [field]: !item[field] }
-            : item
-        )
-      );
-    } else {
-      setBeneficiariesData(prevData =>
-        prevData.map(item =>
-          item.key === key
-            ? { ...item, [field]: !item[field] }
-            : item
-        )
-      );
+  const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
+    const item = approvalsData.find((i) => i.key === key);
+    if (!item) return;
+    const id = parseInt(key, 10);
+    if (isNaN(id)) return;
+    const nextVal = !item[field];
+    try {
+      if (item.itemType === 'beneficiary') {
+        const payload = field === 'active'
+          ? { is_active: nextVal, isActive: nextVal }
+          : { is_enabled: nextVal, isEnabled: nextVal };
+        const response = await beneficiaryAPI.updateBeneficiary(id, payload);
+        if (response?.success !== false) {
+          setApprovalsData(prev =>
+            prev.map(i => (i.key === key ? { ...i, [field]: nextVal } : i))
+          );
+          message.success('Status updated');
+          loadApprovals(); // Refresh from server
+        } else {
+          message.error('Failed to update');
+        }
+      } else {
+        if (field === 'active') {
+          const nextStatus = nextVal ? 'active' : 'inactive';
+          const response = await vendorAPI.updateVendorStatus(id, nextStatus);
+          if (response?.success !== false) {
+            setApprovalsData(prev =>
+              prev.map(i =>
+                i.key === key
+                  ? { ...i, active: nextVal, enabled: nextVal }
+                  : i
+              )
+            );
+            message.success('Status updated');
+            loadApprovals(); // Refresh from server
+          } else {
+            message.error('Failed to update');
+          }
+        } else {
+          const response = await vendorAPI.updateVendor(id, { is_enabled: nextVal });
+          if (response?.success !== false) {
+            setApprovalsData(prev =>
+              prev.map(i => (i.key === key ? { ...i, enabled: nextVal } : i))
+            );
+            message.success('Status updated');
+            loadApprovals(); // Refresh from server
+          } else {
+            message.error('Failed to update');
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Toggle error:', err);
+      message.error(err?.message || 'Failed to update');
     }
-    console.log(`Toggled ${field} for key ${key}`);
   };
 
   const handleTimeFilterChange = (key: string) => {
     setSelectedTimeFilter(key);
-    console.log(`Time filter changed to: ${key}`);
   };
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1); // Reset to first page when searching
-    console.log(`Searching for: ${value}`);
   };
 
   const clearSearch = () => {
@@ -158,8 +182,6 @@ const PendingApprovals: React.FC = () => {
       navigate('/vendor');
     } else if (key === 'beneficiaries') {
       navigate('/beneficiaries');
-    } else if (key === 'tenants') {
-      navigate('/tenants');
     } else if (key === 'discounts') {
       navigate('/discounts');
     } else if (key === 'pending-approvals') {
@@ -205,9 +227,8 @@ const PendingApprovals: React.FC = () => {
     }
   ];
 
-  const [vendorsData, setVendorsData] = useState<ApprovalItem[]>([]);
-
-  const [beneficiariesData, setBeneficiariesData] = useState<ApprovalItem[]>([]);
+  const vendorCount = approvalsData.filter((item) => item.itemType === 'vendor').length;
+  const beneficiaryCount = approvalsData.filter((item) => item.itemType === 'beneficiary').length;
 
   const menuItems = [
     {
@@ -233,12 +254,6 @@ const PendingApprovals: React.FC = () => {
       icon: <HeartOutlined />,
       label: 'Beneficiaries',
       title: 'Beneficiary Management'
-    },
-    {
-      key: 'tenants',
-      icon: <UserOutlined />,
-      label: 'Tenants',
-      title: 'Tenant Management'
     },
     {
       key: 'discounts',
@@ -439,7 +454,6 @@ const PendingApprovals: React.FC = () => {
 
   const handleApprove = async (record: ApprovalItem) => {
     try {
-      console.log('Approving item:', record);
       const response = await approvalsAPI.approveItem(parseInt(record.key), record.itemType);
       
       if (response.success) {
@@ -457,7 +471,6 @@ const PendingApprovals: React.FC = () => {
 
   const handleReject = async (record: ApprovalItem) => {
     try {
-      console.log('Rejecting item:', record);
       const response = await approvalsAPI.rejectItem(parseInt(record.key), record.itemType, 'Rejected by admin');
       
       if (response.success) {
@@ -479,21 +492,51 @@ const PendingApprovals: React.FC = () => {
   };
 
   const getCurrentData = (): ApprovalItem[] => {
-    const data = activeTab === 'vendors' ? vendorsData : beneficiariesData;
-    
-    // Filter by search query if present
-    if (searchQuery.trim()) {
-      return data.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.phone.includes(searchQuery) ||
-        item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    const baseData = approvalsData.filter((item) =>
+      activeTab === 'vendors' ? item.itemType === 'vendor' : item.itemType === 'beneficiary'
+    );
+
+    const filteredByStatus =
+      selectedStatusFilter === 'all'
+        ? baseData
+        : baseData.filter((item) => item.verificationStatus?.toLowerCase() === selectedStatusFilter);
+
+    const filteredByDocuments =
+      selectedDocumentFilter === 'all'
+        ? filteredByStatus
+        : filteredByStatus.filter((item) => {
+            const docStatus = item.documentsSubmitted?.toLowerCase();
+            if (selectedDocumentFilter === 'complete') return docStatus === 'complete';
+            if (selectedDocumentFilter === 'incomplete') return docStatus === 'incomplete';
+            if (selectedDocumentFilter === 'pending-review') return docStatus === 'pending review' || docStatus === 'pending-review';
+            return true;
+          });
+
+    const filteredByTime =
+      selectedTimeFilter === 'all'
+        ? filteredByDocuments
+        : filteredByDocuments.filter((item) => {
+            if (!item.createdAt) return true;
+            const diffDays = (Date.now() - item.createdAt) / (1000 * 60 * 60 * 24);
+            if (selectedTimeFilter === '7-days') return diffDays <= 7;
+            if (selectedTimeFilter === '30-days') return diffDays <= 30;
+            if (selectedTimeFilter === '90-days') return diffDays <= 90;
+            if (selectedTimeFilter === '1-year') return diffDays <= 365;
+            return true;
+          });
+
+    if (!searchQuery.trim()) {
+      return filteredByTime;
     }
-    
-    return data;
+
+    return filteredByTime.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.phone.includes(searchQuery) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const getTotalCount = (): number => {
@@ -520,9 +563,7 @@ const PendingApprovals: React.FC = () => {
       <Sider
         width={280}
         className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        breakpoint="lg"
-        collapsedWidth="0"
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        trigger={null}
       >
         <div className="logo-section" style={{
           padding: '20px 16px 12px 16px',
@@ -610,7 +651,7 @@ const PendingApprovals: React.FC = () => {
                     label: (
                       <span>
                         <ShopOutlined />
-                        Vendors ({vendorsData.length})
+                        Vendors ({vendorCount})
                       </span>
                     ),
                   },
@@ -619,7 +660,7 @@ const PendingApprovals: React.FC = () => {
                     label: (
                       <span>
                         <HeartOutlined />
-                        Beneficiaries ({beneficiariesData.length})
+                        Beneficiaries ({beneficiaryCount})
                       </span>
                     ),
                   },
@@ -691,7 +732,7 @@ const PendingApprovals: React.FC = () => {
             <div className="approvals-table-section">
               <Spin spinning={loading}>
                 <Table
-                  dataSource={approvalsData}
+                  dataSource={getCurrentData()}
                   columns={approvalColumns}
                   pagination={false}
                   size="middle"
@@ -700,7 +741,20 @@ const PendingApprovals: React.FC = () => {
                 scroll={{ x: 1800 }}
                 bordered={false}
                 locale={{
-                  emptyText: error ? `Error: ${error}` : 'No pending approvals found'
+                  emptyText: (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span>
+                          No pending {activeTab === 'vendors' ? 'vendors' : 'beneficiaries'} yet.
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            When vendors and beneficiaries have their own admin panels and create accounts, they will appear here for approval.
+                          </Text>
+                        </span>
+                      }
+                    />
+                  )
                 }}
               />
               </Spin>

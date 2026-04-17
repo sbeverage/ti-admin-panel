@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography } from 'antd';
-import { UserAddOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, CalendarOutlined, EnvironmentOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import { UserAddOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, CalendarOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import './InviteDonorModal.css';
 
 const { Option } = Select;
@@ -10,16 +11,19 @@ const { Title, Text } = Typography;
 interface InviteDonorModalProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: any) => Promise<boolean>;
+  beneficiaries: any[];
 }
 
 const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
   visible,
   onCancel,
-  onSubmit
+  onSubmit,
+  beneficiaries
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const coworkingValue = Form.useWatch('coworking', form);
 
   const handleSubmit = async () => {
     try {
@@ -37,11 +41,12 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
         values.location = values.cityState; // For API compatibility
       }
       
-      console.log('📦 Donor data:', values);
       
-      onSubmit(values);
-      form.resetFields();
-      onCancel();
+      const success = await onSubmit(values);
+      if (success) {
+        form.resetFields();
+        onCancel();
+      }
     } catch (error) {
       console.error('Validation failed:', error);
     } finally {
@@ -58,12 +63,6 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
     <Modal
       title={
         <div className="modal-header">
-          <Button 
-            type="text" 
-            icon={<ArrowLeftOutlined />} 
-            onClick={handleCancel}
-            className="back-btn"
-          />
           <div className="header-content">
             <Title level={3} className="modal-title">Invite Donor</Title>
             <Text className="modal-subtitle">Complete your details and send invite to donor</Text>
@@ -80,10 +79,11 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
       <Form
         form={form}
         layout="vertical"
+        requiredMark="optional"
         className="invite-donor-form"
         initialValues={{
           coworking: 'No',
-          donation: '$0',
+          sponsorAmount: 15,
           oneTime: '$0'
         }}
       >
@@ -188,21 +188,25 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               <Form.Item
                 name="beneficiary"
                 label="Selected Beneficiary Name"
-                rules={[{ required: true, message: 'Please select a beneficiary' }]}
+                rules={[{ required: false }]}
                 className="form-item"
               >
                 <Select
                   placeholder="Select beneficiary"
                   size="large"
                   prefix={<BankOutlined />}
+                  allowClear
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                  }
+                  notFoundContent="No beneficiaries found"
                 >
-                  <Option value="United Way">United Way</Option>
-                  <Option value="American Red Cross">American Red Cross</Option>
-                  <Option value="Feeding America">Feeding America</Option>
-                  <Option value="St. Jude Children's Research Hospital">St. Jude Children's Research Hospital</Option>
-                  <Option value="Habitat for Humanity">Habitat for Humanity</Option>
-                  <Option value="Make-A-Wish Foundation">Make-A-Wish Foundation</Option>
-                  <Option value="Doctors Without Borders USA">Doctors Without Borders USA</Option>
+                  {beneficiaries.map((beneficiary: any) => (
+                    <Option key={beneficiary.id} value={beneficiary.id?.toString()}>
+                      {beneficiary.name || 'Unknown'}
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
               
@@ -220,18 +224,22 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
             </div>
             
             <div className="form-row">
-              <Form.Item
-                name="donation"
-                label="Donation Amount"
-                rules={[{ required: true, message: 'Please enter donation amount' }]}
-                className="form-item"
-              >
-                <Input 
-                  placeholder="Enter donation amount"
-                  prefix={<DollarOutlined />}
-                  size="large"
-                />
-              </Form.Item>
+              {coworkingValue === 'Yes' && (
+                <Form.Item
+                  name="sponsorAmount"
+                  label="Coworking Sponsor Amount"
+                  rules={[{ required: true, message: 'Please enter sponsor amount' }]}
+                  className="form-item"
+                >
+                  <Input 
+                    placeholder="15"
+                    prefix={<DollarOutlined />}
+                    size="large"
+                    type="number"
+                    min={0}
+                  />
+                </Form.Item>
+              )}
               
               <Form.Item
                 name="oneTime"
@@ -255,11 +263,12 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
                 label="Last Donated Date"
                 className="form-item full-width"
               >
-                <DatePicker 
+                <DatePicker
                   placeholder="Select last donated date"
                   size="large"
                   style={{ width: '100%' }}
                   format="MMMM DD, YYYY"
+                  disabledDate={(current) => current && current > dayjs().endOf('day')}
                 />
               </Form.Item>
             </div>

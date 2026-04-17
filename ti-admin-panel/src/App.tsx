@@ -2,11 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import AdminLogin from './components/AdminLogin';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './components/Dashboard';
 import Donors from './components/Donors';
 import Vendor from './components/Vendor';
 import Beneficiaries from './components/Beneficiaries';
-import Tenants from './components/Tenants';
 import Discounts from './components/Discounts';
 import Settings from './components/Settings';
 import NewsfeedManagement from './components/NewsfeedManagement';
@@ -58,13 +58,13 @@ function App() {
   // Show main app if authenticated
   return (
     <div className="App">
+      <ErrorBoundary>
       <Router>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/donors" element={<Donors />} />
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/beneficiaries" element={<Beneficiaries />} />
-          <Route path="/tenants" element={<Tenants />} />
           <Route path="/discounts" element={<Discounts />} />
           <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
           <Route path="/pending-approvals" element={<PendingApprovals />} />
@@ -77,6 +77,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
+      </ErrorBoundary>
     </div>
   );
 }

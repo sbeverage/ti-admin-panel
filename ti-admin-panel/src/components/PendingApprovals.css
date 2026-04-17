@@ -705,6 +705,10 @@ a:hover {
   border-color: #DB8633;
 }
 
+.approval-search .ant-input-search-button .anticon {
+  color: #ffffff !important;
+}
+
 .approval-search .ant-input-search-button:hover {
   background: #c6762a !important;
   border-color: #c6762a !important;

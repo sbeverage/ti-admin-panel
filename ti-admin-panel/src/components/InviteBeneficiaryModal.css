@@ -88,7 +88,7 @@
 }
 
 .steps-sidebar .ant-steps-vertical > .ant-steps-item.ant-steps-item-finish .ant-steps-item-icon {
-  color: #52c41a;
+  color: #DB8633;
 }
 
 .steps-sidebar .ant-steps-vertical > .ant-steps-item.ant-steps-item-wait .ant-steps-item-icon {
@@ -152,7 +152,7 @@
   color: #ff4d4f;
 }
 
-.beneficiary-form .ant-input,
+.beneficiary-form .ant-input:not(textarea),
 .beneficiary-form .ant-select-selector,
 .beneficiary-form .ant-input-affix-wrapper {
   border-radius: 8px;
@@ -168,9 +168,43 @@
   box-shadow: 0 0 0 2px rgba(219, 134, 51, 0.2);
 }
 
-.beneficiary-form .ant-textarea {
+.beneficiary-form .ant-textarea,
+.beneficiary-form .ant-input-textarea .ant-input,
+.beneficiary-form textarea.ant-input {
   border-radius: 8px;
   border: 1px solid #d9d9d9;
+  height: auto !important;
+  min-height: 100px;
+  padding: 12px 16px !important;
+  line-height: 1.6;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+/* Ensure text doesn't overlap the border - extra padding for scrollbar */
+.beneficiary-form .ant-input-textarea textarea.ant-input {
+  padding: 12px 16px !important;
+  min-height: 100px;
+  vertical-align: top;
+  display: block;
+}
+
+/* Center placeholder text in textareas */
+.beneficiary-form textarea.ant-input::placeholder,
+.beneficiary-form .ant-input-textarea textarea::placeholder {
+  text-align: center;
+  line-height: 80px; /* visually centers short placeholders */
+}
+
+/* Once user starts typing, left-align actual content */
+.beneficiary-form textarea.ant-input:not(:placeholder-shown),
+.beneficiary-form .ant-input-textarea textarea:not(:placeholder-shown) {
+  text-align: left;
+  line-height: 1.6;
+}
+
+.beneficiary-form .ant-input[type="text"] {
+  padding: 8px 16px !important;
 }
 
 .beneficiary-form .ant-textarea:focus {
@@ -202,6 +236,17 @@
 .upload-btn:hover {
   background: #C6762A !important;
   border-color: #C6762A !important;
+  color: #ffffff !important;
+}
+
+.upload-btn,
+.upload-btn *,
+.upload-btn span,
+.upload-btn div,
+.add-profile-link-btn,
+.add-profile-link-btn *,
+.add-profile-link-btn span,
+.add-profile-link-btn div {
   color: #ffffff !important;
 }
 
@@ -301,11 +346,12 @@
 /* Form Actions */
 .form-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
+  gap: 12px;
 }
 
 .prev-btn {
@@ -329,12 +375,22 @@
   height: 40px;
   font-weight: 500;
   padding: 0 24px;
+  min-width: 120px;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 .next-btn:hover {
   background: #C6762A !important;
   border-color: #C6762A !important;
   color: #ffffff !important;
+}
+
+.next-btn.ant-btn-loading,
+.next-btn[disabled] {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: rgba(255,255,255,0.8) !important;
+  opacity: 0.85;
 }
 
 /* Responsive Design */
@@ -563,3 +619,16 @@
   color: #C6762A !important;
 }
 /* Force rebuild Tue Oct 21 20:45:43 EDT 2025 */
+
+/* Textarea placeholder vertical alignment fix */
+.invite-beneficiary-modal .ant-input,
+.invite-beneficiary-modal textarea.ant-input {
+  vertical-align: top;
+  resize: vertical;
+}
+
+.invite-beneficiary-modal .ant-input-textarea textarea {
+  vertical-align: top;
+  display: block;
+  padding-top: 8px;
+}

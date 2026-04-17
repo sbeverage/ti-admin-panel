@@ -18,6 +18,7 @@ import {
   DeleteOutlined
 } from '@ant-design/icons';
 import { beneficiaryAPI } from '../services/api';
+import { addNotification } from '../services/notifications';
 import ImageUpload from './ImageUpload';
 import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 import './InviteBeneficiaryModal.css';
@@ -100,7 +101,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 
   const handleNext = async () => {
     try {
-      console.log('🎯 Beneficiary form - Current step:', currentStep);
       
       if (currentStep === 0) {
         const values = await form.validateFields();
@@ -111,8 +111,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         //   return;
         // }
         
-        console.log('✅ Step 0 validated:', values);
-        console.log('📝 Step 0 beneficiaryName:', values.beneficiaryName);
         
         // CRITICAL: Save to state AND ensure form instance preserves these values
         setBasicDetails(values);
@@ -123,8 +121,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         
         // VERIFY: Double-check the name is preserved
         const verifyFormValues = form.getFieldsValue();
-        console.log('✅ VERIFIED: Form values after step 0:', verifyFormValues);
-        console.log('✅ VERIFIED: beneficiaryName in form:', verifyFormValues.beneficiaryName);
         if (!verifyFormValues.beneficiaryName) {
           console.error('❌ CRITICAL: beneficiaryName NOT in form after setting!', {
             values,
@@ -136,19 +132,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         setCurrentStep(1);
       } else if (currentStep === 1) {
         const values = await form.validateFields();
-        console.log('✅ Step 1 validated:', values);
-        console.log('📝 Step 1 Impact & Story fields:', {
-          whyThisMatters: values.whyThisMatters,
-          successStory: values.successStory,
-          storyAuthor: values.storyAuthor,
-          livesImpacted: values.livesImpacted,
-          programsActive: values.programsActive,
-          directToProgramsPercentage: values.directToProgramsPercentage,
-          impactStatement1: values.impactStatement1,
-          impactStatement2: values.impactStatement2,
-          hasImpactStatement1: !!values.impactStatement1,
-          hasImpactStatement2: !!values.impactStatement2
-        });
         
         setImpactStory(values);
         // Merge with existing form values (preserve step 0 data)
@@ -158,18 +141,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         
         // VERIFY: Double-check the Impact & Story fields are preserved
         const verifyFormValues = form.getFieldsValue();
-        console.log('✅ VERIFIED: Form values after step 1:', {
-          whyThisMatters: verifyFormValues.whyThisMatters,
-          successStory: verifyFormValues.successStory,
-          storyAuthor: verifyFormValues.storyAuthor,
-          hasWhyThisMatters: !!verifyFormValues.whyThisMatters,
-          hasSuccessStory: !!verifyFormValues.successStory
-        });
         
         setCurrentStep(2);
       } else if (currentStep === 2) {
         const values = await form.validateFields();
-        console.log('✅ Step 2 validated:', values);
         setTrustTransparency(values);
         // Merge with existing form values (preserve step 0 and 1 data)
         const currentFormValues = form.getFieldsValue();
@@ -178,7 +153,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       } else {
         // Final step - validate current step and collect all data
         const values = await form.validateFields();
-        console.log('✅ Step 3 validated:', values);
         setUploadImages(values);
         
         // Get ALL form values from form instance
@@ -187,36 +161,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         const allFormValues = form.getFieldsValue(); // Gets all preserved form values
         
         // DEBUG: Check what's actually in the form right now
-        console.log('🔍 DEBUG: Form state check before submission:', {
-          allFormValues,
-          basicDetails,
-          formHasBeneficiaryName: !!allFormValues.beneficiaryName,
-          basicDetailsHasBeneficiaryName: !!basicDetails?.beneficiaryName,
-          allFormValuesKeys: Object.keys(allFormValues || {}),
-          basicDetailsKeys: Object.keys(basicDetails || {})
-        });
         
-        console.log('📋 All form values from form instance (all fields):', allFormValues);
-        console.log('📋 State variables:', { 
-          basicDetails, 
-          impactStory, 
-          trustTransparency, 
-          step3Values: values 
-        });
         
         // VERIFY Impact & Story data is in state
-        console.log('🔍 VERIFY Impact & Story in state:', {
-          impactStoryState: impactStory,
-          hasWhyThisMatters: !!impactStory?.whyThisMatters,
-          hasSuccessStory: !!impactStory?.successStory,
-          hasStoryAuthor: !!impactStory?.storyAuthor,
-          hasImpactStatement1: !!impactStory?.impactStatement1,
-          hasImpactStatement2: !!impactStory?.impactStatement2,
-          whyThisMattersValue: impactStory?.whyThisMatters,
-          successStoryValue: impactStory?.successStory,
-          impactStatement1Value: impactStory?.impactStatement1,
-          impactStatement2Value: impactStory?.impactStatement2
-        });
         
         // CRITICAL FIX: Merge state variables with form values
         // Priority: Non-empty values > form values > state variables
@@ -253,44 +200,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         allData.logoUrl = logoUrl;
         allData.additionalImages = additionalImages.filter(img => img);
         
-        console.log('📦 Combined data for submission:', allData);
-        console.log('🔍 CRITICAL CHECK: beneficiaryName in allData:', {
-          allDataBeneficiaryName: allData.beneficiaryName,
-          allDataName: allData.name,
-          allDataCharityName: allData.charityName,
-          hasBeneficiaryName: !!allData.beneficiaryName,
-          allDataKeys: Object.keys(allData)
-        });
         
         // VERIFY Impact & Story data is in allData
-        console.log('🔍 VERIFY Impact & Story in allData:', {
-          whyThisMatters: allData.whyThisMatters,
-          successStory: allData.successStory,
-          storyAuthor: allData.storyAuthor,
-          impactStatement1: allData.impactStatement1,
-          impactStatement2: allData.impactStatement2,
-          hasWhyThisMatters: !!allData.whyThisMatters,
-          hasSuccessStory: !!allData.successStory,
-          hasStoryAuthor: !!allData.storyAuthor,
-          hasImpactStatement1: !!allData.impactStatement1,
-          hasImpactStatement2: !!allData.impactStatement2,
-          fromImpactStory: impactStory?.whyThisMatters,
-          fromAllFormValues: allFormValues?.whyThisMatters,
-          impactStatement1FromState: impactStory?.impactStatement1,
-          impactStatement1FromForm: allFormValues?.impactStatement1
-        });
-        console.log('📦 Beneficiary name check (detailed):', {
-          fromBasicDetails: basicDetails?.beneficiaryName,
-          fromImpactStory: impactStory?.beneficiaryName,
-          fromTrustTransparency: trustTransparency?.beneficiaryName,
-          fromStep3Values: values?.beneficiaryName,
-          fromAllFormValues: allFormValues?.beneficiaryName,
-          fromAllData: allData.beneficiaryName,
-          finalValue: allData.beneficiaryName,
-          basicDetailsFull: basicDetails,
-          allFormValuesFull: allFormValues,
-          allDataKeys: Object.keys(allData)
-        });
         
         // Validate that we have the required beneficiaryName before submitting
         // Try multiple sources and field name variations
@@ -305,16 +216,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           ''
         );
         
-        console.log('🔍 Final beneficiary name check before submission:', {
-          allDataBeneficiaryName: allData.beneficiaryName,
-          allDataName: allData.name,
-          basicDetailsBeneficiaryName: basicDetails?.beneficiaryName,
-          basicDetailsName: basicDetails?.name,
-          allFormValuesBeneficiaryName: allFormValues?.beneficiaryName,
-          allFormValuesName: allFormValues?.name,
-          finalCharityName: charityName,
-          isEmpty: !charityName
-        });
         
         if (!charityName) {
           console.error('❌ Beneficiary name is missing from all sources!', {
@@ -365,34 +266,44 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   };
 
   const handleSubmit = async (allData: any) => {
-    console.log('🚀 Submitting beneficiary data:', allData);
-    console.log('🚀 AllData keys:', Object.keys(allData));
-    console.log('🚀 AllData values:', {
-      beneficiaryName: allData.beneficiaryName,
-      category: allData.category,
-      type: allData.type,
-      city: allData.city,
-      state: allData.state,
-      zipCode: allData.zipCode,
-      location: allData.location,
-      primaryContact: allData.primaryContact,
-      phoneNumber: allData.phoneNumber,
-      primaryEmail: allData.primaryEmail,
-      about: allData.about,
-      whyThisMatters: allData.whyThisMatters,
-      successStory: allData.successStory,
-      storyAuthor: allData.storyAuthor,
-      impactStatement1: allData.impactStatement1,
-      impactStatement2: allData.impactStatement2,
-      ein: allData.ein,
-      website: allData.website,
-      isActive: allData.isActive,
-      mainImageUrl: allData.mainImageUrl || mainImageUrl,
-      logoUrl: allData.logoUrl || logoUrl
-    });
     setSaving(true);
     
     try {
+      const fetchAllBeneficiaries = async () => {
+        const collected: any[] = [];
+        let page = 1;
+        const limit = 200;
+        let total = 0;
+        let response: any = null;
+
+        do {
+          response = await beneficiaryAPI.getBeneficiaries(page, limit);
+          if (response?.success && Array.isArray(response.data)) {
+            collected.push(...response.data);
+          }
+          total = response?.pagination?.total || collected.length;
+          page += 1;
+        } while (collected.length < total);
+
+        return collected;
+      };
+
+      const existingBeneficiaries = await fetchAllBeneficiaries();
+      const normalizedName = (allData.beneficiaryName || '').toString().trim().toLowerCase();
+      const normalizedEmail = (allData.primaryEmail || '').toString().trim().toLowerCase();
+      const duplicateBeneficiary = existingBeneficiaries.find((beneficiary: any) => {
+        const existingName = (beneficiary.name || beneficiary.beneficiaryName || '').toString().trim().toLowerCase();
+        const existingEmail = (beneficiary.email || beneficiary.primary_email || beneficiary.primaryEmail || '').toString().trim().toLowerCase();
+        return (normalizedEmail && existingEmail && existingEmail === normalizedEmail) ||
+          (normalizedName && existingName && existingName === normalizedName);
+      });
+
+      if (duplicateBeneficiary) {
+        message.error('A beneficiary with this email or name already exists.');
+        setSaving(false);
+        return;
+      }
+
       // Transform data to API format
       // CRITICAL: Only include fields that definitely exist in the backend schema
       // We use a conservative approach to avoid 400 errors
@@ -402,12 +313,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       // The name should already be validated and set in allData.beneficiaryName above
       const charityName = allData.beneficiaryName?.trim() || '';
       
-      console.log('📝 Charity name check (in handleSubmit):', {
-        rawBeneficiaryName: allData.beneficiaryName,
-        trimmed: charityName,
-        isEmpty: !charityName,
-        allDataKeys: Object.keys(allData)
-      });
       
       // This should never happen since we validate above, but double-check
       if (!charityName) {
@@ -545,7 +450,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       
       fieldsToRemove.forEach(field => {
         if (beneficiaryData.hasOwnProperty(field)) {
-          console.warn(`⚠️ Removing potentially problematic field: ${field}`);
           delete beneficiaryData[field];
         }
       });
@@ -557,82 +461,42 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       }
       
       // Logging for debugging
-      console.log('📦 Formatted beneficiary data:', beneficiaryData);
-      console.log('📦 All keys being sent:', Object.keys(beneficiaryData));
-      console.log('📦 Payload size:', Object.keys(beneficiaryData).length, 'fields');
       
       // CRITICAL: Verify Impact & Story fields are in payload
-      console.log('🔍 VERIFY Impact & Story in payload:', {
-        why_this_matters: beneficiaryData.why_this_matters,
-        success_story: beneficiaryData.success_story,
-        story_author: beneficiaryData.story_author,
-        impact_statement_1: beneficiaryData.impact_statement_1,
-        impact_statement_2: beneficiaryData.impact_statement_2,
-        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
-        hasSuccessStory: !!beneficiaryData.success_story,
-        hasStoryAuthor: !!beneficiaryData.story_author,
-        hasImpactStatement1: !!beneficiaryData.impact_statement_1,
-        hasImpactStatement2: !!beneficiaryData.impact_statement_2,
-        whyThisMattersLength: beneficiaryData.why_this_matters?.length || 0,
-        successStoryLength: beneficiaryData.success_story?.length || 0,
-        impactStatement1Length: beneficiaryData.impact_statement_1?.length || 0,
-        impactStatement2Length: beneficiaryData.impact_statement_2?.length || 0
-      });
       
-      console.log('📦 Full payload structure:', JSON.stringify(beneficiaryData, null, 2));
       
       // Verify critical fields are removed
       const criticalRemovedFields = ['verification_status', 'communities_served', 'email', 'likes', 'mutual'];
       criticalRemovedFields.forEach(field => {
         const isRemoved = !beneficiaryData.hasOwnProperty(field);
-        console.log(`✅ Verified: ${field} NOT in payload:`, isRemoved);
         if (!isRemoved) {
           console.error(`❌ CRITICAL: ${field} is still in payload!`);
         }
       });
       
-      console.log('📦 Core fields being sent:', {
-        name: beneficiaryData.name,
-        category: beneficiaryData.category,
-        type: beneficiaryData.type,
-        city: beneficiaryData.city,
-        state: beneficiaryData.state,
-        zip_code: beneficiaryData.zip_code,
-        location: beneficiaryData.location,
-        phone: beneficiaryData.phone,
-        contact_name: beneficiaryData.contact_name,
-        ein: beneficiaryData.ein,
-        website: beneficiaryData.website,
-        is_active: beneficiaryData.is_active,
-        hasAbout: !!beneficiaryData.about,
-        hasWhyThisMatters: !!beneficiaryData.why_this_matters,
-        hasImage: !!beneficiaryData.imageUrl,
-        hasLogo: !!beneficiaryData.logoUrl
-      });
       
       // Call API
-      console.log('📡 Calling API with payload:', beneficiaryData);
       const response = await beneficiaryAPI.createBeneficiary(beneficiaryData);
-      console.log('📡 API response:', response);
       
       // Handle different response formats
       // Backend might return: { success: true, data: {...} } OR just the data directly
       const responseData = response.data || response;
       const isSuccess = response.success !== false; // Default to true if not specified
       
-      console.log('📡 Response success:', isSuccess);
-      console.log('📡 Response data:', responseData);
       
       if (responseData) {
         const beneficiaryId = responseData.id || responseData;
-        console.log('📡 Created beneficiary ID:', beneficiaryId);
         if (typeof responseData === 'object') {
-          console.log('📡 Created beneficiary is_active:', responseData.is_active || responseData.isActive);
         }
       }
       
       if (isSuccess) {
         message.success('Beneficiary created successfully!');
+        addNotification({
+          title: 'Beneficiary invited',
+          message: beneficiaryData.name || 'Beneficiary created',
+          level: 'success',
+        });
         // Call onSubmit callback (which should refresh the beneficiaries list)
         onSubmit(allData);
         handleCancel();
@@ -642,12 +506,22 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         const errorMsg = response.error || responseData?.error || 'Failed to create beneficiary';
         console.error('❌ Backend error:', errorMsg);
         message.error(`Failed to create beneficiary: ${errorMsg}`);
+        addNotification({
+          title: 'Beneficiary invite failed',
+          message: errorMsg,
+          level: 'error',
+        });
       }
       
     } catch (error: any) {
       console.error('❌ Error creating beneficiary:', error);
       const errorMsg = error?.message || 'Failed to create beneficiary. Please try again.';
       message.error(errorMsg);
+      addNotification({
+        title: 'Beneficiary invite failed',
+        message: errorMsg,
+        level: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -723,7 +597,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="beneficiaryName"
-                  label="Beneficiary Name *"
+                  label="Beneficiary Name"
                   rules={[{ required: true, message: 'Please enter beneficiary name' }]}
                 >
                   <Input placeholder="Enter organization name" />
@@ -732,7 +606,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="category"
-                  label="Category *"
+                  label="Category"
                   rules={[{ required: true, message: 'Please select category' }]}
                 >
                   <Select placeholder="Select category" showSearch optionFilterProp="children">
@@ -749,7 +623,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="type"
-                  label="Type *"
+                  label="Type"
                   rules={[{ required: true, message: 'Please select type' }]}
                 >
                   <Select placeholder="Select type">
@@ -764,7 +638,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={24}>
                 <Form.Item
                   name="location"
-                  label="Location *"
+                  label="Location"
                   rules={[{ required: true, message: 'Please enter location (City, State)' }]}
                   tooltip="Enter location as 'City, State' format (e.g., 'Atlanta, GA')"
                 >
@@ -776,7 +650,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="city"
-                  label="City *"
+                  label="City"
                   rules={[{ required: true, message: 'Please enter city' }]}
                 >
                   <Input placeholder="Enter city" />
@@ -785,7 +659,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={8}>
                 <Form.Item
                   name="state"
-                  label="State *"
+                  label="State"
                   rules={[{ required: true, message: 'Please enter state' }]}
                 >
                   <Input placeholder="Enter state" />
@@ -805,7 +679,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryContact"
-                  label="Primary Contact *"
+                  label="Primary Contact"
                   rules={[{ required: true, message: 'Please enter primary contact' }]}
                 >
                   <Input placeholder="Enter primary contact name" />
@@ -814,7 +688,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="primaryEmail"
-                  label="Primary Contact Email *"
+                  label="Primary Contact Email"
                   rules={[{ required: true, message: 'Please enter email' }, { type: 'email', message: 'Please enter a valid email' }]}
                 >
                   <Input placeholder="Enter email address" />
@@ -894,7 +768,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             </Row>
             <Form.Item
               name="about"
-              label="About *"
+              label="About"
               rules={[
                 { required: true, message: 'Please enter description' },
                 { min: 200, message: 'Description must be at least 200 characters' }
@@ -916,7 +790,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Title level={4}>Impact & Story</Title>
             <Form.Item
               name="whyThisMatters"
-              label="Why This Matters *"
+              label="Why This Matters"
               rules={[
                 { required: true, message: 'Please explain why this cause is important' },
                 { min: 200, message: 'Must be at least 200 characters' }
@@ -932,7 +806,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             
             <Form.Item
               name="successStory"
-              label="Success Story *"
+              label="Success Story"
               rules={[
                 { required: true, message: 'Please share a success story' },
                 { min: 150, message: 'Must be at least 150 characters' }
@@ -945,22 +819,25 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 maxLength={500}
               />
             </Form.Item>
+            <Text type="secondary" style={{ fontSize: '12px', marginTop: '-8px', display: 'block' }}>
+              Minimum 150 characters required
+            </Text>
             
             <Form.Item
               name="storyAuthor"
               label="Story Author"
-              rules={[{ max: 50, message: 'Author name must be 50 characters or less' }]}
+              rules={[{ max: 200, message: 'Author name must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Sarah M., Program Director" maxLength={50} />
+              <Input placeholder="e.g., Sarah M., Program Director" maxLength={200} />
             </Form.Item>
 
-            <Divider>Impact Metrics (Optional)</Divider>
+            <Divider>Impact Metrics</Divider>
             <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
               These metrics help showcase the impact of the organization. All fields are optional.
             </Text>
             
             <Row gutter={[24, 16]}>
-              <Col span={8}>
+              <Col span={12}>
                   <Form.Item
                   name="livesImpacted"
                   label="Lives Impacted"
@@ -970,7 +847,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., Over 10,000 children have received life-saving treatment" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -978,7 +855,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   </Text>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="programsActive"
                   label="Programs Active"
@@ -988,7 +865,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., We operate 25 programs across 10 states" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -996,7 +873,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                   </Text>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="directToProgramsPercentage"
                   label="Direct to Programs (%)"
@@ -1006,7 +883,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 >
                   <TextArea 
                     placeholder="e.g., 95% of all donations go directly to programs" 
-                    rows={2}
+                    rows={3}
                     maxLength={500}
                   />
                   <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -1021,15 +898,17 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Form.Item
               name="impactStatement1"
               label="Impact Statement 1"
+              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Every $25 provides a family with essential supplies for one week" />
+              <Input placeholder="e.g., Every $25 provides a family with essential supplies for one week" maxLength={200} showCount />
             </Form.Item>
-            
+
             <Form.Item
               name="impactStatement2"
               label="Impact Statement 2"
+              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
             >
-              <Input placeholder="e.g., Every $100 helps provide emergency housing for families in crisis" />
+              <Input placeholder="e.g., Every $100 helps provide emergency housing for families in crisis" maxLength={200} showCount />
             </Form.Item>
           </div>
         );
@@ -1069,7 +948,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             
             <Form.Item
               name="form990"
-              label="Upload Form-990 (Optional)"
+              label="Upload Form-990"
             >
               <Upload
                 beforeUpload={(file) => {
@@ -1098,7 +977,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             <Divider>Profile Links</Divider>
             
             <div className="profile-links-section">
-              <Title level={5} style={{ marginBottom: 16 }}>Enter your profile links (Optional)</Title>
+              <Title level={5} style={{ marginBottom: 16 }}>Enter your profile links</Title>
               {profileLinks.map((link, index) => (
                 <Row gutter={[16, 16]} key={index} style={{ marginBottom: 16, alignItems: 'flex-start' }}>
                   <Col span={10}>
@@ -1108,6 +987,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                     >
                       <Select
                         placeholder="Select channel"
+                        style={{ width: '100%' }}
                         value={link.channel}
                         onChange={(value) => updateProfileLink(index, 'channel', value)}
                       >
@@ -1171,7 +1051,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 <Card title="Main Image" style={{ marginBottom: '16px' }}>
                   <Form.Item
                     name="mainImage"
-                    label="Upload Main Image (Optional)"
+                    label="Upload Main Image"
                     rules={[{ required: false }]}
                   >
                     <ImageUpload
@@ -1188,7 +1068,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 <Card title="Organization Logo" style={{ marginBottom: '16px' }}>
                   <Form.Item
                     name="logo"
-                    label="Upload Logo (Optional)"
+                    label="Upload Logo"
                     rules={[{ required: false }]}
                   >
                     <ImageUpload
@@ -1202,7 +1082,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               </Col>
               
               <Col span={24}>
-                <Card title="Additional Images (Optional)">
+                <Card title="Additional Images">
                   <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
                     Upload up to 3 additional images showcasing your programs and impact
                   </Text>
@@ -1287,6 +1167,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           <Form
             form={form}
             layout="vertical"
+            requiredMark="optional"
             className="beneficiary-form"
           >
             {renderStepContent()}

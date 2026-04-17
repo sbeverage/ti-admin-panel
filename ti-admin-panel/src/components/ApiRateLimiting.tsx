@@ -379,8 +379,6 @@ const ApiRateLimiting: React.FC = () => {
   const handleSaveRule = async (values: any) => {
     try {
       setLoading(true);
-      // Here you would typically save to your backend
-      console.log('Saving rate limit rule:', values);
       message.success('Rate limit rule updated successfully');
       setEditingRule(null);
       form.resetFields();
@@ -506,6 +504,7 @@ const ApiRateLimiting: React.FC = () => {
                     <Form
                       form={form}
                       layout="vertical"
+                      requiredMark="optional"
                       className="settings-form"
                       onFinish={handleSaveRule}
                     >
@@ -682,6 +681,7 @@ const ApiRateLimiting: React.FC = () => {
           <Form
             form={form}
             layout="vertical"
+            requiredMark="optional"
             onFinish={handleSaveRule}
           >
             <Row gutter={[16, 16]}>

@@ -190,6 +190,26 @@
   border-color: #DB8633;
 }
 
+.form-field .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.form-field .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #DB8633;
+}
+
+.form-field .ant-checkbox-checked:hover .ant-checkbox-inner {
+  background-color: #DB8633;
+  border-color: #DB8633;
+}
+
+.verification-status-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.verification-status-inline label {
+  margin-bottom: 0;
+}
+
 /* Stats Card */
 .profile-section-card .ant-statistic-title {
   font-size: 14px;

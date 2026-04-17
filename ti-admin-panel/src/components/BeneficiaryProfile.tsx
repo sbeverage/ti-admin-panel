@@ -18,10 +18,10 @@ import {
   Tabs,
   Badge,
   Statistic,
-  Image
+  Image,
+  Upload
 } from 'antd';
 import {
-  ArrowLeftOutlined,
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
@@ -31,7 +31,8 @@ import {
   SafetyOutlined,
   TeamOutlined,
   CheckCircleFilled,
-  BankOutlined
+  BankOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
@@ -83,6 +84,7 @@ interface BeneficiaryData {
   impactStatement2?: string;
   ein?: string;
   website?: string;
+  form990Url?: string;
   verificationStatus?: boolean;
   volunteerInfo?: string;
   // Fields from spec
@@ -128,54 +130,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         if (response.success && response.data) {
           // Use the fetched data instead of rawBeneficiaryData
           const apiData = response.data;
-          console.log('📋 BeneficiaryProfile: Fetched beneficiary data:', apiData);
-          console.log('📋 BeneficiaryProfile: All keys in response:', Object.keys(apiData));
-          console.log('📋 BeneficiaryProfile: Full response structure:', JSON.stringify(apiData, null, 2));
-          console.log('📋 BeneficiaryProfile: Field values check:', {
-            about: apiData.about,
-            description: apiData.description,
-            why_this_matters: apiData.why_this_matters,
-            mission: apiData.mission,
-            success_story: apiData.success_story,
-            story_author: apiData.story_author,
-            lives_impacted: apiData.lives_impacted,
-            livesImpacted: apiData.livesImpacted,
-            programs_active: apiData.programs_active,
-            programsActive: apiData.programsActive,
-            direct_to_programs_percentage: apiData.direct_to_programs_percentage,
-            directToProgramsPercentage: apiData.directToProgramsPercentage,
-            families_helped: apiData.families_helped,
-            communities_served: apiData.communities_served,
-            direct_to_programs: apiData.direct_to_programs,
-            impact_statement_1: apiData.impact_statement_1,
-            impact_statement_2: apiData.impact_statement_2,
-            verification_status: apiData.verification_status,
-            verificationStatus: apiData.verificationStatus,
-            is_active: apiData.is_active,
-            isActive: apiData.isActive,
-            ein: apiData.ein,
-            website: apiData.website,
-            social: apiData.social,
-            main_image: apiData.main_image,
-            main_image_url: apiData.main_image_url,
-            imageUrl: apiData.imageUrl,
-            logo: apiData.logo,
-            logo_url: apiData.logo_url,
-            logoUrl: apiData.logoUrl,
-            location: apiData.location,
-            city: apiData.city,
-            state: apiData.state,
-            phone: apiData.phone,
-            contact_name: apiData.contact_name,
-            bank_account: apiData.bank_account,
-            bankAccount: apiData.bankAccount,
-            // Email fields - check all variations
-            email: apiData.email,
-            primary_email: apiData.primary_email,
-            primaryEmail: apiData.primaryEmail,
-            contact_email: apiData.contact_email,
-            contactEmail: apiData.contactEmail
-          });
           transformAndSetData(apiData);
         } else if (rawBeneficiaryData) {
           // Fallback to passed data if API call fails
@@ -201,19 +155,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
 
   // Transform API data to display format
   const transformAndSetData = (apiData: any) => {
-    console.log('🔄 transformAndSetData called with:', apiData);
-    console.log('🔄 Contact fields in API data:', {
-      contact_name: apiData.contact_name,
-      contactName: apiData.contactName,
-      phone: apiData.phone,
-      contactNumber: apiData.contactNumber,
-      phoneNumber: apiData.phoneNumber,
-      email: apiData.email,
-      primary_email: apiData.primary_email,
-      primaryEmail: apiData.primaryEmail,
-      contact_email: apiData.contact_email,
-      contactEmail: apiData.contactEmail
-    });
     
     // Transform API data to match our interface
     const transformed: BeneficiaryData = {
@@ -268,6 +209,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         impactStatement2: apiData.impact_statement_2 || apiData.impactStatement2 || '',
         ein: apiData.ein || '',
         website: apiData.website || '',
+        form990Url: apiData.form_990_url || apiData.form990Url || '',
         verificationStatus: apiData.verification_status || apiData.verificationStatus || false,
         volunteerInfo: apiData.volunteer_info || apiData.volunteerInfo || '',
         // New fields from spec
@@ -281,53 +223,21 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                   (apiData.is_active !== undefined ? apiData.is_active : true),
       };
       
-      console.log('🔄 Transformed contact fields:', {
-        contactName: transformed.contactName,
-        contactNumber: transformed.contactNumber,
-        email: transformed.email
-      });
-      console.log('🔄 Email extraction result:', {
-        apiDataEmail: apiData.email,
-        apiDataPrimaryEmail: apiData.primary_email,
-        apiDataPrimaryEmailCamel: apiData.primaryEmail,
-        apiDataContactEmail: apiData.contact_email,
-        finalEmail: transformed.email
-      });
       
       // Set additional images state before setting formData
       setAdditionalImages(transformed.additionalImages || []);
-      console.log('🔄 Additional images loaded:', transformed.additionalImages);
       
       setBeneficiaryData(transformed);
       setFormData(transformed);
       
-      console.log('🔄 Data set in state. beneficiaryData.contactName:', transformed.contactName);
-      console.log('🔄 Data set in state. beneficiaryData.contactNumber:', transformed.contactNumber);
-      console.log('🔄 Data set in state. beneficiaryData.email:', transformed.email);
-      console.log('🔄 Full transformed object keys:', Object.keys(transformed));
-      console.log('🔄 Full transformed object:', transformed);
   };
 
   const handleEdit = () => {
-    console.log('✏️ Entering edit mode. beneficiaryData:', beneficiaryData);
-    console.log('✏️ beneficiaryData.email:', beneficiaryData?.email);
     setIsEditing(true);
     const newFormData = { ...beneficiaryData };
     setFormData(newFormData);
-    console.log('✏️ formData after edit mode (newFormData):', newFormData);
-    console.log('✏️ newFormData.email:', newFormData.email);
     
     // VERIFY Impact & Story data is in formData when entering edit mode
-    console.log('🔍 VERIFY Impact & Story in formData (edit mode):', {
-      whyThisMatters: newFormData.whyThisMatters,
-      successStory: newFormData.successStory,
-      storyAuthor: newFormData.storyAuthor,
-      hasWhyThisMatters: !!newFormData.whyThisMatters,
-      hasSuccessStory: !!newFormData.successStory,
-      hasStoryAuthor: !!newFormData.storyAuthor,
-      whyThisMattersLength: newFormData.whyThisMatters?.length || 0,
-      successStoryLength: newFormData.successStory?.length || 0
-    });
   };
 
   const handleCancel = () => {
@@ -364,12 +274,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       // CRITICAL: Backend requires name field - send all three variations for compatibility
       const charityName = formData.beneficiaryName?.trim() || '';
       
-      console.log('📝 Charity name check (update):', {
-        raw: formData.beneficiaryName,
-        trimmed: charityName,
-        isEmpty: !charityName,
-        type: typeof formData.beneficiaryName
-      });
       
       if (!charityName) {
         console.error('❌ Charity name is missing or empty during update!', {
@@ -382,17 +286,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       }
       
       // DEBUG: Log formData before creating updateData
-      console.log('🔍 DEBUG: formData before creating updateData:', {
-        whyThisMatters: formData.whyThisMatters,
-        successStory: formData.successStory,
-        storyAuthor: formData.storyAuthor,
-        hasWhyThisMatters: !!formData.whyThisMatters,
-        hasSuccessStory: !!formData.successStory,
-        hasStoryAuthor: !!formData.storyAuthor,
-        whyThisMattersLength: formData.whyThisMatters?.length || 0,
-        successStoryLength: formData.successStory?.length || 0,
-        allFormDataKeys: Object.keys(formData)
-      });
       
       const updateData: any = {
         // CRITICAL: Send name in all three formats backend accepts to ensure compatibility
@@ -515,7 +408,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       
       fieldsToRemove.forEach(field => {
         if (updateData.hasOwnProperty(field)) {
-          console.warn(`⚠️ Removing non-existent field: ${field}`);
           delete updateData[field];
         }
       });
@@ -526,113 +418,38 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         console.error('❌ CRITICAL: Some removed fields are still in payload!', fieldsToRemove.filter(f => updateData.hasOwnProperty(f)));
       }
 
-      console.log('💾 Updating beneficiary:', beneficiaryId);
-      console.log('💾 Form data contact fields:', {
-        contactName: formData.contactName,
-        contactNumber: formData.contactNumber,
-        email: formData.email
-      });
-      console.log('💾 Update payload contact fields:', {
-        contact_name: updateData.contact_name,
-        phone: updateData.phone,
-        email: updateData.email,
-        primary_email: updateData.primary_email
-      });
-      console.log('✅ Verified: communities_served NOT in payload:', !updateData.hasOwnProperty('communities_served'));
-      console.log('✅ Verified: verification_status NOT in payload:', !updateData.hasOwnProperty('verification_status'));
-      console.log('💾 Update payload:', updateData);
-      console.log('💾 All keys being sent:', Object.keys(updateData));
       
       // VERIFY Impact & Story fields are in payload
-      console.log('🔍 VERIFY Impact & Story in update payload:', {
-        why_this_matters: updateData.why_this_matters,
-        success_story: updateData.success_story,
-        story_author: updateData.story_author,
-        impact_statement_1: updateData.impact_statement_1,
-        impact_statement_2: updateData.impact_statement_2,
-        hasWhyThisMatters: !!updateData.why_this_matters,
-        hasSuccessStory: !!updateData.success_story,
-        hasStoryAuthor: !!updateData.story_author,
-        hasImpactStatement1: !!updateData.impact_statement_1,
-        hasImpactStatement2: !!updateData.impact_statement_2,
-        whyThisMattersLength: updateData.why_this_matters?.length || 0,
-        successStoryLength: updateData.success_story?.length || 0,
-        impactStatement1Length: updateData.impact_statement_1?.length || 0,
-        impactStatement2Length: updateData.impact_statement_2?.length || 0,
-        formDataWhyThisMatters: formData.whyThisMatters,
-        formDataSuccessStory: formData.successStory,
-        formDataImpactStatement1: formData.impactStatement1,
-        formDataImpactStatement2: formData.impactStatement2
-      });
       
-      console.log('📸 imageUrl value:', updateData.imageUrl || 'NOT SET');
-      console.log('📸 logoUrl value:', updateData.logoUrl || 'NOT SET');
-      console.log('📸 formData.mainImageUrl:', formData.mainImageUrl || 'NOT SET');
-      console.log('📸 formData.logoUrl:', formData.logoUrl || 'NOT SET');
 
       // Call API to update beneficiary
-      console.log('📡 Calling updateBeneficiary API with ID:', beneficiaryId);
-      console.log('📡 Update payload keys:', Object.keys(updateData));
-      console.log('📡 Update payload:', JSON.stringify(updateData, null, 2));
       
       const response = await beneficiaryAPI.updateBeneficiary(parseInt(beneficiaryId), updateData);
       
-      console.log('📡 Update API response:', response);
-      console.log('📡 Update response type:', typeof response);
-      console.log('📡 Update response keys:', response ? Object.keys(response) : 'null');
       
       // Handle different response formats
       // Backend might return: { success: true, data: {...} } OR just the data directly OR { id: ... }
       const responseData = response.data || response;
       const isSuccess = response.success !== false; // Default to true if not specified
       
-      console.log('📡 Response success:', isSuccess);
-      console.log('📡 Response data:', responseData);
       
       if (responseData) {
-        console.log('📡 Updated beneficiary ID:', responseData.id || responseData);
         if (typeof responseData === 'object') {
-          console.log('📡 Updated beneficiary is_active:', responseData.is_active || responseData.isActive);
           // Check if impact statements are in the response
-          console.log('📡 Response impact_statement_1:', responseData.impact_statement_1 || responseData.impactStatement1 || 'NOT IN RESPONSE');
-          console.log('📡 Response impact_statement_2:', responseData.impact_statement_2 || responseData.impactStatement2 || 'NOT IN RESPONSE');
-          console.log('📡 Response has impact_statement_1:', !!(responseData.impact_statement_1 || responseData.impactStatement1));
-          console.log('📡 Response has impact_statement_2:', !!(responseData.impact_statement_2 || responseData.impactStatement2));
         }
       }
 
       if (isSuccess) {
         // Refresh the data by fetching again
-        console.log('🔄 Refreshing beneficiary data...');
         const fetchResponse = await beneficiaryAPI.getBeneficiary(parseInt(beneficiaryId));
-        console.log('🔄 Refetch response:', fetchResponse);
         
         if (fetchResponse.success && fetchResponse.data) {
-          console.log('🔄 Refetched data:', fetchResponse.data);
-          console.log('🔄 Refetched contact fields:', {
-            contact_name: fetchResponse.data.contact_name,
-            phone: fetchResponse.data.phone,
-            email: fetchResponse.data.email,
-            primary_email: fetchResponse.data.primary_email
-          });
           transformAndSetData(fetchResponse.data);
         } else if (fetchResponse.data) {
           // Handle case where response.data exists but success is not set
-          console.log('🔄 Refetched data (no success field):', fetchResponse.data);
-          console.log('🔄 Refetched contact fields:', {
-            contact_name: fetchResponse.data.contact_name,
-            phone: fetchResponse.data.phone,
-            email: fetchResponse.data.email,
-            primary_email: fetchResponse.data.primary_email
-          });
           transformAndSetData(fetchResponse.data);
         } else {
           // Fallback: update local state
-          console.log('⚠️ Using fallback: updating local state');
-          console.log('⚠️ Fallback contact fields:', {
-            contactName: formData.contactName,
-            contactNumber: formData.contactNumber
-          });
           setBeneficiaryData(formData);
         }
         
@@ -662,27 +479,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   };
 
   const handleInputChange = (field: string, value: any) => {
-    console.log(`📝 handleInputChange: ${field} =`, value);
     setFormData((prev: any) => {
       const updated = {
         ...prev,
         [field]: value
       };
-      console.log(`📝 Updated formData.${field}:`, updated[field]);
       
       // Special logging for Impact & Story fields
       if (field === 'whyThisMatters' || field === 'successStory' || field === 'storyAuthor') {
-        console.log(`🔍 Impact & Story field updated:`, {
-          field,
-          value,
-          valueLength: value?.length || 0,
-          hasValue: !!value,
-          updatedFormData: {
-            whyThisMatters: updated.whyThisMatters,
-            successStory: updated.successStory,
-            storyAuthor: updated.storyAuthor
-          }
-        });
       }
       
       return updated;
@@ -902,7 +706,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               <Input
                 value={formData.contactName || ''}
                 onChange={(e) => {
-                  console.log('📝 Contact Name input changed:', e.target.value);
                   handleInputChange('contactName', e.target.value);
                 }}
                 placeholder="Enter contact name"
@@ -916,20 +719,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           <div className="form-field">
             <label>Email</label>
             {(() => {
-              console.log('📧 Email display render:', {
-                isEditing,
-                formDataEmail: formData?.email,
-                beneficiaryDataEmail: beneficiaryData?.email,
-                formDataKeys: formData ? Object.keys(formData) : 'formData is null',
-                beneficiaryDataKeys: beneficiaryData ? Object.keys(beneficiaryData) : 'beneficiaryData is null'
-              });
               return null;
             })()}
             {isEditing ? (
               <Input
                 value={formData?.email || ''}
                 onChange={(e) => {
-                  console.log('📝 Email input changed:', e.target.value);
                   handleInputChange('email', e.target.value);
                 }}
                 placeholder="Enter email"
@@ -949,7 +744,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               <Input
                 value={formData.contactNumber || ''}
                 onChange={(e) => {
-                  console.log('📝 Contact Number input changed:', e.target.value);
                   handleInputChange('contactNumber', e.target.value);
                 }}
                 placeholder="Enter phone number"
@@ -1277,22 +1071,62 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         </Col>
       </Row>
 
-      <div className="form-field">
-        <label>Verification Status</label>
+      <div className="form-field verification-status">
         {isEditing ? (
-          <Checkbox
-            checked={formData.verificationStatus}
-            onChange={(e) => handleInputChange('verificationStatus', e.target.checked)}
-          >
-            Verified 501(c)(3) Nonprofit
-          </Checkbox>
+          <div className="verification-status-inline">
+            <label>Verification Status</label>
+            <Checkbox
+              checked={formData.verificationStatus}
+              onChange={(e) => handleInputChange('verificationStatus', e.target.checked)}
+            >
+              Verified 501(c)(3) Nonprofit
+            </Checkbox>
+          </div>
         ) : (
-          <Badge
-            status={beneficiaryData.verificationStatus ? 'success' : 'default'}
-            text={beneficiaryData.verificationStatus ? 'Verified' : 'Not Verified'}
-          />
+          <>
+            <label>Verification Status</label>
+            <Badge
+              status={beneficiaryData.verificationStatus ? 'success' : 'default'}
+              text={beneficiaryData.verificationStatus ? 'Verified' : 'Not Verified'}
+            />
+          </>
         )}
       </div>
+
+      {/* Form-990 upload - visible when editing (#89) */}
+      {(isEditing || beneficiaryData?.form990Url) && (
+        <div className="form-field" style={{ marginTop: 16 }}>
+          <label>Form-990</label>
+          {isEditing ? (
+            <>
+              <Upload
+                beforeUpload={(file) => {
+                  handleInputChange('form990File', file);
+                  return false; // Prevent auto upload - handled in save
+                }}
+                onRemove={() => handleInputChange('form990File', null)}
+                maxCount={1}
+                accept=".pdf,.doc,.docx"
+              >
+                <Button icon={<UploadOutlined />} className="upload-btn">
+                  Select Form-990 File
+                </Button>
+              </Upload>
+              {beneficiaryData?.form990Url && (
+                <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                  Current: <a href={beneficiaryData.form990Url} target="_blank" rel="noopener noreferrer">View existing Form-990</a>
+                </Text>
+              )}
+            </>
+          ) : (
+            beneficiaryData?.form990Url ? (
+              <a href={beneficiaryData.form990Url} target="_blank" rel="noopener noreferrer">View Form-990</a>
+            ) : (
+              <Text type="secondary">No Form-990 uploaded</Text>
+            )
+          )}
+        </div>
+      )}
     </Card>
   );
 
@@ -1406,7 +1240,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         <div className="profile-header">
           <div className="header-left">
             <Button
-              icon={<ArrowLeftOutlined />}
               onClick={onClose}
               className="back-button"
             >
@@ -1438,11 +1271,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('💾 Save button clicked');
-                    console.log('💾 Current formData:', formData);
-                    console.log('💾 formData.contactName:', formData.contactName);
-                    console.log('💾 formData.contactNumber:', formData.contactNumber);
-                    console.log('💾 formData keys:', Object.keys(formData));
                     handleSave();
                   }}
                   icon={<SaveOutlined />}

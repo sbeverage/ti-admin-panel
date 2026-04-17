@@ -121,6 +121,25 @@ a:hover, .ant-btn-link:hover {
   color: #DB8633 !important;
 }
 
+/* Required field asterisk styling */
+.ant-form-item-required::before {
+  color: #ff4d4f !important;
+}
+
+.ant-form-item-required::after {
+  color: #ff4d4f !important;
+}
+
+/* Add breathing room inside text fields */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number-input,
+.ant-select-selector,
+.ant-picker {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
 [style*="color: #1890ff"]:hover {
   color: #C6762A !important;
 }
@@ -284,6 +303,7 @@ a:hover {
 }
 
 /* Standardized Invite Button Styles - Applied Across Entire Platform */
+/* transition: none to prevent blink on click */
 .invite-beneficiary-btn,
 .invite-vendor-btn,
 .invite-tenant-btn,
@@ -298,7 +318,7 @@ a:hover {
   font-size: 14px !important;
   line-height: 1.5 !important;
   box-shadow: 0 2px 4px rgba(219, 134, 51, 0.2) !important;
-  transition: all 0.3s ease !important;
+  transition: none !important;
   min-width: 160px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -314,7 +334,6 @@ a:hover {
   border-color: #C6762A !important;
   color: #ffffff !important;
   box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
-  transform: translateY(-1px) !important;
 }
 
 .invite-beneficiary-btn:focus,
@@ -331,13 +350,15 @@ a:hover {
 .invite-vendor-btn:active,
 .invite-tenant-btn:active,
 .invite-donor-btn:active {
-  background: #B36B25 !important;
-  border-color: #B36B25 !important;
+  background: #C6762A !important;
+  border-color: #C6762A !important;
   color: #ffffff !important;
-  transform: translateY(0) !important;
+  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
+  transition: none !important;
 }
 
 /* Standardized Invite Button Styles - Applied Across Entire Platform */
+/* transition: none to prevent blink on click */
 .invite-beneficiary-btn,
 .invite-vendor-btn,
 .invite-tenant-btn,
@@ -352,7 +373,7 @@ a:hover {
   font-size: 14px !important;
   line-height: 1.5 !important;
   box-shadow: 0 2px 4px rgba(219, 134, 51, 0.2) !important;
-  transition: all 0.3s ease !important;
+  transition: none !important;
   min-width: 160px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -368,7 +389,6 @@ a:hover {
   border-color: #C6762A !important;
   color: #ffffff !important;
   box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
-  transform: translateY(-1px) !important;
 }
 
 .invite-beneficiary-btn:focus,
@@ -385,10 +405,44 @@ a:hover {
 .invite-vendor-btn:active,
 .invite-tenant-btn:active,
 .invite-donor-btn:active {
-  background: #B36B25 !important;
-  border-color: #B36B25 !important;
+  background: #C6762A !important;
+  border-color: #C6762A !important;
   color: #ffffff !important;
-  transform: translateY(0) !important;
+  box-shadow: 0 4px 8px rgba(219, 134, 51, 0.3) !important;
+  transition: none !important;
+}
+
+/* Prevent button text/background blink on click (#51) */
+.ant-btn,
+.invite-beneficiary-btn,
+.invite-vendor-btn,
+.invite-tenant-btn,
+.invite-donor-btn {
+  -webkit-tap-highlight-color: transparent !important;
+  tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.invite-beneficiary-btn:active,
+.invite-vendor-btn:active,
+.invite-tenant-btn:active,
+.invite-donor-btn:active {
+  transition: none !important;
+}
+/* Eliminate transition flash on click - use minimal transition for smoother feel */
+.invite-beneficiary-btn:active,
+.invite-vendor-btn:active,
+.invite-tenant-btn:active,
+.invite-donor-btn:active {
+  transition: none !important;
+}
+.ant-btn:focus,
+.ant-btn:focus-visible,
+.invite-beneficiary-btn:focus,
+.invite-vendor-btn:focus,
+.invite-tenant-btn:focus,
+.invite-donor-btn:focus {
+  outline: none !important;
 }
 
 /* Standardized Table Column Widths - Applied Across Entire Platform */

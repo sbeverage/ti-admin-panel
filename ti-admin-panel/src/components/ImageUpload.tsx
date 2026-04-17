@@ -26,23 +26,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleUpload = async (file: File) => {
-    console.log('ImageUpload: File selected:', file);
     
     // Validate file
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      console.log('ImageUpload: File validation failed:', validation.error);
       message.error(validation.error);
       return false;
     }
 
-    console.log('ImageUpload: File validation passed, starting upload...');
     setUploading(true);
     
     try {
-      console.log('ImageUpload: Using bucketName:', bucketName);
       const result = await uploadToSupabase(file, bucketName);
-      console.log('ImageUpload: Upload result:', result);
       
       if (result.success && result.url) {
         setPreviewUrl(result.url);
@@ -68,10 +63,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       try {
         const result = await deleteFromSupabase(currentImageUrl, bucketName);
         if (!result.success) {
-          console.warn('Failed to delete from Supabase Storage:', result.error);
         }
       } catch (error) {
-        console.warn('Error deleting from Supabase Storage:', error);
       }
     }
     

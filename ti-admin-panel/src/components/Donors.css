@@ -417,6 +417,16 @@
   height: 40px;
   padding: 0 24px;
   font-weight: 500;
+  min-width: 140px;
+  /* Suppress the white-flash blink on click */
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+.invite-donor-btn.ant-btn-loading {
+  background: #DB8633 !important;
+  border-color: #DB8633 !important;
+  color: #ffffff !important;
+  opacity: 0.85;
 }
 
 .invite-donor-btn:hover {
@@ -433,9 +443,10 @@
 }
 
 .invite-donor-btn:active {
-  background: #DB8633 !important;
-  border-color: #DB8633 !important;
+  background: #c6762a !important;
+  border-color: #c6762a !important;
   color: #ffffff !important;
+  transition: none !important;
 }
 
 /* Force override any Ant Design blue hover colors */
@@ -529,6 +540,26 @@
 
 .donors-table .ant-table-thead > tr > th:first-child {
   padding-left: 40px;
+}
+
+.donor-name-cell {
+  min-width: 200px;
+  flex-wrap: nowrap;
+}
+
+.donor-name-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: inline-block;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.donors-table .ant-table-tbody > tr > td:first-child {
+  word-break: normal !important;
+  white-space: nowrap;
 }
 
 /* Remove all column borders */
@@ -629,6 +660,16 @@
   background: #fff2e8;
   color: #fa8c16;
   border: 1px solid #ffd591;
+}
+
+.coworking-badge {
+  margin-left: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 8px;
 }
 
 /* Invite Donor Button Styling - Now standardized globally in App.css */
