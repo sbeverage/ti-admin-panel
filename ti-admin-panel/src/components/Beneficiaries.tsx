@@ -114,12 +114,14 @@ const Beneficiaries: React.FC = () => {
         // Handle both new charity structure and legacy beneficiary structure
         // Filter out soft-deleted records (if backend returns them)
         const filteredData = response.data.filter((beneficiary: any) => {
-          // Exclude soft-deleted records
-          return !beneficiary.deleted_at && 
-                 !beneficiary.deletedAt && 
-                 !beneficiary.is_deleted && 
+          // Exclude soft-deleted records (backend uses is_active=false for soft deletes)
+          return !beneficiary.deleted_at &&
+                 !beneficiary.deletedAt &&
+                 !beneficiary.is_deleted &&
                  !beneficiary.isDeleted &&
-                 beneficiary.deleted !== true;
+                 beneficiary.deleted !== true &&
+                 beneficiary.is_active !== false &&
+                 beneficiary.isActive !== false;
         });
         
         const transformedData = filteredData.map((beneficiary: any) => {
