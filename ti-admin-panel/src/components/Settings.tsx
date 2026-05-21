@@ -6,7 +6,7 @@ import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   ExclamationCircleOutlined, MenuOutlined, BellOutlined, UserAddOutlined,
-  EditOutlined, GiftOutlined, LockOutlined,
+  EditOutlined, DeleteOutlined, GiftOutlined, LockOutlined,
   TeamOutlined, SecurityScanOutlined,
   ApiOutlined, GlobalOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
@@ -26,7 +26,9 @@ const Settings: React.FC = () => {
   const [showApiRateLimiting, setShowApiRateLimiting] = useState(false);
   const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
   const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
+  const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [deletingUser, setDeletingUser] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,22 @@ const Settings: React.FC = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
+
+  const getCurrentAdminEmail = (): string | null => {
+    const cachedEmail = localStorage.getItem('admin_email');
+    if (cachedEmail) return cachedEmail.toLowerCase();
+    const storedUsername = localStorage.getItem('admin_username');
+    if (storedUsername?.includes('@')) return storedUsername.toLowerCase();
+    const matched = teamMembers.find(
+      (m: any) => m?.email === storedUsername || m?.name === storedUsername
+    );
+    return matched?.email?.toLowerCase() || personalProfile?.email?.toLowerCase() || null;
+  };
+
+  const isCurrentUser = (record: any): boolean => {
+    const currentEmail = getCurrentAdminEmail();
+    return !!currentEmail && record?.email?.toLowerCase() === currentEmail;
+  };
 
   // Load settings data from API
   const loadSettingsData = async () => {
@@ -307,16 +325,64 @@ const Settings: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
             className="edit-user-btn"
+            title="Edit team member"
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteUser(record)}
+            className="delete-user-btn"
+            danger
+            disabled={isCurrentUser(record)}
+            title={isCurrentUser(record) ? 'You cannot delete your own account' : 'Delete team member'}
           />
         </Space>
       ),
-      width: 120,
+      width: 140,
     }] : []),
   ];
 
   const handleEditUser = (user: any) => {
     setEditingUser(user);
     setIsEditUserModalVisible(true);
+  };
+
+  const handleDeleteUser = (user: any) => {
+    if (isCurrentUser(user)) {
+      message.error('You cannot delete your own account.');
+      return;
+    }
+    setDeletingUser(user);
+    setIsDeleteUserModalVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deletingUser?.id) {
+      message.error('Cannot delete team member: missing ID');
+      return;
+    }
+    if (isCurrentUser(deletingUser)) {
+      message.error('You cannot delete your own account.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await settingsAPI.deleteTeamMember(deletingUser.id);
+      if (response.success) {
+        message.success(`Team member ${deletingUser.name || deletingUser.email} deleted successfully`);
+        setIsDeleteUserModalVisible(false);
+        setDeletingUser(null);
+        await loadSettingsData();
+      } else {
+        message.error(response.error || response.message || 'Failed to delete team member');
+      }
+    } catch (error: any) {
+      console.error('Error deleting team member:', error);
+      message.error(error.message || 'Failed to delete team member. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddUser = () => {
@@ -952,6 +1018,47 @@ const Settings: React.FC = () => {
               </Space>
             </Form.Item>
           </Form>
+        )}
+      </Modal>
+
+      {/* Delete Team Member Modal */}
+      <Modal
+        title="Delete Team Member"
+        open={isDeleteUserModalVisible}
+        onOk={confirmDeleteUser}
+        onCancel={() => {
+          setIsDeleteUserModalVisible(false);
+          setDeletingUser(null);
+        }}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={loading}
+      >
+        {deletingUser && (
+          <div>
+            <p>Are you sure you want to permanently remove this team member?</p>
+            <div
+              style={{
+                padding: '16px',
+                background: '#fff7e6',
+                borderRadius: '4px',
+                marginTop: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <Text strong>Team Member Details:</Text>
+              <br />
+              <Text>Name: {deletingUser.name}</Text>
+              <br />
+              <Text>Email: {deletingUser.email}</Text>
+              <br />
+              <Text>Role: {deletingUser.role}</Text>
+            </div>
+            <p style={{ color: '#ff4d4f', marginBottom: 0 }}>
+              <Text strong>Warning:</Text> This action cannot be undone. They will lose access to the admin panel immediately.
+            </p>
+          </div>
         )}
       </Modal>
 

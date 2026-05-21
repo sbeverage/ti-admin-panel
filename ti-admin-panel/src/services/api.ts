@@ -1364,7 +1364,8 @@ export const settingsAPI = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(adminRequestErrorMessage(response.status, errorText));
     }
 
     return response.json();
