@@ -69,12 +69,9 @@ interface VendorData {
   contactName: string;
   email: string;
   contactNumber: string;
-  bankAccount: string;
-  revenue: string;
   dateOfJoin: string;
   cityState: string;
   vendorType: string;
-  customers: number;
   active: boolean;
   enabled: boolean;
   status?: 'active' | 'inactive';
@@ -316,8 +313,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           contactName: vendor.email, // Using email as contact name for now
           email: vendor.email,
           contactNumber: vendor.phone,
-          bankAccount: 'Not Available', // This would come from a separate API
-          revenue: 'Not Available', // This would come from analytics API
           dateOfJoin: new Date(vendor.created_at).toLocaleDateString(),
           cityState: vendor.address && vendor.address.city && vendor.address.state 
             ? `${vendor.address.city}, ${vendor.address.state}`
@@ -325,7 +320,6 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
             ? vendor.address.city
             : 'Location not specified',
           vendorType: vendor.category || 'Uncategorized',
-          customers: 0, // This would come from analytics API
           active: vendor.status === 'active', // Use actual vendor status
           enabled: vendor.status === 'active', // Use actual vendor status
           status: vendor.status || 'active', // Add status field
@@ -677,12 +671,9 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               logo_url: savedLogoUrl,
               // Preserve other VendorData fields
               contactName: formData.contactName || vendorData?.contactName,
-              bankAccount: vendorData?.bankAccount,
-              revenue: vendorData?.revenue,
               dateOfJoin: vendorData?.dateOfJoin,
               cityState: vendorData?.cityState,
               vendorType: vendorData?.vendorType,
-              customers: vendorData?.customers,
               active: vendorData?.active,
               enabled: vendorData?.enabled,
               status: vendorData?.status,
@@ -1267,23 +1258,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
   const renderStats = () => (
     <Card title="Quick Stats" className="profile-section-card">
       <Row gutter={[24, 16]}>
-        <Col span={8}>
-          <Statistic
-            title="Total Revenue"
-            value={vendorData.revenue}
-            prefix={<DollarOutlined />}
-            valueStyle={{ color: '#DB8633' }}
-          />
-        </Col>
-        <Col span={8}>
-          <Statistic
-            title="Customers"
-            value={vendorData.customers}
-            prefix={<UserOutlined />}
-            valueStyle={{ color: '#52c41a' }}
-          />
-        </Col>
-        <Col span={8}>
+        <Col span={24}>
           <Statistic
             title="Date Joined"
             value={vendorData.dateOfJoin}

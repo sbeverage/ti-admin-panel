@@ -655,17 +655,17 @@ const ReferralAnalytics: React.FC = () => {
       icon: <TrophyOutlined />, 
       color: '#324E58' 
     },
-    { 
-      title: 'Social Media Referrals', 
-      value: analyticsData?.referralSources?.[0]?.count ?? '--', 
-      icon: <ShareAltOutlined />, 
-      color: '#DB8633' 
+    {
+      title: 'Social Media Referrals',
+      value: analyticsData?.referralSources?.find((s: any) => s.name === 'Social Media')?.count ?? '--',
+      icon: <ShareAltOutlined />,
+      color: '#DB8633'
     },
-    { 
-      title: 'Email Referrals', 
-      value: analyticsData?.referralSources?.[1]?.count ?? '--', 
-      icon: <MessageOutlined />, 
-      color: '#324E58' 
+    {
+      title: 'Email Referrals',
+      value: analyticsData?.referralSources?.find((s: any) => s.name === 'Email')?.count ?? '--',
+      icon: <MessageOutlined />,
+      color: '#324E58'
     },
   ];
 

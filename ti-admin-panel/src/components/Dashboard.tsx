@@ -32,6 +32,17 @@ import '../styles/menu-hover-overrides.css';
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
+// Smart money formatter:
+// - under $10,000: full dollar amount with commas (so a real $36 doesn't read as "$0K")
+// - $10k+: $XK with one decimal
+// - $1M+: $X.XM
+// - null/undefined/NaN: "--"
+const formatMoney = (value: number | undefined | null): string => {
+  if (value == null || Number.isNaN(value)) return '--';
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 10_000) return `$${(value / 1000).toFixed(1)}K`;
+  return `$${Math.round(value).toLocaleString()}`;
+};
 
 const Dashboard: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
@@ -660,13 +671,13 @@ const Dashboard: React.FC = () => {
     },
     { 
       title: 'Monthly Donations', 
-      value: dashboardStats?.monthlyDonations ? `$${(dashboardStats.monthlyDonations / 1000).toFixed(0)}K` : '--', 
+      value: formatMoney(dashboardStats?.monthlyDonations),
       icon: <GiftOutlined />, 
       growth: '+92.3' 
     },
     { 
       title: 'Total Donations', 
-      value: dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--', 
+      value: formatMoney(dashboardStats?.totalDonations),
       icon: <DollarOutlined />, 
       growth: '+92.3' 
     },
@@ -995,7 +1006,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donation"
-                      value={dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--'}
+                      value={formatMoney(dashboardStats?.totalDonations)}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
@@ -1004,7 +1015,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Revenue"
-                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
+                      value={formatMoney(dashboardStats?.totalRevenue)}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
