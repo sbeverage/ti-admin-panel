@@ -177,11 +177,14 @@ const Reporting: React.FC = () => {
       const monthEnd = selectedMonth.endOf('month').format('YYYY-MM-DD');
       
       const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
-      
-      if (response.success && response.data && response.data.length > 0) {
+
+      // Backend response shape: {success, data: {payouts: [...], summary: {...}}}
+      const payouts = response.success ? response.data?.payouts || [] : [];
+
+      if (payouts.length > 0) {
         // Transform API data to PayoutData format.
         // Backend returns camelCase fields (see adminReporting.ts) — use them directly.
-        const transformed: PayoutData[] = response.data.map((item: any) => {
+        const transformed: PayoutData[] = payouts.map((item: any) => {
           const totalDonations = item.totalDonations || 0;
           const donationCount = item.donationCount || 0;
           const ccProcessingFees = item.processingFees || 0;
