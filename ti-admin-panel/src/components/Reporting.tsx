@@ -716,14 +716,14 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Processing Fees Absorbed"
+                  title="Stripe Processing Fees"
                   value={totals.totalCCFees}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#ff4d4f' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Donors didn't cover fees
+                  What Stripe took from gross
                 </Text>
               </Card>
             </Col>
