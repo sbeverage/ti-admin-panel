@@ -75,6 +75,7 @@ const Reporting: React.FC = () => {
   const [payoutStatusModalVisible, setPayoutStatusModalVisible] = useState(false);
   const [needsReviewFilter, setNeedsReviewFilter] = useState(false);
   const [bankInfoFilter, setBankInfoFilter] = useState<'all' | 'has' | 'missing'>('all');
+  const [backfillLoading, setBackfillLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
@@ -239,6 +240,29 @@ const Reporting: React.FC = () => {
   useEffect(() => {
     loadPayoutData();
   }, [selectedMonth]);
+
+  // Stamp last_payment_date on any monthly_donations rows that never received
+  // the Stripe webhook (so they show up in admin reporting under the month
+  // they actually paid). Idempotent — safe to click again any time.
+  const handleBackfillPaymentDates = async () => {
+    setBackfillLoading(true);
+    try {
+      const response = await reportingAPI.backfillPaymentDates();
+      if (response.success) {
+        message.success(
+          `Backfill complete: ${(response as any).updated || 0} of ${(response as any).scanned || 0} subscriptions stamped from Stripe.`
+        );
+        loadPayoutData();
+      } else {
+        message.error('Backfill failed. Check server logs.');
+      }
+    } catch (error: any) {
+      console.error('Backfill error:', error);
+      message.error(error.message || 'Backfill failed');
+    } finally {
+      setBackfillLoading(false);
+    }
+  };
 
   // Filter by needs review and bank info
   const displayedPayoutData = payoutData.filter((p) => {
@@ -757,6 +781,14 @@ const Reporting: React.FC = () => {
                   >
                     Refresh
                   </Button>
+                  <Tooltip title="Pull the latest paid invoice date from Stripe for any donations missing last_payment_date">
+                    <Button
+                      onClick={handleBackfillPaymentDates}
+                      loading={backfillLoading}
+                    >
+                      Backfill from Stripe
+                    </Button>
+                  </Tooltip>
                   <Button
                     icon={<DownloadOutlined />}
                     onClick={handleExportCSV}

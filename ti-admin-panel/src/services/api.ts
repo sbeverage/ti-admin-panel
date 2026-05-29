@@ -1639,6 +1639,20 @@ export const reportingAPI = {
     return response.json();
   },
 
+  backfillPaymentDates: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/reporting/backfill-payment-dates`,
+      {
+        method: 'POST',
+        headers: API_CONFIG.headers,
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   updateBankInfo: async (
     beneficiaryId: number,
     bankInfo: {
