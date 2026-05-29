@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message, DatePicker, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import { dashboardAPI } from '../services/api';
 import {
@@ -502,31 +503,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
 
   const timeFilterOptions = [
     'All',
@@ -574,75 +550,6 @@ const Dashboard: React.FC = () => {
       onClick: () => setDonationChartFilter(option)
     }))
   };
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
   const summaryCards = [
     { 
@@ -873,48 +780,19 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout className="donors-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={toggleMobileSidebar}
+      <AdminSidebar
+        activeKey="dashboard"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={toggleMobileSidebar}
       />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarVisible && (
-        <div 
+        <div
           className="mobile-sidebar-overlay"
           onClick={() => setMobileSidebarVisible(false)}
         />
       )}
-      
-      {/* Sidebar */}
-      <Sider
-        width={280}
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        trigger={null}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img
-              src="/white-logo.png"
-              alt="THRIVE Logo"
-              className="standard-logo-image"
-            />
-          </div>
-        </div>
-
-        <Menu
-          mode="inline"
-          defaultSelectedKeys={['dashboard']}
-          selectedKeys={[location.pathname === '/dashboard' ? 'dashboard' : '']}
-          items={menuItems}
-          className="standard-menu"
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       {/* Main Content */}
       <Layout className="standard-main-content">

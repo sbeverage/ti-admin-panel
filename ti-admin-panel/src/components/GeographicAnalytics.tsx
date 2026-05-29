@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown, Spin, message, Alert, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
 import {
@@ -106,32 +107,6 @@ const GeographicAnalytics: React.FC = () => {
     loadGeographicAnalytics();
   }, [selectedTimeFilter]);
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
-
   const timeFilterMenu = (
     <Menu onClick={handleTimeFilterChange}>
       <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
@@ -146,75 +121,6 @@ const GeographicAnalytics: React.FC = () => {
       <Menu.Item key="Custom Date">Custom Date</Menu.Item>
     </Menu>
   );
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
   // Geographic Overview Data - real data only, no dummy growth percentages
   const geographicOverviewData = [
@@ -384,53 +290,11 @@ const GeographicAnalytics: React.FC = () => {
 
   return (
     <Layout className="standard-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="geographic-analytics"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      <Sider
-        trigger={null}
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        width={280}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img 
-              src="/white-logo.png" 
-              alt="Logo" 
-              className="standard-logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
-          </div>
-        </div>
-        <Menu
-          mode="inline"
-          selectedKeys={['geographic-analytics']}
-          items={menuItems}
-          onClick={handleMenuClick}
-          className="standard-menu"
-        />
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       <Layout className="standard-main-content">
         <Header className="standard-header">

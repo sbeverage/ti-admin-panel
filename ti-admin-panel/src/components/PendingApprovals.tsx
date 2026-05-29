@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
@@ -173,32 +174,6 @@ const PendingApprovals: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
-
   const timeFilterMenu = [
     {
       key: '7-days',
@@ -229,75 +204,6 @@ const PendingApprovals: React.FC = () => {
 
   const vendorCount = approvalsData.filter((item) => item.itemType === 'vendor').length;
   const beneficiaryCount = approvalsData.filter((item) => item.itemType === 'beneficiary').length;
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'vendor',
-      icon: <ShopOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <HeartOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'discounts',
-      icon: <CrownOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
   // Unified columns that work for both vendor and beneficiary data
   const approvalColumns = [
@@ -552,69 +458,11 @@ const PendingApprovals: React.FC = () => {
 
   return (
     <Layout className="donors-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="pending-approvals"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Sidebar */}
-      <Sider
-        width={280}
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        trigger={null}
-      >
-        <div className="logo-section" style={{
-          padding: '20px 16px 12px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          backgroundColor: 'transparent'
-        }}>
-          {/* Simplified logo section with large centered logo */}
-          <div className="logo-container" style={{
-            position: 'relative',
-            marginBottom: '12px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <img
-              src="/white-logo.png"
-              alt="Thrive Initiative Logo"
-              className="logo-image"
-              style={{
-                width: '180px',
-                height: 'auto',
-                maxWidth: '100%',
-                display: 'block',
-                margin: '0 auto'
-              }}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
-          </div>
-        </div>
-
-        <Menu
-          mode="inline"
-          defaultSelectedKeys={['pending-approvals']}
-          selectedKeys={[location.pathname === '/pending-approvals' ? 'pending-approvals' : '']}
-          style={{ borderRight: 0 }}
-          items={menuItems}
-          className="donors-menu"
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       {/* Main Content */}
       <Layout className="main-content">
