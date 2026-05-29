@@ -3,6 +3,7 @@ import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card,
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DonorOverviewSection from './DonorOverviewSection';
 import { dashboardAPI } from '../services/api';
 import {
   DashboardOutlined,
@@ -59,6 +60,7 @@ const Dashboard: React.FC = () => {
   const [customDateRange, setCustomDateRange] = useState<any>(null);
   const [activeApprovalTab, setActiveApprovalTab] = useState('beneficiaries');
   const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [donorOverview, setDonorOverview] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,14 +162,16 @@ const Dashboard: React.FC = () => {
       const { getChartData } = dashboardAPI;
       
       // Load dashboard stats, approvals, chart data; fetch full lists for period filtering
-      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData] = await Promise.all([
+      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData, donorOverviewResponse] = await Promise.all([
         dashboardAPI.getDashboardStats(selectedPeriod).catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         vendorAPI.getVendors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         beneficiaryAPI.getBeneficiaries(1, 1000, { includeInactive: true }).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         donorAPI.getDonors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
-        getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null }))
+        getChartData('donations', selectedPeriod).catch(() => ({ success: false, data: null })),
+        dashboardAPI.getDonorOverview().catch(() => ({ success: false, data: null })),
       ]);
+      setDonorOverview(donorOverviewResponse?.success ? donorOverviewResponse.data : null);
       
       // Apply period filter to counts (when period !== 'all')
       const donorsInPeriod = filterByPeriod(donorsResponse.data || []);
@@ -823,92 +827,7 @@ const Dashboard: React.FC = () => {
 
         <Content className="dashboard-content">
           <Spin spinning={loading}>
-            {/* Top Section - 3 Rows of Summary Cards */}
-            <div className="summary-section">
-              <div className="summary-header">
-                <Typography.Title level={2} className="summary-title">Dashboard Overview</Typography.Title>
-                <Dropdown
-                  menu={timeFilterMenu}
-                  trigger={['click']}
-                  placement="bottomRight"
-                >
-                  <Button className="time-filter-button">
-                    <CalendarOutlined />
-                    <span>{selectedTimeFilterLabel}</span>
-                    <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </div>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Donors"
-                      value={dashboardStats?.totalDonors || '--'}
-                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Vendors"
-                      value={dashboardStats?.totalVendors || '--'}
-                      prefix={<ShoppingOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Beneficiaries"
-                      value={dashboardStats?.totalBeneficiaries || '--'}
-                      prefix={<StarOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Active Donors"
-                      value={dashboardStats?.activeDonors || '--'}
-                      prefix={<UserOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="summary-cards">
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Donation"
-                      value={formatMoney(dashboardStats?.totalDonations)}
-                      prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Total Revenue"
-                      value={formatMoney(dashboardStats?.totalRevenue)}
-                      prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                  <Card className="summary-card">
-                    <Statistic
-                      title="Pending Approvals"
-                      value={dashboardStats?.pendingApprovals || '--'}
-                      prefix={<ExclamationCircleOutlined style={{ color: '#DB8633' }} />}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-            </div>
+            <DonorOverviewSection overview={donorOverview} />
 
                         {/* Bottom Section - Charts */}
             <Row gutter={[24, 24]} className="bottom-section">
