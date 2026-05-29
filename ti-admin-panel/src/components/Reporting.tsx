@@ -46,11 +46,10 @@ interface PayoutData {
   monthlyDonations: number;
   oneTimeDonations: number;
   donationCount: number;
-  serviceFees: number; // $3 per donation
-  ccProcessingFees: number; // If donor opted in
-  netAmount: number; // Total - Service Fees - CC Fees
-  platformFee: number; // $3 service fee per donation
-  payoutAmount: number; // Total donations - service fees - absorbed processing fees
+  ccProcessingFees: number; // CC processing fees beneficiary absorbed (donor didn't cover)
+  netAmount: number; // Total - Platform Fee - CC Fees
+  platformFee: number; // $3 per donation (THRIVE's revenue)
+  payoutAmount: number; // Total donations - platform fee - absorbed processing fees
   stripeAmount: number; // Actual amount collected from Stripe
   reconciliationStatus: 'matched' | 'needs_review' | 'pending';
   bankInfo: {
@@ -180,52 +179,45 @@ const Reporting: React.FC = () => {
       const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
       
       if (response.success && response.data && response.data.length > 0) {
-        // Transform API data to PayoutData format
+        // Transform API data to PayoutData format.
+        // Backend returns camelCase fields (see adminReporting.ts) — use them directly.
         const transformed: PayoutData[] = response.data.map((item: any) => {
-          const donationCount = item.monthly_donation_count + item.one_time_donation_count;
-          const serviceFees = donationCount * 3; // $3 per donation
-          const ccProcessingFees = item.cc_processing_fees || 0;
-          // Platform fee = $3 service fee per donation (THRIVE's revenue).
-          // Beneficiary receives the donation net of service fee + absorbed processing fees.
-          const platformFee = serviceFees;
-          const payoutAmount = item.total_donations - serviceFees - ccProcessingFees;
-          const netAmount = payoutAmount;
-          
-          // Calculate reconciliation status
-          let reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
-          const difference = Math.abs(item.stripe_amount - item.total_donations);
-          if (difference < 0.01) {
-            reconciliationStatus = 'matched';
-          } else if (difference > 1.00) {
-            reconciliationStatus = 'needs_review';
-          }
-          
+          const totalDonations = item.totalDonations || 0;
+          const donationCount = item.donationCount || 0;
+          const ccProcessingFees = item.processingFees || 0;
+          const platformFee = item.platformFee ?? donationCount * 3;
+          const payoutAmount = item.payoutAmount ?? totalDonations - platformFee - ccProcessingFees;
+          const netAmount = item.netAmount ?? payoutAmount;
+
+          // Stripe reconciliation isn't returned by backend yet — leave as pending.
+          const stripeAmount = item.stripeAmount || 0;
+          const reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
+
           return {
-            key: item.beneficiary_id?.toString() || Math.random().toString(),
-            beneficiaryId: item.beneficiary_id,
-            beneficiaryName: item.beneficiary_name || 'Unknown',
-            totalDonations: item.total_donations || 0,
-            monthlyDonations: item.monthly_donations || 0,
-            oneTimeDonations: item.one_time_donations || 0,
+            key: item.beneficiaryId?.toString() || Math.random().toString(),
+            beneficiaryId: item.beneficiaryId,
+            beneficiaryName: item.beneficiaryName || 'Unknown',
+            totalDonations,
+            monthlyDonations: item.monthlyDonations || 0,
+            oneTimeDonations: item.oneTimeGifts || 0,
             donationCount,
-            serviceFees,
             ccProcessingFees,
             netAmount,
             platformFee,
             payoutAmount,
-            stripeAmount: item.stripe_amount || 0,
+            stripeAmount,
             reconciliationStatus,
             bankInfo: {
-              hasBankInfo: item.bank_info?.has_bank_info || false,
-              bankName: item.bank_info?.bank_name,
-              accountHolderName: item.bank_info?.account_holder_name,
-              routingNumber: item.bank_info?.routing_number,
-              accountNumber: item.bank_info?.account_number ? '****' + item.bank_info.account_number.slice(-4) : undefined,
-              paymentMethod: item.bank_info?.payment_method || 'check'
+              hasBankInfo: Boolean(item.bankInfo?.accountNumber),
+              bankName: item.bankInfo?.accountName,
+              accountHolderName: item.bankInfo?.accountName,
+              routingNumber: item.bankInfo?.routingNumber,
+              accountNumber: item.bankInfo?.accountNumber || undefined,
+              paymentMethod: item.bankInfo?.paymentMethod || 'check'
             },
-            payoutStatus: item.payout_status || 'pending',
-            payoutDate: item.payout_date,
-            notes: item.notes
+            payoutStatus: item.payoutStatus || 'pending',
+            payoutDate: item.payoutDate,
+            notes: item.payoutNotes
           };
         });
         
@@ -258,7 +250,6 @@ const Reporting: React.FC = () => {
     totalDonations: acc.totalDonations + item.totalDonations,
     totalMonthlyDonations: acc.totalMonthlyDonations + item.monthlyDonations,
     totalOneTimeDonations: acc.totalOneTimeDonations + item.oneTimeDonations,
-    totalServiceFees: acc.totalServiceFees + item.serviceFees,
     totalCCFees: acc.totalCCFees + item.ccProcessingFees,
     totalNetAmount: acc.totalNetAmount + item.netAmount,
     totalPlatformFee: acc.totalPlatformFee + item.platformFee,
@@ -269,7 +260,6 @@ const Reporting: React.FC = () => {
     totalDonations: 0,
     totalMonthlyDonations: 0,
     totalOneTimeDonations: 0,
-    totalServiceFees: 0,
     totalCCFees: 0,
     totalNetAmount: 0,
     totalPlatformFee: 0,
@@ -371,7 +361,6 @@ const Reporting: React.FC = () => {
       'Monthly Donations',
       'One-Time Donations',
       'Donation Count',
-      'Service Fees ($3 each)',
       'CC Processing Fees',
       'Net Amount',
       'Platform Fee ($3/donation)',
@@ -390,7 +379,6 @@ const Reporting: React.FC = () => {
       item.monthlyDonations.toFixed(2),
       item.oneTimeDonations.toFixed(2),
       item.donationCount,
-      item.serviceFees.toFixed(2),
       item.ccProcessingFees.toFixed(2),
       item.netAmount.toFixed(2),
       item.platformFee.toFixed(2),
@@ -490,17 +478,6 @@ const Reporting: React.FC = () => {
       width: 100,
       align: 'center' as const,
       render: (count: number) => <Tag>{count}</Tag>
-    },
-    {
-      title: 'Service Fees',
-      dataIndex: 'serviceFees',
-      key: 'serviceFees',
-      width: 120,
-      align: 'right' as const,
-      render: (fees: number) => (
-        <Text type="secondary">${fees.toFixed(2)}</Text>
-      ),
-      tooltip: '$3 per donation'
     },
     {
       title: 'CC Fees',
@@ -712,14 +689,14 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Total Fees"
-                  value={totals.totalServiceFees + totals.totalCCFees}
+                  title="Processing Fees Absorbed"
+                  value={totals.totalCCFees}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#ff4d4f' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Service: ${totals.totalServiceFees.toFixed(2)} | CC: ${totals.totalCCFees.toFixed(2)}
+                  Donors didn't cover fees
                 </Text>
               </Card>
             </Col>
@@ -858,28 +835,25 @@ const Reporting: React.FC = () => {
                       <Tag>{totals.totalDonationCount}</Tag>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={5} align="right">
-                      ${totals.totalServiceFees.toFixed(2)}
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={6} align="right">
                       ${totals.totalCCFees.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={7} align="right">
+                    <Table.Summary.Cell index={6} align="right">
                       <Text strong>${totals.totalNetAmount.toFixed(2)}</Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={8} align="right">
+                    <Table.Summary.Cell index={7} align="right">
                       <Text style={{ color: '#DB8633' }}>
                         ${totals.totalPlatformFee.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={9} align="right">
+                    <Table.Summary.Cell index={8} align="right">
                       <Text strong style={{ color: '#1890ff', fontSize: '18px' }}>
                         ${totals.totalPayoutAmount.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={10} align="right">
+                    <Table.Summary.Cell index={9} align="right">
                       ${totals.totalStripeAmount.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={11} colSpan={4} />
+                    <Table.Summary.Cell index={10} colSpan={4} />
                   </Table.Summary.Row>
                 </Table.Summary>
               )}
