@@ -49,8 +49,8 @@ interface PayoutData {
   serviceFees: number; // $3 per donation
   ccProcessingFees: number; // If donor opted in
   netAmount: number; // Total - Service Fees - CC Fees
-  platformFee: number; // 20% of net amount
-  payoutAmount: number; // 80% of net amount
+  platformFee: number; // $3 service fee per donation
+  payoutAmount: number; // Total donations - service fees - absorbed processing fees
   stripeAmount: number; // Actual amount collected from Stripe
   reconciliationStatus: 'matched' | 'needs_review' | 'pending';
   bankInfo: {
@@ -185,9 +185,11 @@ const Reporting: React.FC = () => {
           const donationCount = item.monthly_donation_count + item.one_time_donation_count;
           const serviceFees = donationCount * 3; // $3 per donation
           const ccProcessingFees = item.cc_processing_fees || 0;
-          const netAmount = item.total_donations - serviceFees - ccProcessingFees;
-          const platformFee = netAmount * 0.20; // 20%
-          const payoutAmount = netAmount * 0.80; // 80%
+          // Platform fee = $3 service fee per donation (THRIVE's revenue).
+          // Beneficiary receives the donation net of service fee + absorbed processing fees.
+          const platformFee = serviceFees;
+          const payoutAmount = item.total_donations - serviceFees - ccProcessingFees;
+          const netAmount = payoutAmount;
           
           // Calculate reconciliation status
           let reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
@@ -372,8 +374,8 @@ const Reporting: React.FC = () => {
       'Service Fees ($3 each)',
       'CC Processing Fees',
       'Net Amount',
-      'Platform Fee (20%)',
-      'Payout Amount (80%)',
+      'Platform Fee ($3/donation)',
+      'Payout to Beneficiary',
       'Stripe Amount',
       'Reconciliation Status',
       'Payment Method',
@@ -522,7 +524,7 @@ const Reporting: React.FC = () => {
       )
     },
     {
-      title: 'Platform Fee (20%)',
+      title: 'Platform Fee ($3/donation)',
       dataIndex: 'platformFee',
       key: 'platformFee',
       width: 130,
@@ -533,7 +535,7 @@ const Reporting: React.FC = () => {
       className: 'table-header-small'
     },
     {
-      title: 'Payout (80%)',
+      title: 'Payout to Beneficiary',
       dataIndex: 'payoutAmount',
       key: 'payoutAmount',
       width: 130,
@@ -724,7 +726,7 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Platform Fee (20%)"
+                  title="Platform Fee ($3/donation)"
                   value={totals.totalPlatformFee}
                   prefix="$"
                   precision={2}
@@ -738,7 +740,7 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Total Payouts (80%)"
+                  title="Total Payouts to Beneficiaries"
                   value={totals.totalPayoutAmount}
                   prefix="$"
                   precision={2}

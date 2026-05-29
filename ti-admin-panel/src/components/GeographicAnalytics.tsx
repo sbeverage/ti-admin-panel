@@ -263,13 +263,10 @@ const GeographicAnalytics: React.FC = () => {
     region: state.name || 'Unknown',
     avatar: (state.name || '?').charAt(0).toUpperCase(),
     states: [state.name || 'Unknown'],
-    population: '--',
     donors: state.donors || 0,
     vendors: state.vendors || 0,
     beneficiaries: state.beneficiaries || 0,
     totalDonations: state.totalDonations || '$0',
-    growth: '--',
-    status: 'stable',
   }));
 
   // Transform API data for City Performance table
@@ -281,7 +278,6 @@ const GeographicAnalytics: React.FC = () => {
     donors: city.donors || 0,
     vendors: city.vendors || 0,
     donations: city.donations || '$0',
-    growth: '--',
   }));
 
   const regionColumns = [
@@ -321,12 +317,6 @@ const GeographicAnalytics: React.FC = () => {
       ),
     },
     {
-      title: 'Population',
-      dataIndex: 'population',
-      key: 'population',
-      render: (population: string) => <Text strong>{population}</Text>,
-    },
-    {
       title: 'Donors',
       dataIndex: 'donors',
       key: 'donors',
@@ -350,25 +340,6 @@ const GeographicAnalytics: React.FC = () => {
       key: 'totalDonations',
       render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
-    {
-      title: 'Growth',
-      dataIndex: 'growth',
-      key: 'growth',
-      render: (growth: string) => (
-        <Tag color="green" className="growth-tag">{growth}</Tag>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Badge 
-          status={status === 'high-growth' ? 'success' : status === 'stable' ? 'processing' : 'default'} 
-          text={status === 'high-growth' ? 'High Growth' : status === 'stable' ? 'Stable' : 'Emerging'} 
-        />
-      ),
-    }
   ];
 
   const cityColumns = [
@@ -409,14 +380,6 @@ const GeographicAnalytics: React.FC = () => {
       key: 'donations',
       render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
-    {
-      title: 'Growth',
-      dataIndex: 'growth',
-      key: 'growth',
-      render: (growth: string) => (
-        <Tag color="green" className="growth-tag">{growth}</Tag>
-      ),
-    }
   ];
 
   return (
