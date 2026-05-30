@@ -416,7 +416,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <EnvironmentOutlined style={{ color: '#324E58' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Countries</Text>
                                     <Text type="secondary">{geographicData?.totalCountries ?? '--'}</Text>
                                   </div>
@@ -426,7 +435,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <UserOutlined style={{ color: '#DB8633' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>States</Text>
                                     <Text type="secondary">{geographicData?.totalStates ?? '--'}</Text>
                                   </div>
@@ -436,7 +454,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <HomeOutlined style={{ color: '#324E58' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Cities</Text>
                                     <Text type="secondary">{geographicData?.totalCities ?? '--'}</Text>
                                   </div>
@@ -446,7 +473,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <DollarOutlined style={{ color: '#DB8633' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Top State</Text>
                                     <Text type="secondary">{geographicData?.topStates?.[0]?.name ?? '--'}</Text>
                                   </div>
