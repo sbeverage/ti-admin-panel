@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Button, Input, Select, Table, Tag, Modal, message, Spin, Card, Descriptions, Tooltip, Checkbox } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
+import DashboardSection from './DashboardSection';
+import InvitationsHighlights from './InvitationsHighlights';
 import { invitationsAPI, donorAPI } from '../services/api';
 import UserProfile from './UserProfile';
 import {
@@ -9,7 +11,7 @@ import {
   MenuOutlined, SearchOutlined, ShopOutlined, HeartOutlined,
   TeamOutlined, GlobalOutlined, CalculatorOutlined, ExclamationCircleOutlined,
   CheckCircleOutlined, CloseCircleOutlined, MailOutlined, EyeOutlined,
-  StarOutlined, RiseOutlined, GiftOutlined
+  StarOutlined, RiseOutlined, GiftOutlined, TrophyOutlined
 } from '@ant-design/icons';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -486,7 +488,19 @@ const Invitations: React.FC = () => {
 
         <Content className="invitations-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Invitation Highlights"
+              subtitle="How outreach is converting into active partners"
+              icon={<TrophyOutlined />}
+            >
+              <InvitationsHighlights invitations={invitations} />
+            </DashboardSection>
 
+            <DashboardSection
+              title="All Invitations"
+              subtitle="Beneficiary and vendor invitation requests"
+              icon={<MailOutlined />}
+            >
           {/* Filters */}
           <div className="search-filter-bar">
             <div className="search-section">
@@ -587,6 +601,7 @@ const Invitations: React.FC = () => {
               />
             </Spin>
           </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

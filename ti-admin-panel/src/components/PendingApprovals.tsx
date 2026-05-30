@@ -3,6 +3,8 @@ import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, 
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
+import PendingApprovalsHighlights from './PendingApprovalsHighlights';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
@@ -10,7 +12,7 @@ import {
   MenuOutlined, MoreOutlined, SearchOutlined,
   SortAscendingOutlined, CheckCircleOutlined, CloseCircleOutlined,
   EyeOutlined, ShopOutlined, HeartOutlined, TeamOutlined, GlobalOutlined,
-  CalculatorOutlined, MailOutlined
+  CalculatorOutlined, MailOutlined, TrophyOutlined
 } from '@ant-design/icons';
 import './PendingApprovals.css';
 
@@ -487,6 +489,19 @@ const PendingApprovals: React.FC = () => {
 
         <Content className="donors-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Approval Queue Highlights"
+              subtitle="What's waiting on your review"
+              icon={<TrophyOutlined />}
+            >
+              <PendingApprovalsHighlights approvals={approvalsData} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="Pending Approvals"
+              subtitle="Verify and approve new beneficiaries and vendors"
+              icon={<ExclamationCircleOutlined />}
+            >
             {/* Tabs for Vendors vs Beneficiaries */}
             <div className="approval-tabs-section">
               <Tabs 
@@ -620,6 +635,7 @@ const PendingApprovals: React.FC = () => {
                 />
               </div>
             </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

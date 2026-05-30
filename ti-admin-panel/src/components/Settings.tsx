@@ -3,6 +3,7 @@ import { Layout, Menu, Typography, Space, Avatar, Button, Card, Row, Col, Input,
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
 import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
@@ -443,8 +444,13 @@ const Settings: React.FC = () => {
         <Content className="settings-content">
           <Spin spinning={loading}>
             <div className="content-wrapper">
-              <Tabs 
-                activeKey={activeTab} 
+              <DashboardSection
+                title="Settings"
+                subtitle="Profile, security, team, and API rate-limiting configuration"
+                icon={<SettingOutlined />}
+              >
+              <Tabs
+                activeKey={activeTab}
               onChange={handleTabChange}
               className="settings-tabs"
               items={[
@@ -731,6 +737,7 @@ const Settings: React.FC = () => {
                 }
               ]}
             />
+              </DashboardSection>
             </div>
           </Spin>
         </Content>

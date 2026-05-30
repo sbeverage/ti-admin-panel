@@ -3,6 +3,7 @@ import { Layout, Menu, theme, Typography, Space, Button, Card, Row, Col, Table, 
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
 import { reportingAPI, beneficiaryAPI } from '../services/api';
 import {
   DashboardOutlined,
@@ -27,7 +28,8 @@ import {
   CalculatorOutlined,
   ReconciliationOutlined,
   DownOutlined,
-  MailOutlined
+  MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import './Reporting.css';
 import '../styles/sidebar-standard.css';
@@ -576,8 +578,13 @@ const Reporting: React.FC = () => {
         </Header>
 
         <Content style={{ margin: '24px', minHeight: 280, background: colorBgContainer, padding: 24, borderRadius: borderRadiusLG }}>
+          <DashboardSection
+            title="Reporting Highlights"
+            subtitle="What's moving through the platform"
+            icon={<TrophyOutlined />}
+          >
           {/* Summary Cards */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
@@ -635,7 +642,13 @@ const Reporting: React.FC = () => {
               </Card>
             </Col>
           </Row>
+          </DashboardSection>
 
+          <DashboardSection
+            title="Beneficiary Payouts"
+            subtitle="Monthly breakdown of what each charity is owed"
+            icon={<CalculatorOutlined />}
+          >
           {/* Filters and Actions */}
           <Card style={{ marginBottom: 24 }}>
             <Row gutter={16} align="middle">
@@ -773,6 +786,7 @@ const Reporting: React.FC = () => {
               )}
             />
           </Card>
+          </DashboardSection>
         </Content>
       </Layout>
 
