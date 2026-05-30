@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   DashboardOutlined,
   UserOutlined,
-  StarOutlined,
+  HeartOutlined,
   RiseOutlined,
   GiftOutlined,
   ExclamationCircleOutlined,
@@ -45,7 +45,7 @@ const isGroup = (entry: MenuEntry): entry is MenuGroup =>
 const ADMIN_MENU_ITEMS: MenuEntry[] = [
   { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', route: '/dashboard', title: 'Dashboard Overview' },
   { key: 'donors', icon: <UserOutlined />, label: 'Donors', route: '/donors', title: 'Donor Management' },
-  { key: 'beneficiaries', icon: <StarOutlined />, label: 'Beneficiaries', route: '/beneficiaries', title: 'Beneficiary Management' },
+  { key: 'beneficiaries', icon: <HeartOutlined />, label: 'Beneficiaries', route: '/beneficiaries', title: 'Beneficiary Management' },
   {
     key: 'vendors-group',
     icon: <RiseOutlined />,
