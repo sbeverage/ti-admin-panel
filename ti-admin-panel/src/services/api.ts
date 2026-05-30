@@ -696,6 +696,17 @@ export const donorAPI = {
     return response.json();
   },
 
+  getDonorHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/donors/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   createDonor: async (donorData: any): Promise<ApiResponse<any>> => {
     const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/donors`, {
       method: 'POST',

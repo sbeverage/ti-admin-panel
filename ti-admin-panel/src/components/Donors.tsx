@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
+import DonorHighlights from './DonorHighlights';
 import { donorAPI, beneficiaryAPI } from '../services/api';
 import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
@@ -37,6 +38,7 @@ const Donors: React.FC = () => {
   const [donorsData, setDonorsData] = useState<any[]>([]);
   const [allDonorsData, setAllDonorsData] = useState<any[]>([]);
   const [filteredDonorsData, setFilteredDonorsData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDonors, setTotalDonors] = useState(0);
@@ -63,7 +65,15 @@ const Donors: React.FC = () => {
   const loadDonors = async () => {
     setLoading(true);
     setError(null);
-    
+
+    // Fire highlights fetch in parallel — independent of the donor list.
+    donorAPI
+      .getDonorHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
+
     try {
       const collected: any[] = [];
       let page = 1;
@@ -978,6 +988,7 @@ const Donors: React.FC = () => {
 
         <Content className="donors-content">
           <div className="content-wrapper">
+            <DonorHighlights data={highlights} />
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
