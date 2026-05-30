@@ -2,10 +2,11 @@
  * on the active tab, matching the THRIVE app's tab look. Imported once at
  * index.tsx so every Ant Tabs component in the admin panel inherits.
  *
- * Per-component CSS files (e.g. BeneficiaryProfile.css, ApiRateLimiting.css)
- * are scoped via a unique parent class (.profile-tabs, .rate-limiting-tabs)
- * and continue to win specificity where they're loaded, so they intentionally
- * override these defaults if needed.
+ * Per-component CSS files (Dashboard.css, GeographicAnalytics.css, etc.) use
+ * `!important` to paint the active tab solid orange. To win the cascade and
+ * deliver the requested light-fill / orange-border / orange-text look across
+ * the whole admin, the active-state rules below also use !important.
+ * Inactive-tab padding/font from the per-page files is left alone.
  */
 
 /* Remove the default bottom-border underline below the tab row */
@@ -13,27 +14,28 @@
 .ant-tabs-bottom > .ant-tabs-nav::before,
 .ant-tabs-top > div > .ant-tabs-nav::before,
 .ant-tabs-bottom > div > .ant-tabs-nav::before {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
-/* Pill-shape each tab and add breathing room */
+/* Give every tab a transparent border slot so the active border doesn't shift layout */
 .ant-tabs .ant-tabs-tab {
-  padding: 6px 16px;
-  margin-right: 8px;
-  border-radius: 8px;
   border: 1px solid transparent;
+  border-radius: 8px;
   transition: all 0.15s ease;
 }
 
 /* Active tab: orange border, light orange fill, orange text */
 .ant-tabs .ant-tabs-tab.ant-tabs-tab-active {
-  background: rgba(219, 134, 51, 0.1);
-  border-color: #DB8633;
+  background: rgba(219, 134, 51, 0.1) !important;
+  border: 1px solid #DB8633 !important;
+  border-radius: 8px !important;
+  color: #DB8633 !important;
 }
 
-.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #DB8633;
-  font-weight: 600;
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn,
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn .anticon {
+  color: #DB8633 !important;
+  font-weight: 600 !important;
 }
 
 /* Hover state for inactive tabs */
@@ -43,5 +45,5 @@
 
 /* Hide the default ink bar (the blue underline) — we use a chip background now */
 .ant-tabs .ant-tabs-ink-bar {
-  display: none;
+  display: none !important;
 }
