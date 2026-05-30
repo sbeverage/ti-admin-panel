@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Col, Row, Typography } from 'antd';
 import {
   TeamOutlined,
@@ -11,54 +11,134 @@ import {
 
 const { Title, Text } = Typography;
 
-interface PeriodBlock {
-  count: number;
-  growthRate: number | null;
-  lossRate?: number | null;
+interface PeriodCounts {
+  new: { count: number; growthRate?: number | null };
+  lost: { count: number; lossRate?: number | null };
+  net: { count: number; growthRate?: number | null };
 }
-
+interface PrevCounts {
+  new: { count: number };
+  lost: { count: number };
+  net: { count: number };
+}
+interface WeekPoint {
+  weekStart: string;
+  new: number;
+  lost: number;
+  net: number;
+}
 interface DonorOverview {
   totalActive: number;
   totalInactive: number;
-  weekly: { new: PeriodBlock; lost: PeriodBlock; net: PeriodBlock };
-  monthly: { new: PeriodBlock; lost: PeriodBlock; net: PeriodBlock };
-  quarterly: { new: PeriodBlock; lost: PeriodBlock; net: PeriodBlock };
+  current?: { weekly: PeriodCounts; monthly: PeriodCounts; quarterly: PeriodCounts };
+  previous?: { weekly: PrevCounts; monthly: PrevCounts; quarterly: PrevCounts };
+  weeklySeries?: WeekPoint[];
+  // Legacy top-level (kept for graceful fallback)
+  weekly?: PeriodCounts;
+  monthly?: PeriodCounts;
+  quarterly?: PeriodCounts;
 }
 
 interface Props {
   overview: DonorOverview | null;
 }
 
-// One column inside the Weekly/Monthly/Quarterly breakdown row of each KPI card.
-// `direction` controls the arrow + color shown next to the percentage.
-const PeriodColumn: React.FC<{
-  label: string;
-  count: number;
-  rate: number | null | undefined;
-  direction: 'up' | 'down';
-}> = ({ label, count, rate, direction }) => {
-  const arrow = direction === 'up' ? <ArrowUpOutlined /> : <ArrowDownOutlined />;
-  const color = '#52c41a'; // green throughout — matches reference design
-  const displayCount =
-    count === 0 ? '0' : (count > 0 ? `+${count}` : `${count}`);
+type PeriodKey = 'weekly' | 'monthly' | 'quarterly';
+const PERIOD_LABELS: Record<PeriodKey, { chip: string; vsPrev: string }> = {
+  weekly: { chip: 'Week', vsPrev: 'vs last week' },
+  monthly: { chip: 'Month', vsPrev: 'vs last month' },
+  quarterly: { chip: 'Quarter', vsPrev: 'vs last quarter' },
+};
+
+// Cumulative active-donor count at the end of each week, derived from the
+// weekly series. Anchored so the most recent week ends at the current
+// totalActive — earlier weeks are reconstructed by undoing each week's net.
+const buildTotalActiveSeries = (
+  series: WeekPoint[],
+  currentActive: number,
+): number[] => {
+  if (!series.length) return [];
+  const values: number[] = new Array(series.length).fill(0);
+  values[series.length - 1] = currentActive;
+  for (let i = series.length - 2; i >= 0; i--) {
+    values[i] = values[i + 1] - series[i + 1].net;
+  }
+  return values;
+};
+
+// Tiny inline SVG sparkline — no chart library needed for 12 datapoints.
+const Sparkline: React.FC<{
+  values: number[];
+  color: string;
+  height?: number;
+}> = ({ values, color, height = 28 }) => {
+  if (!values.length) return null;
+  const width = 100; // viewBox units; scales via CSS
+  const min = Math.min(...values, 0);
+  const max = Math.max(...values, 1);
+  const range = max - min || 1;
+  const stepX = values.length > 1 ? width / (values.length - 1) : 0;
+  const points = values
+    .map((v, i) => {
+      const x = i * stepX;
+      const y = height - ((v - min) / range) * (height - 2) - 1;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
   return (
-    <div>
-      <Text type="secondary" style={{ fontSize: 12 }}>
-        {label}
-      </Text>
-      <div style={{ fontSize: 18, fontWeight: 600, marginTop: 2 }}>
-        {displayCount}
-      </div>
-      <div style={{ color, fontSize: 12, marginTop: 2 }}>
-        {arrow}{' '}
-        {rate == null ? '—' : `${rate}%`}
-      </div>
-    </div>
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      style={{ width: '100%', height, display: 'block' }}
+    >
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
   );
 };
 
-// Render a circular icon "chip" in the top-right of a card. Color is tinted
-// per card (donors, growth, churn, net) so the section reads at a glance.
+// Pill rendering the delta vs previous period. Color sentiment depends on
+// whether "more = better" (new, net) or "more = worse" (lost).
+const DeltaPill: React.FC<{
+  current: number;
+  previous: number;
+  moreIsBetter: boolean;
+}> = ({ current, previous, moreIsBetter }) => {
+  const diff = current - previous;
+  if (diff === 0 && previous === 0 && current === 0) {
+    return (
+      <span style={{ color: '#8c8c8c', fontSize: 12 }}>— no change</span>
+    );
+  }
+  if (diff === 0) {
+    return (
+      <span style={{ color: '#8c8c8c', fontSize: 12 }}>— no change</span>
+    );
+  }
+  const up = diff > 0;
+  const good = moreIsBetter ? up : !up;
+  const color = good ? '#52c41a' : '#ff4d4f';
+  const arrow = up ? <ArrowUpOutlined /> : <ArrowDownOutlined />;
+  const percent =
+    previous === 0
+      ? `${up ? '+' : ''}${diff}`
+      : `${up ? '+' : ''}${Math.round((diff / Math.abs(previous)) * 1000) / 10}%`;
+  return (
+    <span style={{ color, fontSize: 12, fontWeight: 500 }}>
+      {arrow} {percent}{' '}
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        {/* show "vs prev" label is handled outside */}
+      </Text>
+    </span>
+  );
+};
+
 const CardIcon: React.FC<{ icon: React.ReactNode; tone: string }> = ({
   icon,
   tone,
@@ -83,28 +163,75 @@ const CardIcon: React.FC<{ icon: React.ReactNode; tone: string }> = ({
   </div>
 );
 
-const KpiCard: React.FC<{
+// Period chip selector ("Week | Month | Quarter").
+const PeriodTabs: React.FC<{
+  value: PeriodKey;
+  onChange: (k: PeriodKey) => void;
+}> = ({ value, onChange }) => {
+  const keys: PeriodKey[] = ['weekly', 'monthly', 'quarterly'];
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        background: '#f5f5f5',
+        borderRadius: 8,
+        padding: 3,
+        gap: 2,
+      }}
+    >
+      {keys.map((k) => {
+        const active = k === value;
+        return (
+          <button
+            key={k}
+            type="button"
+            onClick={() => onChange(k)}
+            style={{
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: active ? 600 : 400,
+              cursor: 'pointer',
+              background: active ? '#fff' : 'transparent',
+              color: active ? '#262626' : '#595959',
+              boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.15s',
+            }}
+          >
+            {PERIOD_LABELS[k].chip}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+const TrioCard: React.FC<{
   title: string;
   icon: React.ReactNode;
   iconTone: string;
-  heroValue: string;
-  heroLabel: string;
-  weekly: { count: number; rate: number | null | undefined };
-  monthly: { count: number; rate: number | null | undefined };
-  quarterly: { count: number; rate: number | null | undefined };
-  trendDirection: 'up' | 'down';
+  currentCount: number;
+  prevCount: number;
+  vsPrevLabel: string;
+  sparklineValues: number[];
+  sparklineColor: string;
+  moreIsBetter: boolean;
+  /** Format the hero number — e.g. add a "+" prefix or invert sign for losses. */
+  formatHero: (n: number) => string;
 }> = ({
   title,
   icon,
   iconTone,
-  heroValue,
-  heroLabel,
-  weekly,
-  monthly,
-  quarterly,
-  trendDirection,
+  currentCount,
+  prevCount,
+  vsPrevLabel,
+  sparklineValues,
+  sparklineColor,
+  moreIsBetter,
+  formatHero,
 }) => (
-  <Card style={{ position: 'relative', minHeight: 220 }}>
+  <Card style={{ position: 'relative', minHeight: 200 }}>
     <CardIcon icon={icon} tone={iconTone} />
     <Text
       type="secondary"
@@ -112,51 +239,42 @@ const KpiCard: React.FC<{
     >
       {title}
     </Text>
-    <div style={{ marginTop: 12, marginBottom: 16 }}>
-      <span style={{ fontSize: 36, fontWeight: 700 }}>{heroValue}</span>
-      <Text type="secondary" style={{ marginLeft: 8 }}>
-        {heroLabel}
+    <div style={{ marginTop: 12, marginBottom: 4 }}>
+      <span style={{ fontSize: 36, fontWeight: 700 }}>
+        {formatHero(currentCount)}
+      </span>
+    </div>
+    <div style={{ marginBottom: 16 }}>
+      <DeltaPill
+        current={currentCount}
+        previous={prevCount}
+        moreIsBetter={moreIsBetter}
+      />{' '}
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        {vsPrevLabel}
       </Text>
     </div>
-    <div
-      style={{
-        borderTop: '1px solid #f0f0f0',
-        paddingTop: 12,
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 8,
-      }}
-    >
-      <PeriodColumn
-        label="Weekly"
-        count={weekly.count}
-        rate={weekly.rate}
-        direction={trendDirection}
-      />
-      <PeriodColumn
-        label="Monthly"
-        count={monthly.count}
-        rate={monthly.rate}
-        direction={trendDirection}
-      />
-      <PeriodColumn
-        label="Quarterly"
-        count={quarterly.count}
-        rate={quarterly.rate}
-        direction={trendDirection}
-      />
-    </div>
+    <Sparkline values={sparklineValues} color={sparklineColor} />
   </Card>
 );
 
 const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
+  const [period, setPeriod] = useState<PeriodKey>('monthly');
+
   const totalActive = overview?.totalActive ?? 0;
   const totalInactive = overview?.totalInactive ?? 0;
 
-  // Hero values use the monthly window ("this month" in the screenshot).
-  const newMonthly = overview?.monthly?.new?.count ?? 0;
-  const lostMonthly = overview?.monthly?.lost?.count ?? 0;
-  const netMonthly = overview?.monthly?.net?.count ?? 0;
+  // Pick current + previous blocks based on selected period. Fall back to
+  // legacy top-level fields if the deployment hasn't shipped the new shape yet.
+  const currentBlock =
+    overview?.current?.[period] ?? overview?.[period] ?? null;
+  const prevBlock = overview?.previous?.[period] ?? null;
+
+  const series = overview?.weeklySeries ?? [];
+  const totalActiveSeries = buildTotalActiveSeries(series, totalActive);
+  const newSeries = series.map((p) => p.new);
+  const lostSeries = series.map((p) => p.lost);
+  const netSeries = series.map((p) => p.net);
 
   const sign = (n: number) =>
     n === 0 ? '0' : n > 0 ? `+${n}` : `${n}`;
@@ -172,17 +290,17 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
         </Text>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 16 }}>
         <Title level={4} style={{ margin: 0 }}>
           Donor Overview
         </Title>
         <Text type="secondary">Acquisition, retention and growth</Text>
       </div>
 
-      <Row gutter={[16, 16]}>
-        {/* Total Donors — snapshot card */}
-        <Col xs={24} sm={12} lg={6}>
-          <Card style={{ position: 'relative', minHeight: 220 }}>
+      {/* Hero — Total Donors spans full width */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col span={24}>
+          <Card style={{ position: 'relative', minHeight: 140 }}>
             <CardIcon icon={<TeamOutlined />} tone="#DB8633" />
             <Text
               type="secondary"
@@ -194,86 +312,80 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             >
               Total Donors
             </Text>
-            <div style={{ marginTop: 12 }}>
-              <span style={{ fontSize: 36, fontWeight: 700 }}>
-                {totalActive.toLocaleString()}
-              </span>
-              <Text type="secondary" style={{ marginLeft: 8 }}>
-                active · {totalInactive.toLocaleString()} inactive
-              </Text>
-            </div>
+            <Row gutter={24} align="middle" style={{ marginTop: 12 }}>
+              <Col xs={24} md={10}>
+                <span style={{ fontSize: 44, fontWeight: 700 }}>
+                  {totalActive.toLocaleString()}
+                </span>
+                <Text type="secondary" style={{ marginLeft: 12 }}>
+                  active · {totalInactive.toLocaleString()} inactive
+                </Text>
+              </Col>
+              <Col xs={24} md={14}>
+                <Sparkline
+                  values={totalActiveSeries}
+                  color="#DB8633"
+                  height={48}
+                />
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 11, display: 'block', marginTop: 4 }}
+                >
+                  last 12 weeks
+                </Text>
+              </Col>
+            </Row>
           </Card>
         </Col>
+      </Row>
 
-        {/* New Donors */}
-        <Col xs={24} sm={12} lg={6}>
-          <KpiCard
+      {/* Period selector controls the trio below */}
+      <div style={{ marginBottom: 12 }}>
+        <PeriodTabs value={period} onChange={setPeriod} />
+      </div>
+
+      {/* Trio — New / Lost / Net */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={8}>
+          <TrioCard
             title="New Donors"
             icon={<UserAddOutlined />}
             iconTone="#52c41a"
-            heroValue={sign(newMonthly)}
-            heroLabel="this month"
-            trendDirection="up"
-            weekly={{
-              count: overview?.weekly?.new?.count ?? 0,
-              rate: overview?.weekly?.new?.growthRate,
-            }}
-            monthly={{
-              count: overview?.monthly?.new?.count ?? 0,
-              rate: overview?.monthly?.new?.growthRate,
-            }}
-            quarterly={{
-              count: overview?.quarterly?.new?.count ?? 0,
-              rate: overview?.quarterly?.new?.growthRate,
-            }}
+            currentCount={currentBlock?.new?.count ?? 0}
+            prevCount={prevBlock?.new?.count ?? 0}
+            vsPrevLabel={PERIOD_LABELS[period].vsPrev}
+            sparklineValues={newSeries}
+            sparklineColor="#52c41a"
+            moreIsBetter={true}
+            formatHero={sign}
           />
         </Col>
-
-        {/* Lost Donors */}
-        <Col xs={24} sm={12} lg={6}>
-          <KpiCard
+        <Col xs={24} md={8}>
+          <TrioCard
             title="Lost Donors"
             icon={<UserDeleteOutlined />}
-            iconTone="#DB8633"
-            heroValue={`-${lostMonthly}`}
-            heroLabel="this month"
-            trendDirection="down"
-            weekly={{
-              count: -(overview?.weekly?.lost?.count ?? 0),
-              rate: overview?.weekly?.lost?.lossRate,
-            }}
-            monthly={{
-              count: -(overview?.monthly?.lost?.count ?? 0),
-              rate: overview?.monthly?.lost?.lossRate,
-            }}
-            quarterly={{
-              count: -(overview?.quarterly?.lost?.count ?? 0),
-              rate: overview?.quarterly?.lost?.lossRate,
-            }}
+            iconTone="#ff4d4f"
+            currentCount={currentBlock?.lost?.count ?? 0}
+            prevCount={prevBlock?.lost?.count ?? 0}
+            vsPrevLabel={PERIOD_LABELS[period].vsPrev}
+            sparklineValues={lostSeries}
+            sparklineColor="#ff4d4f"
+            moreIsBetter={false}
+            formatHero={(n) => (n === 0 ? '0' : `-${n}`)}
           />
         </Col>
-
-        {/* Net Donor Change */}
-        <Col xs={24} sm={12} lg={6}>
-          <KpiCard
+        <Col xs={24} md={8}>
+          <TrioCard
             title="Net Donor Change"
             icon={<RiseOutlined />}
             iconTone="#1890ff"
-            heroValue={sign(netMonthly)}
-            heroLabel="this month"
-            trendDirection={netMonthly >= 0 ? 'up' : 'down'}
-            weekly={{
-              count: overview?.weekly?.net?.count ?? 0,
-              rate: overview?.weekly?.net?.growthRate,
-            }}
-            monthly={{
-              count: overview?.monthly?.net?.count ?? 0,
-              rate: overview?.monthly?.net?.growthRate,
-            }}
-            quarterly={{
-              count: overview?.quarterly?.net?.count ?? 0,
-              rate: overview?.quarterly?.net?.growthRate,
-            }}
+            currentCount={currentBlock?.net?.count ?? 0}
+            prevCount={prevBlock?.net?.count ?? 0}
+            vsPrevLabel={PERIOD_LABELS[period].vsPrev}
+            sparklineValues={netSeries}
+            sparklineColor="#1890ff"
+            moreIsBetter={true}
+            formatHero={sign}
           />
         </Col>
       </Row>
