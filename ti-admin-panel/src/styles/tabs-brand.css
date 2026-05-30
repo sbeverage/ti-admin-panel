@@ -1,0 +1,47 @@
+/* Brand pill-style Ant Tabs — orange border + light-orange fill + orange text
+ * on the active tab, matching the THRIVE app's tab look. Imported once at
+ * index.tsx so every Ant Tabs component in the admin panel inherits.
+ *
+ * Per-component CSS files (e.g. BeneficiaryProfile.css, ApiRateLimiting.css)
+ * are scoped via a unique parent class (.profile-tabs, .rate-limiting-tabs)
+ * and continue to win specificity where they're loaded, so they intentionally
+ * override these defaults if needed.
+ */
+
+/* Remove the default bottom-border underline below the tab row */
+.ant-tabs-top > .ant-tabs-nav::before,
+.ant-tabs-bottom > .ant-tabs-nav::before,
+.ant-tabs-top > div > .ant-tabs-nav::before,
+.ant-tabs-bottom > div > .ant-tabs-nav::before {
+  border-bottom: none;
+}
+
+/* Pill-shape each tab and add breathing room */
+.ant-tabs .ant-tabs-tab {
+  padding: 6px 16px;
+  margin-right: 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+/* Active tab: orange border, light orange fill, orange text */
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background: rgba(219, 134, 51, 0.1);
+  border-color: #DB8633;
+}
+
+.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #DB8633;
+  font-weight: 600;
+}
+
+/* Hover state for inactive tabs */
+.ant-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #DB8633;
+}
+
+/* Hide the default ink bar (the blue underline) — we use a chip background now */
+.ant-tabs .ant-tabs-ink-bar {
+  display: none;
+}
