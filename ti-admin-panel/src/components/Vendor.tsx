@@ -9,10 +9,13 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined
+  CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
+import DashboardSection from './DashboardSection';
+import VendorHighlights from './VendorHighlights';
 import { vendorAPI, Vendor as VendorType } from '../services/api';
 import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
@@ -36,6 +39,7 @@ const Vendor: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
   const [allVendorsData, setAllVendorsData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [totalVendors, setTotalVendors] = useState(0);
   const [showInactive, setShowInactive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,8 +63,16 @@ const Vendor: React.FC = () => {
   const loadVendors = async () => {
     setLoading(true);
     setError(null);
-    
+
     // No mock data fallback - use real API data only
+
+    // Fire highlights fetch in parallel — independent of the table data.
+    vendorAPI
+      .getVendorHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
 
     try {
       const collected: any[] = [];
@@ -642,6 +654,19 @@ const Vendor: React.FC = () => {
 
         <Content className="vendor-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Vendor Highlights"
+              subtitle="Partner activity and engagement at a glance"
+              icon={<TrophyOutlined />}
+            >
+              <VendorHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Vendors"
+              subtitle="Search, filter, and manage individual vendor partners"
+              icon={<RiseOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -781,6 +806,7 @@ const Vendor: React.FC = () => {
                 />
               </div>
             </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

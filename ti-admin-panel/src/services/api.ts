@@ -302,6 +302,17 @@ export const notificationsAPI = {
 
 // Vendor API functions
 export const vendorAPI = {
+  getVendorHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/vendors/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`,
