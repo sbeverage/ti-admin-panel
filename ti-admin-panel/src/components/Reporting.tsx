@@ -35,6 +35,8 @@ import './Reporting.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import dayjs, { Dayjs } from 'dayjs';
+import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+dayjs.extend(quarterOfYear);
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -72,6 +74,22 @@ const Reporting: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [payoutData, setPayoutData] = useState<PayoutData[]>([]);
+  // Highlights section: independent period selector (Month / Quarter / Year).
+  // Beneficiary Payouts section: M / Q toggle for the payouts table below.
+  const [highlightsPeriod, setHighlightsPeriod] = useState<
+    'monthly' | 'quarterly' | 'yearly'
+  >('monthly');
+  const [highlightsDate, setHighlightsDate] = useState<Dayjs>(dayjs());
+  const [highlightsTotals, setHighlightsTotals] = useState<{
+    totalDonations: number;
+    totalCCFees: number;
+    totalPlatformFee: number;
+    totalPayoutAmount: number;
+    totalDonationCount: number;
+  } | null>(null);
+  const [payoutsPeriod, setPayoutsPeriod] = useState<'monthly' | 'quarterly'>(
+    'monthly',
+  );
   const [loading, setLoading] = useState(false);
   const [bankInfoModalVisible, setBankInfoModalVisible] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<PayoutData | null>(null);
@@ -88,13 +106,73 @@ const Reporting: React.FC = () => {
   } = theme.useToken();
 
 
-  // Load payout data for selected month
+  // Compute the [start, end] YYYY-MM-DD pair for a given period + anchor date.
+  const rangeFor = (
+    period: 'monthly' | 'quarterly' | 'yearly',
+    anchor: Dayjs,
+  ): [string, string] => {
+    switch (period) {
+      case 'quarterly':
+        return [
+          anchor.startOf('quarter').format('YYYY-MM-DD'),
+          anchor.endOf('quarter').format('YYYY-MM-DD'),
+        ];
+      case 'yearly':
+        return [
+          anchor.startOf('year').format('YYYY-MM-DD'),
+          anchor.endOf('year').format('YYYY-MM-DD'),
+        ];
+      default:
+        return [
+          anchor.startOf('month').format('YYYY-MM-DD'),
+          anchor.endOf('month').format('YYYY-MM-DD'),
+        ];
+    }
+  };
+
+  // Highlights uses its own period + date independent from the table.
+  const loadHighlights = async () => {
+    try {
+      const [start, end] = rangeFor(highlightsPeriod, highlightsDate);
+      const response = await reportingAPI.getPayoutData(start, end);
+      const payouts = response.success ? response.data?.payouts || [] : [];
+      const t = payouts.reduce(
+        (acc: any, item: any) => {
+          const donationCount = item.donationCount || 0;
+          const platformFee = item.platformFee ?? donationCount * 3;
+          const ccFees = item.processingFees || 0;
+          const total = item.totalDonations || 0;
+          return {
+            totalDonations: acc.totalDonations + total,
+            totalCCFees: acc.totalCCFees + ccFees,
+            totalPlatformFee: acc.totalPlatformFee + platformFee,
+            totalPayoutAmount:
+              acc.totalPayoutAmount +
+              (item.payoutAmount ?? total - platformFee - ccFees),
+            totalDonationCount: acc.totalDonationCount + donationCount,
+          };
+        },
+        {
+          totalDonations: 0,
+          totalCCFees: 0,
+          totalPlatformFee: 0,
+          totalPayoutAmount: 0,
+          totalDonationCount: 0,
+        },
+      );
+      setHighlightsTotals(t);
+    } catch (err) {
+      console.error('loadHighlights failed:', err);
+      setHighlightsTotals(null);
+    }
+  };
+
+  // Load payout table data — driven by payoutsPeriod (Month or Quarter).
   const loadPayoutData = async () => {
     setLoading(true);
     try {
-      const monthStart = selectedMonth.startOf('month').format('YYYY-MM-DD');
-      const monthEnd = selectedMonth.endOf('month').format('YYYY-MM-DD');
-      
+      const [monthStart, monthEnd] = rangeFor(payoutsPeriod, selectedMonth);
+
       const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
 
       // Backend response shape: {success, data: {payouts: [...], summary: {...}}}
@@ -157,7 +235,11 @@ const Reporting: React.FC = () => {
 
   useEffect(() => {
     loadPayoutData();
-  }, [selectedMonth]);
+  }, [selectedMonth, payoutsPeriod]);
+
+  useEffect(() => {
+    loadHighlights();
+  }, [highlightsPeriod, highlightsDate]);
 
   // Stamp last_payment_date on any monthly_donations rows that never received
   // the Stripe webhook (so they show up in admin reporting under the month
@@ -584,19 +666,79 @@ const Reporting: React.FC = () => {
             subtitle="What's moving through the platform"
             icon={<TrophyOutlined />}
           >
+          {/* Highlights period selector — M / Q / Y chips + a picker whose type
+              adapts to the selected period. Drives the four cards below. */}
+          <div
+            style={{
+              marginBottom: 16,
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                background: '#f5f5f5',
+                borderRadius: 8,
+                padding: 3,
+                gap: 2,
+              }}
+            >
+              {(['monthly', 'quarterly', 'yearly'] as const).map((p) => {
+                const active = p === highlightsPeriod;
+                const label =
+                  p === 'monthly' ? 'Month' : p === 'quarterly' ? 'Quarter' : 'Year';
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setHighlightsPeriod(p)}
+                    style={{
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      background: active ? '#fff' : 'transparent',
+                      color: active ? '#262626' : '#595959',
+                      boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <DatePicker
+              picker={
+                highlightsPeriod === 'monthly'
+                  ? 'month'
+                  : highlightsPeriod === 'quarterly'
+                    ? 'quarter'
+                    : 'year'
+              }
+              value={highlightsDate}
+              onChange={(d) => d && setHighlightsDate(d)}
+              allowClear={false}
+            />
+          </div>
           {/* Summary Cards */}
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
                   title="Total Donations"
-                  value={totals.totalDonations}
+                  value={highlightsTotals?.totalDonations ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#52c41a' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {totals.totalDonationCount} donations
+                  {highlightsTotals?.totalDonationCount ?? 0} donations
                 </Text>
               </Card>
             </Col>
@@ -604,7 +746,7 @@ const Reporting: React.FC = () => {
               <Card>
                 <Statistic
                   title="Stripe Processing Fees"
-                  value={totals.totalCCFees}
+                  value={highlightsTotals?.totalCCFees ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#ff4d4f' }}
@@ -618,7 +760,7 @@ const Reporting: React.FC = () => {
               <Card>
                 <Statistic
                   title="Platform Fee ($3/donation)"
-                  value={totals.totalPlatformFee}
+                  value={highlightsTotals?.totalPlatformFee ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#DB8633' }}
@@ -632,7 +774,7 @@ const Reporting: React.FC = () => {
               <Card>
                 <Statistic
                   title="Total Payouts to Beneficiaries"
-                  value={totals.totalPayoutAmount}
+                  value={highlightsTotals?.totalPayoutAmount ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#1890ff', fontSize: '24px' }}
@@ -647,21 +789,64 @@ const Reporting: React.FC = () => {
 
           <DashboardSection
             title="Beneficiary Payouts"
-            subtitle="Monthly breakdown of what each charity is owed"
+            subtitle="Breakdown of what each charity is owed for the selected period"
             icon={<CalculatorOutlined />}
           >
           {/* Filters and Actions */}
           <Card style={{ marginBottom: 24 }}>
             <Row gutter={16} align="middle">
-              <Col xs={24} sm={12} md={8}>
-                <Space>
-                  <Text strong>Month:</Text>
+              <Col xs={24} sm={12} md={10}>
+                <Space wrap>
+                  {/* Month / Quarter chip selector — adapts the picker type
+                      and the date range sent to /admin/reporting/payouts. */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      background: '#f5f5f5',
+                      borderRadius: 8,
+                      padding: 3,
+                      gap: 2,
+                    }}
+                  >
+                    {(['monthly', 'quarterly'] as const).map((p) => {
+                      const active = p === payoutsPeriod;
+                      const label = p === 'monthly' ? 'Month' : 'Quarter';
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPayoutsPeriod(p)}
+                          style={{
+                            border: 'none',
+                            padding: '6px 14px',
+                            borderRadius: 6,
+                            fontSize: 13,
+                            fontWeight: active ? 600 : 400,
+                            cursor: 'pointer',
+                            background: active ? '#fff' : 'transparent',
+                            color: active ? '#262626' : '#595959',
+                            boxShadow: active
+                              ? '0 1px 2px rgba(0,0,0,0.08)'
+                              : 'none',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <DatePicker
-                    picker="month"
+                    picker={payoutsPeriod === 'quarterly' ? 'quarter' : 'month'}
                     value={selectedMonth}
                     onChange={(date) => date && setSelectedMonth(date)}
-                    format="MMMM YYYY"
+                    format={
+                      payoutsPeriod === 'quarterly'
+                        ? '[Q]Q YYYY'
+                        : 'MMMM YYYY'
+                    }
                     style={{ width: 200 }}
+                    allowClear={false}
                   />
                 </Space>
               </Col>
@@ -706,7 +891,12 @@ const Reporting: React.FC = () => {
             title={
               <Space>
                 <CalculatorOutlined />
-                <Text strong>Beneficiary Payouts - {selectedMonth.format('MMMM YYYY')}</Text>
+                <Text strong>
+                  Beneficiary Payouts -{' '}
+                  {payoutsPeriod === 'quarterly'
+                    ? selectedMonth.format('[Q]Q YYYY')
+                    : selectedMonth.format('MMMM YYYY')}
+                </Text>
               </Space>
             }
             extra={
