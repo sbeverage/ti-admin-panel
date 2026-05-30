@@ -1577,6 +1577,17 @@ export const oneTimeGiftsAPI = {
 };
 
 export const beneficiaryAPI = {
+  getBeneficiaryHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/charities/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getBeneficiaries: async (
     page = 1,
     limit = 20,

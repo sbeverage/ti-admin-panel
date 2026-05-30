@@ -41,13 +41,16 @@ import {
   BankOutlined,
   ExclamationCircleOutlined,
   SortAscendingOutlined,
-  MailOutlined
+  MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import InviteBeneficiaryModal from './InviteBeneficiaryModal';
 import BeneficiaryProfile from './BeneficiaryProfile';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
+import BeneficiaryHighlights from './BeneficiaryHighlights';
 import { beneficiaryAPI } from '../services/api';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -69,6 +72,7 @@ const Beneficiaries: React.FC = () => {
   const [profileVisible, setProfileVisible] = useState(false);
   const [beneficiariesData, setBeneficiariesData] = useState<any[]>([]);
   const [allBeneficiariesData, setAllBeneficiariesData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCause, setSelectedCause] = useState<string | undefined>(undefined);
   const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
@@ -89,7 +93,15 @@ const Beneficiaries: React.FC = () => {
   const loadBeneficiaries = async () => {
     setLoading(true);
     setError(null);
-    
+
+    // Fire highlights fetch in parallel — independent of the table data.
+    beneficiaryAPI
+      .getBeneficiaryHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
+
     try {
       const collected: any[] = [];
       let page = 1;
@@ -805,6 +817,19 @@ const Beneficiaries: React.FC = () => {
 
         <Content className="beneficiaries-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Beneficiary Highlights"
+              subtitle="Network health at a glance"
+              icon={<TrophyOutlined />}
+            >
+              <BeneficiaryHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Beneficiaries"
+              subtitle="Search, filter, and manage individual charity records"
+              icon={<StarOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -951,6 +976,7 @@ const Beneficiaries: React.FC = () => {
                 />
               </div>
             </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>
