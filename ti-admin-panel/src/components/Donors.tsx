@@ -9,11 +9,12 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
-  MailOutlined, EnvironmentOutlined, CalculatorOutlined
+  MailOutlined, EnvironmentOutlined, CalculatorOutlined, TrophyOutlined
 } from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
 import DonorHighlights from './DonorHighlights';
+import DashboardSection from './DashboardSection';
 import { donorAPI, beneficiaryAPI } from '../services/api';
 import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
@@ -988,7 +989,19 @@ const Donors: React.FC = () => {
 
         <Content className="donors-content">
           <div className="content-wrapper">
-            <DonorHighlights data={highlights} />
+            <DashboardSection
+              title="Donor Highlights"
+              subtitle="Quick health check on the donor base"
+              icon={<TrophyOutlined />}
+            >
+              <DonorHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Donors"
+              subtitle="Search, filter, and manage individual donor accounts"
+              icon={<TeamOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -1193,6 +1206,7 @@ const Donors: React.FC = () => {
                 />
               </div>
             </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

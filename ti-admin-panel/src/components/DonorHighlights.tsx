@@ -9,7 +9,7 @@ import {
   ArrowDownOutlined,
 } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const BRAND_ORANGE = '#DB8633';
 const BRAND_TEAL = '#324E58';
@@ -127,16 +127,7 @@ const DonorHighlights: React.FC<Props> = ({ data }) => {
       : '#8c8c8c';
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ marginBottom: 12 }}>
-        <Title level={4} style={{ margin: 0 }}>
-          Donor Highlights
-        </Title>
-        <Text type="secondary">
-          Quick health check on the donor base
-        </Text>
-      </div>
-      <Row gutter={[16, 16]}>
+    <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <HighlightCard
             label="At-Risk Donors"
@@ -220,7 +211,6 @@ const DonorHighlights: React.FC<Props> = ({ data }) => {
           />
         </Col>
       </Row>
-    </div>
   );
 };
 
