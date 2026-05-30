@@ -341,12 +341,12 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           <TrioCard
             title="New Donors"
             icon={<UserAddOutlined />}
-            iconTone="#52c41a"
+            iconTone="#DB8633"
             currentCount={currentBlock?.new?.count ?? 0}
             prevCount={prevBlock?.new?.count ?? 0}
             vsPrevLabel={PERIOD_LABELS[period].vsPrev}
             sparklineValues={newSeries}
-            sparklineColor="#52c41a"
+            sparklineColor="#DB8633"
             moreIsBetter={true}
             formatHero={sign}
           />
@@ -355,12 +355,12 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           <TrioCard
             title="Lost Donors"
             icon={<UserDeleteOutlined />}
-            iconTone="#ff4d4f"
+            iconTone="#324E58"
             currentCount={currentBlock?.lost?.count ?? 0}
             prevCount={prevBlock?.lost?.count ?? 0}
             vsPrevLabel={PERIOD_LABELS[period].vsPrev}
             sparklineValues={lostSeries}
-            sparklineColor="#ff4d4f"
+            sparklineColor="#324E58"
             moreIsBetter={false}
             formatHero={(n) => (n === 0 ? '0' : `-${n}`)}
           />
@@ -369,12 +369,12 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           <TrioCard
             title="Net Donor Change"
             icon={<RiseOutlined />}
-            iconTone="#1890ff"
+            iconTone="#DB8633"
             currentCount={currentBlock?.net?.count ?? 0}
             prevCount={prevBlock?.net?.count ?? 0}
             vsPrevLabel={PERIOD_LABELS[period].vsPrev}
             sparklineValues={netSeries}
-            sparklineColor="#1890ff"
+            sparklineColor="#DB8633"
             moreIsBetter={true}
             formatHero={sign}
           />
