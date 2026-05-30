@@ -795,8 +795,8 @@ const Reporting: React.FC = () => {
           {/* Filters and Actions */}
           <Card style={{ marginBottom: 24 }}>
             <Row gutter={16} align="middle">
-              <Col xs={24} sm={12} md={10}>
-                <Space wrap>
+              <Col xs={24} sm={12} md={8}>
+                <Space size={8} wrap>
                   {/* Month / Quarter chip selector — adapts the picker type
                       and the date range sent to /admin/reporting/payouts. */}
                   <div
@@ -818,7 +818,7 @@ const Reporting: React.FC = () => {
                           onClick={() => setPayoutsPeriod(p)}
                           style={{
                             border: 'none',
-                            padding: '6px 14px',
+                            padding: '5px 12px',
                             borderRadius: 6,
                             fontSize: 13,
                             fontWeight: active ? 600 : 400,
@@ -845,7 +845,7 @@ const Reporting: React.FC = () => {
                         ? '[Q]Q YYYY'
                         : 'MMMM YYYY'
                     }
-                    style={{ width: 200 }}
+                    style={{ width: 160 }}
                     allowClear={false}
                   />
                 </Space>
