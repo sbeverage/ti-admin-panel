@@ -1140,7 +1140,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'overview',
                     label: (
                       <span>
-                        <BarChartOutlined />
+                        <BarChartOutlined style={{ marginRight: 8 }} />
                         Overview
                       </span>
                     ),
@@ -1212,7 +1212,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'top-referrers',
                     label: (
                       <span>
-                        <CrownOutlined />
+                        <CrownOutlined style={{ marginRight: 8 }} />
                         Top Referrers
                       </span>
                     ),
@@ -1263,7 +1263,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'all-donors',
                     label: (
                       <span>
-                        <UserOutlined />
+                        <UserOutlined style={{ marginRight: 8 }} />
                         All Donors
                       </span>
                     ),
@@ -1441,7 +1441,7 @@ const ReferralAnalytics: React.FC = () => {
                                     <Row gutter={[24, 24]}>
                                       {/* Referrals */}
                                       <Col span={24}>
-                                        <Card size="small" title={<><TeamOutlined /> Referrals</>} style={{ marginBottom: 16 }}>
+                                        <Card size="small" title={<><TeamOutlined style={{ marginRight: 8 }} /> Referrals</>} style={{ marginBottom: 16 }}>
                                           {record.referrals && record.referrals.length > 0 ? (
                                             <Table
                                               dataSource={record.referrals}
@@ -1498,7 +1498,7 @@ const ReferralAnalytics: React.FC = () => {
 
                                       {/* Milestones */}
                                       <Col span={12}>
-                                        <Card size="small" title={<><TrophyOutlined /> Milestones</>}>
+                                        <Card size="small" title={<><TrophyOutlined style={{ marginRight: 8 }} /> Milestones</>}>
                                           {record.milestones && record.milestones.length > 0 ? (
                                             <Space direction="vertical" style={{ width: '100%' }}>
                                               {record.milestones.map((milestone: any, idx: number) => {
@@ -1560,7 +1560,7 @@ const ReferralAnalytics: React.FC = () => {
                                       <Col span={12}>
                                         <Card
                                           size="small"
-                                          title={<><DollarOutlined /> Account credits</>}
+                                          title={<><DollarOutlined style={{ marginRight: 8 }} /> Account credits</>}
                                         >
                                           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 8 }}>
                                             Referrals no longer earn donor cash credits. Balances below are manual or historical only.
@@ -1609,7 +1609,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'invitations',
                     label: (
                       <span>
-                        <MailOutlined />
+                        <MailOutlined style={{ marginRight: 8 }} />
                         Invitation Management
                       </span>
                     ),
