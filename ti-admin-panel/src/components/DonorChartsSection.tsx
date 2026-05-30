@@ -5,7 +5,6 @@ const { Title, Text } = Typography;
 
 const BRAND_ORANGE = '#DB8633';
 const BRAND_TEAL = '#324E58';
-const BRAND_ORANGE_LIGHT = '#F2B97A';
 
 interface DonorCountPoint {
   month: string; // YYYY-MM
@@ -38,14 +37,16 @@ interface Props {
   data: DonorChartsData | null;
 }
 
-// ---------------- LINE CHART (multi-series) ----------------
-// Inline SVG line chart with axis labels + legend. Three series: new, lost, net.
-const DonorCountLineChart: React.FC<{ series: DonorCountPoint[] }> = ({
+// ---------------- GROUPED BAR CHART ----------------
+// Two bars per month (New / Lost), side by side. Net shown as a small label
+// above each month group. This avoids the overlap problem the 3-line version
+// had when two series have identical values (e.g. Net == New when no losses).
+const DonorCountBarChart: React.FC<{ series: DonorCountPoint[] }> = ({
   series,
 }) => {
   const w = 600;
   const h = 240;
-  const pad = { t: 16, r: 16, b: 32, l: 36 };
+  const pad = { t: 32, r: 16, b: 32, l: 32 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
 
@@ -53,42 +54,26 @@ const DonorCountLineChart: React.FC<{ series: DonorCountPoint[] }> = ({
     return <Empty description="No donor activity yet" />;
   }
 
-  const allVals = series.flatMap((p) => [p.new, p.lost, p.net]);
+  const allVals = series.flatMap((p) => [p.new, p.lost]);
   const rawMax = Math.max(...allVals, 1);
-  const rawMin = Math.min(...allVals, 0);
-  const max = rawMax + Math.max(1, Math.round(rawMax * 0.1));
-  const min = rawMin < 0 ? rawMin - Math.max(1, Math.abs(Math.round(rawMin * 0.1))) : 0;
-  const range = max - min || 1;
-  const stepX = series.length > 1 ? innerW / (series.length - 1) : innerW;
-  const xy = (i: number, v: number): [number, number] => [
-    pad.l + i * stepX,
-    pad.t + innerH - ((v - min) / range) * innerH,
-  ];
-  const path = (values: number[]) =>
-    values
-      .map((v, i) => {
-        const [x, y] = xy(i, v);
-        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
-      })
-      .join(' ');
+  const max = rawMax + Math.max(1, Math.round(rawMax * 0.15));
+  const groupCount = series.length;
+  const groupWidth = innerW / groupCount;
+  const barGap = 2;
+  const barWidth = Math.max(4, (groupWidth - barGap) / 2 - 2);
 
-  const ySteps = 4;
-  const yTicks = Array.from({ length: ySteps + 1 }, (_, i) => {
-    const v = min + (range * i) / ySteps;
-    return Math.round(v);
-  });
+  const yForVal = (v: number) => pad.t + innerH - (v / max) * innerH;
+
+  const yTicks = 4;
+  const ticks = Array.from({ length: yTicks + 1 }, (_, i) =>
+    Math.round((max * i) / yTicks),
+  );
+
   const xLabels = series.map((p) => {
-    // Show "Apr", "May", etc.
     const [y, m] = p.month.split('-');
     const date = new Date(Number(y), Number(m) - 1, 1);
     return date.toLocaleString('en-US', { month: 'short' });
   });
-
-  const series_specs = [
-    { key: 'new', label: 'New', color: BRAND_ORANGE, vals: series.map((p) => p.new) },
-    { key: 'lost', label: 'Lost', color: BRAND_TEAL, vals: series.map((p) => p.lost) },
-    { key: 'net', label: 'Net', color: BRAND_ORANGE_LIGHT, vals: series.map((p) => p.net) },
-  ];
 
   return (
     <div>
@@ -98,8 +83,8 @@ const DonorCountLineChart: React.FC<{ series: DonorCountPoint[] }> = ({
         style={{ width: '100%', height: 'auto', display: 'block' }}
       >
         {/* Y gridlines + labels */}
-        {yTicks.map((tick, i) => {
-          const y = pad.t + innerH - ((tick - min) / range) * innerH;
+        {ticks.map((tick, i) => {
+          const y = yForVal(tick);
           return (
             <g key={`y-${i}`}>
               <line
@@ -122,15 +107,68 @@ const DonorCountLineChart: React.FC<{ series: DonorCountPoint[] }> = ({
             </g>
           );
         })}
-        {/* X labels — every other month if cramped */}
+
+        {/* Bars + Net labels */}
+        {series.map((p, i) => {
+          const groupX = pad.l + i * groupWidth;
+          const newX = groupX + groupWidth / 2 - barWidth - barGap / 2;
+          const lostX = groupX + groupWidth / 2 + barGap / 2;
+          const newY = yForVal(p.new);
+          const lostY = yForVal(p.lost);
+          const newHeight = pad.t + innerH - newY;
+          const lostHeight = pad.t + innerH - lostY;
+          const netLabel =
+            p.net === 0 ? '' : p.net > 0 ? `+${p.net}` : `${p.net}`;
+          const netColor =
+            p.net > 0 ? BRAND_ORANGE : p.net < 0 ? BRAND_TEAL : '#bfbfbf';
+          return (
+            <g key={`g-${i}`}>
+              {/* New bar */}
+              {p.new > 0 && (
+                <rect
+                  x={newX}
+                  y={newY}
+                  width={barWidth}
+                  height={newHeight}
+                  rx={2}
+                  fill={BRAND_ORANGE}
+                />
+              )}
+              {/* Lost bar */}
+              {p.lost > 0 && (
+                <rect
+                  x={lostX}
+                  y={lostY}
+                  width={barWidth}
+                  height={lostHeight}
+                  rx={2}
+                  fill={BRAND_TEAL}
+                />
+              )}
+              {/* Net label above the bars */}
+              {netLabel && (
+                <text
+                  x={groupX + groupWidth / 2}
+                  y={pad.t - 12}
+                  textAnchor="middle"
+                  fontSize={10}
+                  fontWeight={600}
+                  fill={netColor}
+                >
+                  {netLabel}
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* X labels */}
         {xLabels.map((label, i) => {
-          if (series.length > 8 && i % 2 !== 0 && i !== series.length - 1)
-            return null;
-          const x = pad.l + i * stepX;
+          const groupX = pad.l + i * groupWidth + groupWidth / 2;
           return (
             <text
               key={`x-${i}`}
-              x={x}
+              x={groupX}
               y={h - 8}
               textAnchor="middle"
               fontSize={10}
@@ -140,56 +178,23 @@ const DonorCountLineChart: React.FC<{ series: DonorCountPoint[] }> = ({
             </text>
           );
         })}
-        {/* Lines */}
-        {series_specs.map((s) => (
-          <path
-            key={s.key}
-            d={path(s.vals)}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ))}
-        {/* Dots */}
-        {series_specs.map((s) =>
-          s.vals.map((v, i) => {
-            const [x, y] = xy(i, v);
-            return (
-              <circle
-                key={`${s.key}-${i}`}
-                cx={x}
-                cy={y}
-                r={2.5}
-                fill={s.color}
-              />
-            );
-          }),
-        )}
       </svg>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-        {series_specs.map((s) => (
-          <div
-            key={s.key}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-            }}
-          >
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                background: s.color,
-              }}
-            />
-            <Text style={{ fontSize: 12 }}>{s.label}</Text>
-          </div>
-        ))}
+      <div style={{ display: 'flex', gap: 16, marginTop: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <span
+            style={{ width: 10, height: 10, borderRadius: 2, background: BRAND_ORANGE }}
+          />
+          <Text style={{ fontSize: 12 }}>New</Text>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <span
+            style={{ width: 10, height: 10, borderRadius: 2, background: BRAND_TEAL }}
+          />
+          <Text style={{ fontSize: 12 }}>Lost</Text>
+        </div>
+        <Text type="secondary" style={{ fontSize: 12, marginLeft: 'auto' }}>
+          Net change shown above each month
+        </Text>
       </div>
     </div>
   );
@@ -293,7 +298,7 @@ const DonorChartsSection: React.FC<Props> = ({ data }) => {
             title="Donor Count"
             subtitle="Month-over-month new, lost, and net donors"
           >
-            <DonorCountLineChart series={countSeries} />
+            <DonorCountBarChart series={countSeries} />
           </ChartCard>
         </Col>
 
