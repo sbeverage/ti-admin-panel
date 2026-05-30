@@ -6,6 +6,7 @@ import UserProfile from './UserProfile';
 import DonorOverviewSection from './DonorOverviewSection';
 import DonorChartsSection from './DonorChartsSection';
 import DonationOverviewSection from './DonationOverviewSection';
+import SavingsOverviewSection from './SavingsOverviewSection';
 import { dashboardAPI } from '../services/api';
 import {
   DashboardOutlined,
@@ -65,6 +66,7 @@ const Dashboard: React.FC = () => {
   const [donorOverview, setDonorOverview] = useState<any>(null);
   const [donorCharts, setDonorCharts] = useState<any>(null);
   const [donationOverview, setDonationOverview] = useState<any>(null);
+  const [savingsOverview, setSavingsOverview] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -166,7 +168,7 @@ const Dashboard: React.FC = () => {
       const { getChartData } = dashboardAPI;
       
       // Load dashboard stats, approvals, chart data; fetch full lists for period filtering
-      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData, donorOverviewResponse, donorChartsResponse, donationOverviewResponse] = await Promise.all([
+      const [statsResponse, approvalsResponse, vendorsResponse, beneficiariesResponse, donorsResponse, donationsChartData, donorOverviewResponse, donorChartsResponse, donationOverviewResponse, savingsOverviewResponse] = await Promise.all([
         dashboardAPI.getDashboardStats(selectedPeriod).catch(() => ({ success: false, data: null })),
         approvalsAPI.getPendingApprovals(1, 10).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
         vendorAPI.getVendors(1, 1000).catch(() => ({ success: false, data: [], pagination: { total: 0 } })),
@@ -176,10 +178,12 @@ const Dashboard: React.FC = () => {
         dashboardAPI.getDonorOverview().catch(() => ({ success: false, data: null })),
         dashboardAPI.getDonorCharts().catch(() => ({ success: false, data: null })),
         dashboardAPI.getDonationOverview().catch(() => ({ success: false, data: null })),
+        dashboardAPI.getSavingsOverview().catch(() => ({ success: false, data: null })),
       ]);
       setDonorOverview(donorOverviewResponse?.success ? donorOverviewResponse.data : null);
       setDonorCharts(donorChartsResponse?.success ? donorChartsResponse.data : null);
       setDonationOverview(donationOverviewResponse?.success ? donationOverviewResponse.data : null);
+      setSavingsOverview(savingsOverviewResponse?.success ? savingsOverviewResponse.data : null);
       
       // Apply period filter to counts (when period !== 'all')
       const donorsInPeriod = filterByPeriod(donorsResponse.data || []);
@@ -833,6 +837,7 @@ const Dashboard: React.FC = () => {
             <DonorOverviewSection overview={donorOverview} />
             <DonorChartsSection data={donorCharts} />
             <DonationOverviewSection data={donationOverview} />
+            <SavingsOverviewSection data={savingsOverview} />
           </Spin>
         </Content>
       </Layout>
