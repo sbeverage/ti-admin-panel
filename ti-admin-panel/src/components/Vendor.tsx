@@ -7,7 +7,7 @@ import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   ExclamationCircleOutlined,
   MenuOutlined, SearchOutlined, UserAddOutlined,
-  SortAscendingOutlined, EditOutlined,
+  SortAscendingOutlined, EditOutlined, DeleteOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined,
   CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined,
   TrophyOutlined
@@ -555,10 +555,10 @@ const Vendor: React.FC = () => {
               }}
               title="Edit Vendor"
             />
-            <Button 
+            <Button
               type={record.status === 'active' ? 'default' : 'primary'}
               icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
-              size="small" 
+              size="small"
               className="status-toggle-btn"
               onClick={(e) => {
                 e.stopPropagation();
@@ -568,9 +568,20 @@ const Vendor: React.FC = () => {
             >
               {record.status === 'active' ? 'Deactivate' : 'Activate'}
             </Button>
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteVendor(record);
+              }}
+              title="Delete Vendor"
+            />
         </Space>
       ),
-      width: 160,
+      width: 200,
       fixed: 'right' as const,
     },
   ];
