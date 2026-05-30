@@ -803,11 +803,6 @@ const Dashboard: React.FC = () => {
         <Header className="dashboard-header">
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Dashboard</Title>
-            {dashboardStats && (
-              <Text type="secondary" style={{ marginLeft: 16 }}>
-                {dashboardStats.totalVendors} Vendors • {dashboardStats.totalDonors} Donors • {dashboardStats.totalBeneficiaries} Beneficiaries
-              </Text>
-            )}
           </div>
           <div className="header-actions">
             <Button 
