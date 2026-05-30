@@ -167,8 +167,9 @@ const Reporting: React.FC = () => {
     try {
       const response = await reportingAPI.backfillPaymentDates();
       if (response.success) {
+        const txns = (response as any).transactionsUpserted ?? 0;
         message.success(
-          `Backfill complete: ${(response as any).updated || 0} of ${(response as any).scanned || 0} subscriptions stamped from Stripe.`
+          `Backfill complete: ${(response as any).updated || 0} of ${(response as any).scanned || 0} subscriptions stamped from Stripe${txns ? `, ${txns} transactions upserted` : ''}.`
         );
         loadPayoutData();
       } else {
