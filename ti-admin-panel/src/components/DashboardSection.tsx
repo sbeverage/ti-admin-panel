@@ -3,10 +3,7 @@ import { Typography } from 'antd';
 
 const { Title, Text } = Typography;
 
-// Brand gradient blue used throughout the mobile app
-// (see app/signup.js, app/donorInvitationVerify.js).
-const GRADIENT_FROM = '#2C3E50';
-const GRADIENT_TO = '#4CA1AF';
+const BRAND_ORANGE = '#DB8633';
 
 interface Props {
   title: string;
@@ -16,11 +13,10 @@ interface Props {
 }
 
 /**
- * Visual frame for a top-level Dashboard section. Renders a gradient header
- * banner (brand teal/navy) with title + subtitle, then a white content panel
- * below for the section's KPI cards and charts. Inspired by the panelled
- * layout at jensaiscore.com/portal — each section is clearly delimited and
- * easy to scan.
+ * Visual frame for a top-level Dashboard section. A subtle gray-tinted header
+ * with a brand-orange accent stripe on the left edge delimits each section
+ * without overpowering the cards inside. Inspired by the panelled layout at
+ * jensaiscore.com/portal — clearly labeled but neutral.
  *
  * The data + cards inside `children` are unchanged; this only adds chrome.
  */
@@ -36,48 +32,58 @@ const DashboardSection: React.FC<Props> = ({
         marginBottom: 24,
         borderRadius: 12,
         overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(44, 62, 80, 0.08)',
+        boxShadow: '0 2px 8px rgba(44, 62, 80, 0.06)',
         background: '#ffffff',
         border: '1px solid #f0f0f0',
       }}
     >
       <div
         style={{
-          background: `linear-gradient(135deg, ${GRADIENT_FROM} 0%, ${GRADIENT_TO} 100%)`,
-          padding: '20px 24px',
-          color: '#ffffff',
           display: 'flex',
-          alignItems: 'center',
-          gap: 16,
+          alignItems: 'stretch',
+          background: '#fafafa',
+          borderBottom: '1px solid #f0f0f0',
         }}
       >
-        {icon && (
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              background: 'rgba(255, 255, 255, 0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 20,
-              color: '#ffffff',
-              flexShrink: 0,
-            }}
-          >
-            {icon}
-          </div>
-        )}
-        <div>
-          <Title level={4} style={{ margin: 0, color: '#ffffff' }}>
-            {title}
-          </Title>
-          {subtitle && (
-            <Text style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: 13 }}>
-              {subtitle}
-            </Text>
+        {/* Brand-orange left accent stripe */}
+        <div style={{ width: 4, background: BRAND_ORANGE, flexShrink: 0 }} />
+        <div
+          style={{
+            padding: '20px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            flex: 1,
+          }}
+        >
+          {icon && (
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                background: `${BRAND_ORANGE}1A`,
+                color: BRAND_ORANGE,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 18,
+                flexShrink: 0,
+              }}
+            >
+              {icon}
+            </div>
           )}
+          <div>
+            <Title level={4} style={{ margin: 0, color: '#262626' }}>
+              {title}
+            </Title>
+            {subtitle && (
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                {subtitle}
+              </Text>
+            )}
+          </div>
         </div>
       </div>
       <div style={{ padding: 24 }}>{children}</div>
