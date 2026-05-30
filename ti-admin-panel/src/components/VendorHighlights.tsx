@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, Col, Row, Typography } from 'antd';
 import {
   ShoppingOutlined,
-  TagOutlined,
   TrophyOutlined,
   FireOutlined,
 } from '@ant-design/icons';
@@ -11,7 +10,6 @@ const { Text } = Typography;
 
 const BRAND_ORANGE = '#DB8633';
 const BRAND_TEAL = '#324E58';
-const DANGER_RED = '#ff4d4f';
 
 interface ActiveStats {
   count: number;
@@ -101,14 +99,13 @@ const HighlightCard: React.FC<{
 
 const VendorHighlights: React.FC<Props> = ({ data }) => {
   const active = data?.active ?? { count: 0, withLiveDiscount: 0 };
-  const withoutDiscount = data?.withoutActiveDiscount ?? 0;
   const topSavings = data?.topBySavings ?? null;
   const topRedemptions = data?.topByRedemptions ?? null;
   const dormantCount = Math.max(0, active.count - active.withLiveDiscount);
 
   return (
     <Row gutter={[16, 16]}>
-      <Col xs={24} sm={12} lg={6}>
+      <Col xs={24} sm={12} lg={8}>
         <HighlightCard
           label="Active Vendors"
           hero={active.count.toLocaleString()}
@@ -125,25 +122,7 @@ const VendorHighlights: React.FC<Props> = ({ data }) => {
         />
       </Col>
 
-      <Col xs={24} sm={12} lg={6}>
-        <HighlightCard
-          label="Without Discounts"
-          hero={withoutDiscount.toLocaleString()}
-          heroSuffix={withoutDiscount === 1 ? 'vendor' : 'vendors'}
-          heroColor={withoutDiscount > 0 ? DANGER_RED : undefined}
-          icon={<TagOutlined />}
-          tone={withoutDiscount > 0 ? DANGER_RED : BRAND_TEAL}
-          detail={
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {withoutDiscount > 0
-                ? 'Signed up but no live offer — chase to publish'
-                : 'Every active vendor has at least one live discount'}
-            </Text>
-          }
-        />
-      </Col>
-
-      <Col xs={24} sm={12} lg={6}>
+      <Col xs={24} sm={12} lg={8}>
         <HighlightCard
           label="Top by Savings"
           hero={topSavings ? money(topSavings.totalSavings) : '—'}
@@ -158,7 +137,7 @@ const VendorHighlights: React.FC<Props> = ({ data }) => {
         />
       </Col>
 
-      <Col xs={24} sm={12} lg={6}>
+      <Col xs={24} sm={12} lg={8}>
         <HighlightCard
           label="Top by Redemptions"
           hero={
