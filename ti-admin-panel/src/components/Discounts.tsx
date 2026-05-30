@@ -39,11 +39,14 @@ import {
   PercentageOutlined,
   ShoppingOutlined,
   CalculatorOutlined,
-  MailOutlined
+  MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
+import DiscountHighlights from './DiscountHighlights';
 import { discountAPI, vendorAPI } from '../services/api';
 import AddDiscountModal from './AddDiscountModal';
 import '../styles/sidebar-standard.css';
@@ -62,6 +65,7 @@ const Discounts: React.FC = () => {
   const [pageSize, setPageSize] = useState(15);
   const [discountsData, setDiscountsData] = useState<any[]>([]);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDiscounts, setTotalDiscounts] = useState(0);
@@ -77,7 +81,15 @@ const Discounts: React.FC = () => {
   const loadDiscounts = async () => {
     setLoading(true);
     setError(null);
-    
+
+    // Fire highlights fetch in parallel — independent of the table data.
+    discountAPI
+      .getDiscountHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
+
     try {
       const response = await discountAPI.getDiscounts(currentPage, pageSize);
       
@@ -388,6 +400,19 @@ const Discounts: React.FC = () => {
 
         <Content className="discounts-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Discount Highlights"
+              subtitle="Marketplace health and what's resonating with donors"
+              icon={<TrophyOutlined />}
+            >
+              <DiscountHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Discounts"
+              subtitle="Search, filter, and manage discount offers"
+              icon={<GiftOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -466,6 +491,7 @@ const Discounts: React.FC = () => {
               />
             </div>
           </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

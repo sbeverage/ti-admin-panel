@@ -555,6 +555,17 @@ export const vendorAPI = {
 
 // Discount API functions
 export const discountAPI = {
+  getDiscountHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/discounts/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getDiscounts: async (page = 1, limit = 20): Promise<PaginatedResponse<Discount>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/discounts?page=${page}&limit=${limit}`,
