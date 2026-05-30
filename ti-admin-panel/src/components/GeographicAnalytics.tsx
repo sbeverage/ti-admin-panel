@@ -36,7 +36,9 @@ const { Option } = Select;
 
 const GeographicAnalytics: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    'monthly' | 'quarterly' | 'yearly'
+  >('monthly');
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRegion, setSelectedRegion] = useState('all');
   const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
@@ -51,20 +53,10 @@ const GeographicAnalytics: React.FC = () => {
   } = theme.useToken();
 
   const getSelectedPeriod = () => {
-    switch (selectedTimeFilter) {
-      case 'All':
-        return 'all';
-      case '1 Week':
-        return '7d';
-      case '15 Days':
-        return '15d';
-      case '1 Month':
-        return '30d';
-      case '3 Months':
+    switch (selectedPeriod) {
+      case 'quarterly':
         return '90d';
-      case '6 Months':
-        return '180d';
-      case 'One Year':
+      case 'yearly':
         return '365d';
       default:
         return '30d';
@@ -95,32 +87,9 @@ const GeographicAnalytics: React.FC = () => {
     }
   };
 
-  const handleTimeFilterChange = ({ key }: { key: string }) => {
-    if (key === 'Custom Date') {
-      message.info('Custom date range is not supported yet.');
-      return;
-    }
-    setSelectedTimeFilter(key);
-  };
-
   useEffect(() => {
     loadGeographicAnalytics();
-  }, [selectedTimeFilter]);
-
-  const timeFilterMenu = (
-    <Menu onClick={handleTimeFilterChange}>
-      <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
-        All
-      </Menu.Item>
-      <Menu.Item key="1 Week">1 Week</Menu.Item>
-      <Menu.Item key="15 Days">15 Days</Menu.Item>
-      <Menu.Item key="1 Month">1 Month</Menu.Item>
-      <Menu.Item key="3 Months">3 Months</Menu.Item>
-      <Menu.Item key="6 Months">6 Months</Menu.Item>
-      <Menu.Item key="One Year">One Year</Menu.Item>
-      <Menu.Item key="Custom Date">Custom Date</Menu.Item>
-    </Menu>
-  );
+  }, [selectedPeriod]);
 
   // Geographic Overview Data - real data only, no dummy growth percentages
   const geographicOverviewData = [
@@ -316,19 +285,48 @@ const GeographicAnalytics: React.FC = () => {
               <Option value="midwest">Midwest</Option>
               <Option value="southwest">Southwest</Option>
             </Select>
-            <Dropdown overlay={timeFilterMenu} trigger={['click']}>
-              <Button className="time-filter-btn">
-                {selectedTimeFilter} <DownOutlined />
-              </Button>
-            </Dropdown>
-            <RangePicker 
-              className="date-range-picker"
-              onChange={(dates) => {
-                if (dates) {
-                  setDateRange([dates[0]?.format('YYYY-MM-DD') || '', dates[1]?.format('YYYY-MM-DD') || '']);
-                }
+            <div
+              style={{
+                display: 'inline-flex',
+                background: '#f5f5f5',
+                borderRadius: 8,
+                padding: 3,
+                gap: 2,
               }}
-            />
+            >
+              {(['monthly', 'quarterly', 'yearly'] as const).map((p) => {
+                const active = p === selectedPeriod;
+                const label =
+                  p === 'monthly'
+                    ? 'Month'
+                    : p === 'quarterly'
+                      ? 'Quarter'
+                      : 'Year';
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSelectedPeriod(p)}
+                    style={{
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      background: active ? '#fff' : 'transparent',
+                      color: active ? '#262626' : '#595959',
+                      boxShadow: active
+                        ? '0 1px 2px rgba(0,0,0,0.08)'
+                        : 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </Header>
 
