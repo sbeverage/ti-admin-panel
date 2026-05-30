@@ -5,6 +5,7 @@ import {
   UserAddOutlined,
   UserDeleteOutlined,
   RiseOutlined,
+  DollarOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
@@ -16,11 +17,13 @@ interface PeriodCounts {
   new: { count: number; growthRate?: number | null };
   lost: { count: number; lossRate?: number | null };
   net: { count: number; growthRate?: number | null };
+  platformFee?: { count: number; total: number };
 }
 interface PrevCounts {
   new: { count: number };
   lost: { count: number };
   net: { count: number };
+  platformFee?: { count: number; total: number };
 }
 interface WeekPoint {
   weekStart: string;
@@ -31,24 +34,36 @@ interface WeekPoint {
 interface DonorOverview {
   totalActive: number;
   totalInactive: number;
-  current?: { weekly: PeriodCounts; monthly: PeriodCounts; quarterly: PeriodCounts };
-  previous?: { weekly: PrevCounts; monthly: PrevCounts; quarterly: PrevCounts };
+  current?: {
+    weekly: PeriodCounts;
+    monthly: PeriodCounts;
+    quarterly: PeriodCounts;
+    yearly?: PeriodCounts;
+  };
+  previous?: {
+    weekly: PrevCounts;
+    monthly: PrevCounts;
+    quarterly: PrevCounts;
+    yearly?: PrevCounts;
+  };
   weeklySeries?: WeekPoint[];
   // Legacy top-level (kept for graceful fallback)
   weekly?: PeriodCounts;
   monthly?: PeriodCounts;
   quarterly?: PeriodCounts;
+  yearly?: PeriodCounts;
 }
 
 interface Props {
   overview: DonorOverview | null;
 }
 
-type PeriodKey = 'weekly' | 'monthly' | 'quarterly';
+type PeriodKey = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 const PERIOD_LABELS: Record<PeriodKey, { chip: string; vsPrev: string }> = {
   weekly: { chip: 'Week', vsPrev: 'vs last week' },
   monthly: { chip: 'Month', vsPrev: 'vs last month' },
   quarterly: { chip: 'Quarter', vsPrev: 'vs last quarter' },
+  yearly: { chip: 'Year', vsPrev: 'vs last year' },
 };
 
 // Cumulative active-donor count at the end of each week, derived from the
@@ -169,7 +184,7 @@ const PeriodTabs: React.FC<{
   value: PeriodKey;
   onChange: (k: PeriodKey) => void;
 }> = ({ value, onChange }) => {
-  const keys: PeriodKey[] = ['weekly', 'monthly', 'quarterly'];
+  const keys: PeriodKey[] = ['weekly', 'monthly', 'quarterly', 'yearly'];
   return (
     <div
       style={{
@@ -282,8 +297,8 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
 
   return (
     <DashboardSection
-      title="Donor Overview"
-      subtitle="Acquisition, retention and growth"
+      title="Donor Overview & Revenue"
+      subtitle="Acquisition, retention, growth, and platform fee revenue"
       icon={<TeamOutlined />}
     >
       {/* Hero — Total Donors spans full width */}
@@ -333,9 +348,9 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
         <PeriodTabs value={period} onChange={setPeriod} />
       </div>
 
-      {/* Trio — New / Lost / Net */}
+      {/* Quartet — New / Lost / Net / Platform Fee */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={6}>
           <TrioCard
             title="New Donors"
             icon={<UserAddOutlined />}
@@ -349,7 +364,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             formatHero={sign}
           />
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={6}>
           <TrioCard
             title="Lost Donors"
             icon={<UserDeleteOutlined />}
@@ -363,7 +378,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             formatHero={(n) => (n === 0 ? '0' : `-${n}`)}
           />
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={6}>
           <TrioCard
             title="Net Donor Change"
             icon={<RiseOutlined />}
@@ -377,8 +392,80 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             formatHero={sign}
           />
         </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <PlatformFeeCard
+            currentTotal={currentBlock?.platformFee?.total ?? 0}
+            currentCount={currentBlock?.platformFee?.count ?? 0}
+            prevTotal={prevBlock?.platformFee?.total ?? 0}
+            vsPrevLabel={PERIOD_LABELS[period].vsPrev}
+          />
+        </Col>
       </Row>
     </DashboardSection>
+  );
+};
+
+// Platform Fee revenue card — hero shows total \$ collected for the selected
+// period, supporting line shows donation count × \$3 breakdown. Sparkline is
+// omitted because we don't have a weekly platform-fee series (yet) — the
+// donation-count weekly series uses net change, not paid-invoice counts.
+const PlatformFeeCard: React.FC<{
+  currentTotal: number;
+  currentCount: number;
+  prevTotal: number;
+  vsPrevLabel: string;
+}> = ({ currentTotal, currentCount, prevTotal, vsPrevLabel }) => {
+  const money = (n: number) =>
+    n >= 1_000_000
+      ? `$${(n / 1_000_000).toFixed(1)}M`
+      : n >= 10_000
+      ? `$${(n / 1_000).toFixed(1)}K`
+      : `$${Math.round(n).toLocaleString()}`;
+  return (
+    <Card style={{ position: 'relative', minHeight: 200 }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          background: `#DB86331A`,
+          color: '#DB8633',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 18,
+        }}
+      >
+        <DollarOutlined />
+      </div>
+      <Text
+        type="secondary"
+        style={{ fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' }}
+      >
+        Platform Fee ($3/donation)
+      </Text>
+      <div style={{ marginTop: 12, marginBottom: 4 }}>
+        <span style={{ fontSize: 36, fontWeight: 700 }}>
+          {money(currentTotal)}
+        </span>
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <DeltaPill
+          current={currentTotal}
+          previous={prevTotal}
+          moreIsBetter={true}
+        />{' '}
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {vsPrevLabel}
+        </Text>
+      </div>
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        {currentCount} paid donation{currentCount === 1 ? '' : 's'} × $3
+      </Text>
+    </Card>
   );
 };
 
