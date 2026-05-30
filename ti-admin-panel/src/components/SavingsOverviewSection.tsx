@@ -5,6 +5,7 @@ import {
   ShoppingOutlined,
   PercentageOutlined,
 } from '@ant-design/icons';
+import DashboardSection from './DashboardSection';
 
 const { Title, Text } = Typography;
 
@@ -271,16 +272,11 @@ const SavingsOverviewSection: React.FC<Props> = ({ data }) => {
   const totalVendors = data?.totalVendors ?? 0;
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>
-          Savings &amp; Vendor Overview
-        </Title>
-        <Text type="secondary">
-          What donors are saving and which vendors are getting used
-        </Text>
-      </div>
-
+    <DashboardSection
+      title="Savings &amp; Vendor Overview"
+      subtitle="What donors are saving and which vendors are getting used"
+      icon={<ShoppingOutlined />}
+    >
       {/* KPI cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} md={8}>
@@ -424,7 +420,7 @@ const SavingsOverviewSection: React.FC<Props> = ({ data }) => {
           </ChartCard>
         </Col>
       </Row>
-    </div>
+    </DashboardSection>
   );
 };
 

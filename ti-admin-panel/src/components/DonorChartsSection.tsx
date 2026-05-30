@@ -1,5 +1,7 @@
 import React from 'react';
 import { Card, Col, Row, Typography, Empty } from 'antd';
+import { BarChartOutlined } from '@ant-design/icons';
+import DashboardSection from './DashboardSection';
 
 const { Title, Text } = Typography;
 
@@ -290,7 +292,11 @@ const DonorChartsSection: React.FC<Props> = ({ data }) => {
   const growthByLocation = data?.growthByLocation ?? [];
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <DashboardSection
+      title="Donor Trends &amp; Reach"
+      subtitle="Where donors come from and how the base is growing across cities"
+      icon={<BarChartOutlined />}
+    >
       <Row gutter={[16, 16]}>
         {/* Donor Count line chart */}
         <Col xs={24} lg={12}>
@@ -348,7 +354,7 @@ const DonorChartsSection: React.FC<Props> = ({ data }) => {
           </ChartCard>
         </Col>
       </Row>
-    </div>
+    </DashboardSection>
   );
 };
 

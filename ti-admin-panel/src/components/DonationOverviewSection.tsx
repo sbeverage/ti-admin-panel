@@ -5,6 +5,7 @@ import {
   HeartOutlined,
   CalendarOutlined,
 } from '@ant-design/icons';
+import DashboardSection from './DashboardSection';
 
 const { Title, Text } = Typography;
 
@@ -328,16 +329,11 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
   const totalBeneficiaries = data?.totalBeneficiaries ?? 0;
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>
-          Donation &amp; Beneficiary Overview
-        </Title>
-        <Text type="secondary">
-          What's being given and where it's going
-        </Text>
-      </div>
-
+    <DashboardSection
+      title="Donation &amp; Beneficiary Overview"
+      subtitle="What's being given and where it's going"
+      icon={<DollarOutlined />}
+    >
       {/* KPI cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} md={8}>
@@ -481,7 +477,7 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
           </ChartCard>
         </Col>
       </Row>
-    </div>
+    </DashboardSection>
   );
 };
 

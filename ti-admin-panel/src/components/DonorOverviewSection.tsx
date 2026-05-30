@@ -8,6 +8,7 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
+import DashboardSection from './DashboardSection';
 
 const { Title, Text } = Typography;
 
@@ -280,14 +281,11 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
     n === 0 ? '0' : n > 0 ? `+${n}` : `${n}`;
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>
-          Donor Overview
-        </Title>
-        <Text type="secondary">Acquisition, retention and growth</Text>
-      </div>
-
+    <DashboardSection
+      title="Donor Overview"
+      subtitle="Acquisition, retention and growth"
+      icon={<TeamOutlined />}
+    >
       {/* Hero — Total Donors spans full width */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col span={24}>
@@ -380,7 +378,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           />
         </Col>
       </Row>
-    </div>
+    </DashboardSection>
   );
 };
 
