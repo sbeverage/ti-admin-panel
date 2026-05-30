@@ -282,15 +282,6 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ marginBottom: 16 }}>
-        <Title level={2} style={{ margin: 0 }}>
-          Welcome back 👋
-        </Title>
-        <Text type="secondary">
-          Here's how generosity is moving across the THRIVE network.
-        </Text>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
         <Title level={4} style={{ margin: 0 }}>
           Donor Overview
         </Title>
