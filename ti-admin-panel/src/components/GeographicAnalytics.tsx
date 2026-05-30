@@ -379,7 +379,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'overview',
                     label: (
                       <span>
-                        <GlobalOutlined />
+                        <GlobalOutlined style={{ marginRight: 8 }} />
                         Regional Overview
                       </span>
                     ),
@@ -464,7 +464,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'regions',
                     label: (
                       <span>
-                        <GlobalOutlined />
+                        <GlobalOutlined style={{ marginRight: 8 }} />
                         Regional Performance
                       </span>
                     ),
@@ -485,7 +485,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'cities',
                     label: (
                       <span>
-                        <HomeOutlined />
+                        <HomeOutlined style={{ marginRight: 8 }} />
                         City Performance
                       </span>
                     ),
