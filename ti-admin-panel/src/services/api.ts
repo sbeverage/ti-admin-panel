@@ -976,6 +976,17 @@ export const dashboardAPI = {
     return response.json();
   },
 
+  getDonorCharts: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/donor-charts`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getRecentActivity: async (limit = 10): Promise<ApiResponse<any>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/dashboard/activity?limit=${limit}`,
