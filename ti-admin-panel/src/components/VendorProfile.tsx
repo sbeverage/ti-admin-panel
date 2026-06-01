@@ -226,9 +226,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       setLoading(true);
     }
     
-    // Create timeout promise that rejects after 3 seconds
+    // 15s is generous enough to absorb Edge Function cold starts; we still
+    // surface real failures after that.
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 3000);
+      setTimeout(() => reject(new Error('Request timeout')), 15000);
     });
 
     const vendorIdNum = parseInt(vendorId);
