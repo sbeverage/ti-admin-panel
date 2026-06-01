@@ -106,6 +106,7 @@ const Vendor: React.FC = () => {
             const rawStatus = ((vendor as any).status ?? ((vendor as any).is_active !== false ? 'active' : 'inactive')).toString().toLowerCase();
             const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
             const isActive = normalizedStatus === 'active';
+            const signupStatus = ((vendor as any).signup_status || 'approved').toString().toLowerCase();
             const isEnabled =
               (vendor as any).is_enabled !== undefined
                 ? Boolean((vendor as any).is_enabled)
@@ -134,6 +135,7 @@ const Vendor: React.FC = () => {
               : isActive,
             enabled: isEnabled,
             status: normalizedStatus, // Use normalized vendor status
+            signupStatus, // 'pending' / 'approved' / 'rejected' from the new workflow
             avatar: vendor.name.charAt(0).toUpperCase(),
             logo_url: vendor.logo_url || null // Include logo URL for display
           });
@@ -519,25 +521,40 @@ const Vendor: React.FC = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string, record: any) => (
-        <Space size="small">
-          <span 
-            className={`status-badge ${status === 'active' ? 'active' : 'inactive'}`}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontWeight: '500',
-              backgroundColor: status === 'active' ? '#f6ffed' : '#fff2e8',
-              color: status === 'active' ? '#52c41a' : '#fa8c16',
-              border: `1px solid ${status === 'active' ? '#b7eb8f' : '#ffd591'}`
-            }}
-          >
-            {status === 'active' ? 'Active' : 'Inactive'}
-          </span>
-        </Space>
-      ),
-      width: 100,
+      render: (status: string, record: any) => {
+        // signup_status from the vendor portal workflow takes precedence over
+        // the legacy active/inactive flag — pending and rejected vendors are
+        // pre-approval so "Active" wouldn't make sense.
+        let label = status === 'active' ? 'Active' : 'Inactive';
+        let bg = '#fff2e8', fg = '#fa8c16', border = '#ffd591'; // orange (inactive default)
+        if (status === 'active') {
+          bg = '#f6ffed'; fg = '#52c41a'; border = '#b7eb8f'; // green
+        }
+        if (record.signupStatus === 'pending') {
+          label = 'Pending'; bg = '#fffbe6'; fg = '#d48806'; border = '#ffe58f'; // amber
+        } else if (record.signupStatus === 'rejected') {
+          label = 'Rejected'; bg = '#fff1f0'; fg = '#cf1322'; border = '#ffa39e'; // red
+        }
+        return (
+          <Space size="small">
+            <span
+              className="status-badge"
+              style={{
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: '500',
+                backgroundColor: bg,
+                color: fg,
+                border: `1px solid ${border}`,
+              }}
+            >
+              {label}
+            </span>
+          </Space>
+        );
+      },
+      width: 110,
     },
     {
       title: 'Actions',
