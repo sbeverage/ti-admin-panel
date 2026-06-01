@@ -343,11 +343,20 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               displayType = 'dollar';
             }
             
+            // Discounts created via the vendor portal wizard use the
+            // type-specific columns (discount_percentage / discount_amount)
+            // and leave the legacy discount_value as null, so fall through
+            // these in order before defaulting to 0.
+            const rawValue =
+              (discount as any).discount_value ??
+              (discount as any).discount_percentage ??
+              (discount as any).discount_amount ??
+              0;
             return {
               id: discount.id,
               discountName: discount.title || discount.name,
               discountType: displayType,
-              discountValue: discount.discount_value.toString(),
+              discountValue: String(rawValue),
               discountOn: discount.description,
               frequency: discount.usage_limit || 'unlimited',
               promoCode: discount.discount_code || discount.pos_code || `PROMO${discount.id}`,
