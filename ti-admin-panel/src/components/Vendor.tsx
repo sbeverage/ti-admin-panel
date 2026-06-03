@@ -117,8 +117,17 @@ const Vendor: React.FC = () => {
             return ({
             key: vendor.id.toString(),
             name: vendor.name,
-            contactName: (vendor as any).contact_name || (vendor as any).contactName || vendor.name || vendor.email,
-            email: vendor.email,
+            // Prefer the vendor owner's account name (from users table for
+            // self-signup vendors) over a manually-entered contact_name.
+            contactName:
+              (vendor as any).account_owner_name ||
+              (vendor as any).contact_name ||
+              (vendor as any).contactName ||
+              vendor.name ||
+              vendor.email,
+            // Show the signup/login email for self-signup vendors; fall back
+            // to vendors.email (public contact) for legacy admin-created rows.
+            email: (vendor as any).account_email || vendor.email,
             contact: vendor.phone,
             category: vendor.category || 'Uncategorized',
             cityState: vendor.address && vendor.address.city && vendor.address.state 
