@@ -9,14 +9,14 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined, DeleteOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined,
   TrophyOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
 import DashboardSection from './DashboardSection';
 import VendorHighlights from './VendorHighlights';
-import { vendorAPI, Vendor as VendorType } from '../services/api';
+import { vendorAPI, approvalsAPI, Vendor as VendorType } from '../services/api';
 import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -345,6 +345,93 @@ const Vendor: React.FC = () => {
     });
   };
 
+  // Quick-approve directly from the vendors list — same backend as the Pending
+  // Approvals page. Shown only for rows whose signupStatus === 'pending'.
+  const handleApproveVendor = (record: any) => {
+    Modal.confirm({
+      title: `Approve ${record.name}?`,
+      icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+      content:
+        'The vendor will go live on the donor app immediately and receive an approval email.',
+      okText: 'Approve',
+      okType: 'primary',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const response = await approvalsAPI.approveItem(parseInt(record.key), 'vendor');
+          if (response.success) {
+            message.success(`${record.name} approved`);
+            addNotification({
+              title: 'Vendor approved',
+              message: record.name,
+              level: 'success',
+            });
+            loadVendors();
+          } else {
+            message.error('Failed to approve vendor');
+          }
+        } catch (err) {
+          console.error('Error approving vendor:', err);
+          message.error('Failed to approve vendor. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleRejectVendor = (record: any) => {
+    let reason = '';
+    Modal.confirm({
+      title: `Reject ${record.name}?`,
+      icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+      content: (
+        <div>
+          <p style={{ marginBottom: 8 }}>
+            The vendor will be marked rejected and receive an email with the reason below.
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Optional — reason shown to the vendor in the rejection email"
+            onChange={(e) => {
+              reason = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      okText: 'Reject',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const response = await approvalsAPI.rejectItem(
+            parseInt(record.key),
+            'vendor',
+            reason.trim() || 'Rejected by admin',
+          );
+          if (response.success) {
+            message.success(`${record.name} rejected`);
+            addNotification({
+              title: 'Vendor rejected',
+              message: record.name,
+              level: 'warning',
+            });
+            loadVendors();
+          } else {
+            message.error('Failed to reject vendor');
+          }
+        } catch (err) {
+          console.error('Error rejecting vendor:', err);
+          message.error('Failed to reject vendor. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   const handleToggleStatus = async (record: any) => {
     
     const newStatus = record.status === 'active' ? 'inactive' : 'active';
@@ -581,19 +668,50 @@ const Vendor: React.FC = () => {
               }}
               title="Edit Vendor"
             />
-            <Button
-              type={record.status === 'active' ? 'default' : 'primary'}
-              icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
-              size="small"
-              className="status-toggle-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleStatus(record);
-              }}
-              title={record.status === 'active' ? 'Deactivate Vendor' : 'Activate Vendor'}
-            >
-              {record.status === 'active' ? 'Deactivate' : 'Activate'}
-            </Button>
+            {record.signupStatus === 'pending' ? (
+              <>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  size="small"
+                  className="status-toggle-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApproveVendor(record);
+                  }}
+                  title="Approve Vendor"
+                >
+                  Approve
+                </Button>
+                <Button
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  size="small"
+                  className="status-toggle-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRejectVendor(record);
+                  }}
+                  title="Reject Vendor"
+                >
+                  Reject
+                </Button>
+              </>
+            ) : (
+              <Button
+                type={record.status === 'active' ? 'default' : 'primary'}
+                icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
+                size="small"
+                className="status-toggle-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleStatus(record);
+                }}
+                title={record.status === 'active' ? 'Deactivate Vendor' : 'Activate Vendor'}
+              >
+                {record.status === 'active' ? 'Deactivate' : 'Activate'}
+              </Button>
+            )}
             <Button
               type="text"
               danger
@@ -627,11 +745,14 @@ const Vendor: React.FC = () => {
   const uniqueLocations = Array.from(new Set(allVendorsData.map(vendor => vendor.cityState).filter(Boolean)));
 
   const filteredVendors = allVendorsData.filter((vendor) => {
+    // Default view: active vendors + anything still awaiting approval so the
+    // admin can approve/reject them right from the list. Explicit status
+    // filter or "Show Inactive" toggle override this.
     const matchesStatus = selectedStatus
       ? vendor.status === selectedStatus
       : showInactive
       ? true
-      : vendor.status === 'active';
+      : vendor.status === 'active' || (vendor as any).signupStatus === 'pending';
     const matchesCategory = selectedCategory ? vendor.category === selectedCategory : true;
     const matchesLocation = selectedLocation ? vendor.cityState === selectedLocation : true;
     const matchesSearch = searchTerm
