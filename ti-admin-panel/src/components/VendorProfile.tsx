@@ -91,7 +91,7 @@ interface VendorData {
   // Images
   logo_url?: string;
   logo_file_name?: string;
-  product_images?: string[];
+  image_urls?: string[];
   image_upload_status?: string;
   // Form data
   tags?: string[];
@@ -307,17 +307,32 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           }
         }
 
-        // Transform API data to match our interface
+        // Transform API data to match our interface. Contact fields prefer:
+        //   1. vendors.contact_name (new dedicated column, persists whether or
+        //      not the vendor has a portal account)
+        //   2. The enriched `contactName` alias the /admin/vendors endpoint
+        //      returns (falls back to users.first_name+last_name when linked)
+        //   3. account_owner_name (legacy alias for the same linked-users
+        //      value, kept for older cached responses)
+        // Email still only lives on the linked users row — that decision
+        // (see 20260618000001_drop_vendors_email) hasn't changed.
+        const accountEmail = (vendor as any).account_email || (vendor as any).email || '';
+        const accountOwnerName =
+          (vendor as any).contact_name
+          || (vendor as any).contactName
+          || (vendor as any).account_owner_name
+          || '';
+
         const transformedData: VendorData = {
           id: vendor.id.toString(),
           vendorName: vendor.name,
-          contactName: vendor.email, // Using email as contact name for now
-          email: vendor.email,
+          contactName: accountOwnerName || accountEmail,
+          email: accountEmail,
           contactNumber: vendor.phone,
           dateOfJoin: new Date(vendor.created_at).toLocaleDateString(),
-          cityState: vendor.address && vendor.address.city && vendor.address.state 
+          cityState: vendor.address && vendor.address.city && vendor.address.state
             ? `${vendor.address.city}, ${vendor.address.state}`
-            : vendor.address && vendor.address.city 
+            : vendor.address && vendor.address.city
             ? vendor.address.city
             : 'Location not specified',
           vendorType: vendor.category || 'Uncategorized',
@@ -326,8 +341,8 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           status: vendor.status || 'active', // Add status field
           // Basic vendor information (from API)
           companyName: vendor.name,
-          primaryContact: vendor.email, // This would be a separate field in the API
-          primaryEmail: vendor.email,
+          primaryContact: accountOwnerName,
+          primaryEmail: accountEmail,
           websiteLink: vendor.website || 'Not provided',
           address: vendor.address && vendor.address.street 
             ? `${vendor.address.street}, ${vendor.address.city}, ${vendor.address.state} ${vendor.address.zipCode}`.replace(/,\s*,/g, ',').replace(/,\s*$/, '')
@@ -379,7 +394,10 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           pricingTier: formData.pricingTier || 'Not Set',
           description: formData.description || 'No description provided',
           logo_file_name: formData.logo_file_name,
-          product_images: formData.product_images || [],
+          // Photo gallery — pulled from the top-level `image_urls` column
+          // added in migration 20260718000001. Falls back to whatever was in
+          // formData in case the vendor was just edited but not yet saved.
+          image_urls: (vendor as any).image_urls || formData.image_urls || [],
           image_upload_status: formData.image_upload_status
         };
 
@@ -442,11 +460,19 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         phone: formData.phoneNumber || formData.contactNumber || originalVendor?.phoneNumber || originalVendorFromAPI?.phone || 'NA',
         website: formData.websiteLink || originalVendor?.websiteLink || originalVendorFromAPI?.website || '',
         category: formData.category || originalVendor?.category || originalVendorFromAPI?.category || '',
+        // Primary contact + login email live on the linked users row. The
+        // backend's PUT /admin/vendors/:id routes these to users.* when the
+        // vendor has a portal account.
+        contactName: formData.primaryContact || formData.contactName || originalVendor?.contactName || '',
       };
       
       
-      // Preserve hours if available (work schedule)
-      if (originalVendorFromAPI?.hours) {
+      // Prefer the in-flight edits from the form so admin changes actually
+      // land. Falls back to the loaded value if nothing was touched so we
+      // never send `undefined` and accidentally clear the column.
+      if (formData.workSchedule !== undefined) {
+        apiData.hours = formData.workSchedule;
+      } else if (originalVendorFromAPI?.hours) {
         apiData.hours = originalVendorFromAPI.hours;
       } else if (originalVendor?.workSchedule) {
         apiData.hours = originalVendor.workSchedule;
@@ -497,9 +523,11 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
       if (descriptionData.logo_file_name) {
         // Keep existing logo_file_name
       }
-      // Update product_images from formData if user modified them
-      if (formData?.product_images !== undefined) {
-        descriptionData.product_images = formData.product_images;
+      // Photo gallery lives on its own top-level column now (image_urls)
+      // instead of being smuggled into the description JSON blob. Send the
+      // edited array directly on apiData below.
+      if (formData?.image_urls !== undefined) {
+        apiData.image_urls = formData.image_urls;
       }
       if (descriptionData.image_upload_status) {
         // Keep existing image_upload_status
@@ -679,8 +707,17 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
               category: apiResponse.category || formData.category || vendorData?.category,
               // CRITICAL: Use formData logo_url first (what user uploaded), then API response, then fallback
               logo_url: savedLogoUrl,
-              // Preserve other VendorData fields
-              contactName: formData.contactName || vendorData?.contactName,
+              // Contact name — the input binds to formData.primaryContact,
+              // and the backend returns the freshly-saved value on
+              // apiResponse.contactName. Read that first so a just-saved
+              // name doesn't appear to vanish on Save.
+              contactName: (apiResponse as any).contactName
+                || formData.primaryContact
+                || formData.contactName
+                || vendorData?.contactName,
+              primaryContact: (apiResponse as any).contactName
+                || formData.primaryContact
+                || vendorData?.primaryContact,
               dateOfJoin: vendorData?.dateOfJoin,
               cityState: vendorData?.cityState,
               vendorType: vendorData?.vendorType,
@@ -714,13 +751,23 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
           
           // Call onUpdate to refresh the parent list
           if (onUpdate) {
-            onUpdate({ 
-              success: true, 
+            onUpdate({
+              success: true,
               vendorId: vendorIdNum
             });
           }
-          
-          message.success('Vendor updated successfully!');
+
+          // Backend returns 200 + { success: true, warning } when the vendor
+          // row saved but a related side effect (typically an email that
+          // collides with an existing user) was skipped. Surface that so
+          // admins don't see a "Saved!" toast and then wonder why the field
+          // reverted to blank on the reload.
+          const backendWarning = result.warning || (result.data as any)?.warning || null;
+          if (backendWarning) {
+            message.warning(backendWarning, 8);
+          } else {
+            message.success('Vendor updated successfully!');
+          }
         } else {
           const errorMsg = result.error || result.message || 'Failed to update vendor. Please try again.';
           console.error('❌ Vendor update failed:', errorMsg);
@@ -1045,6 +1092,113 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
     </Card>
   );
 
+  // Canonical day order for the Business Hours editor. Keys are the
+  // 3-letter lowercase form the backend stores; the label is the full name
+  // (Monday, Tuesday, ...) so admins see human-readable rows regardless of
+  // what the underlying storage happens to be.
+  const HOURS_DAYS: { key: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'; label: string }[] = [
+    { key: 'mon', label: 'Monday' },
+    { key: 'tue', label: 'Tuesday' },
+    { key: 'wed', label: 'Wednesday' },
+    { key: 'thu', label: 'Thursday' },
+    { key: 'fri', label: 'Friday' },
+    { key: 'sat', label: 'Saturday' },
+    { key: 'sun', label: 'Sunday' },
+  ];
+
+  // Reads a day's hours out of workSchedule, tolerant of both the
+  // 3-letter storage form ("mon") and the older full-name form ("monday")
+  // that some legacy rows may still carry.
+  const readHoursForDay = (dayKey: string): string => {
+    const schedule = (formData.workSchedule as any) || {};
+    if (schedule[dayKey] !== undefined) return String(schedule[dayKey] ?? '');
+    for (const [k, v] of Object.entries(schedule)) {
+      if (String(k).toLowerCase().slice(0, 3) === dayKey) return String(v ?? '');
+    }
+    return '';
+  };
+
+  const handleHoursChange = (dayKey: string, value: string) => {
+    const existing = (formData.workSchedule as any) || {};
+    // Strip any legacy full-name key for the same day so we don't end up
+    // with both "mon" and "monday" in the object after edit.
+    const cleaned: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(existing)) {
+      if (String(k).toLowerCase().slice(0, 3) !== dayKey) cleaned[k] = v;
+    }
+    cleaned[dayKey] = value;
+    handleInputChange('workSchedule', cleaned);
+  };
+
+  const copyMondayToAll = () => {
+    const mondayValue = readHoursForDay('mon');
+    if (!mondayValue) {
+      message.info('Enter Monday hours first, then copy to the rest of the week.');
+      return;
+    }
+    const next: Record<string, string> = {};
+    for (const { key } of HOURS_DAYS) next[key] = mondayValue;
+    handleInputChange('workSchedule', next);
+    message.success('Monday hours copied to every day.');
+  };
+
+  const renderBusinessHours = () => {
+    if (!vendorData) return null;
+    return (
+      <Card title="Business Hours" className="profile-section-card" style={{ marginTop: 24 }}>
+        {isEditing ? (
+          <>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+              Use the same format for every day so donors see a consistent schedule
+              (e.g. <code>11:00 AM - 11:00 PM</code>). Leave a day blank if the vendor is closed.
+            </Text>
+            <Row gutter={[16, 12]}>
+              {HOURS_DAYS.map(({ key, label }) => (
+                <Col span={24} key={key}>
+                  <Row gutter={12} align="middle">
+                    <Col span={6}>
+                      <Text strong>{label}</Text>
+                    </Col>
+                    <Col span={18}>
+                      <Input
+                        placeholder="11:00 AM - 11:00 PM (blank if closed)"
+                        value={readHoursForDay(key)}
+                        onChange={(e) => handleHoursChange(key, e.target.value)}
+                      />
+                    </Col>
+                  </Row>
+                </Col>
+              ))}
+            </Row>
+            <div style={{ marginTop: 16 }}>
+              <Button size="small" onClick={copyMondayToAll}>
+                Copy Monday to every day
+              </Button>
+            </div>
+          </>
+        ) : (
+          <Row gutter={[16, 8]}>
+            {HOURS_DAYS.map(({ key, label }) => {
+              const value = readHoursForDay(key);
+              return (
+                <Col span={24} key={key}>
+                  <Row gutter={12}>
+                    <Col span={6}><Text strong>{label}</Text></Col>
+                    <Col span={18}>
+                      <Text type={value ? undefined : 'secondary'}>
+                        {value || 'Closed'}
+                      </Text>
+                    </Col>
+                  </Row>
+                </Col>
+              );
+            })}
+          </Row>
+        )}
+      </Card>
+    );
+  };
+
   const handleAddDiscount = () => {
     setEditingDiscount(null);
     setIsAddDiscountModalVisible(true);
@@ -1339,87 +1493,137 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         </div>
       </Card>
 
-      <Card title="Product Images" className="profile-section-card">
-        <div className="product-images-section">
-          <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
-            {isEditing ? 'Upload product images to showcase your offerings' : 'Product images for this vendor'}
-          </Text>
-          <div className="product-images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
-            {(formData?.product_images || vendorData?.product_images || []).map((imgUrl: string, idx: number) => (
-              <div key={idx} style={{ position: 'relative' }}>
-                <Image
-                  src={imgUrl}
-                  alt={`Product image ${idx + 1}`}
-                  style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: '8px', border: '1px solid #d9d9d9' }}
-                />
-                {isEditing && (
-                  <Button
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    style={{ position: 'absolute', top: 4, right: 4 }}
-                    onClick={() => {
-                      const updated = (formData?.product_images || []).filter((_: string, i: number) => i !== idx);
-                      setFormData((prev: any) => ({ ...prev, product_images: updated }));
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-            {isEditing && (
-              <Upload
-                accept="image/*"
-                showUploadList={false}
-                beforeUpload={async (file) => {
-                  const { uploadToSupabase, validateImageFile } = await import('../services/supabaseStorage');
-                  const validation = validateImageFile(file);
-                  if (!validation.valid) { message.error(validation.error); return false; }
-                  setUploading(true);
-                  try {
-                    const result = await uploadToSupabase(file, 'vendor-logos', 'vendors/products');
-                    if (result.success && result.url) {
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        product_images: [...(prev?.product_images || []), result.url]
-                      }));
-                      message.success('Product image uploaded!');
-                    } else {
-                      message.error(result.error || 'Upload failed');
-                    }
-                  } catch { message.error('Upload failed. Please try again.'); }
-                  finally { setUploading(false); }
-                  return false;
+      <Card title="Photos" className="profile-section-card">
+        {(() => {
+          const currentImages: string[] = formData?.image_urls || vendorData?.image_urls || [];
+          const remaining = 5 - currentImages.length;
+          return (
+            <div className="product-images-section">
+              <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+                {isEditing
+                  ? `Up to 5 landscape photos, shown as a horizontal scroll on the donor app between About Us and Contact Info. Currently ${currentImages.length}/5.`
+                  : `${currentImages.length} photo${currentImages.length === 1 ? '' : 's'} on this vendor.`}
+              </Text>
+              <div
+                className="product-images-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: '16px',
                 }}
               >
-                <div style={{
-                  border: '2px dashed #d9d9d9',
-                  borderRadius: '8px',
-                  height: 150,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#fafafa',
-                  cursor: uploading ? 'not-allowed' : 'pointer',
-                  opacity: uploading ? 0.6 : 1
-                }}>
-                  {uploading ? <Spin /> : <PlusOutlined style={{ fontSize: '24px', color: '#DB8633' }} />}
-                  <Text type="secondary" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    {uploading ? 'Uploading…' : 'Add Image'}
-                  </Text>
-                </div>
-              </Upload>
-            )}
-            {!isEditing && !(formData?.product_images || vendorData?.product_images || []).length && (
-              <div style={{ border: '2px dashed #d9d9d9', borderRadius: '8px', padding: '20px', textAlign: 'center', backgroundColor: '#fafafa' }}>
-                <PictureOutlined style={{ fontSize: '32px', color: '#d9d9d9' }} />
-                <Text type="secondary" style={{ display: 'block', marginTop: '8px', fontSize: '12px' }}>
-                  No product images. Click "Edit Profile" to add images.
-                </Text>
+                {currentImages.map((imgUrl: string, idx: number) => (
+                  <div key={`${imgUrl}_${idx}`} style={{ position: 'relative' }}>
+                    <Image
+                      src={imgUrl}
+                      alt={`Vendor photo ${idx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: 150,
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '1px solid #d9d9d9',
+                      }}
+                    />
+                    {isEditing && (
+                      <Button
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        style={{ position: 'absolute', top: 4, right: 4 }}
+                        onClick={() => {
+                          const updated = currentImages.filter((_: string, i: number) => i !== idx);
+                          setFormData((prev: any) => ({ ...prev, image_urls: updated }));
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+                {isEditing && remaining > 0 && (
+                  <Upload
+                    accept="image/*"
+                    showUploadList={false}
+                    beforeUpload={async (file) => {
+                      const {
+                        uploadToSupabase,
+                        validateImageFile,
+                        resizeImageForUpload,
+                      } = await import('../services/supabaseStorage');
+                      const validation = validateImageFile(file);
+                      if (!validation.valid) {
+                        message.error(validation.error);
+                        return false;
+                      }
+                      setUploading(true);
+                      try {
+                        // Downscale big photos client-side (max 1600px long
+                        // edge, JPEG q=0.85) so we don't ship a 12 MB DSLR
+                        // shot to storage. The mobile tile is 220px wide so
+                        // 1600px is plenty of headroom for retina rendering.
+                        const resized = await resizeImageForUpload(file);
+                        const result = await uploadToSupabase(
+                          resized,
+                          'vendor-images',
+                          `vendor-${vendorId}`,
+                        );
+                        if (result.success && result.url) {
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            image_urls: [...(prev?.image_urls || []), result.url],
+                          }));
+                          message.success('Photo uploaded — click Save Changes to publish.');
+                        } else {
+                          message.error(result.error || 'Upload failed');
+                        }
+                      } catch {
+                        message.error('Upload failed. Please try again.');
+                      } finally {
+                        setUploading(false);
+                      }
+                      return false;
+                    }}
+                  >
+                    <div
+                      style={{
+                        border: '2px dashed #d9d9d9',
+                        borderRadius: '8px',
+                        height: 150,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#fafafa',
+                        cursor: uploading ? 'not-allowed' : 'pointer',
+                        opacity: uploading ? 0.6 : 1,
+                      }}
+                    >
+                      {uploading ? <Spin /> : <PlusOutlined style={{ fontSize: '24px', color: '#DB8633' }} />}
+                      <Text type="secondary" style={{ marginTop: '8px', fontSize: '12px' }}>
+                        {uploading ? 'Uploading…' : `Add Photo (${remaining} left)`}
+                      </Text>
+                    </div>
+                  </Upload>
+                )}
+                {!isEditing && currentImages.length === 0 && (
+                  <div
+                    style={{
+                      border: '2px dashed #d9d9d9',
+                      borderRadius: '8px',
+                      padding: '20px',
+                      textAlign: 'center',
+                      backgroundColor: '#fafafa',
+                    }}
+                  >
+                    <PictureOutlined style={{ fontSize: '32px', color: '#d9d9d9' }} />
+                    <Text type="secondary" style={{ display: 'block', marginTop: '8px', fontSize: '12px' }}>
+                      No photos yet. Click "Edit Profile" to add up to 5.
+                    </Text>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          );
+        })()}
       </Card>
     </div>
   );
@@ -1433,6 +1637,7 @@ const VendorProfile: React.FC<VendorProfileProps> = ({
         <div className="tab-content">
           {renderStats()}
           {renderBasicInfo()}
+          {renderBusinessHours()}
         </div>
       )
     },

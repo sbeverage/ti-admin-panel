@@ -194,6 +194,7 @@ export interface ApiResponse<T> {
   data?: T;
   message?: string;
   error?: string;
+  warning?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -314,10 +315,18 @@ export const vendorAPI = {
   },
 
   getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
-    const response = await fetchWithTimeout(
-      `${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`,
-      { headers: API_CONFIG.headers }
-    );
+    // Use the admin endpoint so we get account_email + account_owner_name
+    // (joined from users.email/first_name/last_name for self-signup vendors).
+    // The public /vendors endpoint doesn't expose those fields. Fall back to
+    // public if admin returns 401/403 in environments without admin auth.
+    const adminUrl = buildAdminUrl(`/vendors?page=${page}&limit=${limit}`);
+    let response = await fetchWithTimeout(adminUrl, { headers: API_CONFIG.headers });
+    if (!response.ok && (response.status === 401 || response.status === 403 || response.status === 404)) {
+      const publicUrl = buildPublicUrl(`/vendors?page=${page}&limit=${limit}`);
+      if (publicUrl !== adminUrl) {
+        response = await fetchWithTimeout(publicUrl, { headers: API_CONFIG.headers });
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -472,7 +481,14 @@ export const vendorAPI = {
       if (result.success === false || result.error) {
         return { success: false, error: result.error || result.message || 'Update failed' };
       } else if (result.success === true) {
-        return { success: true, data: result.data || result };
+        // Pass through `warning` at the top level so the caller can surface
+        // partial-success cases (e.g. vendor saved but linked-user email
+        // update was skipped because the address is already taken).
+        return {
+          success: true,
+          data: result.data || result,
+          ...(result.warning ? { warning: result.warning } : {}),
+        } as ApiResponse<Vendor>;
       } else if (result.id) {
         return { success: true, data: result };
       }

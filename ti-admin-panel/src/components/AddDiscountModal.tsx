@@ -223,27 +223,35 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         onFinish={handleSubmit}
         className="discount-form"
       >
-        <Form.Item
-          name="vendorId"
-          label="Vendor"
-          rules={[{ required: true, message: 'Please select a vendor' }]}
-        >
-          <Select
-            placeholder="Select vendor"
-            size="large"
-            value={selectedVendorId}
-            onChange={(value) => setSelectedVendorId(value)}
-            disabled={!!editingDiscount}
-            showSearch
-            optionFilterProp="children"
+        {/* Vendor picker only makes sense when this modal is invoked from a
+            multi-vendor context (i.e. a `vendorOptions` list is supplied).
+            When opened from an individual vendor's profile the vendor is
+            already implied by the `vendorId` prop and the modal header
+            already shows "for {vendorName}" — a picker there is redundant
+            and (with an unpopulated vendorOptions) shows "No data". */}
+        {vendorOptions && vendorOptions.length > 0 && (
+          <Form.Item
+            name="vendorId"
+            label="Vendor"
+            rules={[{ required: true, message: 'Please select a vendor' }]}
           >
-            {(vendorOptions || []).map((vendor) => (
-              <Option key={vendor.id} value={vendor.id}>
-                {vendor.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
+            <Select
+              placeholder="Select vendor"
+              size="large"
+              value={selectedVendorId}
+              onChange={(value) => setSelectedVendorId(value)}
+              disabled={!!editingDiscount}
+              showSearch
+              optionFilterProp="children"
+            >
+              {vendorOptions.map((vendor) => (
+                <Option key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        )}
 
         {/* Discount Preview Card */}
         {preview && formatDiscountPreview(preview) && (

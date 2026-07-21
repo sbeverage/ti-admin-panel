@@ -9,7 +9,7 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined, DeleteOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, CloseCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, CalculatorOutlined, MailOutlined,
   TrophyOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
@@ -432,49 +432,6 @@ const Vendor: React.FC = () => {
     });
   };
 
-  const handleToggleStatus = async (record: any) => {
-    
-    const newStatus = record.status === 'active' ? 'inactive' : 'active';
-    const action = newStatus === 'active' ? 'activate' : 'deactivate';
-    
-    
-    try {
-      setLoading(true);
-      
-      // Call API to update status
-      const response = await vendorAPI.updateVendorStatus(parseInt(record.key), newStatus);
-      
-      
-      if (response.success) {
-        message.success(`Vendor ${action}d successfully`);
-        addNotification({
-          title: `Vendor ${action}d`,
-          message: record.name || 'Vendor status updated',
-          level: 'success',
-        });
-        // Reload vendors to get updated data
-        loadVendors();
-      } else {
-        message.error(`Failed to ${action} vendor: ${response.error}`);
-        addNotification({
-          title: `Vendor ${action} failed`,
-          message: response.error || 'Status update failed',
-          level: 'error',
-        });
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing vendor:`, error);
-      message.error(`Failed to ${action} vendor. Please try again.`);
-      addNotification({
-        title: `Vendor ${action} failed`,
-        message: 'Status update failed. Please try again.',
-        level: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const timeFilterMenu = [
     {
       key: '7-days',
@@ -692,25 +649,25 @@ const Vendor: React.FC = () => {
                     e.stopPropagation();
                     handleRejectVendor(record);
                   }}
-                  title="Reject Vendor"
+                  title="Deny Vendor"
                 >
-                  Reject
+                  Deny
                 </Button>
               </>
-            ) : (
-              <Button
-                type={record.status === 'active' ? 'default' : 'primary'}
-                icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
-                size="small"
-                className="status-toggle-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleStatus(record);
-                }}
-                title={record.status === 'active' ? 'Deactivate Vendor' : 'Activate Vendor'}
+            ) : record.signupStatus === 'rejected' ? (
+              <span
+                className="signup-status-label denied"
+                title="Vendor was denied via the Pending Approvals workflow"
               >
-                {record.status === 'active' ? 'Deactivate' : 'Activate'}
-              </Button>
+                Denied
+              </span>
+            ) : (
+              <span
+                className="signup-status-label approved"
+                title="Vendor is approved and visible in the donor app"
+              >
+                Approved
+              </span>
             )}
             <Button
               type="text"

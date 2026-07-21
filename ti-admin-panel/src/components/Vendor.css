@@ -829,3 +829,25 @@
 .vendors-table .ant-table-tbody tr td {
   position: relative;
 }
+/* Signup-status label — replaces the old Deactivate/Activate button in the
+   Actions column for vendors that already have a decision (approved or
+   denied). Not interactive: the toggle in the Active column handles day-to-
+   day active state; this row is about the approval decision. */
+.signup-status-label {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.signup-status-label.approved {
+  color: #237804;
+  background: rgba(82, 196, 26, 0.12);
+}
+.signup-status-label.denied {
+  color: #a8071a;
+  background: rgba(255, 77, 79, 0.14);
+}
