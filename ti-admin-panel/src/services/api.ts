@@ -997,10 +997,13 @@ export const dashboardAPI = {
 
 // Pending Approvals API functions
 export const approvalsAPI = {
-  getPendingApprovals: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {
+  // `type` selects the queue: omit (or 'vendor') for vendor submissions,
+  // 'beneficiary' for donor-suggested charities awaiting verification.
+  getPendingApprovals: async (page = 1, limit = 20, type?: string): Promise<PaginatedResponse<any>> => {
     try {
+      const typeParam = type ? `&type=${encodeURIComponent(type)}` : '';
       const response = await fetchWithTimeout(
-        `${API_CONFIG.baseURL}/approvals?page=${page}&limit=${limit}`,
+        `${API_CONFIG.baseURL}/approvals?page=${page}&limit=${limit}${typeParam}`,
         { headers: API_CONFIG.headers }
       );
 
@@ -1014,11 +1017,14 @@ export const approvalsAPI = {
     }
   },
 
-  approveItem: async (id: number, type: string): Promise<ApiResponse<any>> => {
-    const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/approvals/${id}/approve`, {
+  approveItem: async (id: number, type: string, profile?: Record<string, unknown>): Promise<ApiResponse<any>> => {
+    const segment = type === 'beneficiary' || type === 'charity' ? 'charity/' : '';
+    const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/approvals/${segment}${id}/approve`, {
       method: 'POST',
       headers: API_CONFIG.headers,
-      body: JSON.stringify({ type }),
+      // Spread the profile so the charity approve endpoint receives the
+      // completed detail fields alongside the type.
+      body: JSON.stringify({ type, ...(profile || {}) }),
     });
 
     if (!response.ok) {
@@ -1029,7 +1035,8 @@ export const approvalsAPI = {
   },
 
   rejectItem: async (id: number, type: string, reason?: string): Promise<ApiResponse<any>> => {
-    const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/approvals/${id}/reject`, {
+    const segment = type === 'beneficiary' || type === 'charity' ? 'charity/' : '';
+    const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/approvals/${segment}${id}/reject`, {
       method: 'POST',
       headers: API_CONFIG.headers,
       body: JSON.stringify({ type, reason }),

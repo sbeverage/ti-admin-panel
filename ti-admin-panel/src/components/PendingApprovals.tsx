@@ -60,7 +60,13 @@ const PendingApprovals: React.FC = () => {
     setLoading(true);
     
     try {
-      const response = await approvalsAPI.getPendingApprovals(currentPage, pageSize);
+      // Which queue to fetch. Without this the Beneficiaries tab silently
+      // showed the vendor list filtered to nothing.
+      const response = await approvalsAPI.getPendingApprovals(
+        currentPage,
+        pageSize,
+        activeTab === 'vendors' ? 'vendor' : 'beneficiary',
+      );
       
       if (response?.success && Array.isArray(response.data)) {
         const transformedData = response.data.map((approval: any) => ({
