@@ -45,6 +45,10 @@ const PendingApprovals: React.FC = () => {
   const [activeTab, setActiveTab] = useState('vendors');
   const [approvalModalVisible, setApprovalModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
+  // Profile detail an admin fills in while approving a donor-suggested
+  // charity. Sent with the approve call so the cause lands in the app with a
+  // real profile instead of the placeholder it carried while pending.
+  const [charityProfile, setCharityProfile] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [selectedDocumentFilter, setSelectedDocumentFilter] = useState('all');
@@ -460,7 +464,16 @@ const PendingApprovals: React.FC = () => {
 
   const handleApprove = async (record: ApprovalItem) => {
     try {
-      const response = await approvalsAPI.approveItem(parseInt(record.key), record.itemType);
+      // Only non-empty fields, so a blank input can't overwrite detail the
+      // charity already has.
+      const profile = Object.fromEntries(
+        Object.entries(charityProfile).filter(([, v]) => String(v || '').trim() !== ''),
+      );
+      const response = await approvalsAPI.approveItem(
+        parseInt(record.key),
+        record.itemType,
+        record.itemType === 'beneficiary' ? profile : undefined,
+      );
       
       if (response.success) {
         message.success(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} approved successfully!`);
@@ -793,7 +806,10 @@ const PendingApprovals: React.FC = () => {
           </div>
         }
         open={approvalModalVisible}
-        onCancel={() => setApprovalModalVisible(false)}
+        onCancel={() => {
+          setApprovalModalVisible(false);
+          setCharityProfile({});
+        }}
         footer={[
           <Button key="reject" danger onClick={() => {
             if (selectedItem) {
@@ -807,6 +823,7 @@ const PendingApprovals: React.FC = () => {
             if (selectedItem) {
               handleApprove(selectedItem);
               setApprovalModalVisible(false);
+              setCharityProfile({});
             }
           }}>
             Approve
@@ -817,6 +834,74 @@ const PendingApprovals: React.FC = () => {
       >
         {selectedItem && (
           <div className="approval-details">
+        {selectedItem?.itemType === 'beneficiary' && (
+          /* Donor-suggested charities arrive with only what the IRS registry
+             gave us — name, EIN, city. Approving without filling this in
+             leaves the cause live with placeholder art and no story, so the
+             form sits above the read-only details. Blank fields are dropped,
+             never written as empty. */
+          <div className="detail-section">
+            <Title level={4}>Complete the charity profile</Title>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+              Filled in when you approve. Anything left blank keeps its current value.
+            </Text>
+            <Space direction="vertical" style={{ width: '100%' }} size={10}>
+              <Input
+                placeholder="Category (e.g. Hunger Relief)"
+                value={charityProfile.category || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, category: e.target.value }))}
+              />
+              <Input
+                placeholder="Short description — one line shown on the card"
+                value={charityProfile.description || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, description: e.target.value }))}
+              />
+              <Input.TextArea
+                rows={3}
+                placeholder="About — who they are and what they do"
+                value={charityProfile.about || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, about: e.target.value }))}
+              />
+              <Input.TextArea
+                rows={2}
+                placeholder="Why this matters"
+                value={charityProfile.whyThisMatters || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, whyThisMatters: e.target.value }))}
+              />
+              <Input
+                placeholder="Hero image URL"
+                value={charityProfile.imageUrl || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, imageUrl: e.target.value }))}
+              />
+              <Input
+                placeholder="Logo URL"
+                value={charityProfile.logoUrl || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, logoUrl: e.target.value }))}
+              />
+              <Input
+                placeholder="Website"
+                value={charityProfile.website || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, website: e.target.value }))}
+              />
+              <Input
+                placeholder="Contact name"
+                value={charityProfile.contactName || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, contactName: e.target.value }))}
+              />
+              <Input
+                placeholder="Phone"
+                value={charityProfile.phone || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, phone: e.target.value }))}
+              />
+              <Input
+                placeholder="Full address — used to place them on the donor map"
+                value={charityProfile.location || ''}
+                onChange={(e) => setCharityProfile((p) => ({ ...p, location: e.target.value }))}
+              />
+            </Space>
+          </div>
+        )}
+
             <div className="detail-section">
               <Title level={4}>Basic Information</Title>
               <div className="detail-grid">
