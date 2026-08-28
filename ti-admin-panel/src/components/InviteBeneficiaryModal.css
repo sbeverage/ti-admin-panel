@@ -161,6 +161,29 @@
   transition: all 0.3s ease;
 }
 
+/* Match Select height to Input.
+   The rule above sets height on .ant-select-selector, but antd ships
+   `.ant-select-single:not(.ant-select-customize-input) .ant-select-selector`
+   which is more specific and wins — so "Select Channel" rendered shorter than
+   "Enter Username/URL" beside it. These match that specificity, and the inner
+   text nodes need their own line-height or the label sits off-centre. */
+.beneficiary-form .ant-select-single .ant-select-selector,
+.beneficiary-form .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.beneficiary-form .ant-select-single .ant-select-selector .ant-select-selection-item,
+.beneficiary-form .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+  /* 40px box minus 1px top and bottom border */
+  line-height: 38px;
+}
+
+.beneficiary-form .ant-select-single .ant-select-selector .ant-select-selection-search-input {
+  height: 38px;
+}
+
 .beneficiary-form .ant-input:focus,
 .beneficiary-form .ant-select-focused .ant-select-selector,
 .beneficiary-form .ant-input-affix-wrapper-focused {

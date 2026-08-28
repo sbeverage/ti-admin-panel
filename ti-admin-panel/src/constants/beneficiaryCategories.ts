@@ -78,6 +78,11 @@ export const BENEFICIARY_CATEGORIES: BeneficiaryCategory[] = [
     description: "Food banks, housing assistance, financial support"
   },
   {
+    value: "Religion",
+    label: "Religion",
+    description: "Faith-based ministries, churches, religious and spiritual organizations"
+  },
+  {
     value: "Veterans",
     label: "Veterans",
     description: "Support for military veterans and their families"

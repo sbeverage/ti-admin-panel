@@ -527,6 +527,25 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   };
 
+  // Single-step submit. Every field is mounted at once now, so one
+  // validateFields() covers the form. The state buckets are still spread in
+  // because image uploads land in uploadImages via their own handlers, not
+  // through the form.
+  const handleSubmitAll = async () => {
+    try {
+      const values = await form.validateFields();
+      await handleSubmit({
+        ...basicDetails,
+        ...trustTransparency,
+        ...uploadImages,
+        ...values,
+      });
+    } catch (err) {
+      // antd surfaces per-field validation messages itself; nothing to add.
+      console.warn('Beneficiary form validation failed:', err);
+    }
+  };
+
   const handlePrev = () => {
     setCurrentStep(currentStep - 1);
   };
@@ -587,8 +606,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     onCancel();
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
+  // Takes an explicit step so the single-page form can render several
+  // sections in one pass. The switch bodies are unchanged.
+  const renderStepContent = (step: number = currentStep) => {
+    switch (step) {
       case 0:
         return (
           <div className="step-content">
@@ -1149,20 +1170,12 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       width={1000}
       className="invite-beneficiary-modal"
     >
-      <div className="modal-content">
-        <div className="steps-sidebar">
-          <Steps
-            direction="vertical"
-            current={currentStep}
-            onChange={handleStepChange}
-            items={steps.map((step, index) => ({
-              title: step.title,
-              description: step.description,
-              icon: index < currentStep ? <CheckCircleFilled style={{ color: '#DB8633' }} className="completed-icon" /> : step.icon,
-              status: index < currentStep ? 'finish' : index === currentStep ? 'process' : 'wait'
-            }))}
-          />
-        </div>
+      {/* Single-page form. The four-step wizard went away with the Impact &
+          Story fields — what remains (basics, trust, images) is short enough
+          to read at once, and a wizard for three short groups was more
+          ceremony than the task needs. Step 1 (Impact & Story) is simply not
+          rendered. */}
+      <div className="modal-content modal-content--single-step">
         <div className="form-content">
           <Form
             form={form}
@@ -1170,21 +1183,18 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             requiredMark="optional"
             className="beneficiary-form"
           >
-            {renderStepContent()}
+            {renderStepContent(0)}
+            {renderStepContent(2)}
+            {renderStepContent(3)}
             <div className="form-actions">
-              {currentStep > 0 && (
-                <Button onClick={handlePrev} className="prev-btn">
-                  <ArrowLeftOutlined /> Previous
-                </Button>
-              )}
-              <Button 
-                type="primary" 
-                onClick={handleNext}
+              <Button
+                type="primary"
+                onClick={handleSubmitAll}
                 className="next-btn"
                 loading={saving}
                 disabled={saving}
               >
-                {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+                {saving ? 'Saving…' : 'Add Beneficiary'}
                 {!saving && <ArrowRightOutlined />}
               </Button>
             </div>

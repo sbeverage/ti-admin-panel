@@ -66,7 +66,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           discountValue: editingDiscount.discountValue || editingDiscount.discount_value,
           posCode: editingDiscount.posCode || editingDiscount.discount_code || editingDiscount.promoCode,
           usageLimit: editingDiscount.usageLimit || editingDiscount.usage_limit || 'unlimited',
-          description: editingDiscount.description || editingDiscount.additionalTerms
+          description: editingDiscount.description || editingDiscount.additionalTerms,
+          availability: editingDiscount.availability || null
         });
         setDiscountType(editingDiscount.discountType || editingDiscount.discount_type);
         setSelectedVendorId(editingDiscount.vendorId || vendorId);
@@ -137,7 +138,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         start_date: new Date().toISOString(),
         startDate: new Date().toISOString(), // Send both for compatibility
         end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // Send both for compatibility
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // Send both for compatibility
+        availability: values.availability || null,
       };
 
       // Set discount value based on type (send both snake_case and camelCase)
@@ -371,6 +373,20 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
             />
           </Form.Item>
         )}
+
+        {/* Availability */}
+        <Form.Item
+          name="availability"
+          label="Availability"
+          rules={[{ required: true, message: 'Please select availability' }]}
+          tooltip="Where donors can redeem this discount"
+        >
+          <Select placeholder="Select availability" size="large">
+            <Option value="in-store">In-Store Only</Option>
+            <Option value="online">Online Only</Option>
+            <Option value="both">In-Store & Online</Option>
+          </Select>
+        </Form.Item>
 
         {/* POS/Discount Code */}
         <Form.Item

@@ -41,7 +41,10 @@ const PendingApprovals: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
+  // An approval queue should show everything waiting, including submissions
+  // older than a month — those are the ones most in need of attention. The
+  // 30-day default was hiding them while still counting them in the tab badge.
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('vendors');
   const [approvalModalVisible, setApprovalModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
@@ -81,8 +84,17 @@ const PendingApprovals: React.FC = () => {
           phone: approval.phone || 'N/A',
           type: approval.type || 'vendor',
           location: approval.location || 'N/A',
-          registrationDate: approval.created_at ? new Date(approval.created_at).toLocaleDateString() : 'N/A',
-          createdAt: approval.created_at ? new Date(approval.created_at).getTime() : null,
+          // submitted_at is when the item entered the queue; created_at is when
+          // the underlying row was first created. For a charity those differ —
+          // /charities/suggest reuses an existing row when the EIN matches — so
+          // filtering on created_at hid recent submissions behind the 30-day
+          // filter while still counting them in the tab badge.
+          registrationDate: (approval.submitted_at || approval.created_at)
+            ? new Date(approval.submitted_at || approval.created_at).toLocaleDateString()
+            : 'N/A',
+          createdAt: (approval.submitted_at || approval.created_at)
+            ? new Date(approval.submitted_at || approval.created_at).getTime()
+            : null,
           documentsSubmitted: approval.documents_submitted || 'N/A',
           verificationStatus: approval.verification_status || 'pending',
           active: approval.is_active || false,

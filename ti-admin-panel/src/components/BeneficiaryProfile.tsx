@@ -69,6 +69,7 @@ interface BeneficiaryData {
   mainImageUrl?: string;
   logoUrl?: string;
   additionalImages?: string[];
+  videoUrl?: string;
   whyThisMatters?: string;
   successStory?: string;
   storyAuthor?: string;
@@ -186,11 +187,16 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
         logoUrl: apiData.logo || apiData.logo_url || apiData.logoUrl || '',
         // Additional images - can be array or comma-separated string
+        // image_urls is the column the donor app renders. This form previously
+        // read and wrote `additional_images`, which the API neither returns nor
+        // accepts — so uploads went to storage and the URL list was silently
+        // dropped. Falls back to the old field so anything that did land there
+        // is not lost.
         additionalImages: (() => {
-          if (Array.isArray(apiData.additional_images)) {
-            return apiData.additional_images.filter((img: any) => img);
-          } else if (apiData.additional_images) {
-            return apiData.additional_images.split(',').filter((img: string) => img.trim());
+          const src = apiData.imageUrls ?? apiData.image_urls ?? apiData.additional_images;
+          if (Array.isArray(src)) return src.filter((img: any) => img);
+          if (typeof src === 'string' && src.trim()) {
+            return src.split(',').map((i: string) => i.trim()).filter(Boolean);
           }
           return [];
         })(),
@@ -209,6 +215,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         impactStatement2: apiData.impact_statement_2 || apiData.impactStatement2 || '',
         ein: apiData.ein || '',
         website: apiData.website || '',
+        videoUrl: apiData.videoUrl || apiData.video_url || '',
         form990Url: apiData.form_990_url || apiData.form990Url || '',
         verificationStatus: apiData.verification_status || apiData.verificationStatus || false,
         volunteerInfo: apiData.volunteer_info || apiData.volunteerInfo || '',
@@ -385,7 +392,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         logo: formData.logoUrl || '',
         logo_url: formData.logoUrl || '', // Send both for compatibility
         // Additional images - send as array, filtered to remove empty slots
-        additional_images: additionalImages.filter(img => img && img.trim()),
+        // Max 5, matching the charities_image_urls_max_5 CHECK constraint.
+        imageUrls: additionalImages.filter((img) => img && img.trim()).slice(0, 5),
+        videoUrl: (formData.videoUrl || '').trim(),
         volunteer_info: formData.volunteerInfo || ''
       };
 
@@ -842,11 +851,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       <div className="form-field">
         <label>Additional Images (Optional)</label>
         <Text type="secondary" style={{ display: 'block', marginBottom: '16px', fontSize: '12px' }}>
-          Upload up to 3 additional images showcasing your programs and impact
+          Upload up to 5 photos showcasing your programs and impact. These appear
+          as a photo strip on the charity's profile in the app.
         </Text>
         {isEditing ? (
           <Row gutter={[16, 16]}>
-            {[0, 1, 2].map((index) => (
+            {[0, 1, 2, 3, 4].map((index) => (
               <Col span={8} key={index}>
                 <div>
                   <Text strong style={{ display: 'block', marginBottom: '8px' }}>
@@ -880,6 +890,32 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               </Col>
             )}
           </Row>
+        )}
+      </div>
+
+      <Divider />
+
+      <div className="form-field">
+        <label>Video (Optional)</label>
+        <Text type="secondary" style={{ display: 'block', marginBottom: '12px', fontSize: '12px' }}>
+          Paste a YouTube or Vimeo link, or a direct link to an .mp4 file. A
+          direct file plays inline in the app; a YouTube or Vimeo link opens in
+          the browser. Leave blank to remove the video.
+        </Text>
+        {isEditing ? (
+          <Input
+            value={formData.videoUrl || ''}
+            onChange={(e) => handleInputChange('videoUrl', e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=… or https://…/story.mp4"
+          />
+        ) : (
+          beneficiaryData.videoUrl ? (
+            <a href={beneficiaryData.videoUrl} target="_blank" rel="noreferrer">
+              {beneficiaryData.videoUrl}
+            </a>
+          ) : (
+            <Text type="secondary" style={{ fontStyle: 'italic' }}>No video added</Text>
+          )
         )}
       </div>
     </Card>
@@ -1201,16 +1237,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         </div>
       )
     },
-    {
-      key: 'impact',
-      label: 'Impact & Story',
-      icon: <HeartOutlined />,
-      children: (
-        <div className="tab-content">
-          {renderImpactStory()}
-        </div>
-      )
-    },
+    // "Impact & Story" tab removed 2026-08-28. The donor app no longer renders
+    // whyThisMatters / successStory / impact statements / impact metrics, so
+    // asking admins to fill them produced data nothing displayed. The columns
+    // and existing values are untouched; renderImpactStory() is kept below so
+    // restoring the tab is a one-line change.
     {
       key: 'trust',
       label: 'Trust & Transparency',
