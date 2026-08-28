@@ -88,6 +88,10 @@ const Donors: React.FC = () => {
           contact: donor.phone || 'N/A',
           beneficiary: donor.beneficiary_name || 'N/A',
           coworking: donor.coworking ? 'Yes' : 'No',
+          // 'standard' | 'coworking' | 'team'. The API now returns invite_type;
+          // the coworking boolean is kept as a fallback for rows written before
+          // it did.
+          membership: donor.invite_type || (donor.coworking ? 'coworking' : 'standard'),
           donation: donor.total_donations ? `$${donor.total_donations}` : '$0',
           oneTime: donor.one_time_donation ? `$${donor.one_time_donation}` : '$0',
           lastDonated: donor.last_donation_date ? new Date(donor.last_donation_date).toLocaleDateString() : 'Never',
@@ -252,10 +256,16 @@ const Donors: React.FC = () => {
 
     // Coworking filter
     if (selectedCoworking) {
+      // Values are membership types now. 'yes'/'no' are still handled so a
+      // bookmarked or cached filter value doesn't silently match nothing.
       if (selectedCoworking === 'yes') {
-        filtered = filtered.filter((donor: any) => donor.coworking === 'Yes');
+        filtered = filtered.filter((donor: any) => donor.membership === 'coworking');
       } else if (selectedCoworking === 'no') {
-        filtered = filtered.filter((donor: any) => donor.coworking === 'No');
+        filtered = filtered.filter((donor: any) => donor.membership !== 'coworking');
+      } else {
+        filtered = filtered.filter(
+          (donor: any) => (donor.membership || 'standard') === selectedCoworking,
+        );
       }
     }
 
@@ -490,17 +500,22 @@ const Donors: React.FC = () => {
     {
       title: (
         <div className="sortable-header">
-          Coworking
+          Membership
           <SortAscendingOutlined className="sort-icon" />
         </div>
       ),
-      dataIndex: 'coworking',
-      key: 'coworking',
-      render: (text: string) => (
-        <span className={`coworking-status ${text.toLowerCase()}`}>
-          {text}
-        </span>
-      ),
+      dataIndex: 'membership',
+      key: 'membership',
+      render: (value: string) => {
+        const type = (value || 'standard').toLowerCase();
+        const label =
+          type === 'team' ? 'Team' : type === 'coworking' ? 'Coworking' : 'Standard';
+        // Team is called out in orange because those accounts are comped and
+        // excluded from donation totals — worth spotting at a glance.
+        const color =
+          type === 'team' ? 'orange' : type === 'coworking' ? 'blue' : 'default';
+        return <Tag color={color}>{label}</Tag>;
+      },
       width: 150,
     },
     {
@@ -732,10 +747,23 @@ const Donors: React.FC = () => {
 
   const handleInviteDonor = async (values: any): Promise<boolean> => {
     try {
-      const isCoworking = values.coworking === 'Yes' || values.coworking === true;
-      const sponsorAmount = values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
-        ? parseFloat(String(values.sponsorAmount).replace('$', ''))
-        : (isCoworking ? 15 : 0);
+      // 'membership' replaced the old Coworking yes/no. Fall back to the legacy
+      // field so an older cached bundle of the form still submits correctly.
+      const membership: string =
+        values.membership ||
+        (values.coworking === 'Yes' || values.coworking === true
+          ? 'coworking'
+          : 'standard');
+      const isCoworking = membership === 'coworking';
+      const isTeam = membership === 'team';
+      // Only coworking has a sponsor paying per seat. Team is comped, so any
+      // amount left in the form field is ignored rather than stored as a
+      // pledge nobody is billed for.
+      const sponsorAmount = isTeam
+        ? 0
+        : values.sponsorAmount !== undefined && values.sponsorAmount !== null && values.sponsorAmount !== ''
+          ? parseFloat(String(values.sponsorAmount).replace('$', ''))
+          : (isCoworking ? 15 : 0);
 
       const donorData: any = {
         name: values.name,
@@ -744,8 +772,12 @@ const Donors: React.FC = () => {
         coworking: isCoworking,
         sponsor_amount: sponsorAmount,
         sponsorAmount: sponsorAmount,
-        invite_type: isCoworking ? 'coworking' : 'standard',
-        inviteType: isCoworking ? 'coworking' : 'standard',
+        invite_type: membership,
+        inviteType: membership,
+        // Both comped types settle outside Stripe; the app reads this to skip
+        // the payment step during signup.
+        external_billed: isCoworking || isTeam,
+        externalBilled: isCoworking || isTeam,
         address: {
           city: values.cityState?.split(',')[0]?.trim() || '',
           state: values.cityState?.split(',')[1]?.trim() || ''
@@ -848,7 +880,13 @@ const Donors: React.FC = () => {
         one_time_donation: values.oneTime !== undefined && values.oneTime !== null && values.oneTime !== ''
           ? parseFloat(String(values.oneTime).replace('$', ''))
           : undefined,
-        coworking: values.coworking,
+        // Membership replaced the coworking yes/no. Both are sent: invite_type is
+        // what the server keys off, and coworking keeps older rows consistent.
+        invite_type: values.membership || 'standard',
+        inviteType: values.membership || 'standard',
+        coworking: values.membership === 'coworking',
+        external_billed:
+          values.membership === 'coworking' || values.membership === 'team',
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
         is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true
         // Note: 'notes' field removed - column doesn't exist in users table
@@ -1141,15 +1179,16 @@ const Donors: React.FC = () => {
                   </Select>
 
                   <Select
-                    placeholder="Coworking"
+                    placeholder="Membership"
                     className="filter-dropdown"
                     size="large"
                     value={selectedCoworking}
                     onChange={setSelectedCoworking}
                     allowClear
                   >
-                    <Option value="yes">Yes</Option>
-                    <Option value="no">No</Option>
+                    <Option value="standard">Standard</Option>
+                    <Option value="coworking">Coworking</Option>
+                    <Option value="team">Team</Option>
                   </Select>
 
                   <Button

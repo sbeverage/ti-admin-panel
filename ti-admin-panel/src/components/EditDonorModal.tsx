@@ -84,6 +84,11 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
         zipCode: '',
         beneficiary: donor.originalData?.beneficiary_id?.toString() || '',
         coworking: donor.coworking || 'No',
+        membership:
+          donor.invite_type ||
+          (donor.coworking === 'Yes' || donor.coworking === true
+            ? 'coworking'
+            : 'standard'),
         donation: donationAmount !== '0' ? donationAmount : '',
         oneTime: oneTimeAmount !== '0' ? oneTimeAmount : '',
         lastDonated: lastDonatedDate,
@@ -209,6 +214,11 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
               className="invite-donor-form"
               initialValues={{
                 coworking: donor?.coworking || 'No',
+                membership:
+                  donor?.invite_type ||
+                  (donor?.coworking === 'Yes' || donor?.coworking === true
+                    ? 'coworking'
+                    : 'standard'),
               }}
             >
               <div className="form-sections">
@@ -334,14 +344,15 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     </Form.Item>
                     
                     <Form.Item
-                      name="coworking"
-                      label="Coworking"
-                      rules={[{ required: true, message: 'Please select coworking status' }]}
+                      name="membership"
+                      label="Membership"
+                      rules={[{ required: true, message: 'Please select a membership type' }]}
                       className="form-item"
                     >
                       <Select size="large">
-                        <Option value="Yes">Yes</Option>
-                        <Option value="No">No</Option>
+                        <Option value="standard">Standard donor</Option>
+                        <Option value="coworking">Coworking member</Option>
+                        <Option value="team">THRIVE team</Option>
                       </Select>
                     </Form.Item>
                   </div>

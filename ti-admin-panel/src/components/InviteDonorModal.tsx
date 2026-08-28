@@ -23,7 +23,9 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const coworkingValue = Form.useWatch('coworking', form);
+  // 'standard' | 'coworking' | 'team'. Replaces the old Coworking yes/no,
+  // which could not express a third comped type.
+  const membershipValue = Form.useWatch('membership', form);
 
   const handleSubmit = async () => {
     try {
@@ -82,7 +84,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
         requiredMark="optional"
         className="invite-donor-form"
         initialValues={{
-          coworking: 'No',
+          membership: 'standard',
           sponsorAmount: 15,
           oneTime: '$0'
         }}
@@ -211,20 +213,28 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
               </Form.Item>
               
               <Form.Item
-                name="coworking"
-                label="Coworking"
-                rules={[{ required: true, message: 'Please select coworking status' }]}
+                name="membership"
+                label="Membership"
+                rules={[{ required: true, message: 'Please select a membership type' }]}
                 className="form-item"
+                extra={
+                  membershipValue === 'team'
+                    ? 'Internal THRIVE account. No payment step, discounts unlocked, and their cause is left out of donation totals.'
+                    : membershipValue === 'coworking'
+                      ? 'The coworking space is billed per seat outside Stripe.'
+                      : 'Pays THRIVE directly with a monthly donation.'
+                }
               >
                 <Select size="large">
-                  <Option value="Yes">Yes</Option>
-                  <Option value="No">No</Option>
+                  <Option value="standard">Standard donor</Option>
+                  <Option value="coworking">Coworking member</Option>
+                  <Option value="team">THRIVE team</Option>
                 </Select>
               </Form.Item>
             </div>
             
             <div className="form-row">
-              {coworkingValue === 'Yes' && (
+              {membershipValue === 'coworking' && (
                 <Form.Item
                   name="sponsorAmount"
                   label="Coworking Sponsor Amount"
