@@ -921,153 +921,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
     </Card>
   );
 
-  const renderImpactStory = () => (
-    <Card title="Impact & Story" className="profile-section-card">
-      <div className="form-field">
-        <label>Why This Matters</label>
-        {isEditing ? (
-          <Input.TextArea
-            value={formData.whyThisMatters}
-            onChange={(e) => handleInputChange('whyThisMatters', e.target.value)}
-            rows={4}
-            placeholder="Explain why this cause is important..."
-            showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
-            maxLength={500}
-          />
-        ) : (
-          <Paragraph>{beneficiaryData.whyThisMatters || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Paragraph>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label>Success Story</label>
-        {isEditing ? (
-          <Input.TextArea
-            value={formData.successStory}
-            onChange={(e) => handleInputChange('successStory', e.target.value)}
-            rows={4}
-            placeholder="Share a compelling story..."
-            showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
-            maxLength={500}
-          />
-        ) : (
-          <Paragraph>{beneficiaryData.successStory || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Paragraph>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label>Story Author</label>
-        {isEditing ? (
-          <Input
-            value={formData.storyAuthor}
-            onChange={(e) => handleInputChange('storyAuthor', e.target.value)}
-            placeholder="e.g., Sarah M., Program Director"
-            maxLength={50}
-          />
-        ) : (
-          <Text>{beneficiaryData.storyAuthor || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
-        )}
-      </div>
-
-      <Divider>Impact Metrics (Optional)</Divider>
-      <Text type="secondary" style={{ display: 'block', marginBottom: '16px', fontSize: '12px' }}>
-        These metrics help showcase the impact of the organization. All fields are optional.
-      </Text>
-
-      <Row gutter={[24, 16]}>
-        <Col span={8}>
-          <div className="form-field">
-            <label>Lives Impacted</label>
-            {isEditing ? (
-              <>
-                <Input.TextArea
-                  value={formData.livesImpacted || ''}
-                  onChange={(e) => handleInputChange('livesImpacted', e.target.value)}
-                  placeholder="e.g., Over 10,000 children have received life-saving treatment"
-                  rows={2}
-                  maxLength={500}
-                />
-                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Enter a full sentence describing the impact
-                </Text>
-              </>
-            ) : (
-              <Text>{beneficiaryData.livesImpacted || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
-            )}
-          </div>
-        </Col>
-        <Col span={8}>
-          <div className="form-field">
-            <label>Programs Active</label>
-            {isEditing ? (
-              <>
-                <Input.TextArea
-                  value={formData.programsActive || ''}
-                  onChange={(e) => handleInputChange('programsActive', e.target.value)}
-                  placeholder="e.g., We operate 25 programs across 10 states"
-                  rows={2}
-                  maxLength={500}
-                />
-                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Enter a full sentence describing active programs
-                </Text>
-              </>
-            ) : (
-              <Text>{beneficiaryData.programsActive || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
-            )}
-          </div>
-        </Col>
-        <Col span={8}>
-          <div className="form-field">
-            <label>Direct to Programs (%)</label>
-            {isEditing ? (
-              <>
-                <Input.TextArea
-                  value={formData.directToProgramsPercentage || ''}
-                  onChange={(e) => handleInputChange('directToProgramsPercentage', e.target.value)}
-                  placeholder="e.g., 95% of all donations go directly to programs"
-                  rows={2}
-                  maxLength={500}
-                />
-                <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                  ℹ️ Enter a full sentence describing the percentage
-                </Text>
-              </>
-            ) : (
-              <Text>{beneficiaryData.directToProgramsPercentage || <Text type="secondary" style={{ fontStyle: 'italic' }}>Not set</Text>}</Text>
-            )}
-          </div>
-        </Col>
-      </Row>
-
-      <div className="form-field">
-        <label>Impact Statement 1</label>
-        {isEditing ? (
-          <Input
-            value={formData.impactStatement1}
-            onChange={(e) => handleInputChange('impactStatement1', e.target.value)}
-            placeholder="e.g., Every $25 provides a family with essential supplies for one week"
-          />
-        ) : (
-          <Text>{beneficiaryData.impactStatement1}</Text>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label>Impact Statement 2</label>
-        {isEditing ? (
-          <Input
-            value={formData.impactStatement2}
-            onChange={(e) => handleInputChange('impactStatement2', e.target.value)}
-            placeholder="e.g., Every $100 helps provide emergency housing for families in crisis"
-          />
-        ) : (
-          <Text>{beneficiaryData.impactStatement2}</Text>
-        )}
-      </div>
-    </Card>
-  );
-
   const renderTrustTransparency = () => (
     <Card title="Trust & Transparency" className="profile-section-card">
       <Row gutter={[24, 16]}>
@@ -1237,11 +1090,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         </div>
       )
     },
-    // "Impact & Story" tab removed 2026-08-28. The donor app no longer renders
-    // whyThisMatters / successStory / impact statements / impact metrics, so
-    // asking admins to fill them produced data nothing displayed. The columns
-    // and existing values are untouched; renderImpactStory() is kept below so
-    // restoring the tab is a one-line change.
+    // "Impact & Story" tab removed 2026-08-28, and its render function deleted
+    // 2026-08-31. The donor app no longer shows whyThisMatters / successStory /
+    // impact statements / impact metrics, so asking admins to fill them
+    // produced data nothing displayed. The DB columns and existing values are
+    // untouched — only the editor is gone.
     {
       key: 'trust',
       label: 'Trust & Transparency',

@@ -8,7 +8,6 @@ import {
   SafetyCertificateOutlined,
   PictureOutlined,
   CheckCircleFilled,
-  HeartOutlined,
   TrophyOutlined,
   BookOutlined,
   TeamOutlined,
@@ -38,10 +37,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   onCancel,
   onSubmit
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const [basicDetails, setBasicDetails] = useState<any>({});
-  const [impactStory, setImpactStory] = useState<any>({});
   const [trustTransparency, setTrustTransparency] = useState<any>({});
   const [uploadImages, setUploadImages] = useState<any>({});
   const [saving, setSaving] = useState(false);
@@ -59,11 +56,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       title: 'Basic Information',
       icon: <FileTextOutlined style={{ color: '#324E58' }} />,
       description: basicDetails.beneficiaryName || basicDetails.city ? `${basicDetails.beneficiaryName || ''} ${basicDetails.city ? `(${basicDetails.city}, ${basicDetails.state || ''})` : ''}` : 'Organization name here'
-    },
-    {
-      title: 'Impact & Story',
-      icon: <HeartOutlined style={{ color: '#324E58' }} />,
-      description: impactStory.whyThisMatters ? 'Impact details added' : 'Impact details here'
     },
     {
       title: 'Trust & Transparency',
@@ -96,153 +88,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     } else {
       const newImages = additionalImages.filter((_, i) => i !== index);
       setAdditionalImages(newImages);
-    }
-  };
-
-  const handleNext = async () => {
-    try {
-      
-      if (currentStep === 0) {
-        const values = await form.validateFields();
-        
-        // Main image is optional, but you can add validation if needed
-        // if (!mainImageUrl) {
-        //   message.error('Please upload a main image before continuing');
-        //   return;
-        // }
-        
-        
-        // CRITICAL: Save to state AND ensure form instance preserves these values
-        setBasicDetails(values);
-        // Merge with existing form values (don't overwrite)
-        const currentFormValues = form.getFieldsValue();
-        const mergedValues = { ...currentFormValues, ...values };
-        form.setFieldsValue(mergedValues);
-        
-        // VERIFY: Double-check the name is preserved
-        const verifyFormValues = form.getFieldsValue();
-        if (!verifyFormValues.beneficiaryName) {
-          console.error('❌ CRITICAL: beneficiaryName NOT in form after setting!', {
-            values,
-            mergedValues,
-            verifyFormValues
-          });
-        }
-        
-        setCurrentStep(1);
-      } else if (currentStep === 1) {
-        const values = await form.validateFields();
-        
-        setImpactStory(values);
-        // Merge with existing form values (preserve step 0 data)
-        const currentFormValues = form.getFieldsValue();
-        const mergedValues = { ...currentFormValues, ...values };
-        form.setFieldsValue(mergedValues);
-        
-        // VERIFY: Double-check the Impact & Story fields are preserved
-        const verifyFormValues = form.getFieldsValue();
-        
-        setCurrentStep(2);
-      } else if (currentStep === 2) {
-        const values = await form.validateFields();
-        setTrustTransparency(values);
-        // Merge with existing form values (preserve step 0 and 1 data)
-        const currentFormValues = form.getFieldsValue();
-        form.setFieldsValue({ ...currentFormValues, ...values });
-        setCurrentStep(3);
-      } else {
-        // Final step - validate current step and collect all data
-        const values = await form.validateFields();
-        setUploadImages(values);
-        
-        // Get ALL form values from form instance
-        // Note: getFieldsValue() gets all fields that have been set, even if unmounted
-        // We've been calling form.setFieldsValue() after each step validation to preserve values
-        const allFormValues = form.getFieldsValue(); // Gets all preserved form values
-        
-        // DEBUG: Check what's actually in the form right now
-        
-        
-        // VERIFY Impact & Story data is in state
-        
-        // CRITICAL FIX: Merge state variables with form values
-        // Priority: Non-empty values > form values > state variables
-        // Start with state variables (these are the source of truth for unmounted steps)
-        const allData: any = {
-          // Start with state variables (backup if form values are missing)
-          ...basicDetails,      // Step 0: Basic Information (includes beneficiaryName, category, etc.)
-          ...impactStory,       // Step 1: Impact & Story (whyThisMatters, successStory, etc.)
-          ...trustTransparency, // Step 2: Trust & Transparency (ein, website, etc.)
-          ...values,            // Step 3: Upload Images
-        };
-        
-        // Smart merge: Only override with form values if they're not empty
-        // This prevents empty form values from overwriting valid state values
-        Object.keys(allFormValues).forEach(key => {
-          const formValue = allFormValues[key];
-          const stateValue = allData[key];
-          
-          // Only use form value if:
-          // 1. It's not empty/undefined/null, OR
-          // 2. State value is also empty (form value takes precedence if both empty)
-          if (formValue !== undefined && formValue !== null && formValue !== '') {
-            allData[key] = formValue;
-          } else if (stateValue === undefined || stateValue === null || stateValue === '') {
-            // If state is also empty, use form value (might be intentional empty)
-            allData[key] = formValue;
-          }
-          // Otherwise keep state value (it's non-empty and form value is empty)
-        });
-        
-        // Add non-form state
-        allData.profileLinks = profileLinks.filter(link => link.channel && link.username);
-        allData.mainImageUrl = mainImageUrl;
-        allData.logoUrl = logoUrl;
-        allData.additionalImages = additionalImages.filter(img => img);
-        
-        
-        // VERIFY Impact & Story data is in allData
-        
-        // Validate that we have the required beneficiaryName before submitting
-        // Try multiple sources and field name variations
-        const charityName = (
-          allData.beneficiaryName?.trim() || 
-          allData.name?.trim() || 
-          allData.charityName?.trim() ||
-          basicDetails?.beneficiaryName?.trim() ||
-          basicDetails?.name?.trim() ||
-          allFormValues?.beneficiaryName?.trim() ||
-          allFormValues?.name?.trim() ||
-          ''
-        );
-        
-        
-        if (!charityName) {
-          console.error('❌ Beneficiary name is missing from all sources!', {
-            basicDetails,
-            impactStory,
-            trustTransparency,
-            step3Values: values,
-            allFormValues,
-            allData,
-            charityName
-          });
-          message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
-          // Navigate back to step 0 so user can enter the name
-          setCurrentStep(0);
-          setSaving(false);
-          return;
-        }
-        
-        // Ensure beneficiaryName is set in allData for consistency
-        allData.beneficiaryName = charityName;
-        
-        // Submit to API
-        await handleSubmit(allData);
-      }
-    } catch (error) {
-      console.error('❌ Validation failed:', error);
-      message.error('Please fill in all required fields');
     }
   };
 
@@ -319,10 +164,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         console.error('❌ CRITICAL: Charity name is still missing after validation!', {
           allData,
           basicDetails,
-          impactStory,
           trustTransparency
         });
-        message.error('Charity name is required. Please go back to Step 1 and enter the organization name.');
+        message.error('Charity name is required — please enter the organization name.');
         setSaving(false);
         return;
       }
@@ -546,55 +390,9 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     }
   };
 
-  const handlePrev = () => {
-    setCurrentStep(currentStep - 1);
-  };
-
-  // Handle step changes from the Steps component (when user clicks step indicator)
-  const handleStepChange = async (step: number) => {
-    // If moving forward, validate current step first
-    if (step > currentStep) {
-      try {
-        const values = await form.validateFields();
-        
-        // Save current step data to state before moving
-        if (currentStep === 0) {
-          setBasicDetails(values);
-          // Merge with existing form values
-          const currentFormValues = form.getFieldsValue();
-          form.setFieldsValue({ ...currentFormValues, ...values });
-        } else if (currentStep === 1) {
-          setImpactStory(values);
-          const currentFormValues = form.getFieldsValue();
-          form.setFieldsValue({ ...currentFormValues, ...values });
-        } else if (currentStep === 2) {
-          setTrustTransparency(values);
-          const currentFormValues = form.getFieldsValue();
-          form.setFieldsValue({ ...currentFormValues, ...values });
-        } else if (currentStep === 3) {
-          setUploadImages(values);
-          const currentFormValues = form.getFieldsValue();
-          form.setFieldsValue({ ...currentFormValues, ...values });
-        }
-        
-        setCurrentStep(step);
-      } catch (error) {
-        console.error('❌ Validation failed when changing steps:', error);
-        message.error('Please fill in all required fields before proceeding');
-        // Don't change step if validation fails
-        return;
-      }
-    } else {
-      // Moving backward - no validation needed, just change step
-      setCurrentStep(step);
-    }
-  };
-
   const handleCancel = () => {
-    setCurrentStep(0);
     form.resetFields();
     setBasicDetails({});
-    setImpactStory({});
     setTrustTransparency({});
     setUploadImages({});
     // Reset image states
@@ -608,7 +406,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
 
   // Takes an explicit step so the single-page form can render several
   // sections in one pass. The switch bodies are unchanged.
-  const renderStepContent = (step: number = currentStep) => {
+  const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
         return (
@@ -801,135 +599,6 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
                 maxLength={1000}
               />
-            </Form.Item>
-          </div>
-        );
-
-      case 1:
-        return (
-          <div className="step-content">
-            <Title level={4}>Impact & Story</Title>
-            <Form.Item
-              name="whyThisMatters"
-              label="Why This Matters"
-              rules={[
-                { required: true, message: 'Please explain why this cause is important' },
-                { min: 200, message: 'Must be at least 200 characters' }
-              ]}
-            >
-              <TextArea 
-                rows={4} 
-                placeholder="Explain why this cause is important and what makes it special..." 
-                showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
-                maxLength={500}
-              />
-            </Form.Item>
-            
-            <Form.Item
-              name="successStory"
-              label="Success Story"
-              rules={[
-                { required: true, message: 'Please share a success story' },
-                { min: 150, message: 'Must be at least 150 characters' }
-              ]}
-            >
-              <TextArea 
-                rows={4} 
-                placeholder="Share a compelling story that shows the impact of donations..." 
-                showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
-                maxLength={500}
-              />
-            </Form.Item>
-            <Text type="secondary" style={{ fontSize: '12px', marginTop: '-8px', display: 'block' }}>
-              Minimum 150 characters required
-            </Text>
-            
-            <Form.Item
-              name="storyAuthor"
-              label="Story Author"
-              rules={[{ max: 200, message: 'Author name must be 200 characters or less' }]}
-            >
-              <Input placeholder="e.g., Sarah M., Program Director" maxLength={200} />
-            </Form.Item>
-
-            <Divider>Impact Metrics</Divider>
-            <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
-              These metrics help showcase the impact of the organization. All fields are optional.
-            </Text>
-            
-            <Row gutter={[24, 16]}>
-              <Col span={12}>
-                  <Form.Item
-                  name="livesImpacted"
-                  label="Lives Impacted"
-                  rules={[
-                    { max: 500, message: 'Must be 500 characters or less' }
-                  ]}
-                >
-                  <TextArea 
-                    placeholder="e.g., Over 10,000 children have received life-saving treatment" 
-                    rows={3}
-                    maxLength={500}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Enter a full sentence describing the impact
-                  </Text>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="programsActive"
-                  label="Programs Active"
-                  rules={[
-                    { max: 500, message: 'Must be 500 characters or less' }
-                  ]}
-                >
-                  <TextArea 
-                    placeholder="e.g., We operate 25 programs across 10 states" 
-                    rows={3}
-                    maxLength={500}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Enter a full sentence describing active programs
-                  </Text>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="directToProgramsPercentage"
-                  label="Direct to Programs (%)"
-                  rules={[
-                    { max: 500, message: 'Must be 500 characters or less' }
-                  ]}
-                >
-                  <TextArea 
-                    placeholder="e.g., 95% of all donations go directly to programs" 
-                    rows={3}
-                    maxLength={500}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    ℹ️ Enter a full sentence describing the percentage
-                  </Text>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Divider>Your Impact</Divider>
-            
-            <Form.Item
-              name="impactStatement1"
-              label="Impact Statement 1"
-              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
-            >
-              <Input placeholder="e.g., Every $25 provides a family with essential supplies for one week" maxLength={200} showCount />
-            </Form.Item>
-
-            <Form.Item
-              name="impactStatement2"
-              label="Impact Statement 2"
-              rules={[{ max: 200, message: 'Impact statement must be 200 characters or less' }]}
-            >
-              <Input placeholder="e.g., Every $100 helps provide emergency housing for families in crisis" maxLength={200} showCount />
             </Form.Item>
           </div>
         );
