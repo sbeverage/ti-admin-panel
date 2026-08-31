@@ -488,6 +488,31 @@ const PendingApprovals: React.FC = () => {
       );
       
       if (response.success) {
+        const r: any = response;
+        const missing: string[] = Array.isArray(r.missingFields) ? r.missingFields : [];
+
+        if (record.itemType !== 'vendor' && r.isComplete === false) {
+          // Approved, but held back from donors until the profile is filled
+          // in. Hand straight off to the profile editor rather than dropping
+          // the admin back on a queue with no hint of what to do next —
+          // saving that profile is what publishes the charity.
+          message.success({
+            content: `${record.name} approved. Complete the profile to make it visible to donors${
+              missing.length ? ` — still needed: ${missing.join(', ')}` : ''
+            }.`,
+            duration: 8,
+          });
+          setApprovalModalVisible(false);
+          navigate('/beneficiaries', {
+            state: {
+              openBeneficiaryId: record.key,
+              completeProfileFor: record.name,
+              missingFields: missing,
+            },
+          });
+          return;
+        }
+
         message.success(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} approved successfully!`);
         // Refresh the approvals list
         loadApprovals();

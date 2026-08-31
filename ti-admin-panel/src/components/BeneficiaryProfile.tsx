@@ -19,7 +19,8 @@ import {
   Badge,
   Statistic,
   Image,
-  Upload
+  Upload,
+  Alert
 } from 'antd';
 import {
   EditOutlined,
@@ -87,6 +88,8 @@ interface BeneficiaryData {
   website?: string;
   form990Url?: string;
   verificationStatus?: boolean;
+  /** Approved but hidden from donors until the profile is complete. */
+  awaitingProfileCompletion?: boolean;
   volunteerInfo?: string;
   // Fields from spec
   latitude?: number | string;
@@ -218,6 +221,9 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         videoUrl: apiData.videoUrl || apiData.video_url || '',
         form990Url: apiData.form_990_url || apiData.form990Url || '',
         verificationStatus: apiData.verification_status || apiData.verificationStatus || false,
+        // Approved but hidden from donors until the profile is filled in.
+        awaitingProfileCompletion:
+          apiData.awaitingProfileCompletion ?? apiData.awaiting_profile_completion ?? false,
         volunteerInfo: apiData.volunteer_info || apiData.volunteerInfo || '',
         // New fields from spec
         latitude: apiData.latitude || '',
@@ -464,7 +470,25 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         
         setIsEditing(false);
         onUpdate(formData);
-        message.success('Beneficiary updated successfully!');
+        if ((responseData as any)?.wentLive) {
+          // The save closed the last gap, so the charity just became visible.
+          message.success({
+            content: `${formData.name || 'Beneficiary'} is now live and visible to donors.`,
+            duration: 8,
+          });
+        } else {
+          const stillMissing: string[] = Array.isArray((responseData as any)?.missingFields)
+            ? (responseData as any).missingFields
+            : [];
+          if (stillMissing.length) {
+            message.warning({
+              content: `Saved, but still hidden from donors — needs: ${stillMissing.join(', ')}.`,
+              duration: 8,
+            });
+          } else {
+            message.success('Beneficiary updated successfully!');
+          }
+        }
       } else {
         const errorMsg = response.error || responseData?.error || 'Failed to update beneficiary';
         console.error('❌ Update error:', errorMsg);
@@ -1120,6 +1144,41 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   return (
     <div className="beneficiary-profile-overlay">
       <div className="beneficiary-profile-container">
+        {/* Approved but held back: donors cannot see this charity yet. Shown
+            above the header so it is the first thing an admin reads, with the
+            specific gaps rather than a vague "incomplete". */}
+        {beneficiaryData.awaitingProfileCompletion && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ margin: '16px 16px 0' }}
+            message="Not visible to donors yet"
+            description={
+              <>
+                This charity is approved and any held donations have been
+                released, but it stays hidden until the profile is complete.
+                Fill in the missing details and save — saving is what makes it
+                live.
+                {(() => {
+                  const d: any = beneficiaryData;
+                  const gaps: string[] = [];
+                  if (!String(d.beneficiaryCause || d.category || '').trim()) gaps.push('Category');
+                  const t = String(d.type || '').trim().toLowerCase();
+                  if (!t || t === 'pending') gaps.push('Type');
+                  const isPlaceholder = (v: unknown) =>
+                    String(v ?? '').toLowerCase().includes('pending verification by the thrive team');
+                  const realAbout = String(d.about || '').trim() && !isPlaceholder(d.about);
+                  const realDesc = String(d.description || '').trim() && !isPlaceholder(d.description);
+                  if (!realAbout && !realDesc) gaps.push('About / description');
+                  if (!String(d.imageUrl || d.logoUrl || '').trim()) gaps.push('Hero image or logo');
+                  if (!String(d.website || '').trim()) gaps.push('Website');
+                  if (!String(d.location || d.cityState || '').trim()) gaps.push('Location');
+                  return gaps.length ? <div style={{ marginTop: 8 }}><strong>Still needed:</strong> {gaps.join(', ')}</div> : null;
+                })()}
+              </>
+            }
+          />
+        )}
         {/* Header */}
         <div className="profile-header">
           <div className="header-left">

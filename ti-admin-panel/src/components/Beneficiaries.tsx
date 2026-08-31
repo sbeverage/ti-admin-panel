@@ -395,6 +395,30 @@ const Beneficiaries: React.FC = () => {
     await loadBeneficiaries();
   };
 
+  // Opened from the approvals queue: approving a charity leaves it hidden
+  // until its profile is complete, and lands here with the id to open so the
+  // admin can finish it immediately.
+  useEffect(() => {
+    const st: any = location.state;
+    if (!st?.openBeneficiaryId) return;
+    setSelectedBeneficiaryId(String(st.openBeneficiaryId));
+    setSelectedBeneficiaryData(null);
+    setProfileVisible(true);
+    if (st.completeProfileFor) {
+      message.info({
+        content: `Finish ${st.completeProfileFor}'s profile and save — that is what makes it visible to donors.${
+          Array.isArray(st.missingFields) && st.missingFields.length
+            ? ` Still needed: ${st.missingFields.join(', ')}.`
+            : ''
+        }`,
+        duration: 10,
+      });
+    }
+    // Clear the state so a refresh or back-navigation doesn't reopen it.
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
   const handleBeneficiaryClick = (beneficiaryId: string, record: any) => {
     setSelectedBeneficiaryId(beneficiaryId);
     setSelectedBeneficiaryData(record.rawData || record);
