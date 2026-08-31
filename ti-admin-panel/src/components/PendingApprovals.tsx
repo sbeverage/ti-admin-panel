@@ -874,12 +874,6 @@ const PendingApprovals: React.FC = () => {
                 value={charityProfile.about || ''}
                 onChange={(e) => setCharityProfile((p) => ({ ...p, about: e.target.value }))}
               />
-              <Input.TextArea
-                rows={2}
-                placeholder="Why this matters"
-                value={charityProfile.whyThisMatters || ''}
-                onChange={(e) => setCharityProfile((p) => ({ ...p, whyThisMatters: e.target.value }))}
-              />
               <Input
                 placeholder="Hero image URL"
                 value={charityProfile.imageUrl || ''}
