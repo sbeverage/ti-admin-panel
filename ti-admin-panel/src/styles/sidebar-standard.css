@@ -414,7 +414,14 @@
 }
 
 .standard-content .content-wrapper {
-  max-width: 1400px !important;
+  /* Was max-width: 1400px !important. This is the shared layout rule, so it
+     capped every list page no matter what the per-page stylesheets said — and
+     the !important meant nothing could override it. Widening the browser past
+     1400px added whitespace instead of table width, so wide tables (Donors is
+     2140px of columns) scrolled horizontally forever. rc-table renders the
+     table as `width: <scroll.x>; min-width: 100%`, so with the cap lifted it
+     stretches to fill the container. */
+  max-width: 100% !important;
   margin: 0 auto !important;
 }
 

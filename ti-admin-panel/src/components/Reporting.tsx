@@ -179,54 +179,57 @@ const Reporting: React.FC = () => {
       
       const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
       
-      if (response.success && response.data && response.data.length > 0) {
-        // Transform API data to PayoutData format
-        const transformed: PayoutData[] = response.data.map((item: any) => {
-          const donationCount = item.monthly_donation_count + item.one_time_donation_count;
-          const serviceFees = donationCount * 3; // $3 per donation
-          const ccProcessingFees = item.cc_processing_fees || 0;
-          const netAmount = item.total_donations - serviceFees - ccProcessingFees;
-          const platformFee = netAmount * 0.20; // 20%
-          const payoutAmount = netAmount * 0.80; // 80%
-          
-          // Calculate reconciliation status
-          let reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
-          const difference = Math.abs(item.stripe_amount - item.total_donations);
-          if (difference < 0.01) {
-            reconciliationStatus = 'matched';
-          } else if (difference > 1.00) {
-            reconciliationStatus = 'needs_review';
-          }
-          
+      // The endpoint returns { success, data: { payouts, summary, dateRange } }.
+      // This checked `response.data.length > 0` — data is an OBJECT, so length
+      // was undefined, the branch never ran and the page rendered empty. It
+      // then read snake_case fields (beneficiary_id, total_donations,
+      // monthly_donation_count…) while the endpoint returns camelCase, and
+      // recomputed fees the server already calculates.
+      //
+      // Server figures are used as-is: since 2026-09-01 processingFees is the
+      // real Stripe fee per invoice rather than a denormalized guess, so
+      // recomputing here would be less accurate, not more.
+      const payload: any = (response as any)?.data ?? {};
+      const rows: any[] = Array.isArray(payload.payouts) ? payload.payouts : [];
+
+      if (rows.length > 0) {
+        const transformed: PayoutData[] = rows.map((item: any) => {
+          const acct = item.bankInfo || {};
           return {
-            key: item.beneficiary_id?.toString() || Math.random().toString(),
-            beneficiaryId: item.beneficiary_id,
-            beneficiaryName: item.beneficiary_name || 'Unknown',
-            totalDonations: item.total_donations || 0,
-            monthlyDonations: item.monthly_donations || 0,
-            oneTimeDonations: item.one_time_donations || 0,
-            donationCount,
-            serviceFees,
-            ccProcessingFees,
-            netAmount,
-            platformFee,
-            payoutAmount,
-            stripeAmount: item.stripe_amount || 0,
-            reconciliationStatus,
+            key: item.beneficiaryId?.toString() || Math.random().toString(),
+            beneficiaryId: item.beneficiaryId,
+            beneficiaryName: item.beneficiaryName || 'Unknown',
+            totalDonations: item.totalDonations || 0,
+            monthlyDonations: item.monthlyDonations || 0,
+            oneTimeDonations: item.oneTimeGifts || 0,
+            donationCount: item.donationCount || 0,
+            serviceFees: item.serviceFee || 0,
+            ccProcessingFees: item.processingFees || 0,
+            netAmount: item.netAmount || 0,
+            platformFee: item.platformFee || 0,
+            payoutAmount: item.payoutAmount || 0,
+            // The payouts endpoint carries no Stripe cross-check, so there is
+            // nothing to compare against. Reported as pending rather than
+            // asserting "matched" from a comparison never made — real
+            // reconciliation lives in /admin/reporting/stripe-reconciliation.
+            stripeAmount: item.totalDonations || 0,
+            reconciliationStatus: 'pending' as const,
             bankInfo: {
-              hasBankInfo: item.bank_info?.has_bank_info || false,
-              bankName: item.bank_info?.bank_name,
-              accountHolderName: item.bank_info?.account_holder_name,
-              routingNumber: item.bank_info?.routing_number,
-              accountNumber: item.bank_info?.account_number ? '****' + item.bank_info.account_number.slice(-4) : undefined,
-              paymentMethod: item.bank_info?.payment_method || 'check'
+              hasBankInfo: Boolean(acct.accountNumber),
+              bankName: acct.bankName || undefined,
+              accountHolderName: acct.accountName || undefined,
+              routingNumber: acct.routingNumber || undefined,
+              accountNumber: acct.accountNumber
+                ? '****' + String(acct.accountNumber).slice(-4)
+                : undefined,
+              paymentMethod: acct.paymentMethod || 'check',
             },
-            payoutStatus: item.payout_status || 'pending',
-            payoutDate: item.payout_date,
-            notes: item.notes
+            payoutStatus: item.payoutStatus || 'pending',
+            payoutDate: item.payoutDate || undefined,
+            notes: item.payoutNotes || undefined,
           };
         });
-        
+
         setPayoutData(transformed);
       } else {
         setPayoutData([]);

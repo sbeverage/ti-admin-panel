@@ -82,7 +82,14 @@
 }
 
 .content-wrapper {
-  max-width: 1400px;
+  /* Was max-width: 1400px, which capped every list page regardless of monitor
+     size — widening the browser past 1400px added whitespace instead of table
+     width, so wide tables (Donors is 2140px of columns) scrolled forever.
+     rc-table renders the table as `width: <scroll.x>; min-width: 100%`, so with
+     the cap gone it stretches to fill whatever the container gives it.
+     Defined identically in four page stylesheets; CRA bundles CSS globally, so
+     all of them have to change or the last one loaded wins. */
+  max-width: 100%;
   margin: 0 auto;
 }
 

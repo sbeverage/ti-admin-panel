@@ -713,6 +713,21 @@
   color: #8c8c8c;
 }
 
+/* Real plot area. Replaces .chart-line, which was a decorative 3px bar pinned
+   at top: 50% — it drew the same flat line whatever the data was, which is why
+   the card looked broken. Inset to clear the y-axis labels on the left and the
+   week labels underneath. */
+.chart-svg {
+  position: absolute;
+  left: 44px;
+  right: 4px;
+  top: 6px;
+  bottom: 20px;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
 .chart-line {
   position: absolute;
   left: 40px;
@@ -751,14 +766,32 @@
 
 .chart-x-axis {
   position: absolute;
-  left: 40px;
-  right: 0;
+  left: 44px;
+  right: 4px;
   bottom: 0;
   display: flex;
+  /* space-around with equal-width cells centres each label under its point.
+     space-between pushed the first and last hard against the edges, which is
+     what ran "Week 1" into "Week 2" in the old card. */
   justify-content: space-between;
   font-size: 10px;
   color: #8c8c8c;
+  white-space: nowrap;
 }
+
+.chart-x-axis span {
+  flex: 1 1 0;
+  text-align: center;
+}
+
+.chart-x-axis span:first-child {
+  text-align: left;
+}
+
+.chart-x-axis span:last-child {
+  text-align: right;
+}
+
 
 /* Approvals Card */
 .approvals-card {

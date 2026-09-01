@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message, DatePicker, Modal } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Dropdown, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Spin, message, DatePicker, Modal, Empty} from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { dashboardAPI } from '../services/api';
@@ -41,6 +41,10 @@ const Dashboard: React.FC = () => {
   const [donationChartFilter, setDonationChartFilter] = useState('1 Month');
   const [donorChartStats, setDonorChartStats] = useState<{ total: number; active: number; inactive: number } | null>(null);
   const [donationChartStats, setDonationChartStats] = useState<{ total: number } | null>(null);
+  // Weekly series behind the chart. Previously there was none: the chart was a
+  // static CSS bar pinned at top: 50% with hardcoded $0-$1000 axis labels, so
+  // it drew an identical flat line regardless of the numbers.
+  const [donationSeries, setDonationSeries] = useState<{ label: string; value: number }[]>([]);
   const [donorChartLoading, setDonorChartLoading] = useState(false);
   const [donationChartLoading, setDonationChartLoading] = useState(false);
   const [customDateOpen, setCustomDateOpen] = useState(false);
@@ -222,7 +226,10 @@ const Dashboard: React.FC = () => {
             statsResponse.data.pendingApprovals ?? (approvalsResponse.pagination?.total || 0),
           activeDiscounts: statsResponse.data.activeDiscounts || 0,
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
-          donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
+          // trend can legitimately be null (no prior period to compare), which
+          // is different from 0% — keep the distinction.
+          donationsTrend:
+            donationsChartData.data?.trend ?? donationsChartData.data?.growthPercentage ?? null,
         };
       } else {
         stats = {
@@ -243,6 +250,11 @@ const Dashboard: React.FC = () => {
       }
       
       setDashboardStats(stats);
+      setDonationSeries(
+        Array.isArray((donationsChartData as any)?.data?.series)
+          ? (donationsChartData as any).data.series
+          : [],
+      );
       
       // Load recent approvals data with proper city/state parsing and logos
       const recentBeneficiaries = beneficiariesResponse.data?.slice(0, 5).map((b: any) => {
@@ -1124,31 +1136,95 @@ const Dashboard: React.FC = () => {
                               </span>
                               <span className="total-label">Total Donations</span>
                             </div>
-                            <div className="line-chart">
-                              <div className="chart-y-axis">
-                                <span>$1000</span>
-                                <span>$750</span>
-                                <span>$500</span>
-                                <span>$250</span>
-                                <span>$0</span>
-                              </div>
-                              <div className="chart-line"></div>
-                              <div className="chart-x-axis">
-                                <span>Week 1</span>
-                                <span>Week 2</span>
-                                <span>Week 3</span>
-                                <span>Week 4</span>
-                                <span>Week 5</span>
-                              </div>
-                            </div>
+                            {/* Real chart, drawn from the weekly series. Inline
+                                SVG rather than a charting dependency: the panel
+                                has none installed and this needs a line, a fill
+                                and an axis, nothing more. viewBox +
+                                preserveAspectRatio="none" lets it stretch with
+                                the card instead of being pinned to fixed px. */}
+                            {donationSeries.length > 0 ? (
+                              (() => {
+                                const vals = donationSeries.map((d) => Number(d.value) || 0);
+                                const peak = Math.max(...vals, 1);
+                                // Round the axis up to something readable rather
+                                // than labelling the exact peak.
+                                const step = Math.pow(10, Math.floor(Math.log10(peak)));
+                                const axisMax = Math.ceil(peak / step) * step || 1;
+                                const W = 100;
+                                const H = 40;
+                                const n = vals.length;
+                                const x = (i: number) => (n === 1 ? W / 2 : (i / (n - 1)) * W);
+                                const y = (v: number) => H - (v / axisMax) * H;
+                                const line = vals.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+                                const area = `0,${H} ${line} ${W},${H}`;
+                                const money = (v: number) =>
+                                  v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${Math.round(v)}`;
+                                return (
+                                  <div className="line-chart">
+                                    <div className="chart-y-axis">
+                                      <span>{money(axisMax)}</span>
+                                      <span>{money(axisMax * 0.75)}</span>
+                                      <span>{money(axisMax * 0.5)}</span>
+                                      <span>{money(axisMax * 0.25)}</span>
+                                      <span>$0</span>
+                                    </div>
+                                    <svg
+                                      className="chart-svg"
+                                      viewBox={`0 0 ${W} ${H}`}
+                                      preserveAspectRatio="none"
+                                      role="img"
+                                      aria-label={`Donations by week: ${donationSeries
+                                        .map((d) => `${d.label} $${Number(d.value).toFixed(2)}`)
+                                        .join(', ')}`}
+                                    >
+                                      <polygon points={area} fill="rgba(219,134,51,0.18)" />
+                                      <polyline
+                                        points={line}
+                                        fill="none"
+                                        stroke="#DB8633"
+                                        strokeWidth={1.4}
+                                        vectorEffect="non-scaling-stroke"
+                                        strokeLinejoin="round"
+                                        strokeLinecap="round"
+                                      />
+                                      {vals.map((v, i) => (
+                                        <circle
+                                          key={i}
+                                          cx={x(i)}
+                                          cy={y(v)}
+                                          r={1.6}
+                                          fill="#ffffff"
+                                          stroke="#DB8633"
+                                          strokeWidth={1.2}
+                                          vectorEffect="non-scaling-stroke"
+                                        />
+                                      ))}
+                                    </svg>
+                                    <div className="chart-x-axis">
+                                      {donationSeries.map((d) => (
+                                        <span key={d.label}>{d.label}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })()
+                            ) : (
+                              <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="No donations in this period"
+                                style={{ margin: '24px 0' }}
+                              />
+                            )}
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>Average: {dashboardStats?.donationsAverage ? `$${dashboardStats.donationsAverage.toLocaleString()}/week` : '--'}</span>
+                                <span>Average: {dashboardStats?.donationsAverage ? `${formatMoney(dashboardStats.donationsAverage)}/week` : '--'}</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>
-                                <span>Trend: {dashboardStats?.donationsTrend ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs last month` : '--'}</span>
+                                <span>Trend: {typeof dashboardStats?.donationsTrend === 'number'
+                                  ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs previous period`
+                                  : 'no prior period'}</span>
                               </div>
                             </div>
                             </Spin>
