@@ -780,6 +780,25 @@ export const donorAPI = {
     return response.json();
   },
 
+  /**
+   * Live billing for one donor, straight from Stripe: every customer under
+   * their email (not only the one linked on the user row), subscriptions with
+   * status and next billing date, invoice history and saved cards.
+   *
+   * Reads Stripe because our own tables can disagree with it — a donor can have
+   * a live subscription that was never mirrored locally, which is how a second
+   * $23.83/month charge on ramon@workatthrive.com went unnoticed for months.
+   */
+  getDonorBilling: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/donors/${id}/stripe`, {
+      headers: API_CONFIG.headers,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   resendInvitation: async (id: number): Promise<ApiResponse<any>> => {
     try {
       const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/donors/${id}/resend-invitation`, {

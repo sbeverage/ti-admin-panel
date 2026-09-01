@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag } from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag, Drawer, Empty, Descriptions, Statistic} from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import {
@@ -8,8 +8,7 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
-  MailOutlined, EnvironmentOutlined, CalculatorOutlined
-} from '@ant-design/icons';
+  MailOutlined, EnvironmentOutlined, CalculatorOutlined, CreditCardOutlined} from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
 import { donorAPI, beneficiaryAPI } from '../services/api';
@@ -46,6 +45,11 @@ const Donors: React.FC = () => {
   const [selectedUserStatus, setSelectedUserStatus] = useState<string | undefined>(undefined);
   const [selectedCityState, setSelectedCityState] = useState<string | undefined>(undefined);
   const [selectedCoworking, setSelectedCoworking] = useState<string | undefined>(undefined);
+  // Stripe billing drawer — what the donor is actually charged, read from
+  // Stripe rather than our tables, because the two can disagree.
+  const [billingDonor, setBillingDonor] = useState<any | null>(null);
+  const [billingData, setBillingData] = useState<any | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
@@ -617,7 +621,7 @@ const Donors: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       fixed: 'right' as const,
-      width: 180,
+      width: 220,
       align: 'center' as const,
       render: (text: string, record: any, index: number) => {
         if (!record) {
@@ -669,6 +673,35 @@ const Donors: React.FC = () => {
                 borderWidth: '1.5px',
                 borderStyle: 'solid',
                 flexShrink: 0
+              }}
+            />
+            <Button
+              size="middle"
+              icon={<CreditCardOutlined />}
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openBilling(record);
+              }}
+              className="donor-billing-button"
+              title="Billing history from Stripe"
+              style={{
+                backgroundColor: '#f6ffed',
+                borderColor: '#52c41a',
+                color: '#52c41a',
+                fontWeight: 600,
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                minWidth: '32px',
+                maxWidth: '32px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                flexShrink: 0,
               }}
             />
             <Button 
@@ -844,6 +877,21 @@ const Donors: React.FC = () => {
     
     setEditingDonor(record);
     setIsEditModalVisible(true);
+  };
+
+  const openBilling = async (record: any) => {
+    setBillingDonor(record);
+    setBillingData(null);
+    setBillingLoading(true);
+    try {
+      const { donorAPI } = await import('../services/api');
+      const resp = await donorAPI.getDonorBilling(record.id);
+      setBillingData((resp as any)?.data ?? null);
+    } catch (error: any) {
+      message.error(`Could not load billing: ${error?.message || 'unknown error'}`);
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   const handleUpdateDonor = async (values: any) => {
@@ -1289,6 +1337,199 @@ const Donors: React.FC = () => {
       </Layout>
       
       {/* Invite Donor Modal */}
+      {/* Billing, read live from Stripe.
+          Deliberately Stripe-first: our monthly_donations table can disagree
+          with what a donor is actually charged. It listed one $18.72/month
+          subscription for ramon@workatthrive.com while Stripe was also billing
+          $23.83/month on a customer never linked to his user row. Anything
+          Stripe knows about and we don't is flagged rather than omitted. */}
+      <Drawer
+        title={
+          billingDonor
+            ? `Billing — ${billingDonor.name || billingDonor.email}`
+            : 'Billing'
+        }
+        placement="right"
+        width={Math.min(880, typeof window !== 'undefined' ? window.innerWidth - 80 : 880)}
+        open={!!billingDonor}
+        onClose={() => {
+          setBillingDonor(null);
+          setBillingData(null);
+        }}
+        destroyOnClose
+      >
+        <Spin spinning={billingLoading}>
+          {!billingData && !billingLoading && (
+            <Empty description="No billing data" />
+          )}
+
+          {billingData && (
+            <>
+              <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+                <Col xs={12} md={8}>
+                  <Card size="small">
+                    <Statistic
+                      title="Charged per month"
+                      value={`$${(billingData.live_monthly_total_usd ?? 0).toFixed(2)}`}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={12} md={8}>
+                  <Card size="small">
+                    <Statistic
+                      title="Live subscriptions"
+                      value={billingData.live_subscription_count ?? 0}
+                      valueStyle={
+                        (billingData.live_subscription_count ?? 0) > 1
+                          ? { color: '#cf1322' }
+                          : undefined
+                      }
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Card size="small">
+                    <Statistic
+                      title="Paid to date (Stripe)"
+                      value={`$${(billingData.total_paid_usd ?? 0).toFixed(2)}`}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+
+              {(billingData.live_subscription_count ?? 0) > 1 && (
+                <Card
+                  size="small"
+                  style={{ marginBottom: 16, borderColor: '#ffa39e', background: '#fff1f0' }}
+                >
+                  <Text strong style={{ color: '#cf1322' }}>
+                    This donor has more than one live subscription and is being charged
+                    multiple times a month.
+                  </Text>
+                </Card>
+              )}
+
+              {(billingData.unlinked_customers || []).length > 0 && (
+                <Card
+                  size="small"
+                  style={{ marginBottom: 16, borderColor: '#ffd591', background: '#fffbe6' }}
+                >
+                  <Text>
+                    <strong>Stripe customers not linked to this account:</strong>{' '}
+                    {(billingData.unlinked_customers || []).join(', ')}. Charges on these
+                    are real but were invisible to donor-based reports.
+                  </Text>
+                </Card>
+              )}
+
+              <Title level={5} style={{ marginTop: 8 }}>Subscriptions</Title>
+              <Table
+                size="small"
+                rowKey="id"
+                pagination={false}
+                dataSource={billingData.all_stripe_subscriptions || []}
+                locale={{ emptyText: 'No subscriptions on Stripe' }}
+                columns={[
+                  {
+                    title: 'Status',
+                    dataIndex: 'status',
+                    render: (v: string) => (
+                      <Tag color={
+                        ['active', 'trialing'].includes(v) ? 'green'
+                          : ['past_due', 'unpaid', 'incomplete'].includes(v) ? 'orange'
+                          : 'default'
+                      }>{v}</Tag>
+                    ),
+                  },
+                  {
+                    title: 'Amount',
+                    dataIndex: 'amount',
+                    render: (v: number, r: any) =>
+                      `$${((v || 0) / 100).toFixed(2)}${r.interval ? `/${r.interval}` : ''}`,
+                  },
+                  {
+                    title: 'Started',
+                    dataIndex: 'created',
+                    render: (v: string) => (v ? v.slice(0, 10) : '—'),
+                  },
+                  {
+                    title: 'Next bill',
+                    dataIndex: 'current_period_end',
+                    render: (v: string, r: any) =>
+                      r.cancel_at_period_end ? 'cancels at period end' : v ? v.slice(0, 10) : '—',
+                  },
+                  {
+                    title: 'In our DB',
+                    dataIndex: 'known_locally',
+                    render: (v: boolean) =>
+                      v ? <Tag color="blue">tracked</Tag> : <Tag color="red">not tracked</Tag>,
+                  },
+                ]}
+              />
+
+              <Title level={5} style={{ marginTop: 20 }}>Invoice history</Title>
+              <Table
+                size="small"
+                rowKey="id"
+                pagination={{ pageSize: 10, size: 'small' }}
+                dataSource={billingData.invoices || []}
+                locale={{ emptyText: 'No invoices on Stripe' }}
+                columns={[
+                  {
+                    title: 'Date',
+                    dataIndex: 'created',
+                    render: (v: string) => (v ? v.slice(0, 10) : '—'),
+                  },
+                  {
+                    title: 'Status',
+                    dataIndex: 'status',
+                    render: (v: string) => (
+                      <Tag color={
+                        v === 'paid' ? 'green'
+                          : v === 'open' ? 'orange'
+                          : v === 'void' ? 'default'
+                          : 'red'
+                      }>{v}</Tag>
+                    ),
+                  },
+                  {
+                    title: 'Paid',
+                    dataIndex: 'amount_paid',
+                    render: (v: number) => `$${((v || 0) / 100).toFixed(2)}`,
+                  },
+                  {
+                    title: 'Due',
+                    dataIndex: 'amount_due',
+                    render: (v: number) => `$${((v || 0) / 100).toFixed(2)}`,
+                  },
+                  {
+                    title: 'Invoice',
+                    dataIndex: 'hosted_invoice_url',
+                    render: (v: string, r: any) =>
+                      v ? (
+                        <a href={v} target="_blank" rel="noreferrer">open</a>
+                      ) : (
+                        <Text type="secondary" style={{ fontSize: 12 }}>{r.id}</Text>
+                      ),
+                  },
+                ]}
+              />
+
+              {(billingData.saved_cards || []).length > 0 && (
+                <>
+                  <Title level={5} style={{ marginTop: 20 }}>Saved cards</Title>
+                  {(billingData.saved_cards || []).map((c: any) => (
+                    <Tag key={c.id} style={{ marginBottom: 6 }}>
+                      {c.brand} ****{c.last4} · exp {c.exp}
+                    </Tag>
+                  ))}
+                </>
+              )}
+            </>
+          )}
+        </Spin>
+      </Drawer>
+
       <InviteDonorModal
         visible={isInviteModalVisible}
         onCancel={() => setIsInviteModalVisible(false)}
