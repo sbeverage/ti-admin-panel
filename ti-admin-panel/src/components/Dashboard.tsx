@@ -162,14 +162,17 @@ const Dashboard: React.FC = () => {
       const vendorsInPeriod = filterByPeriod(vendorsResponse.data || []);
       const beneficiariesInPeriod = filterByPeriod(beneficiariesResponse.data || []);
 
-      // Calculate active vs inactive donors (within period)
+      // Active vs inactive donors. This used to test donor.monthly_donation
+      // ?.active / donor.subscription?.active / donor.has_active_subscription —
+      // none of which the donors API returns. It returns subscription_status,
+      // a string. So the count was always 0 and the Active Donors card rendered
+      // "--" on every period except "all".
+      const ACTIVE_SUB_STATUSES = ['active', 'trialing'];
       let activeDonorsCount = 0;
       let inactiveDonorsCount = 0;
-      donorsInPeriod.forEach((donor: any) => {
-        const hasMonthlyDonation = donor.monthly_donation?.active === true ||
-                                   donor.subscription?.active === true ||
-                                   donor.has_active_subscription === true;
-        if (hasMonthlyDonation) activeDonorsCount++;
+      (donorsResponse.data || []).forEach((donor: any) => {
+        const status = String(donor.subscription_status || '').toLowerCase();
+        if (ACTIVE_SUB_STATUSES.includes(status)) activeDonorsCount++;
         else inactiveDonorsCount++;
       });
 
@@ -178,19 +181,29 @@ const Dashboard: React.FC = () => {
       const totalVendorsCount = periodFiltered ? vendorsInPeriod.length : (vendorsResponse.pagination?.total ?? vendorsResponse.data?.length ?? 0);
       const totalBeneficiariesCount = periodFiltered ? beneficiariesInPeriod.length : (beneficiariesResponse.pagination?.total ?? beneficiariesResponse.data?.length ?? 0);
 
+      // The stats endpoint is period-aware, so use it whenever it responded —
+      // the old `&& !periodFiltered` meant that on the default "1 Month" view
+      // every figure only it can supply (donations, revenue, one-time gifts,
+      // active discounts) was dropped and rendered "--".
       let stats: any = {};
-      if (statsResponse.success && statsResponse.data && !periodFiltered) {
+      if (statsResponse.success && statsResponse.data) {
         stats = {
           totalVendors: statsResponse.data.totalVendors ?? totalVendorsCount,
+          // Every donor account regardless of subscription state, from the
+          // endpoint. Falls back to the local count only if absent.
           totalDonors: statsResponse.data.totalDonors ?? totalDonorsCount,
+          newDonorsInPeriod: statsResponse.data.newDonorsInPeriod ?? donorsInPeriod.length,
           totalBeneficiaries: statsResponse.data.totalBeneficiaries ?? totalBeneficiariesCount,
           totalTenants: statsResponse.data.totalTenants || 0,
           totalRevenue: statsResponse.data.totalRevenue || statsResponse.data.totalDonations || 0,
           totalDonations: statsResponse.data.totalDonations || statsResponse.data.totalRevenue || 0,
           totalOneTimeGift: statsResponse.data.totalOneTimeGift || 0,
           activeDonors: statsResponse.data.activeDonors ?? activeDonorsCount,
-          inactiveDonors: inactiveDonorsCount,
-          pendingApprovals: approvalsResponse.pagination?.total || 0,
+          inactiveDonors: statsResponse.data.inactiveDonors ?? inactiveDonorsCount,
+          // The endpoint counts vendors AND beneficiaries awaiting a decision.
+          // approvalsResponse is the vendor-only queue, so it undercounted.
+          pendingApprovals:
+            statsResponse.data.pendingApprovals ?? (approvalsResponse.pagination?.total || 0),
           activeDiscounts: statsResponse.data.activeDiscounts || 0,
           donationsAverage: donationsChartData.data?.average || donationsChartData.data?.weeklyAverage || 0,
           donationsTrend: donationsChartData.data?.trend || donationsChartData.data?.growthPercentage || 0,
