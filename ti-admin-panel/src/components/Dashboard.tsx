@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
   const [selectedTimeFilterLabel, setSelectedTimeFilterLabel] = useState('1 Month');
   const [donorChartFilter, setDonorChartFilter] = useState('1 Month');
   const [donationChartFilter, setDonationChartFilter] = useState('1 Month');
-  const [donorChartStats, setDonorChartStats] = useState<{ total: number; active: number; inactive: number } | null>(null);
+  const [donorChartStats, setDonorChartStats] = useState<{ total: number; active: number; inactive: number; isPeriodScoped?: boolean } | null>(null);
   const [donationChartStats, setDonationChartStats] = useState<{ total: number } | null>(null);
   // Weekly series behind the chart. Previously there was none: the chart was a
   // static CSS bar pinned at top: 50% with hardcoded $0-$1000 axis labels, so
@@ -105,12 +105,20 @@ const Dashboard: React.FC = () => {
           return created && !isNaN(created.getTime()) && created >= start;
         });
       }
+      // Same fault the Active Donors card had: these three fields don't exist
+      // on the donors response. It returns subscription_status, a string — so
+      // active was always 0 and the donut read "0 Active / 5 In-Active" while
+      // the card above it said 7 active.
+      const ACTIVE = ['active', 'trialing'];
       let active = 0, inactive = 0;
       filtered.forEach((d: any) => {
-        const hasMonthly = d.monthly_donation?.active === true || d.subscription?.active === true || d.has_active_subscription === true;
-        if (hasMonthly) active++; else inactive++;
+        const status = String(d.subscription_status || '').toLowerCase();
+        if (ACTIVE.includes(status)) active++; else inactive++;
       });
-      setDonorChartStats({ total: filtered.length, active, inactive });
+      // `filtered` is donors who JOINED in the window, so calling it "Total
+      // Donors" contradicted the Total Donors card (23). Flagged so the label
+      // can say what it actually is.
+      setDonorChartStats({ total: filtered.length, active, inactive, isPeriodScoped: period !== 'all' });
     } catch {
       // keep existing stats on error
     } finally {
@@ -122,10 +130,27 @@ const Dashboard: React.FC = () => {
   const loadDonationChartData = async (period: string) => {
     setDonationChartLoading(true);
     try {
+      // This only refreshed the headline total, leaving the series from the
+      // page-level load in place — so picking "6 Months" showed a 6-month total
+      // above a 30-day, five-week line. Both now come from the same period.
       const { dashboardAPI } = await import('../services/api');
-      const statsResp = await dashboardAPI.getDashboardStats(period);
+      const [statsResp, chartResp] = await Promise.all([
+        dashboardAPI.getDashboardStats(period),
+        dashboardAPI.getChartData('donations', period).catch(() => null as any),
+      ]);
       const total = statsResp?.data?.totalDonations || statsResp?.data?.totalRevenue || 0;
       setDonationChartStats({ total });
+      if (Array.isArray(chartResp?.data?.series)) {
+        setDonationSeries(chartResp.data.series);
+        setDashboardStats((prev: any) => ({
+          ...(prev || {}),
+          donationsAverage: chartResp.data.average ?? chartResp.data.weeklyAverage ?? 0,
+          donationsTrend: chartResp.data.trend ?? chartResp.data.growthPercentage ?? null,
+          // Buckets adapt to the period, so the average is per bucket — saying
+          // "/week" for a six-month view (30-day buckets) would be wrong.
+          donationsBucketUnit: chartResp.data.bucketUnit || 'week',
+        }));
+      }
     } catch {
       // keep existing stats on error
     } finally {
@@ -230,6 +255,7 @@ const Dashboard: React.FC = () => {
           // is different from 0% — keep the distinction.
           donationsTrend:
             donationsChartData.data?.trend ?? donationsChartData.data?.growthPercentage ?? null,
+          donationsBucketUnit: donationsChartData.data?.bucketUnit || 'week',
         };
       } else {
         stats = {
@@ -1093,9 +1119,48 @@ const Dashboard: React.FC = () => {
                             <Spin spinning={donorChartLoading}>
                             <div className="chart-total">
                               <span className="total-number">{donorChartStats !== null ? donorChartStats.total : (dashboardStats?.totalDonors ?? '--')}</span>
-                              <span className="total-label">Total Donors</span>
+                              <span className="total-label">
+                                {donorChartStats?.isPeriodScoped ? 'New Donors' : 'Total Donors'}
+                              </span>
                             </div>
-                            <div className="donut-chart"></div>
+                            {/* Real donut. Replaces a div whose background was
+                                conic-gradient(#DB8633 0deg 72deg, ...) — a fixed
+                                20% orange slice that never moved with the data,
+                                so it showed a fifth active while the legend said
+                                zero. Drawn with stroke-dasharray on a circle. */}
+                            {(() => {
+                              const a = donorChartStats?.active ?? dashboardStats?.activeDonors ?? 0;
+                              const i = donorChartStats?.inactive ?? dashboardStats?.inactiveDonors ?? 0;
+                              const total = a + i;
+                              const C = 2 * Math.PI * 60;
+                              const activeLen = total > 0 ? (a / total) * C : 0;
+                              return (
+                                <svg
+                                  className="donut-svg"
+                                  viewBox="0 0 160 160"
+                                  role="img"
+                                  aria-label={`${a} active and ${i} inactive donors`}
+                                >
+                                  <circle cx="80" cy="80" r="60" fill="none" stroke="#324E58" strokeWidth="20" />
+                                  {total > 0 && a > 0 && (
+                                    <circle
+                                      cx="80" cy="80" r="60" fill="none"
+                                      stroke="#DB8633" strokeWidth="20"
+                                      strokeDasharray={`${activeLen} ${C - activeLen}`}
+                                      strokeDashoffset={C / 4}
+                                      strokeLinecap="butt"
+                                    />
+                                  )}
+                                  <text x="80" y="80" textAnchor="middle" dominantBaseline="central"
+                                        fontSize="22" fontWeight="700" fill="#324E58">
+                                    {total > 0 ? `${Math.round((a / total) * 100)}%` : '--'}
+                                  </text>
+                                  <text x="80" y="102" textAnchor="middle" fontSize="10" fill="#8c8c8c">
+                                    active
+                                  </text>
+                                </svg>
+                              );
+                            })()}
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
@@ -1218,7 +1283,9 @@ const Dashboard: React.FC = () => {
                             <div className="chart-legend">
                               <div className="legend-item">
                                 <span className="legend-color active"></span>
-                                <span>Average: {dashboardStats?.donationsAverage ? `${formatMoney(dashboardStats.donationsAverage)}/week` : '--'}</span>
+                                <span>Average: {dashboardStats?.donationsAverage
+                                  ? `${formatMoney(dashboardStats.donationsAverage)} per ${dashboardStats.donationsBucketUnit || 'week'}`
+                                  : '--'}</span>
                               </div>
                               <div className="legend-item">
                                 <span className="legend-color inactive"></span>

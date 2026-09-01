@@ -569,17 +569,34 @@
 .chart-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+  /* `align-items: center` shrank every child to its own content width, so
+     .line-chart (width: 100%) never filled the card — that is the large empty
+     gap to the left of the chart. Children are stretched now and the ones that
+     should be centred say so individually. */
+  align-items: stretch;
+  /* space-between + min-height 350px forced the badge, chart and legend apart
+     with dead space between them, which read as both cramped and empty. */
+  justify-content: flex-start;
   width: 100%;
-  gap: 20px;
+  gap: 18px;
   text-align: center;
   flex: 1;
-  min-height: 350px;
-  padding: 16px 0;
+  min-height: 0;
+  padding: 8px 0 4px;
 }
 
 /* Donut Chart */
+/* Real donut, drawn in SVG from the actual active/inactive split. .donut-chart
+   below is the old decoration — a fixed conic-gradient slice at 72deg that
+   claimed 20% active no matter what the legend said. */
+.donut-svg {
+  width: 150px;
+  height: 150px;
+  display: block;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
 .donut-chart {
   width: 140px;
   height: 140px;
@@ -605,7 +622,10 @@
 /* Chart Total Value - Now positioned above the chart */
 .chart-total {
   text-align: center;
-  margin-bottom: 16px;
+  /* The parent stretches its children now (so the chart can fill the card), so
+     the badge has to opt back out or it spans the whole width. */
+  align-self: center;
+  margin-bottom: 0;
   padding: 16px 20px;
   background: linear-gradient(135deg, #DB8633 0%, #C6762A 100%);
   border-radius: 16px;
@@ -644,7 +664,10 @@
 .chart-legend {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  /* Same reason as .chart-total — keep the legend pills at their content width
+     instead of stretching edge to edge. */
+  align-items: center;
+  gap: 10px;
   width: 100%;
   justify-content: center;
   margin-top: 8px;
@@ -693,7 +716,9 @@
 /* Line Chart */
 .line-chart {
   width: 100%;
-  height: 140px;
+  /* Taller than the old 140px: the parent no longer pads the card out with
+     min-height: 350px, so the chart itself carries the vertical presence. */
+  height: 190px;
   position: relative;
   display: flex;
   flex-direction: column;
