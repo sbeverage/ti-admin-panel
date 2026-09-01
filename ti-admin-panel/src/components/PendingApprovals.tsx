@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty, Tooltip } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
@@ -35,6 +35,8 @@ interface ApprovalItem {
   enabled: boolean;
   avatar: string;
   itemType: 'vendor' | 'beneficiary';
+  /** Registered but never submitted for review — nothing to judge yet. */
+  isIncomplete?: boolean;
 }
 
 const PendingApprovals: React.FC = () => {
@@ -100,7 +102,9 @@ const PendingApprovals: React.FC = () => {
           active: approval.is_active || false,
           enabled: approval.is_enabled || false,
           avatar: approval.name ? approval.name.charAt(0).toUpperCase() : 'A',
-          itemType: (approval.type === 'beneficiary' ? 'beneficiary' : 'vendor') as 'vendor' | 'beneficiary'
+          itemType: (approval.type === 'beneficiary' ? 'beneficiary' : 'vendor') as 'vendor' | 'beneficiary',
+          isIncomplete:
+            approval.is_incomplete === true || approval.submission_state === 'incomplete',
         }));
         
         setApprovalsData(transformedData);
@@ -338,10 +342,19 @@ const PendingApprovals: React.FC = () => {
             {record.avatar}
           </Avatar>
           <Text strong>{text}</Text>
+          {/* Registered through the portal but never submitted for review.
+              There is nothing to approve yet — these need chasing, not a
+              decision, so the tag says so rather than looking like a normal
+              pending application. */}
+          {record.isIncomplete && (
+            <Tooltip title="Signed up but hasn't submitted their profile for review yet — follow up with them.">
+              <Tag color="orange">Incomplete</Tag>
+            </Tooltip>
+          )}
         </Space>
       ),
       fixed: 'left' as const,
-      width: 200,
+      width: 260,
     },
     {
       title: activeTab === 'vendors' ? 'Owner Name' : 'Contact Person',
