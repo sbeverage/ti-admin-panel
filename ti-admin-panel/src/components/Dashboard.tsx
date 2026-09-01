@@ -53,6 +53,22 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Money for a metric card. The previous inline
+  // `$${(v / 1000).toFixed(0)}K` rendered every figure below $500 as "$0K" —
+  // with real totals in the hundreds that is what made Total Donation and
+  // Total Revenue look blank. Abbreviate only once a figure is large enough
+  // for the abbreviation to carry information.
+  const formatMoney = (value: unknown): string => {
+    const n = Number(value ?? 0);
+    if (!Number.isFinite(n) || n === 0) return '--';
+    if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (Math.abs(n) >= 10_000) return `$${(n / 1_000).toFixed(1)}K`;
+    return `$${n.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
   const filterLabelToPeriod = (label: string): string => {
     switch (label) {
       case 'All': return 'all';
@@ -673,13 +689,13 @@ const Dashboard: React.FC = () => {
     },
     { 
       title: 'Monthly Donations', 
-      value: dashboardStats?.monthlyDonations ? `$${(dashboardStats.monthlyDonations / 1000).toFixed(0)}K` : '--', 
+      value: formatMoney(dashboardStats?.monthlyDonations), 
       icon: <GiftOutlined />, 
       growth: '+92.3' 
     },
     { 
       title: 'Total Donations', 
-      value: dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--', 
+      value: formatMoney(dashboardStats?.totalDonations), 
       icon: <DollarOutlined />, 
       growth: '+92.3' 
     },
@@ -1008,7 +1024,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Donation"
-                      value={dashboardStats?.totalDonations ? `$${(dashboardStats.totalDonations / 1000).toFixed(0)}K` : '--'}
+                      value={formatMoney(dashboardStats?.totalDonations)}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
@@ -1017,7 +1033,7 @@ const Dashboard: React.FC = () => {
                   <Card className="summary-card">
                     <Statistic
                       title="Total Revenue"
-                      value={dashboardStats?.totalRevenue ? `$${(dashboardStats.totalRevenue / 1000).toFixed(0)}K` : '--'}
+                      value={formatMoney(dashboardStats?.totalRevenue)}
                       prefix={<DollarOutlined style={{ color: '#DB8633' }} />}
                     />
                   </Card>
