@@ -55,6 +55,14 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
   const [discountType, setDiscountType] = useState<DiscountType | undefined>(editingDiscount?.discountType || undefined);
   const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>(vendorId || undefined);
 
+  // Opened from inside one vendor's profile: the caller named the vendor and
+  // gave no list to choose from. VendorProfile passes vendorId/vendorName but
+  // no vendorOptions, so the picker rendered empty ("No data") while still
+  // demanding a selection — there was no way to submit the form. The Discounts
+  // page passes vendorOptions and needs the picker, so distinguish on that
+  // rather than on vendorId alone.
+  const lockedToVendor = !!vendorId && !(vendorOptions && vendorOptions.length > 0);
+
   useEffect(() => {
     if (visible) {
       if (editingDiscount) {
@@ -75,6 +83,12 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         form.resetFields();
         setDiscountType(undefined);
         setSelectedVendorId(vendorId || undefined);
+        // resetFields() clears vendorId too, so a modal opened from a vendor
+        // profile had an empty required field and failed validation on submit
+        // even once the picker was sorted.
+        if (vendorId) {
+          form.setFieldsValue({ vendorId });
+        }
       }
     }
   }, [visible, editingDiscount, form, vendorId]);
@@ -225,27 +239,45 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         onFinish={handleSubmit}
         className="discount-form"
       >
+        {/* Keep the field registered either way so validation and submission
+            behave the same; only the control changes. */}
         <Form.Item
           name="vendorId"
           label="Vendor"
           rules={[{ required: true, message: 'Please select a vendor' }]}
+          hidden={lockedToVendor}
         >
-          <Select
-            placeholder="Select vendor"
-            size="large"
-            value={selectedVendorId}
-            onChange={(value) => setSelectedVendorId(value)}
-            disabled={!!editingDiscount}
-            showSearch
-            optionFilterProp="children"
-          >
-            {(vendorOptions || []).map((vendor) => (
-              <Option key={vendor.id} value={vendor.id}>
-                {vendor.name}
-              </Option>
-            ))}
-          </Select>
+          {lockedToVendor ? (
+            <Input type="hidden" />
+          ) : (
+            <Select
+              placeholder="Select vendor"
+              size="large"
+              value={selectedVendorId}
+              onChange={(value) => setSelectedVendorId(value)}
+              disabled={!!editingDiscount}
+              showSearch
+              optionFilterProp="children"
+              notFoundContent="No vendors available"
+            >
+              {(vendorOptions || []).map((vendor) => (
+                <Option key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </Option>
+              ))}
+            </Select>
+          )}
         </Form.Item>
+
+        {lockedToVendor && (
+          <Form.Item label="Vendor">
+            <Input
+              value={vendorName || `Vendor #${vendorId}`}
+              disabled
+              size="large"
+            />
+          </Form.Item>
+        )}
 
         {/* Discount Preview Card */}
         {preview && formatDiscountPreview(preview) && (
