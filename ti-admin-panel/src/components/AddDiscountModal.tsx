@@ -437,6 +437,9 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           tooltip="What the offer covers and how to use it — the detail a donor needs before walking in."
           extra="Don't repeat the headline. Say what it applies to and how it works."
           rules={[{
+            required: true,
+            message: 'Tell donors what the offer includes',
+          }, {
             warningOnly: true,
             validator: (_, value) =>
               repeatsHeadline(form.getFieldValue('title'), value)
