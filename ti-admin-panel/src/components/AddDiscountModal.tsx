@@ -10,7 +10,6 @@ import {
   Typography,
   Divider,
   message,
-  Card,
   Row,
   Col
 } from 'antd';
@@ -101,25 +100,6 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
     setDiscountType(value);
     // Reset discount value when type changes
     form.setFieldsValue({ discountValue: undefined });
-  };
-
-  const formatDiscountPreview = (values: any) => {
-    if (!values.discountType || !values.title) return null;
-
-    const { discountType, discountValue, title } = values;
-    
-    switch (discountType) {
-      case 'percentage':
-        return `${discountValue || 'X'}% off ${title}`;
-      case 'fixed':
-        return `$${discountValue || 'X'} off ${title}`;
-      case 'bogo':
-        return `Buy One Get One ${title}`;
-      case 'free':
-        return `FREE ${title}`;
-      default:
-        return title;
-    }
   };
 
   const handleSubmit = async () => {
@@ -215,7 +195,6 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
     }
   };
 
-  const preview = Form.useWatch([], form);
 
   // Drives the live preview. useWatch re-renders on each keystroke, which is
   // the entire point — the vendor sees the card fill in as they write it.
@@ -294,39 +273,6 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           </Form.Item>
         )}
 
-        {/* Discount Preview Card */}
-        {preview && formatDiscountPreview(preview) && (
-          <Card 
-            className="discount-preview-card"
-            style={{ 
-              marginBottom: 24,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none'
-            }}
-          >
-            <Row align="middle" gutter={16}>
-              <Col flex="auto">
-                <Text style={{ color: '#fff', fontSize: 18, fontWeight: 600 }}>
-                  {formatDiscountPreview(preview)}
-                </Text>
-                {preview.posCode && (
-                  <div style={{ marginTop: 8 }}>
-                    <Text style={{ color: '#fff', opacity: 0.9, fontSize: 14 }}>
-                      Code: <Text strong style={{ color: '#fff' }}>{preview.posCode}</Text>
-                    </Text>
-                  </div>
-                )}
-              </Col>
-              {preview.usageLimit && preview.usageLimit !== 'unlimited' && (
-                <Col>
-                  <Text style={{ color: '#fff', opacity: 0.9, fontSize: 12 }}>
-                    {preview.usageLimit === '1' ? '1x per month' : `${preview.usageLimit}x per month`}
-                  </Text>
-                </Col>
-              )}
-            </Row>
-          </Card>
-        )}
 
         {/* The headline on the card's orange band. One line, so it is capped
             here rather than shrunk to fit in the app. */}
