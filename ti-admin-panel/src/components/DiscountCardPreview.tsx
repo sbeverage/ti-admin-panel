@@ -10,8 +10,8 @@
 
 import React from 'react';
 
-export const TITLE_MAX = 45;
-export const TITLE_WARN = 38;
+export const TITLE_MAX = 26;
+export const TITLE_WARN = 22;
 export const DESCRIPTION_MAX = 140;
 export const TERMS_MAX = 200;
 
