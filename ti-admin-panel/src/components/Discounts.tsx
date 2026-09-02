@@ -391,6 +391,26 @@ const Discounts: React.FC = () => {
       width: 100,
     },
     {
+      // Now shown on the donor's card, so it needs to be reviewable here —
+      // a discount marked online-only that is really in-store sends donors
+      // to a website that won't honour it.
+      title: 'Where',
+      dataIndex: 'availability',
+      key: 'availability',
+      render: (availability: string) => {
+        if (!availability) return <Tag color="warning">Not set</Tag>;
+        const labels: Record<string, string> = {
+          'in-store': 'In-store', online: 'Online', both: 'In-store & online',
+        };
+        const colors: Record<string, string> = {
+          'in-store': 'orange', online: 'geekblue', both: 'purple',
+        };
+        const key = String(availability).toLowerCase();
+        return <Tag color={colors[key] || 'default'}>{labels[key] || availability}</Tag>;
+      },
+      width: 150,
+    },
+    {
       title: 'Code',
       dataIndex: 'discountCode',
       key: 'discountCode',

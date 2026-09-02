@@ -23,6 +23,9 @@ import {
   PlusOutlined
 } from '@ant-design/icons';
 import { discountAPI } from '../services/api';
+import DiscountCardPreview, {
+  SAMPLE_DISCOUNT, TITLE_MAX, TITLE_WARN, DESCRIPTION_MAX, TERMS_MAX, repeatsHeadline,
+} from './DiscountCardPreview';
 import './AddDiscountModal.css';
 
 const { Option } = Select;
@@ -75,7 +78,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           posCode: editingDiscount.posCode || editingDiscount.discount_code || editingDiscount.promoCode,
           usageLimit: editingDiscount.usageLimit || editingDiscount.usage_limit || 'unlimited',
           description: editingDiscount.description || editingDiscount.additionalTerms,
-          availability: editingDiscount.availability || null
+          terms: editingDiscount.terms || null,
+          availability: editingDiscount.availability || 'in-store'
         });
         setDiscountType(editingDiscount.discountType || editingDiscount.discount_type);
         setSelectedVendorId(editingDiscount.vendorId || vendorId);
@@ -153,7 +157,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         startDate: new Date().toISOString(), // Send both for compatibility
         end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
         endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // Send both for compatibility
-        availability: values.availability || null,
+        availability: values.availability || 'in-store',
+        terms: values.terms || null,
       };
 
       // Set discount value based on type (send both snake_case and camelCase)
@@ -212,6 +217,14 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
 
   const preview = Form.useWatch([], form);
 
+  // Drives the live preview. useWatch re-renders on each keystroke, which is
+  // the entire point — the vendor sees the card fill in as they write it.
+  const watchedTitle = Form.useWatch('title', form);
+  const watchedDescription = Form.useWatch('description', form);
+  const watchedTerms = Form.useWatch('terms', form);
+  const watchedAvailability = Form.useWatch('availability', form);
+  const watchedUsageLimit = Form.useWatch('usageLimit', form);
+
   return (
     <Modal
       title={
@@ -229,7 +242,7 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
       open={visible}
       onCancel={onCancel}
       footer={null}
-      width={700}
+      width={1040}
       className="add-discount-modal"
     >
       <Form
@@ -239,6 +252,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         onFinish={handleSubmit}
         className="discount-form"
       >
+        <Row gutter={28}>
+          <Col xs={24} lg={14}>
         {/* Keep the field registered either way so validation and submission
             behave the same; only the control changes. */}
         <Form.Item
@@ -313,17 +328,30 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           </Card>
         )}
 
-        {/* Title */}
+        {/* The headline on the card's orange band. One line, so it is capped
+            here rather than shrunk to fit in the app. */}
         <Form.Item
           name="title"
-          label="Discount Title"
-          rules={[{ required: true, message: 'Please enter a discount title' }]}
-          tooltip="This is what donors will see (e.g., '10% off Pizza', 'FREE Coffee')"
+          label="Offer headline"
+          rules={[
+            { required: true, message: 'Please enter the offer headline' },
+            { max: TITLE_MAX, message: `Keep it to ${TITLE_MAX} characters so it fits the card` },
+          ]}
+          tooltip="The offer itself, in plain words. This is the big text on the orange band."
+          extra="Lead with what the donor gets: “20% off your entire order”."
         >
           <Input
-            placeholder="e.g., 10% off Pizza, FREE Coffee, Buy One Get One"
+            placeholder="20% off your entire order"
             size="large"
             prefix={<TagOutlined />}
+            maxLength={TITLE_MAX}
+            showCount={{
+              formatter: ({ count }) => (
+                <span style={{ color: count > TITLE_WARN ? '#D48806' : undefined }}>
+                  {count}/{TITLE_MAX}
+                </span>
+              ),
+            }}
           />
         </Form.Item>
 
@@ -459,16 +487,83 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
 
         <Form.Item
           name="description"
-          label="Additional Details"
-          tooltip="Any additional terms or conditions for this discount"
+          label="What's included"
+          tooltip="What the offer covers and how to use it — the detail a donor needs before walking in."
+          extra="Don't repeat the headline. Say what it applies to and how it works."
+          rules={[{
+            warningOnly: true,
+            validator: (_, value) =>
+              repeatsHeadline(form.getFieldValue('title'), value)
+                ? Promise.reject(new Error('This repeats the headline — tell donors something new, like what it covers or how to use it.'))
+                : Promise.resolve(),
+          }]}
         >
           <TextArea
-            placeholder="e.g., Valid on weekdays only, Excludes alcohol, Minimum purchase required"
+            placeholder="Valid on all food and non-alcoholic drinks, dine-in or takeout. Show the code at the register before you pay."
             rows={3}
-            maxLength={500}
+            maxLength={DESCRIPTION_MAX}
             showCount
           />
         </Form.Item>
+
+        {/* Previously missing entirely, which pushed restrictions into the
+            description and left both fields saying the same thing. */}
+        <Form.Item
+          name="terms"
+          label="Fine print"
+          tooltip="Restrictions and exclusions. Shown in small italics at the bottom of the card."
+          extra="Limits and exclusions only — not a second description."
+        >
+          <TextArea
+            placeholder="One per visit. Not valid with other offers or on holidays."
+            rows={2}
+            maxLength={TERMS_MAX}
+            showCount
+          />
+        </Form.Item>
+
+          </Col>
+
+          {/* Live preview. Sticky so it stays in view while the form scrolls —
+              a preview you have to scroll back to find is a preview nobody
+              looks at. */}
+          <Col xs={24} lg={10}>
+            <div style={{ position: 'sticky', top: 0 }}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                How donors will see it
+              </Text>
+              <DiscountCardPreview
+                title={watchedTitle}
+                description={watchedDescription}
+                terms={watchedTerms}
+                availability={watchedAvailability}
+                usageLimit={watchedUsageLimit}
+              />
+
+              <Divider style={{ margin: '20px 0 12px' }} />
+
+              <Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 12 }}>
+                A good example — each field does a different job
+              </Text>
+              <DiscountCardPreview {...SAMPLE_DISCOUNT} sample />
+
+              <div
+                style={{
+                  marginTop: 12, padding: '10px 12px', background: '#FAFAFA',
+                  border: '1px solid #F0F0F0', borderRadius: 8,
+                  fontSize: 12, color: '#8C8C8C', lineHeight: '18px',
+                }}
+              >
+                <div><strong>Headline</strong> — the offer</div>
+                <div><strong>What's included</strong> — what it covers, how to use it</div>
+                <div><strong>Fine print</strong> — limits and exclusions</div>
+                <div style={{ marginTop: 6 }}>
+                  If all three say the same thing, donors learn nothing from two of them.
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
 
         <Divider />
 
