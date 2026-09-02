@@ -11,7 +11,8 @@ import {
   Divider,
   message,
   Row,
-  Col
+  Col,
+  DatePicker
 } from 'antd';
 import {
   GiftOutlined,
@@ -21,6 +22,7 @@ import {
   TagOutlined,
   PlusOutlined
 } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import { discountAPI } from '../services/api';
 import DiscountCardPreview, {
   SAMPLE_DISCOUNT, TITLE_MAX, TITLE_WARN, DESCRIPTION_MAX, TERMS_MAX, repeatsHeadline,
@@ -78,7 +80,13 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
           usageLimit: editingDiscount.usageLimit || editingDiscount.usage_limit || 'unlimited',
           description: editingDiscount.description || editingDiscount.additionalTerms,
           terms: editingDiscount.terms || null,
-          availability: editingDiscount.availability || 'in-store'
+          availability: editingDiscount.availability || 'in-store',
+          startDate: (editingDiscount.startDate || editingDiscount.start_date)
+            ? dayjs(editingDiscount.startDate || editingDiscount.start_date)
+            : null,
+          endDate: (editingDiscount.endDate || editingDiscount.end_date)
+            ? dayjs(editingDiscount.endDate || editingDiscount.end_date)
+            : null
         });
         setDiscountType(editingDiscount.discountType || editingDiscount.discount_type);
         setSelectedVendorId(editingDiscount.vendorId || vendorId);
@@ -92,6 +100,8 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         if (vendorId) {
           form.setFieldsValue({ vendorId });
         }
+        // Starts today, runs continuously until an end date is set.
+        form.setFieldsValue({ startDate: dayjs(), endDate: null });
       }
     }
   }, [visible, editingDiscount, form, vendorId]);
@@ -133,10 +143,13 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
         usageLimit: values.usageLimit, // Send both for compatibility
         is_active: true,
         isActive: true, // Send both for compatibility
-        start_date: new Date().toISOString(),
-        startDate: new Date().toISOString(), // Send both for compatibility
-        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // Send both for compatibility
+        // Dates come from the form now. An empty end date is a continuous
+        // offer: the listing query treats a null end_date as never expiring,
+        // so it must be sent as null rather than defaulted to a year out.
+        start_date: values.startDate ? dayjs(values.startDate).format('YYYY-MM-DD') : null,
+        startDate: values.startDate ? dayjs(values.startDate).format('YYYY-MM-DD') : null,
+        end_date: values.endDate ? dayjs(values.endDate).format('YYYY-MM-DD') : null,
+        endDate: values.endDate ? dayjs(values.endDate).format('YYYY-MM-DD') : null,
         availability: values.availability || 'in-store',
         terms: values.terms || null,
       };
@@ -393,6 +406,51 @@ const AddDiscountModal: React.FC<AddDiscountModalProps> = ({
             <Option value="both">In-Store & Online</Option>
           </Select>
         </Form.Item>
+
+        {/* Both optional. An empty end date is not missing data — it is how a
+            continuous offer is expressed, and the listing query treats a null
+            end_date as never expiring. */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="startDate"
+              label="Starts"
+              tooltip="Donors won't see the discount until this date."
+            >
+              <DatePicker
+                size="large"
+                style={{ width: '100%' }}
+                format="MMM D, YYYY"
+                placeholder="Today"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="endDate"
+              label="Ends"
+              tooltip="Leave empty and the offer runs continuously."
+              extra="Empty = runs continuously"
+              dependencies={['startDate']}
+              rules={[({ getFieldValue }) => ({
+                validator: (_, value) => {
+                  const start = getFieldValue('startDate');
+                  if (!value || !start || !dayjs(value).isBefore(dayjs(start), 'day')) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('End date cannot be before the start date'));
+                },
+              })]}
+            >
+              <DatePicker
+                size="large"
+                style={{ width: '100%' }}
+                format="MMM D, YYYY"
+                placeholder="No end date"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
         {/* POS/Discount Code */}
         <Form.Item

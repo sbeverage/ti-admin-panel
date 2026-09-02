@@ -429,6 +429,34 @@ const Discounts: React.FC = () => {
       width: 120,
     },
     {
+      // The dates were already loaded into the row and never shown. An empty
+      // end date is a continuous offer, not missing data, so it reads
+      // "Continuous" rather than a blank cell.
+      title: 'Runs',
+      key: 'runs',
+      render: (_: any, record: any) => {
+        const fmt = (d?: string | null) =>
+          d ? new Date(d).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+          }) : null;
+        const start = fmt(record.startDate);
+        const end = fmt(record.endDate);
+        const expired = record.endDate && new Date(record.endDate) < new Date();
+        const pending = record.startDate && new Date(record.startDate) > new Date();
+        return (
+          <div style={{ fontSize: 12, lineHeight: '18px' }}>
+            <div>{start || '—'}</div>
+            <div style={{ color: end ? '#8C8C8C' : '#389E0D' }}>
+              {end ? `to ${end}` : 'Continuous'}
+            </div>
+            {expired && <Tag color="error" style={{ marginTop: 4 }}>Expired</Tag>}
+            {pending && <Tag color="warning" style={{ marginTop: 4 }}>Not started</Tag>}
+          </div>
+        );
+      },
+      width: 150,
+    },
+    {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
