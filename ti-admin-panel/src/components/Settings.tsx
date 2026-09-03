@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Tabs, Form, Switch, Modal, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
 import { settingsAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   ExclamationCircleOutlined, MenuOutlined, BellOutlined, UserAddOutlined,
-  EditOutlined, GiftOutlined, LockOutlined,
+  EditOutlined, DeleteOutlined, GiftOutlined, LockOutlined,
   TeamOutlined, SecurityScanOutlined,
   ApiOutlined, GlobalOutlined, CalculatorOutlined, MailOutlined
 } from '@ant-design/icons';
@@ -26,7 +28,9 @@ const Settings: React.FC = () => {
   const [showApiRateLimiting, setShowApiRateLimiting] = useState(false);
   const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
   const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
+  const [isDeleteUserModalVisible, setIsDeleteUserModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [deletingUser, setDeletingUser] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +51,22 @@ const Settings: React.FC = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
+
+  const getCurrentAdminEmail = (): string | null => {
+    const cachedEmail = localStorage.getItem('admin_email');
+    if (cachedEmail) return cachedEmail.toLowerCase();
+    const storedUsername = localStorage.getItem('admin_username');
+    if (storedUsername?.includes('@')) return storedUsername.toLowerCase();
+    const matched = teamMembers.find(
+      (m: any) => m?.email === storedUsername || m?.name === storedUsername
+    );
+    return matched?.email?.toLowerCase() || personalProfile?.email?.toLowerCase() || null;
+  };
+
+  const isCurrentUser = (record: any): boolean => {
+    const currentEmail = getCurrentAdminEmail();
+    return !!currentEmail && record?.email?.toLowerCase() === currentEmail;
+  };
 
   // Load settings data from API
   const loadSettingsData = async () => {
@@ -154,101 +174,6 @@ const Settings: React.FC = () => {
     }
   }, [personalProfile, profileForm]);
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
-
   const teamColumns = [
     {
       title: 'Team Member',
@@ -307,16 +232,64 @@ const Settings: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
             className="edit-user-btn"
+            title="Edit team member"
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteUser(record)}
+            className="delete-user-btn"
+            danger
+            disabled={isCurrentUser(record)}
+            title={isCurrentUser(record) ? 'You cannot delete your own account' : 'Delete team member'}
           />
         </Space>
       ),
-      width: 120,
+      width: 140,
     }] : []),
   ];
 
   const handleEditUser = (user: any) => {
     setEditingUser(user);
     setIsEditUserModalVisible(true);
+  };
+
+  const handleDeleteUser = (user: any) => {
+    if (isCurrentUser(user)) {
+      message.error('You cannot delete your own account.');
+      return;
+    }
+    setDeletingUser(user);
+    setIsDeleteUserModalVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deletingUser?.id) {
+      message.error('Cannot delete team member: missing ID');
+      return;
+    }
+    if (isCurrentUser(deletingUser)) {
+      message.error('You cannot delete your own account.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await settingsAPI.deleteTeamMember(deletingUser.id);
+      if (response.success) {
+        message.success(`Team member ${deletingUser.name || deletingUser.email} deleted successfully`);
+        setIsDeleteUserModalVisible(false);
+        setDeletingUser(null);
+        await loadSettingsData();
+      } else {
+        message.error(response.error || response.message || 'Failed to delete team member');
+      }
+    } catch (error: any) {
+      console.error('Error deleting team member:', error);
+      message.error(error.message || 'Failed to delete team member. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddUser = () => {
@@ -453,48 +426,11 @@ const Settings: React.FC = () => {
 
   return (
     <Layout className="settings-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="settings"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sider
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        trigger={null}
-        width={280}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img
-              src="/white-logo.png"
-              alt="THRIVE Logo"
-              className="standard-logo-image"
-            />
-          </div>
-        </div>
-
-        <Menu
-          mode="inline"
-          defaultSelectedKeys={['settings']}
-          selectedKeys={[location.pathname === '/settings' ? 'settings' : '']}
-          items={menuItems}
-          className="standard-menu"
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       {/* Main Content */}
       <Layout className="main-content">
@@ -508,8 +444,13 @@ const Settings: React.FC = () => {
         <Content className="settings-content">
           <Spin spinning={loading}>
             <div className="content-wrapper">
-              <Tabs 
-                activeKey={activeTab} 
+              <DashboardSection
+                title="Settings"
+                subtitle="Profile, security, team, and API rate-limiting configuration"
+                icon={<SettingOutlined />}
+              >
+              <Tabs
+                activeKey={activeTab}
               onChange={handleTabChange}
               className="settings-tabs"
               items={[
@@ -796,6 +737,7 @@ const Settings: React.FC = () => {
                 }
               ]}
             />
+              </DashboardSection>
             </div>
           </Spin>
         </Content>
@@ -952,6 +894,47 @@ const Settings: React.FC = () => {
               </Space>
             </Form.Item>
           </Form>
+        )}
+      </Modal>
+
+      {/* Delete Team Member Modal */}
+      <Modal
+        title="Delete Team Member"
+        open={isDeleteUserModalVisible}
+        onOk={confirmDeleteUser}
+        onCancel={() => {
+          setIsDeleteUserModalVisible(false);
+          setDeletingUser(null);
+        }}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={loading}
+      >
+        {deletingUser && (
+          <div>
+            <p>Are you sure you want to permanently remove this team member?</p>
+            <div
+              style={{
+                padding: '16px',
+                background: '#fff7e6',
+                borderRadius: '4px',
+                marginTop: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <Text strong>Team Member Details:</Text>
+              <br />
+              <Text>Name: {deletingUser.name}</Text>
+              <br />
+              <Text>Email: {deletingUser.email}</Text>
+              <br />
+              <Text>Role: {deletingUser.role}</Text>
+            </div>
+            <p style={{ color: '#ff4d4f', marginBottom: 0 }}>
+              <Text strong>Warning:</Text> This action cannot be undone. They will lose access to the admin panel immediately.
+            </p>
+          </div>
         )}
       </Modal>
 

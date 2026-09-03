@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Button, Card, Row, Col, Table, DatePicker, Select, Tag, Modal, Form, Input, message, Statistic, Divider, Tooltip, Badge, Dropdown } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
 import { reportingAPI, beneficiaryAPI } from '../services/api';
 import {
   DashboardOutlined,
@@ -26,12 +28,15 @@ import {
   CalculatorOutlined,
   ReconciliationOutlined,
   DownOutlined,
-  MailOutlined
+  MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import './Reporting.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
 import dayjs, { Dayjs } from 'dayjs';
+import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+dayjs.extend(quarterOfYear);
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -46,11 +51,10 @@ interface PayoutData {
   monthlyDonations: number;
   oneTimeDonations: number;
   donationCount: number;
-  serviceFees: number; // $3 per donation
-  ccProcessingFees: number; // If donor opted in
-  netAmount: number; // Total - Service Fees - CC Fees
-  platformFee: number; // 20% of net amount
-  payoutAmount: number; // 80% of net amount
+  ccProcessingFees: number; // CC processing fees beneficiary absorbed (donor didn't cover)
+  netAmount: number; // Total - Platform Fee - CC Fees
+  platformFee: number; // $3 per donation (THRIVE's revenue)
+  payoutAmount: number; // Total donations - platform fee - absorbed processing fees
   stripeAmount: number; // Actual amount collected from Stripe
   reconciliationStatus: 'matched' | 'needs_review' | 'pending';
   bankInfo: {
@@ -70,12 +74,29 @@ const Reporting: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [payoutData, setPayoutData] = useState<PayoutData[]>([]);
+  // Highlights section: independent period selector (Month / Quarter / Year).
+  // Beneficiary Payouts section: M / Q toggle for the payouts table below.
+  const [highlightsPeriod, setHighlightsPeriod] = useState<
+    'monthly' | 'quarterly' | 'yearly'
+  >('monthly');
+  const [highlightsDate, setHighlightsDate] = useState<Dayjs>(dayjs());
+  const [highlightsTotals, setHighlightsTotals] = useState<{
+    totalDonations: number;
+    totalCCFees: number;
+    totalPlatformFee: number;
+    totalPayoutAmount: number;
+    totalDonationCount: number;
+  } | null>(null);
+  const [payoutsPeriod, setPayoutsPeriod] = useState<'monthly' | 'quarterly'>(
+    'monthly',
+  );
   const [loading, setLoading] = useState(false);
   const [bankInfoModalVisible, setBankInfoModalVisible] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<PayoutData | null>(null);
   const [payoutStatusModalVisible, setPayoutStatusModalVisible] = useState(false);
   const [needsReviewFilter, setNeedsReviewFilter] = useState(false);
   const [bankInfoFilter, setBankInfoFilter] = useState<'all' | 'has' | 'missing'>('all');
+  const [backfillLoading, setBackfillLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,152 +105,122 @@ const Reporting: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // Menu items for sidebar
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendors',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <CrownOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <FileTextOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <CalendarOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
-  const handleMenuClick = (e: any) => {
-    const key = e.key;
-    if (key === 'dashboard') navigate('/dashboard');
-    else if (key === 'donors') navigate('/donors');
-    else if (key === 'beneficiaries') navigate('/beneficiaries');
-    else if (key === 'vendor') navigate('/vendor');
-    else if (key === 'discounts') navigate('/discounts');
-    else if (key === 'pending-approvals') navigate('/pending-approvals');
-    else if (key === 'invitations') navigate('/invitations');
-    else if (key === 'referral-analytics') navigate('/referral-analytics');
-    else if (key === 'geographic-analytics') navigate('/geographic-analytics');
-    else if (key === 'reporting') navigate('/reporting');
-    else if (key === 'settings') navigate('/settings');
-    setMobileSidebarVisible(false);
+  // Compute the [start, end] YYYY-MM-DD pair for a given period + anchor date.
+  const rangeFor = (
+    period: 'monthly' | 'quarterly' | 'yearly',
+    anchor: Dayjs,
+  ): [string, string] => {
+    switch (period) {
+      case 'quarterly':
+        return [
+          anchor.startOf('quarter').format('YYYY-MM-DD'),
+          anchor.endOf('quarter').format('YYYY-MM-DD'),
+        ];
+      case 'yearly':
+        return [
+          anchor.startOf('year').format('YYYY-MM-DD'),
+          anchor.endOf('year').format('YYYY-MM-DD'),
+        ];
+      default:
+        return [
+          anchor.startOf('month').format('YYYY-MM-DD'),
+          anchor.endOf('month').format('YYYY-MM-DD'),
+        ];
+    }
   };
 
-  // Load payout data for selected month
+  // Highlights uses its own period + date independent from the table.
+  const loadHighlights = async () => {
+    try {
+      const [start, end] = rangeFor(highlightsPeriod, highlightsDate);
+      const response = await reportingAPI.getPayoutData(start, end);
+      const payouts = response.success ? response.data?.payouts || [] : [];
+      const t = payouts.reduce(
+        (acc: any, item: any) => {
+          const donationCount = item.donationCount || 0;
+          const platformFee = item.platformFee ?? donationCount * 3;
+          const ccFees = item.processingFees || 0;
+          const total = item.totalDonations || 0;
+          return {
+            totalDonations: acc.totalDonations + total,
+            totalCCFees: acc.totalCCFees + ccFees,
+            totalPlatformFee: acc.totalPlatformFee + platformFee,
+            totalPayoutAmount:
+              acc.totalPayoutAmount +
+              (item.payoutAmount ?? total - platformFee - ccFees),
+            totalDonationCount: acc.totalDonationCount + donationCount,
+          };
+        },
+        {
+          totalDonations: 0,
+          totalCCFees: 0,
+          totalPlatformFee: 0,
+          totalPayoutAmount: 0,
+          totalDonationCount: 0,
+        },
+      );
+      setHighlightsTotals(t);
+    } catch (err) {
+      console.error('loadHighlights failed:', err);
+      setHighlightsTotals(null);
+    }
+  };
+
+  // Load payout table data — driven by payoutsPeriod (Month or Quarter).
   const loadPayoutData = async () => {
     setLoading(true);
     try {
-      const monthStart = selectedMonth.startOf('month').format('YYYY-MM-DD');
-      const monthEnd = selectedMonth.endOf('month').format('YYYY-MM-DD');
-      
-      const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
-      
-      // The endpoint returns { success, data: { payouts, summary, dateRange } }.
-      // This checked `response.data.length > 0` — data is an OBJECT, so length
-      // was undefined, the branch never ran and the page rendered empty. It
-      // then read snake_case fields (beneficiary_id, total_donations,
-      // monthly_donation_count…) while the endpoint returns camelCase, and
-      // recomputed fees the server already calculates.
-      //
-      // Server figures are used as-is: since 2026-09-01 processingFees is the
-      // real Stripe fee per invoice rather than a denormalized guess, so
-      // recomputing here would be less accurate, not more.
-      const payload: any = (response as any)?.data ?? {};
-      const rows: any[] = Array.isArray(payload.payouts) ? payload.payouts : [];
+      const [monthStart, monthEnd] = rangeFor(payoutsPeriod, selectedMonth);
 
-      if (rows.length > 0) {
-        const transformed: PayoutData[] = rows.map((item: any) => {
-          const acct = item.bankInfo || {};
+      const response = await reportingAPI.getPayoutData(monthStart, monthEnd);
+
+      // Backend response shape: {success, data: {payouts: [...], summary: {...}}}
+      const payouts = response.success ? response.data?.payouts || [] : [];
+
+      if (payouts.length > 0) {
+        // Transform API data to PayoutData format.
+        // Backend returns camelCase fields (see adminReporting.ts) — use them directly.
+        const transformed: PayoutData[] = payouts.map((item: any) => {
+          const totalDonations = item.totalDonations || 0;
+          const donationCount = item.donationCount || 0;
+          const ccProcessingFees = item.processingFees || 0;
+          const platformFee = item.platformFee ?? donationCount * 3;
+          const payoutAmount = item.payoutAmount ?? totalDonations - platformFee - ccProcessingFees;
+          const netAmount = item.netAmount ?? payoutAmount;
+
+          // Stripe reconciliation isn't returned by backend yet — leave as pending.
+          const stripeAmount = item.stripeAmount || 0;
+          const reconciliationStatus: 'matched' | 'needs_review' | 'pending' = 'pending';
+
           return {
             key: item.beneficiaryId?.toString() || Math.random().toString(),
             beneficiaryId: item.beneficiaryId,
             beneficiaryName: item.beneficiaryName || 'Unknown',
-            totalDonations: item.totalDonations || 0,
+            totalDonations,
             monthlyDonations: item.monthlyDonations || 0,
             oneTimeDonations: item.oneTimeGifts || 0,
-            donationCount: item.donationCount || 0,
-            serviceFees: item.serviceFee || 0,
-            ccProcessingFees: item.processingFees || 0,
-            netAmount: item.netAmount || 0,
-            platformFee: item.platformFee || 0,
-            payoutAmount: item.payoutAmount || 0,
-            // The payouts endpoint carries no Stripe cross-check, so there is
-            // nothing to compare against. Reported as pending rather than
-            // asserting "matched" from a comparison never made — real
-            // reconciliation lives in /admin/reporting/stripe-reconciliation.
-            stripeAmount: item.totalDonations || 0,
-            reconciliationStatus: 'pending' as const,
+            donationCount,
+            ccProcessingFees,
+            netAmount,
+            platformFee,
+            payoutAmount,
+            stripeAmount,
+            reconciliationStatus,
             bankInfo: {
-              hasBankInfo: Boolean(acct.accountNumber),
-              bankName: acct.bankName || undefined,
-              accountHolderName: acct.accountName || undefined,
-              routingNumber: acct.routingNumber || undefined,
-              accountNumber: acct.accountNumber
-                ? '****' + String(acct.accountNumber).slice(-4)
-                : undefined,
-              paymentMethod: acct.paymentMethod || 'check',
+              hasBankInfo: Boolean(item.bankInfo?.accountNumber),
+              bankName: item.bankInfo?.accountName,
+              accountHolderName: item.bankInfo?.accountName,
+              routingNumber: item.bankInfo?.routingNumber,
+              accountNumber: item.bankInfo?.accountNumber || undefined,
+              paymentMethod: item.bankInfo?.paymentMethod || 'check'
             },
             payoutStatus: item.payoutStatus || 'pending',
-            payoutDate: item.payoutDate || undefined,
-            notes: item.payoutNotes || undefined,
+            payoutDate: item.payoutDate,
+            notes: item.payoutNotes
           };
         });
-
+        
         setPayoutData(transformed);
       } else {
         setPayoutData([]);
@@ -244,7 +235,35 @@ const Reporting: React.FC = () => {
 
   useEffect(() => {
     loadPayoutData();
-  }, [selectedMonth]);
+  }, [selectedMonth, payoutsPeriod]);
+
+  useEffect(() => {
+    loadHighlights();
+  }, [highlightsPeriod, highlightsDate]);
+
+  // Stamp last_payment_date on any monthly_donations rows that never received
+  // the Stripe webhook (so they show up in admin reporting under the month
+  // they actually paid). Idempotent — safe to click again any time.
+  const handleBackfillPaymentDates = async () => {
+    setBackfillLoading(true);
+    try {
+      const response = await reportingAPI.backfillPaymentDates();
+      if (response.success) {
+        const txns = (response as any).transactionsUpserted ?? 0;
+        message.success(
+          `Backfill complete: ${(response as any).updated || 0} of ${(response as any).scanned || 0} subscriptions stamped from Stripe${txns ? `, ${txns} transactions upserted` : ''}.`
+        );
+        loadPayoutData();
+      } else {
+        message.error('Backfill failed. Check server logs.');
+      }
+    } catch (error: any) {
+      console.error('Backfill error:', error);
+      message.error(error.message || 'Backfill failed');
+    } finally {
+      setBackfillLoading(false);
+    }
+  };
 
   // Filter by needs review and bank info
   const displayedPayoutData = payoutData.filter((p) => {
@@ -259,7 +278,6 @@ const Reporting: React.FC = () => {
     totalDonations: acc.totalDonations + item.totalDonations,
     totalMonthlyDonations: acc.totalMonthlyDonations + item.monthlyDonations,
     totalOneTimeDonations: acc.totalOneTimeDonations + item.oneTimeDonations,
-    totalServiceFees: acc.totalServiceFees + item.serviceFees,
     totalCCFees: acc.totalCCFees + item.ccProcessingFees,
     totalNetAmount: acc.totalNetAmount + item.netAmount,
     totalPlatformFee: acc.totalPlatformFee + item.platformFee,
@@ -270,7 +288,6 @@ const Reporting: React.FC = () => {
     totalDonations: 0,
     totalMonthlyDonations: 0,
     totalOneTimeDonations: 0,
-    totalServiceFees: 0,
     totalCCFees: 0,
     totalNetAmount: 0,
     totalPlatformFee: 0,
@@ -372,11 +389,10 @@ const Reporting: React.FC = () => {
       'Monthly Donations',
       'One-Time Donations',
       'Donation Count',
-      'Service Fees ($3 each)',
       'CC Processing Fees',
       'Net Amount',
-      'Platform Fee (20%)',
-      'Payout Amount (80%)',
+      'Platform Fee ($3/donation)',
+      'Payout to Beneficiary',
       'Stripe Amount',
       'Reconciliation Status',
       'Payment Method',
@@ -391,7 +407,6 @@ const Reporting: React.FC = () => {
       item.monthlyDonations.toFixed(2),
       item.oneTimeDonations.toFixed(2),
       item.donationCount,
-      item.serviceFees.toFixed(2),
       item.ccProcessingFees.toFixed(2),
       item.netAmount.toFixed(2),
       item.platformFee.toFixed(2),
@@ -493,17 +508,6 @@ const Reporting: React.FC = () => {
       render: (count: number) => <Tag>{count}</Tag>
     },
     {
-      title: 'Service Fees',
-      dataIndex: 'serviceFees',
-      key: 'serviceFees',
-      width: 120,
-      align: 'right' as const,
-      render: (fees: number) => (
-        <Text type="secondary">${fees.toFixed(2)}</Text>
-      ),
-      tooltip: '$3 per donation'
-    },
-    {
       title: 'CC Fees',
       dataIndex: 'ccProcessingFees',
       key: 'ccProcessingFees',
@@ -525,7 +529,7 @@ const Reporting: React.FC = () => {
       )
     },
     {
-      title: 'Platform Fee (20%)',
+      title: 'Platform Fee ($3/donation)',
       dataIndex: 'platformFee',
       key: 'platformFee',
       width: 130,
@@ -536,7 +540,7 @@ const Reporting: React.FC = () => {
       className: 'table-header-small'
     },
     {
-      title: 'Payout (80%)',
+      title: 'Payout to Beneficiary',
       dataIndex: 'payoutAmount',
       key: 'payoutAmount',
       width: 130,
@@ -644,48 +648,11 @@ const Reporting: React.FC = () => {
 
   return (
     <Layout className="reporting-layout">
-      {/* Mobile Menu Button */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="reporting"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sider
-        width={280}
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        trigger={null}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img
-              src="/white-logo.png"
-              alt="THRIVE Logo"
-              className="standard-logo-image"
-            />
-          </div>
-        </div>
-
-        <Menu
-          mode="inline"
-          defaultSelectedKeys={['reporting']}
-          selectedKeys={[location.pathname === '/reporting' ? 'reporting' : '']}
-          items={menuItems}
-          className="standard-menu"
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       {/* Main Content */}
       <Layout className="standard-main-content">
@@ -694,41 +661,106 @@ const Reporting: React.FC = () => {
         </Header>
 
         <Content style={{ margin: '24px', minHeight: 280, background: colorBgContainer, padding: 24, borderRadius: borderRadiusLG }}>
+          <DashboardSection
+            title="Reporting Highlights"
+            subtitle="What's moving through the platform"
+            icon={<TrophyOutlined />}
+          >
+          {/* Highlights period selector — M / Q / Y chips + a picker whose type
+              adapts to the selected period. Drives the four cards below. */}
+          <div
+            style={{
+              marginBottom: 16,
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                background: '#f5f5f5',
+                borderRadius: 8,
+                padding: 3,
+                gap: 2,
+              }}
+            >
+              {(['monthly', 'quarterly', 'yearly'] as const).map((p) => {
+                const active = p === highlightsPeriod;
+                const label =
+                  p === 'monthly' ? 'Month' : p === 'quarterly' ? 'Quarter' : 'Year';
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setHighlightsPeriod(p)}
+                    style={{
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      background: active ? '#fff' : 'transparent',
+                      color: active ? '#262626' : '#595959',
+                      boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <DatePicker
+              picker={
+                highlightsPeriod === 'monthly'
+                  ? 'month'
+                  : highlightsPeriod === 'quarterly'
+                    ? 'quarter'
+                    : 'year'
+              }
+              value={highlightsDate}
+              onChange={(d) => d && setHighlightsDate(d)}
+              allowClear={false}
+            />
+          </div>
           {/* Summary Cards */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
                   title="Total Donations"
-                  value={totals.totalDonations}
+                  value={highlightsTotals?.totalDonations ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#52c41a' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {totals.totalDonationCount} donations
+                  {highlightsTotals?.totalDonationCount ?? 0} donations
                 </Text>
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Total Fees"
-                  value={totals.totalServiceFees + totals.totalCCFees}
+                  title="Stripe Processing Fees"
+                  value={highlightsTotals?.totalCCFees ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#ff4d4f' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Service: ${totals.totalServiceFees.toFixed(2)} | CC: ${totals.totalCCFees.toFixed(2)}
+                  What Stripe took from gross
                 </Text>
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Platform Fee (20%)"
-                  value={totals.totalPlatformFee}
+                  title="Platform Fee ($3/donation)"
+                  value={highlightsTotals?.totalPlatformFee ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#DB8633' }}
@@ -741,8 +773,8 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Total Payouts (80%)"
-                  value={totals.totalPayoutAmount}
+                  title="Total Payouts to Beneficiaries"
+                  value={highlightsTotals?.totalPayoutAmount ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#1890ff', fontSize: '24px' }}
@@ -753,19 +785,68 @@ const Reporting: React.FC = () => {
               </Card>
             </Col>
           </Row>
+          </DashboardSection>
 
+          <DashboardSection
+            title="Beneficiary Payouts"
+            subtitle="Breakdown of what each charity is owed for the selected period"
+            icon={<CalculatorOutlined />}
+          >
           {/* Filters and Actions */}
           <Card style={{ marginBottom: 24 }}>
             <Row gutter={16} align="middle">
               <Col xs={24} sm={12} md={8}>
-                <Space>
-                  <Text strong>Month:</Text>
+                <Space size={8} wrap>
+                  {/* Month / Quarter chip selector — adapts the picker type
+                      and the date range sent to /admin/reporting/payouts. */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      background: '#f5f5f5',
+                      borderRadius: 8,
+                      padding: 3,
+                      gap: 2,
+                    }}
+                  >
+                    {(['monthly', 'quarterly'] as const).map((p) => {
+                      const active = p === payoutsPeriod;
+                      const label = p === 'monthly' ? 'Month' : 'Quarter';
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPayoutsPeriod(p)}
+                          style={{
+                            border: 'none',
+                            padding: '5px 12px',
+                            borderRadius: 6,
+                            fontSize: 13,
+                            fontWeight: active ? 600 : 400,
+                            cursor: 'pointer',
+                            background: active ? '#fff' : 'transparent',
+                            color: active ? '#262626' : '#595959',
+                            boxShadow: active
+                              ? '0 1px 2px rgba(0,0,0,0.08)'
+                              : 'none',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <DatePicker
-                    picker="month"
+                    picker={payoutsPeriod === 'quarterly' ? 'quarter' : 'month'}
                     value={selectedMonth}
                     onChange={(date) => date && setSelectedMonth(date)}
-                    format="MMMM YYYY"
-                    style={{ width: 200 }}
+                    format={
+                      payoutsPeriod === 'quarterly'
+                        ? '[Q]Q YYYY'
+                        : 'MMMM YYYY'
+                    }
+                    style={{ width: 160 }}
+                    allowClear={false}
                   />
                 </Space>
               </Col>
@@ -778,6 +859,14 @@ const Reporting: React.FC = () => {
                   >
                     Refresh
                   </Button>
+                  <Tooltip title="Pull the latest paid invoice date from Stripe for any donations missing last_payment_date">
+                    <Button
+                      onClick={handleBackfillPaymentDates}
+                      loading={backfillLoading}
+                    >
+                      Backfill from Stripe
+                    </Button>
+                  </Tooltip>
                   <Button
                     icon={<DownloadOutlined />}
                     onClick={handleExportCSV}
@@ -802,7 +891,12 @@ const Reporting: React.FC = () => {
             title={
               <Space>
                 <CalculatorOutlined />
-                <Text strong>Beneficiary Payouts - {selectedMonth.format('MMMM YYYY')}</Text>
+                <Text strong>
+                  Beneficiary Payouts -{' '}
+                  {payoutsPeriod === 'quarterly'
+                    ? selectedMonth.format('[Q]Q YYYY')
+                    : selectedMonth.format('MMMM YYYY')}
+                </Text>
               </Space>
             }
             extra={
@@ -859,33 +953,31 @@ const Reporting: React.FC = () => {
                       <Tag>{totals.totalDonationCount}</Tag>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={5} align="right">
-                      ${totals.totalServiceFees.toFixed(2)}
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={6} align="right">
                       ${totals.totalCCFees.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={7} align="right">
+                    <Table.Summary.Cell index={6} align="right">
                       <Text strong>${totals.totalNetAmount.toFixed(2)}</Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={8} align="right">
+                    <Table.Summary.Cell index={7} align="right">
                       <Text style={{ color: '#DB8633' }}>
                         ${totals.totalPlatformFee.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={9} align="right">
+                    <Table.Summary.Cell index={8} align="right">
                       <Text strong style={{ color: '#1890ff', fontSize: '18px' }}>
                         ${totals.totalPayoutAmount.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={10} align="right">
+                    <Table.Summary.Cell index={9} align="right">
                       ${totals.totalStripeAmount.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={11} colSpan={4} />
+                    <Table.Summary.Cell index={10} colSpan={4} />
                   </Table.Summary.Row>
                 </Table.Summary>
               )}
             />
           </Card>
+          </DashboardSection>
         </Content>
       </Layout>
 

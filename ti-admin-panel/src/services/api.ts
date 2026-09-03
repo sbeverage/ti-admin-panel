@@ -194,6 +194,7 @@ export interface ApiResponse<T> {
   data?: T;
   message?: string;
   error?: string;
+  warning?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -302,11 +303,30 @@ export const notificationsAPI = {
 
 // Vendor API functions
 export const vendorAPI = {
-  getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
+  getVendorHighlights: async (): Promise<ApiResponse<any>> => {
     const response = await fetchWithTimeout(
-      `${API_CONFIG.baseURL}/vendors?page=${page}&limit=${limit}`,
-      { headers: API_CONFIG.headers }
+      `${API_CONFIG.baseURL}/vendors/highlights`,
+      { headers: API_CONFIG.headers },
     );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  getVendors: async (page = 1, limit = 20): Promise<PaginatedResponse<Vendor>> => {
+    // Use the admin endpoint so we get account_email + account_owner_name
+    // (joined from users.email/first_name/last_name for self-signup vendors).
+    // The public /vendors endpoint doesn't expose those fields. Fall back to
+    // public if admin returns 401/403 in environments without admin auth.
+    const adminUrl = buildAdminUrl(`/vendors?page=${page}&limit=${limit}`);
+    let response = await fetchWithTimeout(adminUrl, { headers: API_CONFIG.headers });
+    if (!response.ok && (response.status === 401 || response.status === 403 || response.status === 404)) {
+      const publicUrl = buildPublicUrl(`/vendors?page=${page}&limit=${limit}`);
+      if (publicUrl !== adminUrl) {
+        response = await fetchWithTimeout(publicUrl, { headers: API_CONFIG.headers });
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -461,7 +481,14 @@ export const vendorAPI = {
       if (result.success === false || result.error) {
         return { success: false, error: result.error || result.message || 'Update failed' };
       } else if (result.success === true) {
-        return { success: true, data: result.data || result };
+        // Pass through `warning` at the top level so the caller can surface
+        // partial-success cases (e.g. vendor saved but linked-user email
+        // update was skipped because the address is already taken).
+        return {
+          success: true,
+          data: result.data || result,
+          ...(result.warning ? { warning: result.warning } : {}),
+        } as ApiResponse<Vendor>;
       } else if (result.id) {
         return { success: true, data: result };
       }
@@ -544,6 +571,17 @@ export const vendorAPI = {
 
 // Discount API functions
 export const discountAPI = {
+  getDiscountHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/discounts/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getDiscounts: async (page = 1, limit = 20): Promise<PaginatedResponse<Discount>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/discounts?page=${page}&limit=${limit}`,
@@ -693,6 +731,17 @@ export const donorAPI = {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    return response.json();
+  },
+
+  getDonorHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/donors/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return response.json();
   },
 
@@ -981,6 +1030,50 @@ export const dashboardAPI = {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    return response.json();
+  },
+
+  getDonorOverview: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/donor-overview`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  getDonorCharts: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/donor-charts`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  getDonationOverview: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/donation-overview`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  getSavingsOverview: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/savings-overview`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return response.json();
   },
 
@@ -1390,7 +1483,8 @@ export const settingsAPI = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(adminRequestErrorMessage(response.status, errorText));
     }
 
     return response.json();
@@ -1547,6 +1641,17 @@ export const oneTimeGiftsAPI = {
 };
 
 export const beneficiaryAPI = {
+  getBeneficiaryHighlights: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/charities/highlights`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getBeneficiaries: async (
     page = 1,
     limit = 20,
@@ -1657,6 +1762,20 @@ export const reportingAPI = {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/reporting/payouts?startDate=${startDate}&endDate=${endDate}`,
       { headers: API_CONFIG.headers }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  backfillPaymentDates: async (): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/reporting/backfill-payment-dates`,
+      {
+        method: 'POST',
+        headers: API_CONFIG.headers,
+      }
     );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

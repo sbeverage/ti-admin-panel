@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, Tag, Select, DatePicker, Dropdown, Spin, message, Progress, Tooltip, Modal, Form, InputNumber, Divider, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
 import {
@@ -527,30 +528,6 @@ const ReferralAnalytics: React.FC = () => {
     loadReferralAnalytics();
   }, [selectedTimeFilter]);
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
-
   const timeFilterMenu = (
     <Menu onClick={handleTimeFilterChange}>
       <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
@@ -565,69 +542,6 @@ const ReferralAnalytics: React.FC = () => {
       <Menu.Item key="Custom Date">Custom Date</Menu.Item>
     </Menu>
   );
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
   // Referral Overview Data - real data only, no dummy growth percentages
   const referralOverviewData = [
@@ -655,17 +569,17 @@ const ReferralAnalytics: React.FC = () => {
       icon: <TrophyOutlined />, 
       color: '#324E58' 
     },
-    { 
-      title: 'Social Media Referrals', 
-      value: analyticsData?.referralSources?.[0]?.count ?? '--', 
-      icon: <ShareAltOutlined />, 
-      color: '#DB8633' 
+    {
+      title: 'Social Media Referrals',
+      value: analyticsData?.referralSources?.find((s: any) => s.name === 'Social Media')?.count ?? '--',
+      icon: <ShareAltOutlined />,
+      color: '#DB8633'
     },
-    { 
-      title: 'Email Referrals', 
-      value: analyticsData?.referralSources?.[1]?.count ?? '--', 
-      icon: <MessageOutlined />, 
-      color: '#324E58' 
+    {
+      title: 'Email Referrals',
+      value: analyticsData?.referralSources?.find((s: any) => s.name === 'Email')?.count ?? '--',
+      icon: <MessageOutlined />,
+      color: '#324E58'
     },
   ];
 
@@ -1161,53 +1075,11 @@ const ReferralAnalytics: React.FC = () => {
 
   return (
     <Layout className="standard-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="referral-analytics"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      <Sider 
-        trigger={null} 
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        width={280}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img 
-              src="/white-logo.png" 
-              alt="Logo" 
-              className="standard-logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
-          </div>
-        </div>
-        <Menu
-          mode="inline"
-          selectedKeys={['referral-analytics']}
-          items={menuItems}
-          onClick={handleMenuClick}
-          className="standard-menu"
-        />
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       <Layout className="standard-main-content">
         <Header className="standard-header">
@@ -1268,7 +1140,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'overview',
                     label: (
                       <span>
-                        <BarChartOutlined />
+                        <BarChartOutlined style={{ marginRight: 8 }} />
                         Overview
                       </span>
                     ),
@@ -1340,7 +1212,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'top-referrers',
                     label: (
                       <span>
-                        <CrownOutlined />
+                        <CrownOutlined style={{ marginRight: 8 }} />
                         Top Referrers
                       </span>
                     ),
@@ -1391,7 +1263,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'all-donors',
                     label: (
                       <span>
-                        <UserOutlined />
+                        <UserOutlined style={{ marginRight: 8 }} />
                         All Donors
                       </span>
                     ),
@@ -1569,7 +1441,7 @@ const ReferralAnalytics: React.FC = () => {
                                     <Row gutter={[24, 24]}>
                                       {/* Referrals */}
                                       <Col span={24}>
-                                        <Card size="small" title={<><TeamOutlined /> Referrals</>} style={{ marginBottom: 16 }}>
+                                        <Card size="small" title={<><TeamOutlined style={{ marginRight: 8 }} /> Referrals</>} style={{ marginBottom: 16 }}>
                                           {record.referrals && record.referrals.length > 0 ? (
                                             <Table
                                               dataSource={record.referrals}
@@ -1626,7 +1498,7 @@ const ReferralAnalytics: React.FC = () => {
 
                                       {/* Milestones */}
                                       <Col span={12}>
-                                        <Card size="small" title={<><TrophyOutlined /> Milestones</>}>
+                                        <Card size="small" title={<><TrophyOutlined style={{ marginRight: 8 }} /> Milestones</>}>
                                           {record.milestones && record.milestones.length > 0 ? (
                                             <Space direction="vertical" style={{ width: '100%' }}>
                                               {record.milestones.map((milestone: any, idx: number) => {
@@ -1688,7 +1560,7 @@ const ReferralAnalytics: React.FC = () => {
                                       <Col span={12}>
                                         <Card
                                           size="small"
-                                          title={<><DollarOutlined /> Account credits</>}
+                                          title={<><DollarOutlined style={{ marginRight: 8 }} /> Account credits</>}
                                         >
                                           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 8 }}>
                                             Referrals no longer earn donor cash credits. Balances below are manual or historical only.
@@ -1737,7 +1609,7 @@ const ReferralAnalytics: React.FC = () => {
                     key: 'invitations',
                     label: (
                       <span>
-                        <MailOutlined />
+                        <MailOutlined style={{ marginRight: 8 }} />
                         Invitation Management
                       </span>
                     ),

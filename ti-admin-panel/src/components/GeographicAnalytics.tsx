@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Statistic, Badge, Tabs, Table, Input, List, Tag, Progress, Select, DatePicker, Divider, Dropdown, Spin, message, Alert, Empty } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import { analyticsAPI } from '../services/api';
 import {
@@ -35,7 +36,9 @@ const { Option } = Select;
 
 const GeographicAnalytics: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('1 Month');
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    'monthly' | 'quarterly' | 'yearly'
+  >('monthly');
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRegion, setSelectedRegion] = useState('all');
   const [dateRange, setDateRange] = useState<[string, string]>(['', '']);
@@ -50,20 +53,10 @@ const GeographicAnalytics: React.FC = () => {
   } = theme.useToken();
 
   const getSelectedPeriod = () => {
-    switch (selectedTimeFilter) {
-      case 'All':
-        return 'all';
-      case '1 Week':
-        return '7d';
-      case '15 Days':
-        return '15d';
-      case '1 Month':
-        return '30d';
-      case '3 Months':
+    switch (selectedPeriod) {
+      case 'quarterly':
         return '90d';
-      case '6 Months':
-        return '180d';
-      case 'One Year':
+      case 'yearly':
         return '365d';
       default:
         return '30d';
@@ -94,127 +87,9 @@ const GeographicAnalytics: React.FC = () => {
     }
   };
 
-  const handleTimeFilterChange = ({ key }: { key: string }) => {
-    if (key === 'Custom Date') {
-      message.info('Custom date range is not supported yet.');
-      return;
-    }
-    setSelectedTimeFilter(key);
-  };
-
   useEffect(() => {
     loadGeographicAnalytics();
-  }, [selectedTimeFilter]);
-
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
-
-  const timeFilterMenu = (
-    <Menu onClick={handleTimeFilterChange}>
-      <Menu.Item key="All" icon={<CheckCircleFilled style={{ color: '#DB8633' }} />}>
-        All
-      </Menu.Item>
-      <Menu.Item key="1 Week">1 Week</Menu.Item>
-      <Menu.Item key="15 Days">15 Days</Menu.Item>
-      <Menu.Item key="1 Month">1 Month</Menu.Item>
-      <Menu.Item key="3 Months">3 Months</Menu.Item>
-      <Menu.Item key="6 Months">6 Months</Menu.Item>
-      <Menu.Item key="One Year">One Year</Menu.Item>
-      <Menu.Item key="Custom Date">Custom Date</Menu.Item>
-    </Menu>
-  );
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
+  }, [selectedPeriod]);
 
   // Geographic Overview Data - real data only, no dummy growth percentages
   const geographicOverviewData = [
@@ -263,13 +138,10 @@ const GeographicAnalytics: React.FC = () => {
     region: state.name || 'Unknown',
     avatar: (state.name || '?').charAt(0).toUpperCase(),
     states: [state.name || 'Unknown'],
-    population: '--',
     donors: state.donors || 0,
     vendors: state.vendors || 0,
     beneficiaries: state.beneficiaries || 0,
     totalDonations: state.totalDonations || '$0',
-    growth: '--',
-    status: 'stable',
   }));
 
   // Transform API data for City Performance table
@@ -281,7 +153,6 @@ const GeographicAnalytics: React.FC = () => {
     donors: city.donors || 0,
     vendors: city.vendors || 0,
     donations: city.donations || '$0',
-    growth: '--',
   }));
 
   const regionColumns = [
@@ -321,12 +192,6 @@ const GeographicAnalytics: React.FC = () => {
       ),
     },
     {
-      title: 'Population',
-      dataIndex: 'population',
-      key: 'population',
-      render: (population: string) => <Text strong>{population}</Text>,
-    },
-    {
       title: 'Donors',
       dataIndex: 'donors',
       key: 'donors',
@@ -350,25 +215,6 @@ const GeographicAnalytics: React.FC = () => {
       key: 'totalDonations',
       render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
-    {
-      title: 'Growth',
-      dataIndex: 'growth',
-      key: 'growth',
-      render: (growth: string) => (
-        <Tag color="green" className="growth-tag">{growth}</Tag>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Badge 
-          status={status === 'high-growth' ? 'success' : status === 'stable' ? 'processing' : 'default'} 
-          text={status === 'high-growth' ? 'High Growth' : status === 'stable' ? 'Stable' : 'Emerging'} 
-        />
-      ),
-    }
   ];
 
   const cityColumns = [
@@ -409,65 +255,15 @@ const GeographicAnalytics: React.FC = () => {
       key: 'donations',
       render: (donations: string) => <Text strong style={{ color: '#DB8633' }}>{donations}</Text>,
     },
-    {
-      title: 'Growth',
-      dataIndex: 'growth',
-      key: 'growth',
-      render: (growth: string) => (
-        <Tag color="green" className="growth-tag">{growth}</Tag>
-      ),
-    }
   ];
 
   return (
     <Layout className="standard-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="geographic-analytics"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      <Sider
-        trigger={null}
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        width={280}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img 
-              src="/white-logo.png" 
-              alt="Logo" 
-              className="standard-logo-image"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className="logo-fallback" style={{ display: 'none' }}>
-              <div className="fallback-text">THRIVE</div>
-            </div>
-          </div>
-        </div>
-        <Menu
-          mode="inline"
-          selectedKeys={['geographic-analytics']}
-          items={menuItems}
-          onClick={handleMenuClick}
-          className="standard-menu"
-        />
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       <Layout className="standard-main-content">
         <Header className="standard-header">
@@ -489,19 +285,48 @@ const GeographicAnalytics: React.FC = () => {
               <Option value="midwest">Midwest</Option>
               <Option value="southwest">Southwest</Option>
             </Select>
-            <Dropdown overlay={timeFilterMenu} trigger={['click']}>
-              <Button className="time-filter-btn">
-                {selectedTimeFilter} <DownOutlined />
-              </Button>
-            </Dropdown>
-            <RangePicker 
-              className="date-range-picker"
-              onChange={(dates) => {
-                if (dates) {
-                  setDateRange([dates[0]?.format('YYYY-MM-DD') || '', dates[1]?.format('YYYY-MM-DD') || '']);
-                }
+            <div
+              style={{
+                display: 'inline-flex',
+                background: '#f5f5f5',
+                borderRadius: 8,
+                padding: 3,
+                gap: 2,
               }}
-            />
+            >
+              {(['monthly', 'quarterly', 'yearly'] as const).map((p) => {
+                const active = p === selectedPeriod;
+                const label =
+                  p === 'monthly'
+                    ? 'Month'
+                    : p === 'quarterly'
+                      ? 'Quarter'
+                      : 'Year';
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSelectedPeriod(p)}
+                    style={{
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      background: active ? '#fff' : 'transparent',
+                      color: active ? '#262626' : '#595959',
+                      boxShadow: active
+                        ? '0 1px 2px rgba(0,0,0,0.08)'
+                        : 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </Header>
 
@@ -552,7 +377,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'overview',
                     label: (
                       <span>
-                        <GlobalOutlined />
+                        <GlobalOutlined style={{ marginRight: 8 }} />
                         Regional Overview
                       </span>
                     ),
@@ -591,7 +416,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <EnvironmentOutlined style={{ color: '#324E58' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Countries</Text>
                                     <Text type="secondary">{geographicData?.totalCountries ?? '--'}</Text>
                                   </div>
@@ -601,7 +435,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <UserOutlined style={{ color: '#DB8633' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>States</Text>
                                     <Text type="secondary">{geographicData?.totalStates ?? '--'}</Text>
                                   </div>
@@ -611,7 +454,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <HomeOutlined style={{ color: '#324E58' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Cities</Text>
                                     <Text type="secondary">{geographicData?.totalCities ?? '--'}</Text>
                                   </div>
@@ -621,7 +473,16 @@ const GeographicAnalytics: React.FC = () => {
                                   <div className="stat-icon">
                                     <DollarOutlined style={{ color: '#DB8633' }} />
                                   </div>
-                                  <div className="stat-content">
+                                  <div
+                                    className="stat-content"
+                                    style={{
+                                      display: 'flex',
+                                      flex: 1,
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      gap: 12,
+                                    }}
+                                  >
                                     <Text strong>Top State</Text>
                                     <Text type="secondary">{geographicData?.topStates?.[0]?.name ?? '--'}</Text>
                                   </div>
@@ -637,7 +498,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'regions',
                     label: (
                       <span>
-                        <GlobalOutlined />
+                        <GlobalOutlined style={{ marginRight: 8 }} />
                         Regional Performance
                       </span>
                     ),
@@ -658,7 +519,7 @@ const GeographicAnalytics: React.FC = () => {
                     key: 'cities',
                     label: (
                       <span>
-                        <HomeOutlined />
+                        <HomeOutlined style={{ marginRight: 8 }} />
                         City Performance
                       </span>
                     ),

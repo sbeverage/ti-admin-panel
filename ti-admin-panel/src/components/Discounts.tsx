@@ -39,10 +39,14 @@ import {
   PercentageOutlined,
   ShoppingOutlined,
   CalculatorOutlined,
-  MailOutlined
+  MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
+import DashboardSection from './DashboardSection';
+import DiscountHighlights from './DiscountHighlights';
 import { discountAPI, vendorAPI } from '../services/api';
 import AddDiscountModal from './AddDiscountModal';
 import '../styles/sidebar-standard.css';
@@ -61,6 +65,7 @@ const Discounts: React.FC = () => {
   const [pageSize, setPageSize] = useState(15);
   const [discountsData, setDiscountsData] = useState<any[]>([]);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDiscounts, setTotalDiscounts] = useState(0);
@@ -76,7 +81,15 @@ const Discounts: React.FC = () => {
   const loadDiscounts = async () => {
     setLoading(true);
     setError(null);
-    
+
+    // Fire highlights fetch in parallel — independent of the table data.
+    discountAPI
+      .getDiscountHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
+
     try {
       const response = await discountAPI.getDiscounts(currentPage, pageSize);
       
@@ -163,32 +176,6 @@ const Discounts: React.FC = () => {
       setCurrentPage(1);
     }
   }, [searchText, selectedVendor, selectedType]);
-
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-    }
-  };
 
   const handleDeleteDiscount = async (discountId: number) => {
     try {
@@ -278,75 +265,6 @@ const Discounts: React.FC = () => {
         return value.toString();
     }
   };
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
-  ];
 
   const columns = [
     {
@@ -501,47 +419,11 @@ const Discounts: React.FC = () => {
 
   return (
     <Layout className="discounts-layout">
-      {/* Mobile Menu Button */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="discounts"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sider
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        trigger={null}
-        width={280}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img
-              src="/white-logo.png"
-              alt="THRIVE Logo"
-              className="standard-logo-image"
-            />
-          </div>
-        </div>
-
-        <Menu
-          className="standard-menu"
-          mode="inline"
-          selectedKeys={[location.pathname.split('/')[1] || 'dashboard']}
-          items={menuItems}
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       <Layout className="standard-main-content">
         <Header className="discounts-header">
@@ -566,6 +448,19 @@ const Discounts: React.FC = () => {
 
         <Content className="discounts-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Discount Highlights"
+              subtitle="Marketplace health and what's resonating with donors"
+              icon={<TrophyOutlined />}
+            >
+              <DiscountHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Discounts"
+              subtitle="Search, filter, and manage discount offers"
+              icon={<GiftOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -644,6 +539,7 @@ const Discounts: React.FC = () => {
               />
             </div>
           </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

@@ -95,30 +95,69 @@
 }
 
 .profile-tabs .ant-tabs-nav {
-  margin-bottom: 24px;
+  margin-top: 20px;
+  margin-bottom: 36px;
   background: #ffffff;
-  padding: 0 24px;
+  padding: 14px 24px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Center the tabs vertically inside the taller white bar. AntD wraps the row
+   in .ant-tabs-nav-wrap → .ant-tabs-nav-list; both are flex so aligning
+   items in the wrap is enough. */
+.profile-tabs .ant-tabs-nav-wrap {
+  align-items: center;
+}
+
+/* Kill the underline / bottom-border AntD renders across the tab strip so the
+   active-tab pill is the single visual affordance. */
+.profile-tabs .ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+
 .profile-tabs .ant-tabs-tab {
-  padding: 16px 24px;
+  padding: 12px 32px !important;
+  margin: 0 6px !important;
+  border-radius: 10px;
   font-weight: 500;
-  transition: all 0.3s ease;
+  color: #5A6470;
+  border: none;
+  transition: background 180ms ease, color 180ms ease;
 }
 
 .profile-tabs .ant-tabs-tab:hover {
   color: #DB8633;
+  background: rgba(219, 134, 51, 0.06);
 }
 
 .profile-tabs .ant-tabs-tab.ant-tabs-tab-active {
-  color: #DB8633;
+  background: rgba(219, 134, 51, 0.12);
 }
 
+.profile-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #DB8633 !important;
+  font-weight: 600;
+}
+
+/* Remove the browser focus outline that was painting a hard box around the
+   active tab in the earlier screenshots. Keep :focus-visible for keyboard users
+   with a subtle ring so accessibility isn't lost. */
+.profile-tabs .ant-tabs-tab:focus,
+.profile-tabs .ant-tabs-tab-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.profile-tabs .ant-tabs-tab-btn:focus-visible {
+  outline: 2px solid rgba(219, 134, 51, 0.35);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Hide the ink-bar entirely — pill background is doing the "which tab is
+   active" work now, so an underline on top of it reads as visual noise. */
 .profile-tabs .ant-tabs-ink-bar {
-  background: #DB8633;
-  height: 3px;
+  display: none;
 }
 
 .tab-content {

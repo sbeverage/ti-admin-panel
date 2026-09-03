@@ -318,6 +318,7 @@
 }
 
 .edit-user-btn,
+.delete-user-btn,
 .more-actions-btn {
   color: #666;
   border: none;
@@ -328,6 +329,11 @@
 .more-actions-btn:hover {
   color: #DB8633;
   background: rgba(219, 134, 51, 0.1);
+}
+
+.delete-user-btn:hover:not(:disabled) {
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.1);
 }
 
 /* Notification Settings */

@@ -170,13 +170,73 @@ export const validateImageFile = (file: File): { valid: boolean; error?: string 
     };
   }
 
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  // 20 MB hard ceiling so we don't try to decode a 100 MB RAW photo in
+  // memory and crash the tab. Anything under this we downscale ourselves
+  // via resizeImageForUpload() before it hits the network.
+  const maxSize = 20 * 1024 * 1024;
   if (file.size > maxSize) {
     return {
       valid: false,
-      error: `File size too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB.`
+      error: `File is over ${Math.round(maxSize / 1024 / 1024)} MB — please choose a smaller image.`
     };
   }
 
   return { valid: true };
+};
+
+// Client-side downscale + re-encode. Draws the source image onto a canvas
+// bounded by `maxDim` pixels on its longest edge, then exports JPEG at the
+// given quality. Returns a fresh File the caller can pass to
+// uploadToSupabase() without triggering the old 5 MB validator error.
+//
+// Keeps aspect ratio intact — the mobile app's tile enforces its own 4:3
+// container via `resizeMode="cover"` so we don't crop here.
+export const resizeImageForUpload = async (
+  file: File,
+  opts: { maxDim?: number; quality?: number; targetType?: string } = {},
+): Promise<File> => {
+  const maxDim = opts.maxDim ?? 1600;
+  const quality = opts.quality ?? 0.85;
+  const targetType = opts.targetType ?? 'image/jpeg';
+
+  // GIFs can be animated — resizing loses the animation. Return as-is so
+  // the animation survives, at the cost of not shrinking the file.
+  if (file.type === 'image/gif') return file;
+
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error('Could not decode image'));
+    el.src = dataUrl;
+  });
+
+  const longest = Math.max(img.width, img.height);
+  if (longest <= maxDim && file.size <= 1_500_000) {
+    // Already small enough by both dimensions and byte size — skip the
+    // re-encode so we don't lose quality on already-optimised photos.
+    return file;
+  }
+
+  const scale = longest > maxDim ? maxDim / longest : 1;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const blob: Blob = await new Promise((resolve) => {
+    canvas.toBlob((b) => resolve(b || new Blob([], { type: targetType })), targetType, quality);
+  });
+
+  const baseName = file.name.replace(/\.[^.]+$/, '');
+  const ext = targetType === 'image/png' ? 'png' : 'jpg';
+  return new File([blob], `${baseName}.${ext}`, { type: targetType });
 };

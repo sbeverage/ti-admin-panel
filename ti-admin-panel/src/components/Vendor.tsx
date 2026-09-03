@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
   ExclamationCircleOutlined,
   MenuOutlined, SearchOutlined, UserAddOutlined,
-  SortAscendingOutlined, EditOutlined,
+  SortAscendingOutlined, EditOutlined, DeleteOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined,
-  CheckCircleOutlined, StopOutlined, CalculatorOutlined, MailOutlined
+  CheckCircleOutlined, CloseCircleOutlined, CalculatorOutlined, MailOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
 import InviteVendorModal from './InviteVendorModal';
 import VendorProfile from './VendorProfile';
-import { vendorAPI, Vendor as VendorType } from '../services/api';
+import DashboardSection from './DashboardSection';
+import VendorHighlights from './VendorHighlights';
+import { vendorAPI, approvalsAPI, Vendor as VendorType } from '../services/api';
 import { addNotification } from '../services/notifications';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -35,6 +39,7 @@ const Vendor: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
   const [allVendorsData, setAllVendorsData] = useState<any[]>([]);
+  const [highlights, setHighlights] = useState<any>(null);
   const [totalVendors, setTotalVendors] = useState(0);
   const [showInactive, setShowInactive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,8 +63,16 @@ const Vendor: React.FC = () => {
   const loadVendors = async () => {
     setLoading(true);
     setError(null);
-    
+
     // No mock data fallback - use real API data only
+
+    // Fire highlights fetch in parallel — independent of the table data.
+    vendorAPI
+      .getVendorHighlights()
+      .then((r: any) =>
+        setHighlights(r?.success ? r.data : null),
+      )
+      .catch(() => setHighlights(null));
 
     try {
       const collected: any[] = [];
@@ -93,6 +106,7 @@ const Vendor: React.FC = () => {
             const rawStatus = ((vendor as any).status ?? ((vendor as any).is_active !== false ? 'active' : 'inactive')).toString().toLowerCase();
             const normalizedStatus = rawStatus === 'active' ? 'active' : 'inactive';
             const isActive = normalizedStatus === 'active';
+            const signupStatus = ((vendor as any).signup_status || 'approved').toString().toLowerCase();
             const isEnabled =
               (vendor as any).is_enabled !== undefined
                 ? Boolean((vendor as any).is_enabled)
@@ -103,8 +117,17 @@ const Vendor: React.FC = () => {
             return ({
             key: vendor.id.toString(),
             name: vendor.name,
-            contactName: (vendor as any).contact_name || (vendor as any).contactName || vendor.name || vendor.email,
-            email: vendor.email,
+            // Prefer the vendor owner's account name (from users table for
+            // self-signup vendors) over a manually-entered contact_name.
+            contactName:
+              (vendor as any).account_owner_name ||
+              (vendor as any).contact_name ||
+              (vendor as any).contactName ||
+              vendor.name ||
+              vendor.email,
+            // Show the signup/login email for self-signup vendors; fall back
+            // to vendors.email (public contact) for legacy admin-created rows.
+            email: (vendor as any).account_email || vendor.email,
             contact: vendor.phone,
             category: vendor.category || 'Uncategorized',
             cityState: vendor.address && vendor.address.city && vendor.address.state 
@@ -121,6 +144,7 @@ const Vendor: React.FC = () => {
               : isActive,
             enabled: isEnabled,
             status: normalizedStatus, // Use normalized vendor status
+            signupStatus, // 'pending' / 'approved' / 'rejected' from the new workflow
             avatar: vendor.name.charAt(0).toUpperCase(),
             logo_url: vendor.logo_url || null // Include logo URL for display
           });
@@ -321,73 +345,91 @@ const Vendor: React.FC = () => {
     });
   };
 
-  const handleToggleStatus = async (record: any) => {
-    
-    const newStatus = record.status === 'active' ? 'inactive' : 'active';
-    const action = newStatus === 'active' ? 'activate' : 'deactivate';
-    
-    
-    try {
-      setLoading(true);
-      
-      // Call API to update status
-      const response = await vendorAPI.updateVendorStatus(parseInt(record.key), newStatus);
-      
-      
-      if (response.success) {
-        message.success(`Vendor ${action}d successfully`);
-        addNotification({
-          title: `Vendor ${action}d`,
-          message: record.name || 'Vendor status updated',
-          level: 'success',
-        });
-        // Reload vendors to get updated data
-        loadVendors();
-      } else {
-        message.error(`Failed to ${action} vendor: ${response.error}`);
-        addNotification({
-          title: `Vendor ${action} failed`,
-          message: response.error || 'Status update failed',
-          level: 'error',
-        });
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing vendor:`, error);
-      message.error(`Failed to ${action} vendor. Please try again.`);
-      addNotification({
-        title: `Vendor ${action} failed`,
-        message: 'Status update failed. Please try again.',
-        level: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
+  // Quick-approve directly from the vendors list — same backend as the Pending
+  // Approvals page. Shown only for rows whose signupStatus === 'pending'.
+  const handleApproveVendor = (record: any) => {
+    Modal.confirm({
+      title: `Approve ${record.name}?`,
+      icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+      content:
+        'The vendor will go live on the donor app immediately and receive an approval email.',
+      okText: 'Approve',
+      okType: 'primary',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const response = await approvalsAPI.approveItem(parseInt(record.key), 'vendor');
+          if (response.success) {
+            message.success(`${record.name} approved`);
+            addNotification({
+              title: 'Vendor approved',
+              message: record.name,
+              level: 'success',
+            });
+            loadVendors();
+          } else {
+            message.error('Failed to approve vendor');
+          }
+        } catch (err) {
+          console.error('Error approving vendor:', err);
+          message.error('Failed to approve vendor. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'donors') {
-      navigate('/donors');
-    } else if (key === 'vendor') {
-      navigate('/vendor');
-    } else if (key === 'beneficiaries') {
-      navigate('/beneficiaries');
-    } else if (key === 'pending-approvals') {
-      navigate('/pending-approvals');
-    } else if (key === 'invitations') {
-      navigate('/invitations');
-    } else if (key === 'referral-analytics') {
-      navigate('/referral-analytics');
-    } else if (key === 'geographic-analytics') {
-      navigate('/geographic-analytics');
-    } else if (key === 'discounts') {
-      navigate('/discounts');
-    } else if (key === 'reporting') {
-      navigate('/reporting');
-    } else if (key === 'settings') {
-      navigate('/settings');
-       }
+  const handleRejectVendor = (record: any) => {
+    let reason = '';
+    Modal.confirm({
+      title: `Reject ${record.name}?`,
+      icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+      content: (
+        <div>
+          <p style={{ marginBottom: 8 }}>
+            The vendor will be marked rejected and receive an email with the reason below.
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Optional — reason shown to the vendor in the rejection email"
+            onChange={(e) => {
+              reason = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      okText: 'Reject',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const response = await approvalsAPI.rejectItem(
+            parseInt(record.key),
+            'vendor',
+            reason.trim() || 'Rejected by admin',
+          );
+          if (response.success) {
+            message.success(`${record.name} rejected`);
+            addNotification({
+              title: 'Vendor rejected',
+              message: record.name,
+              level: 'warning',
+            });
+            loadVendors();
+          } else {
+            message.error('Failed to reject vendor');
+          }
+        } catch (err) {
+          console.error('Error rejecting vendor:', err);
+          message.error('Failed to reject vendor. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const timeFilterMenu = [
@@ -416,75 +458,6 @@ const Vendor: React.FC = () => {
       label: 'All Time',
       onClick: () => handleTimeFilterChange('all-time')
     }
-  ];
-
-  const menuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      title: 'Dashboard Overview'
-    },
-    {
-      key: 'donors',
-      icon: <UserOutlined />,
-      label: 'Donors',
-      title: 'Donor Management'
-    },
-    {
-      key: 'beneficiaries',
-      icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
-    },
-    {
-      key: 'vendor',
-      icon: <RiseOutlined />,
-      label: 'Vendor',
-      title: 'Vendor Management'
-    },
-    {
-      key: 'discounts',
-      icon: <GiftOutlined />,
-      label: 'Discounts',
-      title: 'Discount Management'
-    },
-    {
-      key: 'pending-approvals',
-      icon: <ExclamationCircleOutlined />,
-      label: 'Pending Approvals',
-      title: 'Pending Approvals'
-    },
-    {
-      key: 'invitations',
-      icon: <MailOutlined />,
-      label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
-    },
-    {
-      key: 'referral-analytics',
-      icon: <TeamOutlined />,
-      label: 'Referral Analytics',
-      title: 'Referral Analytics & Tracking'
-    },
-    {
-      key: 'geographic-analytics',
-      icon: <GlobalOutlined />,
-      label: 'Geographic Analytics',
-      title: 'Geographic Analytics & Insights'
-    },
-    {
-      key: 'reporting',
-      icon: <CalculatorOutlined />,
-      label: 'Reporting',
-      title: 'Payouts & Financial Reporting'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      title: 'System Settings & Configuration'
-    },
   ];
 
   const columns = [
@@ -601,25 +574,40 @@ const Vendor: React.FC = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string, record: any) => (
-        <Space size="small">
-          <span 
-            className={`status-badge ${status === 'active' ? 'active' : 'inactive'}`}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontWeight: '500',
-              backgroundColor: status === 'active' ? '#f6ffed' : '#fff2e8',
-              color: status === 'active' ? '#52c41a' : '#fa8c16',
-              border: `1px solid ${status === 'active' ? '#b7eb8f' : '#ffd591'}`
-            }}
-          >
-            {status === 'active' ? 'Active' : 'Inactive'}
-          </span>
-        </Space>
-      ),
-      width: 100,
+      render: (status: string, record: any) => {
+        // signup_status from the vendor portal workflow takes precedence over
+        // the legacy active/inactive flag — pending and rejected vendors are
+        // pre-approval so "Active" wouldn't make sense.
+        let label = status === 'active' ? 'Active' : 'Inactive';
+        let bg = '#fff2e8', fg = '#fa8c16', border = '#ffd591'; // orange (inactive default)
+        if (status === 'active') {
+          bg = '#f6ffed'; fg = '#52c41a'; border = '#b7eb8f'; // green
+        }
+        if (record.signupStatus === 'pending') {
+          label = 'Pending'; bg = '#fffbe6'; fg = '#d48806'; border = '#ffe58f'; // amber
+        } else if (record.signupStatus === 'rejected') {
+          label = 'Rejected'; bg = '#fff1f0'; fg = '#cf1322'; border = '#ffa39e'; // red
+        }
+        return (
+          <Space size="small">
+            <span
+              className="status-badge"
+              style={{
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: '500',
+                backgroundColor: bg,
+                color: fg,
+                border: `1px solid ${border}`,
+              }}
+            >
+              {label}
+            </span>
+          </Space>
+        );
+      },
+      width: 110,
     },
     {
       title: 'Actions',
@@ -637,22 +625,64 @@ const Vendor: React.FC = () => {
               }}
               title="Edit Vendor"
             />
-            <Button 
-              type={record.status === 'active' ? 'default' : 'primary'}
-              icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
-              size="small" 
-              className="status-toggle-btn"
+            {record.signupStatus === 'pending' ? (
+              <>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  size="small"
+                  className="status-toggle-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApproveVendor(record);
+                  }}
+                  title="Approve Vendor"
+                >
+                  Approve
+                </Button>
+                <Button
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  size="small"
+                  className="status-toggle-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRejectVendor(record);
+                  }}
+                  title="Deny Vendor"
+                >
+                  Deny
+                </Button>
+              </>
+            ) : record.signupStatus === 'rejected' ? (
+              <span
+                className="signup-status-label denied"
+                title="Vendor was denied via the Pending Approvals workflow"
+              >
+                Denied
+              </span>
+            ) : (
+              <span
+                className="signup-status-label approved"
+                title="Vendor is approved and visible in the donor app"
+              >
+                Approved
+              </span>
+            )}
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                handleToggleStatus(record);
+                handleDeleteVendor(record);
               }}
-              title={record.status === 'active' ? 'Deactivate Vendor' : 'Activate Vendor'}
-            >
-              {record.status === 'active' ? 'Deactivate' : 'Activate'}
-            </Button>
+              title="Delete Vendor"
+            />
         </Space>
       ),
-      width: 160,
+      width: 200,
       fixed: 'right' as const,
     },
   ];
@@ -672,11 +702,14 @@ const Vendor: React.FC = () => {
   const uniqueLocations = Array.from(new Set(allVendorsData.map(vendor => vendor.cityState).filter(Boolean)));
 
   const filteredVendors = allVendorsData.filter((vendor) => {
+    // Default view: active vendors + anything still awaiting approval so the
+    // admin can approve/reject them right from the list. Explicit status
+    // filter or "Show Inactive" toggle override this.
     const matchesStatus = selectedStatus
       ? vendor.status === selectedStatus
       : showInactive
       ? true
-      : vendor.status === 'active';
+      : vendor.status === 'active' || (vendor as any).signupStatus === 'pending';
     const matchesCategory = selectedCategory ? vendor.category === selectedCategory : true;
     const matchesLocation = selectedLocation ? vendor.cityState === selectedLocation : true;
     const matchesSearch = searchTerm
@@ -705,48 +738,11 @@ const Vendor: React.FC = () => {
 
   return (
     <Layout className="vendor-layout">
-      {/* Mobile Menu Button - Right Side */}
-      <Button
-        className="mobile-menu-btn-right"
-        icon={<MenuOutlined />}
-        onClick={() => setMobileSidebarVisible(!mobileSidebarVisible)}
+      <AdminSidebar
+        activeKey="vendor"
+        mobileVisible={mobileSidebarVisible}
+        onMobileToggle={() => setMobileSidebarVisible(!mobileSidebarVisible)}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarVisible && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={() => setMobileSidebarVisible(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sider
-        className={`standard-sider ${mobileSidebarVisible ? 'mobile-visible' : ''}`}
-        width={280}
-        trigger={null}
-      >
-        <div className="standard-logo-section">
-          <div className="standard-logo-container">
-            <img
-              src="/white-logo.png"
-              alt="THRIVE Logo"
-              className="standard-logo-image"
-            />
-          </div>
-        </div>
-
-        <Menu
-          className="standard-menu"
-          mode="inline"
-          defaultSelectedKeys={['vendor']}
-          selectedKeys={[location.pathname === '/vendor' ? 'vendor' : '']}
-          items={menuItems}
-          onClick={handleMenuClick}
-        />
-
-        <UserProfile className="standard-user-profile" showRole={true} />
-      </Sider>
 
       {/* Main Content */}
       <Layout className="standard-main-content">
@@ -773,6 +769,19 @@ const Vendor: React.FC = () => {
 
         <Content className="vendor-content">
           <div className="content-wrapper">
+            <DashboardSection
+              title="Vendor Highlights"
+              subtitle="Partner activity and engagement at a glance"
+              icon={<TrophyOutlined />}
+            >
+              <VendorHighlights data={highlights} />
+            </DashboardSection>
+
+            <DashboardSection
+              title="All Vendors"
+              subtitle="Search, filter, and manage individual vendor partners"
+              icon={<RiseOutlined />}
+            >
             {/* Search and Filter Bar */}
             <div className="search-filter-bar">
               <div className="search-section">
@@ -912,6 +921,7 @@ const Vendor: React.FC = () => {
                 />
               </div>
             </div>
+            </DashboardSection>
           </div>
         </Content>
       </Layout>

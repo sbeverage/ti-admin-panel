@@ -9,7 +9,9 @@ import Vendor from './components/Vendor';
 import Beneficiaries from './components/Beneficiaries';
 import Discounts from './components/Discounts';
 import Settings from './components/Settings';
-import NewsfeedManagement from './components/NewsfeedManagement';
+// Newsfeed Management is hidden until a real backend exists — the component
+// currently renders only hardcoded sample posts, which would mislead admins.
+// import NewsfeedManagement from './components/NewsfeedManagement';
 import PendingApprovals from './components/PendingApprovals';
 import ReferralAnalytics from './components/ReferralAnalytics';
 import GeographicAnalytics from './components/GeographicAnalytics';
@@ -66,7 +68,7 @@ function App() {
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/beneficiaries" element={<Beneficiaries />} />
           <Route path="/discounts" element={<Discounts />} />
-          <Route path="/newsfeed-management" element={<NewsfeedManagement />} />
+          {/* /newsfeed-management route removed — component is hardcoded mock data; restore when a real backend exists. */}
           <Route path="/pending-approvals" element={<PendingApprovals />} />
           <Route path="/invitations" element={<Invitations />} />
           <Route path="/referral-analytics" element={<ReferralAnalytics />} />
