@@ -949,44 +949,63 @@ const Reporting: React.FC = () => {
               }}
               summary={() => (
                 <Table.Summary fixed>
+                  {/* One cell per column, in column order. The table has 15
+                      columns; this row previously had 14 because Bank Info had
+                      no cell, so every figure rendered one column to the left
+                      and none of them lined up with its header — the first
+                      total appeared under Bank Info. Counts:
+                      11 single cells (0-10) + colSpan 4 (11) = 15. */}
                   <Table.Summary.Row>
+                    {/* 0 — Beneficiary */}
                     <Table.Summary.Cell index={0}>
                       <Text strong>Totals:</Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={1} align="right">
+                    {/* 1 — Bank Info: nothing to total, but the cell must exist */}
+                    <Table.Summary.Cell index={1} />
+                    {/* 2 — Total Donations */}
+                    <Table.Summary.Cell index={2} align="right">
                       <Text strong style={{ color: '#52c41a' }}>
                         ${totals.totalDonations.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2} align="right">
+                    {/* 3 — Monthly */}
+                    <Table.Summary.Cell index={3} align="right">
                       ${totals.totalMonthlyDonations.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={3} align="right">
+                    {/* 4 — One-Time */}
+                    <Table.Summary.Cell index={4} align="right">
                       ${totals.totalOneTimeDonations.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={4} align="center">
+                    {/* 5 — Donations (count) */}
+                    <Table.Summary.Cell index={5} align="center">
                       <Tag>{totals.totalDonationCount}</Tag>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={5} align="right">
+                    {/* 6 — CC Fees */}
+                    <Table.Summary.Cell index={6} align="right">
                       ${totals.totalCCFees.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={6} align="right">
+                    {/* 7 — Net Amount */}
+                    <Table.Summary.Cell index={7} align="right">
                       <Text strong>${totals.totalNetAmount.toFixed(2)}</Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={7} align="right">
+                    {/* 8 — Platform Fee */}
+                    <Table.Summary.Cell index={8} align="right">
                       <Text style={{ color: '#DB8633' }}>
                         ${totals.totalPlatformFee.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={8} align="right">
+                    {/* 9 — Payout to Beneficiary */}
+                    <Table.Summary.Cell index={9} align="right">
                       <Text strong style={{ color: '#1890ff', fontSize: '18px' }}>
                         ${totals.totalPayoutAmount.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={9} align="right">
+                    {/* 10 — Stripe Amount */}
+                    <Table.Summary.Cell index={10} align="right">
                       ${totals.totalStripeAmount.toFixed(2)}
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={10} colSpan={4} />
+                    {/* 11 — Reconciliation, Payment Method, Payout Status, Actions */}
+                    <Table.Summary.Cell index={11} colSpan={4} />
                   </Table.Summary.Row>
                 </Table.Summary>
               )}

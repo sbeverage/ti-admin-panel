@@ -25,6 +25,14 @@ const { Option } = Select;
 const Donors: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  /**
+   * Show every matching donor in one scroll instead of paged.
+   *
+   * Filtering already runs over the whole donor set client-side, so this only
+   * stops the slice below — the filters and the "N Donors Found" count were
+   * always describing the full result, and paging just hid most of it.
+   */
+  const [showAllDonors, setShowAllDonors] = useState(false);
   const [pageSize, setPageSize] = useState(12);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
@@ -292,10 +300,9 @@ const Donors: React.FC = () => {
     return sortOrder === 'ascend' ? comparison : -comparison;
   });
 
-  const paginatedDonors = sortedDonors.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const paginatedDonors = showAllDonors
+    ? sortedDonors
+    : sortedDonors.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleToggleChange = async (key: string, field: 'active' | 'enabled') => {
     const donorId = parseInt(key, 10);
@@ -1319,17 +1326,45 @@ const Donors: React.FC = () => {
                 />
               </Spin>
               
-              {/* Pagination */}
-              <div className="pagination-section">
-                <Pagination
-                  current={currentPage}
-                  total={filteredDonorsData.length}
-                  pageSize={pageSize}
-                  showSizeChanger={false}
-                  showQuickJumper={false}
-                  onChange={handlePageChange}
-                  className="donors-pagination"
-                />
+              {/* Pagination, or a plain count when showing everything.
+                  The toggle sits here rather than in the header so it reads as
+                  an alternative to paging, which is what it is. */}
+              <div
+                className="pagination-section"
+                style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}
+              >
+                {showAllDonors ? (
+                  <Text type="secondary">
+                    Showing all {filteredDonorsData.length} matching donor
+                    {filteredDonorsData.length === 1 ? '' : 's'}
+                  </Text>
+                ) : (
+                  <Pagination
+                    current={currentPage}
+                    total={filteredDonorsData.length}
+                    pageSize={pageSize}
+                    showSizeChanger={false}
+                    showQuickJumper={false}
+                    onChange={handlePageChange}
+                    className="donors-pagination"
+                  />
+                )}
+                {filteredDonorsData.length > pageSize && (
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      // Back to page 1 when returning to paged view, or the
+                      // pager could land on a page that no longer exists.
+                      setCurrentPage(1);
+                      setShowAllDonors((v) => !v);
+                    }}
+                    style={{ paddingLeft: 0 }}
+                  >
+                    {showAllDonors
+                      ? 'Show pages'
+                      : `View all ${filteredDonorsData.length}`}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
