@@ -87,7 +87,7 @@ const Reporting: React.FC = () => {
     totalPayoutAmount: number;
     totalDonationCount: number;
   } | null>(null);
-  const [payoutsPeriod, setPayoutsPeriod] = useState<'monthly' | 'quarterly'>(
+  const [payoutsPeriod, setPayoutsPeriod] = useState<'monthly' | 'quarterly' | 'yearly'>(
     'monthly',
   );
   const [loading, setLoading] = useState(false);
@@ -167,7 +167,7 @@ const Reporting: React.FC = () => {
     }
   };
 
-  // Load payout table data — driven by payoutsPeriod (Month or Quarter).
+  // Load payout table data — driven by payoutsPeriod (Month, Quarter or Year).
   const loadPayoutData = async () => {
     setLoading(true);
     try {
@@ -808,9 +808,14 @@ const Reporting: React.FC = () => {
                       gap: 2,
                     }}
                   >
-                    {(['monthly', 'quarterly'] as const).map((p) => {
+                    {(['monthly', 'quarterly', 'yearly'] as const).map((p) => {
                       const active = p === payoutsPeriod;
-                      const label = p === 'monthly' ? 'Month' : 'Quarter';
+                      const label =
+                        p === 'monthly'
+                          ? 'Month'
+                          : p === 'quarterly'
+                            ? 'Quarter'
+                            : 'Year';
                       return (
                         <button
                           key={p}
@@ -837,13 +842,21 @@ const Reporting: React.FC = () => {
                     })}
                   </div>
                   <DatePicker
-                    picker={payoutsPeriod === 'quarterly' ? 'quarter' : 'month'}
+                    picker={
+                      payoutsPeriod === 'quarterly'
+                        ? 'quarter'
+                        : payoutsPeriod === 'yearly'
+                          ? 'year'
+                          : 'month'
+                    }
                     value={selectedMonth}
                     onChange={(date) => date && setSelectedMonth(date)}
                     format={
                       payoutsPeriod === 'quarterly'
                         ? '[Q]Q YYYY'
-                        : 'MMMM YYYY'
+                        : payoutsPeriod === 'yearly'
+                          ? 'YYYY'
+                          : 'MMMM YYYY'
                     }
                     style={{ width: 160 }}
                     allowClear={false}
@@ -895,7 +908,9 @@ const Reporting: React.FC = () => {
                   Beneficiary Payouts -{' '}
                   {payoutsPeriod === 'quarterly'
                     ? selectedMonth.format('[Q]Q YYYY')
-                    : selectedMonth.format('MMMM YYYY')}
+                    : payoutsPeriod === 'yearly'
+                      ? selectedMonth.format('YYYY')
+                      : selectedMonth.format('MMMM YYYY')}
                 </Text>
               </Space>
             }
