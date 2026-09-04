@@ -33,7 +33,13 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
         localStorage.setItem('admin_authenticated', 'true');
         localStorage.setItem('admin_username', displayName);
         localStorage.setItem('admin_email', response.data.email || values.email);
-        localStorage.setItem('admin_is_super_admin', response.data.is_super_admin ? 'true' : 'false');
+        // Fall back to deriving it from role. The backend now sends
+        // is_super_admin, but a stale cached bundle or an older deploy would
+        // otherwise silently lock a super admin out of Team Management.
+        const superAdmin =
+          response.data.is_super_admin ??
+          String(response.data.role || '').trim().toLowerCase() === 'super admin';
+        localStorage.setItem('admin_is_super_admin', superAdmin ? 'true' : 'false');
         onLogin(displayName);
       } else if (response.success === false) {
         message.error(response.error || 'Invalid email or password');
