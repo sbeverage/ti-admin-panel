@@ -25,6 +25,12 @@ import {
   MailOutlined
 } from '@ant-design/icons';
 import NotificationsDropdown from './NotificationsDropdown';
+// The four analytics sections built 2026-05-29. They survived the 09-03 merge
+// as files but nothing imported them, so the work sat unrendered in the repo.
+import DonorOverviewSection from './DonorOverviewSection';
+import DonorChartsSection from './DonorChartsSection';
+import DonationOverviewSection from './DonationOverviewSection';
+import SavingsOverviewSection from './SavingsOverviewSection';
 import './Dashboard.css';
 import '../styles/sidebar-standard.css';
 import '../styles/menu-hover-overrides.css';
@@ -54,6 +60,14 @@ const Dashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Data for the four analytics sections. Each renders from a single nullable
+  // prop and shows its own empty state, so a failed fetch degrades to a quiet
+  // section rather than breaking the page.
+  const [donorOverview, setDonorOverview] = useState<any>(null);
+  const [donorCharts, setDonorCharts] = useState<any>(null);
+  const [donationOverview, setDonationOverview] = useState<any>(null);
+  const [savingsOverview, setSavingsOverview] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -181,9 +195,32 @@ const Dashboard: React.FC = () => {
   };
 
   // Load dashboard data from API
+  /**
+   * Fetch the four analytics sections.
+   *
+   * Kept separate from loadDashboardData and never awaited by it: these are
+   * four independent queries and a slow or failing one must not hold up the
+   * cards at the top of the page. Each failure resolves to null, which the
+   * section renders as its own empty state.
+   */
+  const loadAnalyticsSections = async () => {
+    const [overview, charts, donations, savings] = await Promise.all([
+      dashboardAPI.getDonorOverview().catch(() => null),
+      dashboardAPI.getDonorCharts().catch(() => null),
+      dashboardAPI.getDonationOverview().catch(() => null),
+      dashboardAPI.getSavingsOverview().catch(() => null),
+    ]);
+    setDonorOverview(overview?.success ? overview.data : null);
+    setDonorCharts(charts?.success ? charts.data : null);
+    setDonationOverview(donations?.success ? donations.data : null);
+    setSavingsOverview(savings?.success ? savings.data : null);
+  };
+
   const loadDashboardData = async () => {
     setLoading(true);
     setError(null);
+    // Fire-and-forget so the sections fill in as they arrive.
+    loadAnalyticsSections();
     
     try {
       const selectedPeriod = getSelectedPeriod();
@@ -1088,221 +1125,20 @@ const Dashboard: React.FC = () => {
               </Row>
             </div>
 
-                        {/* Bottom Section - Charts */}
-            <Row gutter={[24, 24]} className="bottom-section">
-              {/* Charts - Full Width */}
-              <Col xs={24}>
-                <Row gutter={[0, 24]}>
-                  {/* Charts Row */}
-                  <Col span={24}>
-                    <div className="insights-header">
-                      <Typography.Title level={2}>Insights</Typography.Title>
-                    </div>
-                    <Row gutter={[16, 16]}>
-                      <Col xs={24} md={12}>
-                        <Card className="chart-card">
-                          <div className="chart-header">
-                            <div className="chart-title">Breakdown of Donors</div>
-                            <Dropdown
-                              menu={donorChartFilterMenu}
-                              trigger={['click']}
-                              placement="bottomRight"
-                            >
-                              <Button className="chart-filter-button">
-                                <CalendarOutlined />
-                                <span>{donorChartFilter}</span>
-                                <DownOutlined />
-                              </Button>
-                            </Dropdown>
-                          </div>
-                          <div className="chart-content">
-                            <Spin spinning={donorChartLoading}>
-                            <div className="chart-total">
-                              <span className="total-number">{donorChartStats !== null ? donorChartStats.total : (dashboardStats?.totalDonors ?? '--')}</span>
-                              <span className="total-label">
-                                {donorChartStats?.isPeriodScoped ? 'New Donors' : 'Total Donors'}
-                              </span>
-                            </div>
-                            {/* Real donut. Replaces a div whose background was
-                                conic-gradient(#DB8633 0deg 72deg, ...) — a fixed
-                                20% orange slice that never moved with the data,
-                                so it showed a fifth active while the legend said
-                                zero. Drawn with stroke-dasharray on a circle. */}
-                            {(() => {
-                              const a = donorChartStats?.active ?? dashboardStats?.activeDonors ?? 0;
-                              const i = donorChartStats?.inactive ?? dashboardStats?.inactiveDonors ?? 0;
-                              const total = a + i;
-                              const C = 2 * Math.PI * 60;
-                              const activeLen = total > 0 ? (a / total) * C : 0;
-                              return (
-                                <svg
-                                  className="donut-svg"
-                                  viewBox="0 0 160 160"
-                                  role="img"
-                                  aria-label={`${a} active and ${i} inactive donors`}
-                                >
-                                  <circle cx="80" cy="80" r="60" fill="none" stroke="#324E58" strokeWidth="20" />
-                                  {total > 0 && a > 0 && (
-                                    <circle
-                                      cx="80" cy="80" r="60" fill="none"
-                                      stroke="#DB8633" strokeWidth="20"
-                                      strokeDasharray={`${activeLen} ${C - activeLen}`}
-                                      strokeDashoffset={C / 4}
-                                      strokeLinecap="butt"
-                                    />
-                                  )}
-                                  <text x="80" y="80" textAnchor="middle" dominantBaseline="central"
-                                        fontSize="22" fontWeight="700" fill="#324E58">
-                                    {total > 0 ? `${Math.round((a / total) * 100)}%` : '--'}
-                                  </text>
-                                  <text x="80" y="102" textAnchor="middle" fontSize="10" fill="#8c8c8c">
-                                    active
-                                  </text>
-                                </svg>
-                              );
-                            })()}
-                            <div className="chart-legend">
-                              <div className="legend-item">
-                                <span className="legend-color active"></span>
-                                <span>{donorChartStats !== null ? donorChartStats.active : (dashboardStats?.activeDonors ?? '--')} Active Donors</span>
-                              </div>
-                              <div className="legend-item">
-                                <span className="legend-color inactive"></span>
-                                <span>{donorChartStats !== null ? donorChartStats.inactive : (dashboardStats?.inactiveDonors ?? '--')} In-Active Donors</span>
-                              </div>
-                            </div>
-                            </Spin>
-                          </div>
-                        </Card>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <Card className="chart-card">
-                          <div className="chart-header">
-                            <div className="chart-title">Donations</div>
-                            <Dropdown
-                              menu={donationChartFilterMenu}
-                              trigger={['click']}
-                              placement="bottomRight"
-                            >
-                              <Button className="chart-filter-button">
-                                <CalendarOutlined />
-                                <span>{donationChartFilter}</span>
-                                <DownOutlined />
-                              </Button>
-                            </Dropdown>
-                          </div>
-                          <div className="chart-content">
-                            <Spin spinning={donationChartLoading}>
-                            <div className="chart-total">
-                              <span className="total-number">
-                                {donationChartStats !== null
-                                  ? (donationChartStats.total ? `$${donationChartStats.total.toLocaleString()}` : '$0')
-                                  : (dashboardStats?.totalDonations ? `$${dashboardStats.totalDonations.toLocaleString()}` : '--')}
-                              </span>
-                              <span className="total-label">Total Donations</span>
-                            </div>
-                            {/* Real chart, drawn from the weekly series. Inline
-                                SVG rather than a charting dependency: the panel
-                                has none installed and this needs a line, a fill
-                                and an axis, nothing more. viewBox +
-                                preserveAspectRatio="none" lets it stretch with
-                                the card instead of being pinned to fixed px. */}
-                            {donationSeries.length > 0 ? (
-                              (() => {
-                                const vals = donationSeries.map((d) => Number(d.value) || 0);
-                                const peak = Math.max(...vals, 1);
-                                // Round the axis up to something readable rather
-                                // than labelling the exact peak.
-                                const step = Math.pow(10, Math.floor(Math.log10(peak)));
-                                const axisMax = Math.ceil(peak / step) * step || 1;
-                                const W = 100;
-                                const H = 40;
-                                const n = vals.length;
-                                const x = (i: number) => (n === 1 ? W / 2 : (i / (n - 1)) * W);
-                                const y = (v: number) => H - (v / axisMax) * H;
-                                const line = vals.map((v, i) => `${x(i)},${y(v)}`).join(' ');
-                                const area = `0,${H} ${line} ${W},${H}`;
-                                const money = (v: number) =>
-                                  v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${Math.round(v)}`;
-                                return (
-                                  <div className="line-chart">
-                                    <div className="chart-y-axis">
-                                      <span>{money(axisMax)}</span>
-                                      <span>{money(axisMax * 0.75)}</span>
-                                      <span>{money(axisMax * 0.5)}</span>
-                                      <span>{money(axisMax * 0.25)}</span>
-                                      <span>$0</span>
-                                    </div>
-                                    <svg
-                                      className="chart-svg"
-                                      viewBox={`0 0 ${W} ${H}`}
-                                      preserveAspectRatio="none"
-                                      role="img"
-                                      aria-label={`Donations by week: ${donationSeries
-                                        .map((d) => `${d.label} $${Number(d.value).toFixed(2)}`)
-                                        .join(', ')}`}
-                                    >
-                                      <polygon points={area} fill="rgba(219,134,51,0.18)" />
-                                      <polyline
-                                        points={line}
-                                        fill="none"
-                                        stroke="#DB8633"
-                                        strokeWidth={1.4}
-                                        vectorEffect="non-scaling-stroke"
-                                        strokeLinejoin="round"
-                                        strokeLinecap="round"
-                                      />
-                                      {vals.map((v, i) => (
-                                        <circle
-                                          key={i}
-                                          cx={x(i)}
-                                          cy={y(v)}
-                                          r={1.6}
-                                          fill="#ffffff"
-                                          stroke="#DB8633"
-                                          strokeWidth={1.2}
-                                          vectorEffect="non-scaling-stroke"
-                                        />
-                                      ))}
-                                    </svg>
-                                    <div className="chart-x-axis">
-                                      {donationSeries.map((d) => (
-                                        <span key={d.label}>{d.label}</span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                );
-                              })()
-                            ) : (
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description="No donations in this period"
-                                style={{ margin: '24px 0' }}
-                              />
-                            )}
-                            <div className="chart-legend">
-                              <div className="legend-item">
-                                <span className="legend-color active"></span>
-                                <span>Average: {dashboardStats?.donationsAverage
-                                  ? `${formatMoney(dashboardStats.donationsAverage)} per ${dashboardStats.donationsBucketUnit || 'week'}`
-                                  : '--'}</span>
-                              </div>
-                              <div className="legend-item">
-                                <span className="legend-color inactive"></span>
-                                <span>Trend: {typeof dashboardStats?.donationsTrend === 'number'
-                                  ? `${dashboardStats.donationsTrend > 0 ? '+' : ''}${dashboardStats.donationsTrend.toFixed(1)}% vs previous period`
-                                  : 'no prior period'}</span>
-                              </div>
-                            </div>
-                            </Spin>
-                          </div>
-                        </Card>
-                      </Col>
-                    </Row>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
+            {/* Analytics sections, built 2026-05-29 and restored 2026-09-04.
+                These replace the Insights block that sat here: Insights was
+                originally removed in May for being donut and line-chart
+                placeholders, rebuilt on 09-01 against live data, and is now
+                retired again in favour of these four, which cover the same
+                ground plus donor sources, location breakdowns, recurring vs
+                one-time, and savings by vendor.
+
+                Recent Approvals below is deliberately kept — May removed it,
+                Stephanie wants it for now. */}
+            <DonorOverviewSection overview={donorOverview} />
+            <DonorChartsSection data={donorCharts} />
+            <DonationOverviewSection data={donationOverview} />
+            <SavingsOverviewSection data={savingsOverview} />
 
             {/* Recent Approvals - Full Width Section */}
             <Row className="approvals-section">
