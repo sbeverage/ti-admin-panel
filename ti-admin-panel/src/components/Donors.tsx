@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag, Drawer, Empty, Descriptions, Statistic} from 'antd';
+import { Layout, Menu, theme, Typography, Space, Avatar, Button, Card, Row, Col, Input, Select, Table, Pagination, Dropdown, message, Spin, Modal, Tooltip, Tag, Drawer, Empty, Descriptions, DatePicker, Statistic} from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import dayjs, { Dayjs } from 'dayjs';
 import UserProfile from './UserProfile';
 import {
   DashboardOutlined, UserOutlined, StarOutlined, RiseOutlined, SettingOutlined,
@@ -51,7 +52,23 @@ const Donors: React.FC = () => {
   const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
   const [searchText, setSearchText] = useState<string>('');
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<string | undefined>(undefined);
-  const [selectedDuration, setSelectedDuration] = useState<string | undefined>(undefined);
+  /**
+   * Filter by the calendar month a donor actually paid in.
+   *
+   * Replaces a rolling-window dropdown (1 week / 1 month / 3 months …) that
+   * filtered on last_donation_date. That answers a different question than it
+   * appears to: last_donation_date is a single date, so picking a past month
+   * found donors whose LAST EVER payment fell in it — people who lapsed
+   * afterwards — and missed anyone who also paid later. Someone who gave in
+   * both August and September was invisible in August.
+   *
+   * The month is resolved server-side from `transactions`, using the same
+   * predicates as the Beneficiary Payouts report, so the two screens agree.
+   * Verified: Sept 2/2, Aug 10/10, Jul 7/7 donations against that report.
+   */
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
+  const [monthDonorIds, setMonthDonorIds] = useState<Set<number> | null>(null);
+  const [monthLoading, setMonthLoading] = useState(false);
   const [selectedUserStatus, setSelectedUserStatus] = useState<string | undefined>(undefined);
   const [selectedCityState, setSelectedCityState] = useState<string | undefined>(undefined);
   const [selectedCoworking, setSelectedCoworking] = useState<string | undefined>(undefined);
@@ -61,6 +78,37 @@ const Donors: React.FC = () => {
   const [billingData, setBillingData] = useState<any | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [selectedSubscriptionStatus, setSelectedSubscriptionStatus] = useState<string | undefined>(undefined);
+  // Resolve the selected month to the set of donors who paid in it. Server-side
+  // because the donor row only carries last_donation_date, which cannot answer
+  // "did they pay during this month".
+  useEffect(() => {
+    if (!selectedMonth) {
+      setMonthDonorIds(null);
+      return;
+    }
+    let cancelled = false;
+    const month = selectedMonth.format('YYYY-MM');
+    setMonthLoading(true);
+    donorAPI
+      .getDonatedIn(month)
+      .then((res: any) => {
+        if (cancelled) return;
+        const ids: number[] = res?.success ? res.data?.user_ids || [] : [];
+        setMonthDonorIds(new Set(ids.map(Number)));
+      })
+      .catch(() => {
+        // An empty set would hide every donor and read as "nobody gave".
+        // Null clears the filter instead, which is the honest failure.
+        if (!cancelled) setMonthDonorIds(null);
+      })
+      .finally(() => {
+        if (!cancelled) setMonthLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMonth]);
+
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
@@ -196,7 +244,7 @@ const Donors: React.FC = () => {
   // Apply filters when filter values change
   useEffect(() => {
     applyFilters();
-  }, [allDonorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
+  }, [allDonorsData, searchText, selectedBeneficiary, selectedMonth, monthDonorIds, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
 
   const applyFilters = () => {
     let filtered = [...allDonorsData];
@@ -221,38 +269,13 @@ const Donors: React.FC = () => {
       );
     }
 
-    // Duration filter (filter by last donation date)
-    if (selectedDuration) {
-      const now = new Date();
-      let cutoffDate = new Date();
-      
-      switch (selectedDuration) {
-        case '1-week':
-          cutoffDate.setDate(now.getDate() - 7);
-          break;
-        case '1-month':
-          cutoffDate.setMonth(now.getMonth() - 1);
-          break;
-        case '3-months':
-          cutoffDate.setMonth(now.getMonth() - 3);
-          break;
-        case '6-months':
-          cutoffDate.setMonth(now.getMonth() - 6);
-          break;
-        case '9-months':
-          cutoffDate.setMonth(now.getMonth() - 9);
-          break;
-        case '12-months':
-          cutoffDate.setMonth(now.getMonth() - 12);
-          break;
-        default:
-          cutoffDate = new Date(0); // All time
-      }
-      
+    // Donated-in-month filter. monthDonorIds is the authoritative set from the
+    // server; null means no month is selected, an empty set means the month had
+    // no donations at all (which must show nothing, not everything).
+    if (selectedMonth && monthDonorIds) {
       filtered = filtered.filter((donor: any) => {
-        if (!donor.lastDonated || donor.lastDonated === 'Never') return false;
-        const lastDonatedDate = new Date(donor.originalData?.last_donation_date || donor.lastDonated);
-        return lastDonatedDate >= cutoffDate;
+        const id = Number(donor.id ?? donor.originalData?.id);
+        return Number.isFinite(id) && monthDonorIds.has(id);
       });
     }
 
@@ -312,7 +335,7 @@ const Donors: React.FC = () => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
+  }, [searchText, selectedBeneficiary, selectedMonth, monthDonorIds, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
 
   const sortedDonors = [...filteredDonorsData].sort((a, b) => {
     if (!sortField || !sortOrder) return 0;
@@ -1251,21 +1274,19 @@ const Donors: React.FC = () => {
                     ))}
                   </Select>
                   
-                  <Select
-                    placeholder="Select Duration"
+                  <DatePicker
+                    picker="month"
+                    placeholder="Donated in month"
                     className="filter-dropdown"
                     size="large"
-                    value={selectedDuration}
-                    onChange={setSelectedDuration}
+                    value={selectedMonth}
+                    onChange={(d) => setSelectedMonth(d)}
+                    format="MMMM YYYY"
+                    // Nothing was collected before the platform launched, so
+                    // earlier months can only ever return nothing.
+                    disabledDate={(d) => d && d.isAfter(dayjs(), 'month')}
                     allowClear
-                  >
-                    <Option value="1-week">1 Week</Option>
-                    <Option value="1-month">1 Month</Option>
-                    <Option value="3-months">3 Months</Option>
-                    <Option value="6-months">6 Months</Option>
-                    <Option value="9-months">9 Months</Option>
-                    <Option value="12-months">12 Months</Option>
-                  </Select>
+                  />
                   
                   <Select
                     placeholder="All User"
@@ -1328,14 +1349,15 @@ const Donors: React.FC = () => {
 
                   <Button
                     size="large"
-                    disabled={!searchText && !selectedBeneficiary && !selectedDuration && !selectedUserStatus && !selectedCityState && !selectedCoworking}
+                    disabled={!searchText && !selectedBeneficiary && !selectedMonth && !selectedUserStatus && !selectedCityState && !selectedCoworking && !selectedSubscriptionStatus}
                     onClick={() => {
                       setSearchText('');
                       setSelectedBeneficiary(undefined);
-                      setSelectedDuration(undefined);
+                      setSelectedMonth(null);
                       setSelectedUserStatus(undefined);
                       setSelectedCityState(undefined);
                       setSelectedCoworking(undefined);
+                      setSelectedSubscriptionStatus(undefined);
                     }}
                     style={{ color: '#DB8633', borderColor: '#DB8633' }}
                   >

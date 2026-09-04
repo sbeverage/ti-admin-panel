@@ -721,6 +721,20 @@ export const discountAPI = {
 
 // Donor API functions
 export const donorAPI = {
+  /** Donors who actually paid in a calendar month (YYYY-MM).
+   *  Uses the same transactions predicates as the Beneficiary Payouts report,
+   *  so the Donors filter and that report always agree. */
+  getDonatedIn: async (month: string): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/reporting/donated-in?month=${encodeURIComponent(month)}`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getDonors: async (page = 1, limit = 20): Promise<PaginatedResponse<any>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/donors?page=${page}&limit=${limit}`,
