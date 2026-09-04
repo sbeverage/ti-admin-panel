@@ -1033,6 +1033,23 @@ export const dashboardAPI = {
     return response.json();
   },
 
+  /** The donors behind the New / Lost cards. Uses the same predicates as the
+   *  counts — see routes/adminAnalytics.ts donor-cohort — so the list length
+   *  always equals the number on the card. */
+  getDonorCohort: async (
+    type: 'new' | 'lost',
+    period: 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+  ): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/analytics/donor-cohort?type=${type}&period=${period}`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   getDonorOverview: async (): Promise<ApiResponse<any>> => {
     const response = await fetchWithTimeout(
       `${API_CONFIG.baseURL}/analytics/donor-overview`,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Col, Row, Typography } from 'antd';
+import { Card, Col, Modal, Row, Spin, Table, Tag, Typography, Empty } from 'antd';
 import {
   TeamOutlined,
   UserAddOutlined,
@@ -10,6 +10,7 @@ import {
   ArrowDownOutlined,
 } from '@ant-design/icons';
 import DashboardSection from './DashboardSection';
+import { dashboardAPI } from '../services/api';
 
 const { Title, Text } = Typography;
 
@@ -235,6 +236,8 @@ const TrioCard: React.FC<{
   moreIsBetter: boolean;
   /** Format the hero number — e.g. add a "+" prefix or invert sign for losses. */
   formatHero: (n: number) => string;
+  /** Supplied only for cards that can drill into a list of the donors. */
+  onClick?: () => void;
 }> = ({
   title,
   icon,
@@ -246,8 +249,32 @@ const TrioCard: React.FC<{
   sparklineColor,
   moreIsBetter,
   formatHero,
+  onClick,
 }) => (
-  <Card style={{ position: 'relative', minHeight: 200 }}>
+  <Card
+    // Only the cards that drill through advertise themselves as clickable.
+    // Making every card look interactive would promise detail that three of
+    // them do not have.
+    hoverable={!!onClick}
+    onClick={onClick}
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onKeyDown={
+      onClick
+        ? (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClick();
+            }
+          }
+        : undefined
+    }
+    style={{
+      position: 'relative',
+      minHeight: 200,
+      cursor: onClick ? 'pointer' : undefined,
+    }}
+  >
     <CardIcon icon={icon} tone={iconTone} />
     <Text
       type="secondary"
@@ -276,6 +303,27 @@ const TrioCard: React.FC<{
 
 const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
   const [period, setPeriod] = useState<PeriodKey>('monthly');
+
+  // Drill-through for the New / Lost cards. Fetched on open rather than with
+  // the section: most visits never open it, and the query walks every donor's
+  // whole donation history to find their first gift.
+  const [cohort, setCohort] = useState<null | 'new' | 'lost'>(null);
+  const [cohortRows, setCohortRows] = useState<any[]>([]);
+  const [cohortLoading, setCohortLoading] = useState(false);
+
+  const openCohort = async (type: 'new' | 'lost') => {
+    setCohort(type);
+    setCohortLoading(true);
+    setCohortRows([]);
+    try {
+      const res = await dashboardAPI.getDonorCohort(type, period);
+      setCohortRows(res?.success ? res.data?.donors || [] : []);
+    } catch {
+      setCohortRows([]);
+    } finally {
+      setCohortLoading(false);
+    }
+  };
 
   const totalActive = overview?.totalActive ?? 0;
   const totalInactive = overview?.totalInactive ?? 0;
@@ -362,6 +410,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             sparklineColor="#DB8633"
             moreIsBetter={true}
             formatHero={sign}
+            onClick={() => openCohort('new')}
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
@@ -376,6 +425,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             sparklineColor="#324E58"
             moreIsBetter={false}
             formatHero={(n) => (n === 0 ? '0' : `-${n}`)}
+            onClick={() => openCohort('lost')}
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
@@ -401,6 +451,94 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           />
         </Col>
       </Row>
+
+      {/* Drill-through for the New / Lost cards. The row count always equals
+          the number on the card because the endpoint reuses the same
+          predicates as the counts — verified across all four periods. */}
+      <Modal
+        open={cohort !== null}
+        onCancel={() => setCohort(null)}
+        footer={null}
+        width={760}
+        title={
+          cohort === 'lost'
+            ? `Donors lost — ${PERIOD_LABELS[period].chip.toLowerCase()}`
+            : `New donors — ${PERIOD_LABELS[period].chip.toLowerCase()}`
+        }
+      >
+        {cohortLoading ? (
+          <div style={{ padding: 48, textAlign: 'center' }}>
+            <Spin />
+          </div>
+        ) : cohortRows.length === 0 ? (
+          <Empty
+            description={
+              cohort === 'lost'
+                ? 'No donors lapsed in this period.'
+                : 'No first-time donations in this period.'
+            }
+          />
+        ) : (
+          <Table
+            dataSource={cohortRows}
+            rowKey="user_id"
+            size="small"
+            pagination={cohortRows.length > 10 ? { pageSize: 10 } : false}
+            columns={
+              cohort === 'lost'
+                ? [
+                    {
+                      title: 'Donor',
+                      dataIndex: 'name',
+                      render: (v: string, r: any) => v || r.email,
+                    },
+                    { title: 'Email', dataIndex: 'email' },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      render: (v: string) => {
+                        const label =
+                          v === 'unpaid'
+                            ? 'Paused'
+                            : v === 'past_due'
+                              ? 'Payment failing'
+                              : 'Cancelled';
+                        const colour =
+                          v === 'cancelled' ? 'default' : 'warning';
+                        return <Tag color={colour}>{label}</Tag>;
+                      },
+                    },
+                    {
+                      title: 'Lapsed',
+                      dataIndex: 'lost_at',
+                      render: (v: string) =>
+                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                    },
+                  ]
+                : [
+                    {
+                      title: 'Donor',
+                      dataIndex: 'name',
+                      render: (v: string, r: any) => v || r.email,
+                    },
+                    { title: 'Email', dataIndex: 'email' },
+                    {
+                      title: 'First donation',
+                      dataIndex: 'first_donation_at',
+                      render: (v: string) =>
+                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                    },
+                    {
+                      title: 'Signed up',
+                      dataIndex: 'joined_at',
+                      render: (v: string) =>
+                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                    },
+                  ]
+            }
+          />
+        )}
+      </Modal>
     </DashboardSection>
   );
 };
