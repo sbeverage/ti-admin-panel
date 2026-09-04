@@ -8,7 +8,9 @@ import {
   MenuOutlined, SearchOutlined, UserAddOutlined,
   SortAscendingOutlined, EditOutlined,
   GiftOutlined, TeamOutlined, GlobalOutlined, DeleteOutlined,
-  MailOutlined, EnvironmentOutlined, CalculatorOutlined, CreditCardOutlined} from '@ant-design/icons';
+  MailOutlined, EnvironmentOutlined, CalculatorOutlined, CreditCardOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons';
 import InviteDonorModal from './InviteDonorModal';
 import EditDonorModal from './EditDonorModal';
 import { donorAPI, beneficiaryAPI } from '../services/api';
@@ -58,6 +60,7 @@ const Donors: React.FC = () => {
   const [billingDonor, setBillingDonor] = useState<any | null>(null);
   const [billingData, setBillingData] = useState<any | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [selectedSubscriptionStatus, setSelectedSubscriptionStatus] = useState<string | undefined>(undefined);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [beneficiariesList, setBeneficiariesList] = useState<any[]>([]);
@@ -107,6 +110,7 @@ const Donors: React.FC = () => {
           donation: donor.total_donations ? `$${donor.total_donations}` : '$0',
           oneTime: donor.one_time_donation ? `$${donor.one_time_donation}` : '$0',
           lastDonated: donor.last_donation_date ? new Date(donor.last_donation_date).toLocaleDateString() : 'Never',
+          subscriptionStatus: donor.subscription_status || 'no_subscription',
           cityState: (() => {
             if (!donor.address) return 'N/A';
             const city = donor.address.city || '';
@@ -192,7 +196,7 @@ const Donors: React.FC = () => {
   // Apply filters when filter values change
   useEffect(() => {
     applyFilters();
-  }, [allDonorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+  }, [allDonorsData, searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
 
   const applyFilters = () => {
     let filtered = [...allDonorsData];
@@ -281,6 +285,26 @@ const Donors: React.FC = () => {
       }
     }
 
+    // Subscription status filter (Active / Past Due / Cancelled / etc.)
+    if (selectedSubscriptionStatus) {
+      filtered = filtered.filter((donor: any) => {
+        const s = (donor.subscriptionStatus || 'no_subscription').toLowerCase();
+        if (selectedSubscriptionStatus === 'active') {
+          return s === 'active' || s === 'trialing';
+        }
+        if (selectedSubscriptionStatus === 'past_due') {
+          return s === 'past_due' || s === 'unpaid';
+        }
+        if (selectedSubscriptionStatus === 'cancelled') {
+          return s === 'cancelled' || s === 'canceled';
+        }
+        if (selectedSubscriptionStatus === 'no_subscription') {
+          return s === 'no_subscription';
+        }
+        return s === selectedSubscriptionStatus;
+      });
+    }
+
     setFilteredDonorsData(filtered);
   };
 
@@ -288,7 +312,7 @@ const Donors: React.FC = () => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking]);
+  }, [searchText, selectedBeneficiary, selectedDuration, selectedUserStatus, selectedCityState, selectedCoworking, selectedSubscriptionStatus]);
 
   const sortedDonors = [...filteredDonorsData].sort((a, b) => {
     if (!sortField || !sortOrder) return 0;
@@ -566,6 +590,30 @@ const Donors: React.FC = () => {
       width: 180,
     },
     {
+      title: 'Subscription',
+      dataIndex: 'subscriptionStatus',
+      key: 'subscriptionStatus',
+      width: 130,
+      render: (status: string) => {
+        const s = (status || 'no_subscription').toLowerCase();
+        // Map raw Stripe / DB statuses to a colored tag for fast scanning.
+        const map: Record<string, { color: string; label: string }> = {
+          active: { color: 'green', label: 'Active' },
+          trialing: { color: 'green', label: 'Trialing' },
+          past_due: { color: 'orange', label: 'Past Due' },
+          unpaid: { color: 'orange', label: 'Unpaid' },
+          paused: { color: 'gold', label: 'Paused' },
+          cancelled: { color: 'red', label: 'Cancelled' },
+          canceled: { color: 'red', label: 'Cancelled' },
+          incomplete: { color: 'default', label: 'Incomplete' },
+          pending: { color: 'default', label: 'Pending' },
+          no_subscription: { color: 'default', label: 'No Sub' },
+        };
+        const cfg = map[s] || { color: 'default', label: status || '—' };
+        return <Tag color={cfg.color}>{cfg.label}</Tag>;
+      },
+    },
+    {
       title: (
         <div className="sortable-header">
           City, State
@@ -587,7 +635,25 @@ const Donors: React.FC = () => {
       width: 180,
     },
     {
-      title: 'Active/De-active',
+      // Renamed from "Active/De-active", which read as a giving status and is
+      // not one: this is users.is_active, a manual admin switch that defaults
+      // to true at signup and is never derived from donations. On 2026-09-04,
+      // 11 of 26 donors were "Active" here while having given $0 and holding
+      // no subscription. The Subscription column beside it is the real answer.
+      title: (
+        <Space size={4}>
+          Account Enabled
+          <Tooltip
+            title={
+              'Whether this account can sign in and use the app — a manual switch, ' +
+              'on by default at signup. It says nothing about whether they are ' +
+              'giving; see the Subscription column for that.'
+            }
+          >
+            <InfoCircleOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+          </Tooltip>
+        </Space>
+      ),
       dataIndex: 'active',
       key: 'active',
       render: (active: boolean, record: any) => (
@@ -1212,6 +1278,20 @@ const Donors: React.FC = () => {
                     <Option value="all">All Users</Option>
                     <Option value="active">Active</Option>
                     <Option value="inactive">Inactive</Option>
+                  </Select>
+
+                  <Select
+                    placeholder="Subscription"
+                    className="filter-dropdown"
+                    size="large"
+                    value={selectedSubscriptionStatus}
+                    onChange={setSelectedSubscriptionStatus}
+                    allowClear
+                  >
+                    <Option value="active">Active</Option>
+                    <Option value="past_due">Past Due</Option>
+                    <Option value="cancelled">Cancelled</Option>
+                    <Option value="no_subscription">No Subscription</Option>
                   </Select>
                   
                   <Select
