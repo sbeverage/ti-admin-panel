@@ -29,7 +29,8 @@ import {
   ReconciliationOutlined,
   DownOutlined,
   MailOutlined,
-  TrophyOutlined
+  TrophyOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import './Reporting.css';
 import '../styles/sidebar-standard.css';
@@ -51,7 +52,18 @@ interface PayoutData {
   monthlyDonations: number;
   oneTimeDonations: number;
   donationCount: number;
-  ccProcessingFees: number; // CC processing fees beneficiary absorbed (donor didn't cover)
+  ccProcessingFees: number; // what Stripe ACTUALLY charged, backfilled from Stripe
+  /**
+   * Collected for fees minus what Stripe actually took.
+   *
+   * The app grosses the donor's total up using Stripe's nonprofit rate
+   * (2.2% + $0.30) and rounds UP to the cent, so a $15 gift is charged as
+   * $15.00 + $3.00 platform + $0.72 = $18.72. Stripe's real fee is usually a
+   * little less — $0.66 on that charge — and the difference lands in the
+   * beneficiary's payout. Small per donation, real across a year, and it was
+   * invisible before this column.
+   */
+  feeSurplus: number;
   netAmount: number; // Total - Platform Fee - CC Fees
   platformFee: number; // $3 per donation (THRIVE's revenue)
   payoutAmount: number; // Total donations - platform fee - absorbed processing fees
@@ -186,6 +198,16 @@ const Reporting: React.FC = () => {
           const donationCount = item.donationCount || 0;
           const ccProcessingFees = item.processingFees || 0;
           const platformFee = item.platformFee ?? donationCount * 3;
+          // What the donor was charged toward Stripe, minus what Stripe took.
+          // The app grosses up at 2.2% + $0.30 and rounds UP to the cent, so
+          // this is normally a small positive figure that ends up in the
+          // beneficiary's payout rather than anyone's pocket.
+          const collectedForFees = Math.max(
+            0,
+            totalDonations - (item.monthlyDonations || 0) - (item.oneTimeGifts || 0),
+          );
+          const feeSurplus =
+            Math.round((collectedForFees - ccProcessingFees) * 100) / 100;
           const payoutAmount = item.payoutAmount ?? totalDonations - platformFee - ccProcessingFees;
           const netAmount = item.netAmount ?? payoutAmount;
 
@@ -202,6 +224,7 @@ const Reporting: React.FC = () => {
             oneTimeDonations: item.oneTimeGifts || 0,
             donationCount,
             ccProcessingFees,
+            feeSurplus,
             netAmount,
             platformFee,
             payoutAmount,
@@ -279,6 +302,7 @@ const Reporting: React.FC = () => {
     totalMonthlyDonations: acc.totalMonthlyDonations + item.monthlyDonations,
     totalOneTimeDonations: acc.totalOneTimeDonations + item.oneTimeDonations,
     totalCCFees: acc.totalCCFees + item.ccProcessingFees,
+    totalFeeSurplus: acc.totalFeeSurplus + (item.feeSurplus || 0),
     totalNetAmount: acc.totalNetAmount + item.netAmount,
     totalPlatformFee: acc.totalPlatformFee + item.platformFee,
     totalPayoutAmount: acc.totalPayoutAmount + item.payoutAmount,
@@ -289,6 +313,7 @@ const Reporting: React.FC = () => {
     totalMonthlyDonations: 0,
     totalOneTimeDonations: 0,
     totalCCFees: 0,
+    totalFeeSurplus: 0,
     totalNetAmount: 0,
     totalPlatformFee: 0,
     totalPayoutAmount: 0,
@@ -473,7 +498,21 @@ const Reporting: React.FC = () => {
       )
     },
     {
-      title: 'Total Donations',
+      title: (
+        <Space size={4}>
+          Total Collected
+          <Tooltip
+            title={
+              'The full amount charged to donors, not the donation itself. ' +
+              'A $15 gift is charged as $15.00 donation + $3.00 platform fee + ' +
+              '$0.72 to cover Stripe, i.e. $18.72. Note the Dashboard uses ' +
+              '"Total Donations" to mean only the donation portion.'
+            }
+          >
+            <InfoCircleOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+          </Tooltip>
+        </Space>
+      ),
       dataIndex: 'totalDonations',
       key: 'totalDonations',
       width: 130,
@@ -508,13 +547,54 @@ const Reporting: React.FC = () => {
       render: (count: number) => <Tag>{count}</Tag>
     },
     {
-      title: 'CC Fees',
+      title: (
+        <Space size={4}>
+          Stripe Fee (actual)
+          <Tooltip
+            title={
+              'What Stripe actually charged, read from Stripe rather than estimated. ' +
+              'This is not the amount collected from the donor for fees — see Fee Surplus.'
+            }
+          >
+            <InfoCircleOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+          </Tooltip>
+        </Space>
+      ),
       dataIndex: 'ccProcessingFees',
       key: 'ccProcessingFees',
-      width: 100,
+      width: 130,
       align: 'right' as const,
       render: (fees: number) => (
         <Text type="secondary">{fees > 0 ? `$${fees.toFixed(2)}` : '-'}</Text>
+      ),
+      className: 'table-header-small'
+    },
+    {
+      title: (
+        <Space size={4}>
+          Fee Surplus
+          <Tooltip
+            title={
+              'Collected for fees minus what Stripe actually took. The app grosses ' +
+              "the donor's total up using Stripe's nonprofit rate (2.2% + $0.30) and " +
+              'rounds UP to the cent, so the charity is never short. Stripe usually ' +
+              'charges slightly less, and the difference goes to the beneficiary — ' +
+              'which is why their payout can exceed the donation. Example: donor pays ' +
+              '$0.72 toward fees, Stripe takes $0.66, surplus $0.06.'
+            }
+          >
+            <InfoCircleOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+          </Tooltip>
+        </Space>
+      ),
+      dataIndex: 'feeSurplus',
+      key: 'feeSurplus',
+      width: 120,
+      align: 'right' as const,
+      render: (v: number) => (
+        <Text type="secondary" style={{ color: v > 0 ? '#52c41a' : undefined }}>
+          {v > 0 ? `+$${v.toFixed(2)}` : v < 0 ? `-$${Math.abs(v).toFixed(2)}` : '-'}
+        </Text>
       ),
       className: 'table-header-small'
     },
@@ -954,7 +1034,7 @@ const Reporting: React.FC = () => {
                       no cell, so every figure rendered one column to the left
                       and none of them lined up with its header — the first
                       total appeared under Bank Info. Counts:
-                      11 single cells (0-10) + colSpan 4 (11) = 15. */}
+                      12 single cells (0-11) + colSpan 4 (12) = 16. */}
                   <Table.Summary.Row>
                     {/* 0 — Beneficiary */}
                     <Table.Summary.Cell index={0}>
@@ -980,32 +1060,40 @@ const Reporting: React.FC = () => {
                     <Table.Summary.Cell index={5} align="center">
                       <Tag>{totals.totalDonationCount}</Tag>
                     </Table.Summary.Cell>
-                    {/* 6 — CC Fees */}
+                    {/* 6 — Stripe Fee (actual) */}
                     <Table.Summary.Cell index={6} align="right">
                       ${totals.totalCCFees.toFixed(2)}
                     </Table.Summary.Cell>
-                    {/* 7 — Net Amount */}
+                    {/* 7 — Fee Surplus */}
                     <Table.Summary.Cell index={7} align="right">
+                      <Text style={{ color: totals.totalFeeSurplus > 0 ? '#52c41a' : undefined }}>
+                        {totals.totalFeeSurplus > 0
+                          ? `+$${totals.totalFeeSurplus.toFixed(2)}`
+                          : `$${totals.totalFeeSurplus.toFixed(2)}`}
+                      </Text>
+                    </Table.Summary.Cell>
+                    {/* 8 — Net Amount */}
+                    <Table.Summary.Cell index={8} align="right">
                       <Text strong>${totals.totalNetAmount.toFixed(2)}</Text>
                     </Table.Summary.Cell>
-                    {/* 8 — Platform Fee */}
-                    <Table.Summary.Cell index={8} align="right">
+                    {/* 9 — Platform Fee */}
+                    <Table.Summary.Cell index={9} align="right">
                       <Text style={{ color: '#DB8633' }}>
                         ${totals.totalPlatformFee.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    {/* 9 — Payout to Beneficiary */}
-                    <Table.Summary.Cell index={9} align="right">
+                    {/* 10 — Payout to Beneficiary */}
+                    <Table.Summary.Cell index={10} align="right">
                       <Text strong style={{ color: '#1890ff', fontSize: '18px' }}>
                         ${totals.totalPayoutAmount.toFixed(2)}
                       </Text>
                     </Table.Summary.Cell>
-                    {/* 10 — Stripe Amount */}
-                    <Table.Summary.Cell index={10} align="right">
+                    {/* 11 — Stripe Amount */}
+                    <Table.Summary.Cell index={11} align="right">
                       ${totals.totalStripeAmount.toFixed(2)}
                     </Table.Summary.Cell>
-                    {/* 11 — Reconciliation, Payment Method, Payout Status, Actions */}
-                    <Table.Summary.Cell index={11} colSpan={4} />
+                    {/* 12 — Reconciliation, Payment Method, Payout Status, Actions */}
+                    <Table.Summary.Cell index={12} colSpan={4} />
                   </Table.Summary.Row>
                 </Table.Summary>
               )}
