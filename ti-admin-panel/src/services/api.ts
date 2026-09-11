@@ -92,8 +92,20 @@ function adminRequestErrorMessage(status: number, errorText: string): string {
     return errorText?.trim() || `Request failed (${status})`;
   }
   const msg = String(parsed.message || parsed.error || errorText || `HTTP ${status}`);
-  if (status === 404 && (/not found/i.test(msg) || /route not found/i.test(msg))) {
-    return 'API URL not found (404). Set REACT_APP_API_BASE_URL to …/functions/v1/api/admin (or …/functions/v1/api — the app will append /admin). No trailing slash.';
+  if (status === 404) {
+    // A 404 has two very different causes and this used to report only one of
+    // them. Deleting a team member 404'd because the backend had no DELETE
+    // route, and this message sent everyone hunting a REACT_APP_API_BASE_URL
+    // problem that did not exist. The backend's own wording distinguishes
+    // them: its route-level miss says "No route for METHOD /path", while a
+    // handler that ran and found nothing says what was missing.
+    if (/no route for/i.test(msg)) {
+      return `The backend has no handler for this request (404): ${msg}. Either REACT_APP_API_BASE_URL is wrong (it should be …/functions/v1/api/admin, or …/functions/v1/api which the app appends /admin to, no trailing slash), or that endpoint does not exist yet.`;
+    }
+    if (/not found/i.test(msg)) {
+      return msg;
+    }
+    return `Not found (404): ${msg}`;
   }
   if (status === 401) {
     if (/invalid jwt/i.test(msg) || (parsed.code === 401 && /jwt/i.test(msg))) {
