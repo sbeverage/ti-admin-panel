@@ -432,7 +432,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           coworking count is the number that makes the $3 platform fee add up. */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} lg={12}>
-          <Card style={{ position: 'relative', minHeight: 132 }}>
+          <Card style={{ position: 'relative', minHeight: 132, height: '100%' }}>
             <CardIcon icon={<TeamOutlined />} tone="#722ed1" />
             <Text
               type="secondary"
@@ -446,17 +446,15 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             <Text type="secondary" style={{ fontSize: 12 }}>
               billed by their space, not through Stripe
             </Text>
-            {!!coworkingFee && coworkingFee.count > 0 && (
-              <div style={{ marginTop: 8 }}>
-                <Text style={{ fontSize: 12 }}>
-                  ${coworkingFee.monthlyTotal.toFixed(2)}/mo in platform fees
-                </Text>
-              </div>
-            )}
+            <div style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 12 }}>
+                ${(coworkingFee?.monthlyTotal ?? 0).toFixed(2)}/mo in platform fees
+              </Text>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={12}>
-          <Card style={{ position: 'relative', minHeight: 132 }}>
+          <Card style={{ position: 'relative', minHeight: 132, height: '100%' }}>
             <CardIcon icon={<TeamOutlined />} tone="#DB8633" />
             <Text
               type="secondary"
