@@ -567,7 +567,7 @@ const Donors: React.FC = () => {
       render: (value: string) => {
         const type = (value || 'standard').toLowerCase();
         const label =
-          type === 'team' ? 'Team' : type === 'coworking' ? 'Coworking' : 'Standard';
+          type === 'team' ? 'Team' : type === 'coworking' ? 'Coworking' : 'General';
         // Team is called out in orange because those accounts are comped and
         // excluded from donation totals — worth spotting at a glance.
         const color =

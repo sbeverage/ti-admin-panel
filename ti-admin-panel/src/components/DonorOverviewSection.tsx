@@ -14,6 +14,21 @@ import { dashboardAPI } from '../services/api';
 
 const { Title, Text } = Typography;
 
+/**
+ * One place that decides how a membership is worded and coloured, so the
+ * quick-preview on the card and the tag in the New Donors table can never
+ * drift apart. "General" rather than "standard": standard is the database's
+ * word, general is the one Stephanie uses for donors who pay THRIVE directly.
+ */
+const MembershipTag: React.FC<{ value?: string }> = ({ value }) => {
+  const isCoworking = String(value || '').toLowerCase() === 'coworking';
+  return (
+    <Tag color={isCoworking ? 'blue' : 'default'}>
+      {isCoworking ? 'Coworking' : 'General'}
+    </Tag>
+  );
+};
+
 interface PeriodCounts {
   new: { count: number; growthRate?: number | null };
   lost: { count: number; lossRate?: number | null };
@@ -32,9 +47,19 @@ interface WeekPoint {
   lost: number;
   net: number;
 }
+/** Where each half of the donor base pays its $3 platform fee. */
+interface MembershipSplit {
+  coworking: number;
+  general: number;
+  generalActive: number;
+}
+
 interface DonorOverview {
   totalActive: number;
   totalInactive: number;
+  membership?: MembershipSplit;
+  /** Monthly run-rate, not windowed — coworking spaces bill on their own cycle. */
+  platformFeeCoworking?: { count: number; monthlyTotal: number };
   current?: {
     weekly: PeriodCounts;
     monthly: PeriodCounts;
@@ -327,6 +352,8 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
 
   const totalActive = overview?.totalActive ?? 0;
   const totalInactive = overview?.totalInactive ?? 0;
+  const membership = overview?.membership ?? null;
+  const coworkingFee = overview?.platformFeeCoworking ?? null;
 
   // Pick current + previous blocks based on selected period. Fall back to
   // legacy top-level fields if the deployment hasn't shipped the new shape yet.
@@ -372,6 +399,54 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                 <Text type="secondary" style={{ marginLeft: 12 }}>
                   active · {totalInactive.toLocaleString()} inactive
                 </Text>
+
+                {/* Membership split. The point of showing it here is that the
+                    $3 platform fee reaches THRIVE by two different routes, and
+                    the counts are what make the total checkable by hand. */}
+                {membership && (
+                  <div style={{ marginTop: 14 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 20,
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <div>
+                        <MembershipTag value="standard" />
+                        <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>
+                          {membership.general.toLocaleString()}
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          pay THRIVE directly
+                        </Text>
+                      </div>
+                      <div>
+                        <MembershipTag value="coworking" />
+                        <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>
+                          {membership.coworking.toLocaleString()}
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          billed by their space
+                        </Text>
+                      </div>
+                    </div>
+
+                    {!!coworkingFee && coworkingFee.count > 0 && (
+                      <Text
+                        type="secondary"
+                        style={{ fontSize: 11, display: 'block', marginTop: 10 }}
+                      >
+                        Coworking platform fee: {coworkingFee.count} active ×
+                        $3 = <strong>${coworkingFee.monthlyTotal.toFixed(2)}/mo</strong>,
+                        collected inside their $18 membership rather than
+                        through Stripe. The Platform Fee card counts Stripe
+                        invoices only, so add this to it for the true total.
+                      </Text>
+                    )}
+                  </div>
+                )}
               </Col>
               <Col xs={24} md={14}>
                 <Sparkline
@@ -494,6 +569,11 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                     },
                     { title: 'Email', dataIndex: 'email' },
                     {
+                      title: 'Membership',
+                      dataIndex: 'membership',
+                      render: (v: string) => <MembershipTag value={v} />,
+                    },
+                    {
                       title: 'Status',
                       dataIndex: 'status',
                       render: (v: string) => {
@@ -522,6 +602,11 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                       render: (v: string, r: any) => v || r.email,
                     },
                     { title: 'Email', dataIndex: 'email' },
+                    {
+                      title: 'Membership',
+                      dataIndex: 'membership',
+                      render: (v: string) => <MembershipTag value={v} />,
+                    },
                     {
                       title: 'First donation',
                       dataIndex: 'first_donation_at',
