@@ -21,12 +21,12 @@ const { Title, Text } = Typography;
  * word, general is the one Stephanie uses for donors who pay THRIVE directly.
  */
 const MembershipTag: React.FC<{ value?: string }> = ({ value }) => {
-  const isCoworking = String(value || '').toLowerCase() === 'coworking';
-  return (
-    <Tag color={isCoworking ? 'blue' : 'default'}>
-      {isCoworking ? 'Coworking' : 'General'}
-    </Tag>
-  );
+  const v = String(value || '').toLowerCase();
+  // Same three labels and colours the Donors table uses, so a donor never
+  // looks like one thing on one screen and another elsewhere.
+  if (v === 'team') return <Tag color="orange">Team</Tag>;
+  if (v === 'coworking') return <Tag color="blue">Coworking</Tag>;
+  return <Tag color="default">General</Tag>;
 };
 
 interface PeriodCounts {
@@ -52,6 +52,12 @@ interface MembershipSplit {
   coworking: number;
   general: number;
   generalActive: number;
+}
+
+interface CohortMeta {
+  count?: number;
+  countExcludingTeam?: number;
+  teamCount?: number;
 }
 
 interface DonorOverview {
@@ -335,6 +341,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
   const [cohort, setCohort] = useState<null | 'new' | 'lost'>(null);
   const [cohortRows, setCohortRows] = useState<any[]>([]);
   const [cohortLoading, setCohortLoading] = useState(false);
+  const [cohortTeamCount, setCohortTeamCount] = useState(0);
 
   const openCohort = async (type: 'new' | 'lost') => {
     setCohort(type);
@@ -343,6 +350,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
     try {
       const res = await dashboardAPI.getDonorCohort(type, period);
       setCohortRows(res?.success ? res.data?.donors || [] : []);
+      setCohortTeamCount(res?.success ? res.data?.teamCount || 0 : 0);
     } catch {
       setCohortRows([]);
     } finally {
@@ -400,53 +408,6 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                   active · {totalInactive.toLocaleString()} inactive
                 </Text>
 
-                {/* Membership split. The point of showing it here is that the
-                    $3 platform fee reaches THRIVE by two different routes, and
-                    the counts are what make the total checkable by hand. */}
-                {membership && (
-                  <div style={{ marginTop: 14 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 20,
-                        flexWrap: 'wrap',
-                        alignItems: 'flex-start',
-                      }}
-                    >
-                      <div>
-                        <MembershipTag value="standard" />
-                        <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>
-                          {membership.general.toLocaleString()}
-                        </div>
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          pay THRIVE directly
-                        </Text>
-                      </div>
-                      <div>
-                        <MembershipTag value="coworking" />
-                        <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>
-                          {membership.coworking.toLocaleString()}
-                        </div>
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          billed by their space
-                        </Text>
-                      </div>
-                    </div>
-
-                    {!!coworkingFee && coworkingFee.count > 0 && (
-                      <Text
-                        type="secondary"
-                        style={{ fontSize: 11, display: 'block', marginTop: 10 }}
-                      >
-                        Coworking platform fee: {coworkingFee.count} active ×
-                        $3 = <strong>${coworkingFee.monthlyTotal.toFixed(2)}/mo</strong>,
-                        collected inside their $18 membership rather than
-                        through Stripe. The Platform Fee card counts Stripe
-                        invoices only, so add this to it for the true total.
-                      </Text>
-                    )}
-                  </div>
-                )}
               </Col>
               <Col xs={24} md={14}>
                 <Sparkline
@@ -462,6 +423,58 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                 </Text>
               </Col>
             </Row>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Membership breakdown. Its own row because these are totals about the
+          donor base, not period-scoped like the quartet below, and because the
+          coworking count is the number that makes the $3 platform fee add up. */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={12} lg={12}>
+          <Card style={{ position: 'relative', minHeight: 132 }}>
+            <CardIcon icon={<TeamOutlined />} tone="#722ed1" />
+            <Text
+              type="secondary"
+              style={{ fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' }}
+            >
+              Coworking Donors
+            </Text>
+            <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, marginTop: 8 }}>
+              {(membership?.coworking ?? 0).toLocaleString()}
+            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              billed by their space, not through Stripe
+            </Text>
+            {!!coworkingFee && coworkingFee.count > 0 && (
+              <div style={{ marginTop: 8 }}>
+                <Text style={{ fontSize: 12 }}>
+                  ${coworkingFee.monthlyTotal.toFixed(2)}/mo in platform fees
+                </Text>
+              </div>
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={12}>
+          <Card style={{ position: 'relative', minHeight: 132 }}>
+            <CardIcon icon={<TeamOutlined />} tone="#DB8633" />
+            <Text
+              type="secondary"
+              style={{ fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' }}
+            >
+              General Donors
+            </Text>
+            <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, marginTop: 8 }}>
+              {(membership?.general ?? 0).toLocaleString()}
+            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              pay THRIVE directly by card
+            </Text>
+            <div style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 12 }}>
+                {(membership?.generalActive ?? 0).toLocaleString()} active
+              </Text>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -541,6 +554,16 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             : `New donors — ${PERIOD_LABELS[period].chip.toLowerCase()}`
         }
       >
+        {cohort === 'new' && cohortTeamCount > 0 && (
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, display: 'block', marginBottom: 10 }}
+          >
+            Includes {cohortTeamCount} team{' '}
+            {cohortTeamCount === 1 ? 'account' : 'accounts'}, listed here but
+            not counted in the New Donors figure.
+          </Text>
+        )}
         {cohortLoading ? (
           <div style={{ padding: 48, textAlign: 'center' }}>
             <Spin />
