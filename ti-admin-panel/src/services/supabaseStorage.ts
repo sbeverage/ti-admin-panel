@@ -18,14 +18,15 @@ const STORAGE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY?.trim() ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
 
+// Env only, no hardcoded fallback \u2014 this repo is public. Matches api.ts.
 function getAdminSecret(): string {
   const raw = process.env.REACT_APP_ADMIN_SECRET;
-  if (!raw) return '2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25';
+  if (!raw) return '';
   let s = raw.trim().replace(/^\uFEFF/, '').replace(/\r/g, '');
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
     s = s.slice(1, -1).trim();
   }
-  return s.length > 0 ? s : '2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25';
+  return s;
 }
 
 function getStorageHeaders(): Record<string, string> {

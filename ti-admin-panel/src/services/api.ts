@@ -9,11 +9,14 @@ const DEFAULT_SUPABASE_ANON_KEY =
 const DEFAULT_ADMIN_BASE_URL =
   'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
 
-// Built-in default — must match ADMIN_SECRET_KEY in the Supabase Edge Function dashboard.
-// REACT_APP_ADMIN_SECRET in Vercel overrides this; delete the Vercel var to use this default.
-// Value must be the raw secret with no quotes or extra whitespace.
-const DEFAULT_ADMIN_SECRET =
-  '2b7bea7907fd07a4161dda627f81e2ecccc52f4402b2cafbcd5e0f4735a14a25';
+// The admin secret comes from REACT_APP_ADMIN_SECRET only. There is deliberately
+// no hardcoded fallback: this repo is public, so a default here is a published
+// credential. Set it in Vercel (Production) and in .env.local for local dev.
+//
+// Note this is build-time inlining, not a server-side secret. react-scripts
+// substitutes REACT_APP_* into the static bundle, so whatever value is set ends
+// up readable in the browser by anyone who can load the panel. Keeping it out of
+// git closes the GitHub exposure, not the bundle one — see SECURITY-ADMIN-AUTH.md.
 
 const SUPABASE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
@@ -56,7 +59,10 @@ function normalizeEnvSecret(raw: string | undefined): string | undefined {
 }
 
 const getAdminHeaders = (): Record<string, string> => ({
-  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || DEFAULT_ADMIN_SECRET,
+  // Empty string rather than a fallback when unset: the Edge Function answers
+  // 401 and the handler below explains what to set. A silent wrong-secret
+  // failure is harder to diagnose than an obvious one.
+  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || '',
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
