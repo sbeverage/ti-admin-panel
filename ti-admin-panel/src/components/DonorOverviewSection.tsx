@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Col, Modal, Row, Spin, Table, Tag, Typography, Empty } from 'antd';
+import { Button, Card, Col, Modal, Row, Spin, Table, Tag, Typography, Empty } from 'antd';
 import {
   TeamOutlined,
   UserAddOutlined,
@@ -342,11 +342,15 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
   const [cohortRows, setCohortRows] = useState<any[]>([]);
   const [cohortLoading, setCohortLoading] = useState(false);
   const [cohortTeamCount, setCohortTeamCount] = useState(0);
+  // Paged by default so the modal stays a readable height. "View all" swaps to
+  // one scrolling list, which is faster when you are scanning for a name.
+  const [cohortViewAll, setCohortViewAll] = useState<boolean>(false);
 
   const openCohort = async (type: 'new' | 'lost') => {
     setCohort(type);
     setCohortLoading(true);
     setCohortRows([]);
+    setCohortViewAll(false);
     try {
       const res = await dashboardAPI.getDonorCohort(type, period);
       setCohortRows(res?.success ? res.data?.donors || [] : []);
@@ -545,7 +549,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
         open={cohort !== null}
         onCancel={() => setCohort(null)}
         footer={null}
-        width={760}
+        width={920}
         title={
           cohort === 'lost'
             ? `Donors lost — ${PERIOD_LABELS[period].chip.toLowerCase()}`
@@ -561,6 +565,27 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             {cohortTeamCount === 1 ? 'account' : 'accounts'}, listed here but
             not counted in the New Donors figure.
           </Text>
+        )}
+        {!cohortLoading && cohortRows.length > 10 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}
+          >
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {cohortRows.length} donors
+            </Text>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => setCohortViewAll((v) => !v)}
+            >
+              {cohortViewAll ? 'Show pages' : `View all ${cohortRows.length}`}
+            </Button>
+          </div>
         )}
         {cohortLoading ? (
           <div style={{ padding: 48, textAlign: 'center' }}>
@@ -579,8 +604,16 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             dataSource={cohortRows}
             rowKey="user_id"
             size="small"
-            scroll={{ x: 'max-content' }}
-            pagination={cohortRows.length > 10 ? { pageSize: 10 } : false}
+            scroll={
+              cohortViewAll
+                ? { x: 'max-content', y: 460 }
+                : { x: 'max-content' }
+            }
+            pagination={
+              cohortViewAll || cohortRows.length <= 10
+                ? false
+                : { pageSize: 10, showSizeChanger: false }
+            }
             columns={
               cohort === 'lost'
                 ? [
