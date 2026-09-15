@@ -464,17 +464,20 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
               type="secondary"
               style={{ fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' }}
             >
-              General Donors
+              Active General Donors
             </Text>
+            {/* Hero is the ACTIVE count so it matches the label. A card titled
+                "Active" showing the total would be quietly wrong; the total
+                moves to the line underneath. */}
             <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, marginTop: 8 }}>
-              {(membership?.general ?? 0).toLocaleString()}
+              {(membership?.generalActive ?? 0).toLocaleString()}
             </div>
             <Text type="secondary" style={{ fontSize: 12 }}>
               pay THRIVE directly by card
             </Text>
             <div style={{ marginTop: 8 }}>
               <Text style={{ fontSize: 12 }}>
-                {(membership?.generalActive ?? 0).toLocaleString()} active
+                of {(membership?.general ?? 0).toLocaleString()} total
               </Text>
             </div>
           </Card>
