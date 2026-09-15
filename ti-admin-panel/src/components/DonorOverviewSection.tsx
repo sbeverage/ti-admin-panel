@@ -579,6 +579,7 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
             dataSource={cohortRows}
             rowKey="user_id"
             size="small"
+            scroll={{ x: 'max-content' }}
             pagination={cohortRows.length > 10 ? { pageSize: 10 } : false}
             columns={
               cohort === 'lost'
@@ -591,11 +592,13 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                     { title: 'Email', dataIndex: 'email' },
                     {
                       title: 'Membership',
+                      width: 130,
                       dataIndex: 'membership',
                       render: (v: string) => <MembershipTag value={v} />,
                     },
                     {
                       title: 'Status',
+                      width: 140,
                       dataIndex: 'status',
                       render: (v: string) => {
                         const label =
@@ -611,9 +614,10 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                     },
                     {
                       title: 'Lapsed',
+                      width: 120,
                       dataIndex: 'lost_at',
                       render: (v: string) =>
-                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                        v ? new Date(v).toLocaleDateString('en-US') : '-',
                     },
                   ]
                 : [
@@ -625,20 +629,23 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                     { title: 'Email', dataIndex: 'email' },
                     {
                       title: 'Membership',
+                      width: 130,
                       dataIndex: 'membership',
                       render: (v: string) => <MembershipTag value={v} />,
                     },
                     {
                       title: 'First donation',
+                      width: 130,
                       dataIndex: 'first_donation_at',
                       render: (v: string) =>
-                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                        v ? new Date(v).toLocaleDateString('en-US') : '-',
                     },
                     {
                       title: 'Signed up',
+                      width: 120,
                       dataIndex: 'joined_at',
                       render: (v: string) =>
-                        v ? new Date(v).toLocaleDateString('en-US') : '—',
+                        v ? new Date(v).toLocaleDateString('en-US') : '-',
                     },
                   ]
             }
