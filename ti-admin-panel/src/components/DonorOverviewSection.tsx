@@ -52,6 +52,10 @@ interface MembershipSplit {
   coworking: number;
   general: number;
   generalActive: number;
+  /** Active general donors within each window, so the period control applies. */
+  activeByPeriod?: Record<string, number>;
+  /** Coworking members who joined within each window. */
+  coworkingJoinedByPeriod?: Record<string, number>;
 }
 
 interface CohortMeta {
@@ -431,9 +435,15 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
         </Col>
       </Row>
 
-      {/* Membership breakdown. Its own row because these are totals about the
-          donor base, not period-scoped like the quartet below, and because the
-          coworking count is the number that makes the $3 platform fee add up. */}
+      {/* Period selector. Sits here rather than further down because it now
+          governs the membership cards as well as the quartet — the $3 fee maths
+          is only checkable if you can see a window at a time. */}
+      <div style={{ marginBottom: 12 }}>
+        <PeriodTabs value={period} onChange={setPeriod} />
+      </div>
+
+      {/* Membership breakdown. The coworking count is the number that makes the
+          $3 platform fee add up. */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} lg={12}>
           <Card style={{ position: 'relative', minHeight: 132, height: '100%' }}>
@@ -455,6 +465,15 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                 ${(coworkingFee?.monthlyTotal ?? 0).toFixed(2)}/mo in platform fees
               </Text>
             </div>
+            {/* The total above cannot be windowed — we get no feed from the
+                spaces, so a seat is never observed to lapse. Joins can be
+                measured, so that is what follows the period control. */}
+            <div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {(membership?.coworkingJoinedByPeriod?.[period] ?? 0).toLocaleString()}
+                {' '}joined this {PERIOD_LABELS[period].chip.toLowerCase()}
+              </Text>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={12}>
@@ -470,10 +489,14 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
                 "Active" showing the total would be quietly wrong; the total
                 moves to the line underneath. */}
             <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, marginTop: 8 }}>
-              {(membership?.generalActive ?? 0).toLocaleString()}
+              {(
+                membership?.activeByPeriod?.[period] ??
+                membership?.generalActive ??
+                0
+              ).toLocaleString()}
             </div>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              pay THRIVE directly by card
+              gave in the last {PERIOD_LABELS[period].chip.toLowerCase()}, paying by card
             </Text>
             <div style={{ marginTop: 8 }}>
               <Text style={{ fontSize: 12 }}>
@@ -483,11 +506,6 @@ const DonorOverviewSection: React.FC<Props> = ({ overview }) => {
           </Card>
         </Col>
       </Row>
-
-      {/* Period selector controls the trio below */}
-      <div style={{ marginBottom: 12 }}>
-        <PeriodTabs value={period} onChange={setPeriod} />
-      </div>
 
       {/* Quartet — New / Lost / Net / Platform Fee */}
       <Row gutter={[16, 16]}>
