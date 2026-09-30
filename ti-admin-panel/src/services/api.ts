@@ -843,7 +843,20 @@ export const donorAPI = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Surface the server's explanation rather than the status code.
+      //
+      // This threw `HTTP error! status: 409` and dropped the body, so the one
+      // case that most needs explaining — refusing to delete a donor because
+      // it would erase their donation history — reached the admin as a bare
+      // number with no hint of what to do instead.
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body?.error || body?.message || '';
+      } catch {
+        // Non-JSON body; fall back to the status line below.
+      }
+      throw new Error(detail || `Request failed (${response.status})`);
     }
 
     return response.json();
