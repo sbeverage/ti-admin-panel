@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography, Tabs, Card, Tag, Divider, Spin, Empty } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Button, Space, Typography, Tabs, Card, Tag, Divider, Spin, Empty, Popconfirm, message } from 'antd';
 import dayjs from 'dayjs';
 import { 
   EditOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, 
@@ -36,12 +36,20 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
   const [donorDetails, setDonorDetails] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Membership (the donor's live monthly gift), read from Stripe rather than
+  // from our own status column, because the two have disagreed before.
+  const [membership, setMembership] = useState<any>(null);
+  const [membershipLoading, setMembershipLoading] = useState(false);
+  const [membershipBusy, setMembershipBusy] = useState(false);
+
   // Fetch detailed donor information when modal opens
   useEffect(() => {
     if (donor && visible && donor.id) {
       fetchDonorDetails(donor.id);
+      fetchMembership(donor.id);
     } else {
       setDonorDetails(null);
+      setMembership(null);
     }
   }, [donor, visible]);
 
@@ -125,6 +133,51 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
       });
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const fetchMembership = async (donorId: number) => {
+    setMembershipLoading(true);
+    try {
+      const response = await donorAPI.getDonorMembership(donorId);
+      setMembership(response?.success ? response.data : null);
+    } catch (error) {
+      console.error('Error fetching donor membership:', error);
+      // No membership state means no button, which is the safe direction: an
+      // admin asking why is cheaper than a wrong action on someone's card.
+      setMembership(null);
+    } finally {
+      setMembershipLoading(false);
+    }
+  };
+
+  /**
+   * Stop or restart the donor's monthly gift.
+   *
+   * Only ever acts on the subscription they already have. Stopping schedules
+   * it for the end of the period they paid for; restarting clears that. There
+   * is no path here that creates a subscription or takes a payment.
+   */
+  const handleMembershipAction = async (action: 'cancel' | 'resume') => {
+    if (!donor?.id) return;
+    setMembershipBusy(true);
+    try {
+      const response = await donorAPI.setDonorMembership(donor.id, action);
+      message.success(
+        response?.message ||
+          (action === 'cancel'
+            ? 'That gift will stop at the end of the period they have paid for.'
+            : 'That gift will keep going.'),
+      );
+    } catch (error: any) {
+      message.error(
+        error?.message || 'That did not go through. Give it another try?',
+      );
+    } finally {
+      // Re-read either way. On success it shows the new state; on failure it
+      // shows what Stripe actually says, which is usually why it refused.
+      await fetchMembership(donor.id);
+      setMembershipBusy(false);
     }
   };
 
@@ -433,6 +486,81 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                       />
                     </Form.Item>
                   </div>
+                </div>
+
+                {/* Monthly Gift Section
+                    The one place in the panel that can stop or restart a live
+                    subscription. Both directions are reversible by design: the
+                    button never deletes a subscription and never starts one. */}
+                <div className="form-section">
+                  <Title level={4} className="section-title">
+                    Monthly Gift
+                  </Title>
+                  {membershipLoading ? (
+                    <Spin size="small" />
+                  ) : membership?.action ? (
+                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                      <Space wrap size="middle">
+                        <Tag color={membership.action === 'resume' ? 'orange' : 'green'}>
+                          {membership.action === 'resume' ? 'Stopping soon' : 'Active'}
+                        </Tag>
+                        {membership.target?.amount != null && (
+                          <Text strong>
+                            {formatCurrency(Number(membership.target.amount))} a month
+                          </Text>
+                        )}
+                        {membership.target?.currentPeriodEnd && (
+                          <Text type="secondary">
+                            {membership.action === 'resume'
+                              ? `Ends ${formatDate(membership.target.currentPeriodEnd)}`
+                              : `Renews ${formatDate(membership.target.currentPeriodEnd)}`}
+                          </Text>
+                        )}
+                      </Space>
+
+                      <Text type="secondary" style={{ fontSize: 13 }}>
+                        {membership.action === 'cancel'
+                          ? 'Stopping it keeps the month they have already paid for, and you can restart it from here any time before that runs out.'
+                          : 'This gift is set to stop at the end of the period they paid for. Restarting it keeps it going, with nothing charged today.'}
+                      </Text>
+
+                      <Popconfirm
+                        title={
+                          membership.action === 'cancel'
+                            ? 'Stop this monthly gift?'
+                            : 'Restart this monthly gift?'
+                        }
+                        description={
+                          membership.action === 'cancel'
+                            ? 'They keep what they have paid for, and you can undo this until the period ends.'
+                            : 'Billing carries on as normal. Nothing is charged today.'
+                        }
+                        okText={
+                          membership.action === 'cancel'
+                            ? 'Yes, stop it'
+                            : 'Yes, restart it'
+                        }
+                        cancelText="Leave it as it is"
+                        okButtonProps={{ danger: membership.action === 'cancel' }}
+                        onConfirm={() => handleMembershipAction(membership.action)}
+                      >
+                        <Button
+                          size="large"
+                          danger={membership.action === 'cancel'}
+                          type={membership.action === 'resume' ? 'primary' : 'default'}
+                          loading={membershipBusy}
+                        >
+                          {membership.action === 'cancel'
+                            ? 'Stop monthly gift'
+                            : 'Restart monthly gift'}
+                        </Button>
+                      </Popconfirm>
+                    </Space>
+                  ) : (
+                    <Text type="secondary">
+                      {membership?.reason || 'No monthly gift on file for this donor.'}
+                    </Text>
+                  )}
                 </div>
 
                 {/* Additional Notes Section */}

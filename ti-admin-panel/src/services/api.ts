@@ -893,6 +893,57 @@ export const donorAPI = {
     return response.json();
   },
 
+  /**
+   * What the Membership control may do for this donor, decided by Stripe
+   * rather than by our monthly_donations.status.
+   *
+   * Returns `action: 'cancel' | 'resume' | null` plus a `reason` to show the
+   * admin when it is null (no gift on file, already ended, or more than one
+   * live subscription, which has to be untangled before anything is touched).
+   */
+  getDonorMembership: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/donors/${id}/membership`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Stop or restart a donor's monthly gift.
+   *
+   * 'cancel' schedules it to stop at the end of the period they already paid
+   * for; 'resume' undoes that. Neither can create a subscription or charge a
+   * card, so a gift that has fully ended cannot be revived from here. The
+   * server re-checks Stripe and answers 409 with an explanation if the action
+   * is no longer available.
+   */
+  setDonorMembership: async (
+    id: number,
+    action: 'cancel' | 'resume',
+  ): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/donors/${id}/subscription/${action}`,
+      { method: 'POST', headers: API_CONFIG.headers },
+    );
+
+    if (!response.ok) {
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body?.error || body?.message || '';
+      } catch {
+        // Non-JSON body; fall back to the status line below.
+      }
+      throw new Error(detail || `Request failed (${response.status})`);
+    }
+
+    return response.json();
+  },
+
   resendInvitation: async (id: number): Promise<ApiResponse<any>> => {
     try {
       const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/donors/${id}/resend-invitation`, {
