@@ -62,17 +62,22 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 (typeof donor.oneTime === 'string' ? donor.oneTime.replace(/[^0-9.]/g, '') : String(donor.oneTime)) : 
                 '0';
       
-      // Parse last donated date if available
-      let lastDonatedDate = null;
+      // Parse last donated date as a dayjs object, not a native Date.
+      //
+      // antd 5's DatePicker is built on dayjs and calls dayjs methods on
+      // whatever value the form holds. A native Date has none of them, so
+      // opening this modal for any donor who had actually donated threw during
+      // render and the whole panel fell back to the ErrorBoundary: "Something
+      // went wrong". Donors with no donation date were fine, because the value
+      // stayed null, which is why it looked like only certain rows were broken.
+      //
+      // handleSubmit already called values.lastDonated.format(...), a dayjs
+      // method, so the write path assumed dayjs all along. Only the populate
+      // path disagreed.
+      let lastDonatedDate: dayjs.Dayjs | null = null;
       if (donor.lastDonated && donor.lastDonated !== 'Never') {
-        try {
-          lastDonatedDate = new Date(donor.lastDonated);
-          if (isNaN(lastDonatedDate.getTime())) {
-            lastDonatedDate = null;
-          }
-        } catch {
-          lastDonatedDate = null;
-        }
+        const parsed = dayjs(donor.lastDonated);
+        lastDonatedDate = parsed.isValid() ? parsed : null;
       }
 
       form.setFieldsValue({
