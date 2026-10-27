@@ -30,7 +30,7 @@ import {
 } from '@ant-design/icons';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { IMAGE_PRESETS, exportCrop } from '../utils/imageCrop';
+import { IMAGE_PRESETS, exportCrop, prepareCropSource } from '../utils/imageCrop';
 import type { ImageRole } from '../utils/imageCrop';
 import { uploadToSupabase, deleteFromSupabase, validateImageFile } from '../services/supabaseStorage';
 
@@ -65,6 +65,9 @@ const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  // Decoding and downscaling a large photo takes a moment. Without a visible
+  // state the dragger just sits there and the click looks ignored.
+  const [preparing, setPreparing] = useState(false);
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setArea(pixels);
@@ -89,7 +92,25 @@ const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
     }
     setCrop({ x: 0, y: 0 });
     setZoom(1);
-    setSource(URL.createObjectURL(file));
+    setPreparing(true);
+    // Downscale first if needed. A full-resolution camera photo makes the
+    // cropper unusable, because every pointer move re-transforms the whole
+    // image, so this has to happen before the cropper ever sees it.
+    prepareCropSource(file)
+      .then(({ url, original, downscaledTo }) => {
+        setSource(url);
+        if (downscaledTo) {
+          message.info(
+            `That photo was ${original.w} x ${original.h}, so it has been scaled to ` +
+              `${downscaledTo.w} x ${downscaledTo.h} to crop. Still plenty for the ` +
+              `${preset.outWidth} x ${preset.outHeight} it saves at.`,
+          );
+        }
+      })
+      .catch((e: any) => {
+        message.error(e?.message || 'That image could not be opened. Give it another try?');
+      })
+      .finally(() => setPreparing(false));
     return false;
   };
 
@@ -98,6 +119,8 @@ const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
     if (!currentImageUrl) return;
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    // Already-stored images are within the target sizes, so these need no
+    // preparation; they are fetched straight into the cropper.
     setSource(currentImageUrl);
   };
 
@@ -170,7 +193,9 @@ const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
               Reframe
             </Button>
             <Upload beforeUpload={handleSelect} showUploadList={false} accept="image/*">
-              <Button icon={<UploadOutlined />}>Replace</Button>
+              <Button icon={<UploadOutlined />} loading={preparing}>
+                Replace
+              </Button>
             </Upload>
             <Button danger icon={<DeleteOutlined />} onClick={handleRemove}>
               Remove
@@ -188,10 +213,12 @@ const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
             <UploadOutlined style={{ fontSize: 22, color: '#DB8633' }} />
           </p>
           <p style={{ margin: '6px 0 0', fontWeight: 500 }}>
-            Add the {preset.label.toLowerCase()} image
+            {preparing
+              ? 'Getting the image ready'
+              : `Add the ${preset.label.toLowerCase()} image`}
           </p>
           <p style={{ margin: 0, fontSize: 12, color: '#888' }}>
-            You will position and crop it next
+            {preparing ? 'One moment' : 'You will position and crop it next'}
           </p>
         </Upload.Dragger>
       )}

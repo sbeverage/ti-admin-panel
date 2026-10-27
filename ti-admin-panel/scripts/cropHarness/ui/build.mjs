@@ -13,12 +13,22 @@ const stubStorage = {
   },
 };
 
+/** Swap the API service too, so the real parent component can mount. */
+const stubApi = {
+  name: 'stub-api',
+  setup(build) {
+    build.onResolve({ filter: /services\/api$/ }, () => ({
+      path: path.join(root, 'scripts/cropHarness/ui/stubApi.ts'),
+    }));
+  },
+};
+
 await esbuild.build({
   entryPoints: ['scripts/cropHarness/ui/main.tsx'],
   bundle: true,
   outfile: 'scripts/cropHarness/ui/bundle.js',
   define: { 'process.env.NODE_ENV': '"development"' },
-  plugins: [stubStorage],
+  plugins: [stubStorage, stubApi],
   loader: { '.css': 'css', '.png': 'dataurl', '.svg': 'dataurl' },
   logLevel: 'info',
 });

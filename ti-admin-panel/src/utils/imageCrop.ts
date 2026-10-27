@@ -82,6 +82,79 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
+ * Longest edge the cropper will work with.
+ *
+ * react-easy-crop re-transforms the source image on every pointer move. A
+ * modern phone or DSLR photo is 6000px or more on its long edge, and the
+ * validator admits files up to 20 MB, so handing one straight to the cropper
+ * can pin the main thread hard enough that dragging appears to do nothing at
+ * all. The existing upload path already learned this (resizeImageForUpload,
+ * used by VendorProfile); the cropper has to do the same thing before the
+ * image reaches it, not after.
+ *
+ * 3000px is chosen for headroom rather than for the preview. The largest crop
+ * target is the 1600x800 cover, so even a half-width crop of a 3000px source
+ * still has more pixels than the output needs. Only an extreme zoom into a
+ * small corner would upscale, which is not a framing anyone wants anyway.
+ */
+export const CROP_SOURCE_MAX_DIM = 3000;
+
+/**
+ * Turn a chosen file into something the cropper can move smoothly, returning
+ * an object URL plus what was done to it.
+ *
+ * Images already within the limit pass through untouched, so nothing is
+ * re-encoded needlessly and a PNG logo keeps its transparency.
+ */
+export async function prepareCropSource(file: File): Promise<{
+  url: string;
+  original: { w: number; h: number };
+  downscaledTo?: { w: number; h: number };
+}> {
+  const directUrl = URL.createObjectURL(file);
+  const img = await loadImage(directUrl);
+  const { naturalWidth: w, naturalHeight: h } = img;
+  const longest = Math.max(w, h);
+
+  if (longest <= CROP_SOURCE_MAX_DIM) {
+    return { url: directUrl, original: { w, h } };
+  }
+
+  const scale = CROP_SOURCE_MAX_DIM / longest;
+  const tw = Math.round(w * scale);
+  const th = Math.round(h * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = tw;
+  canvas.height = th;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    // Cropping a huge image is slow, not broken, so fall back to the original
+    // rather than refusing to crop at all.
+    return { url: directUrl, original: { w, h } };
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, tw, th);
+
+  // PNG keeps alpha, which matters because a logo is often a mark on
+  // transparency and the logo preset exports PNG.
+  const isPng = file.type === 'image/png' || file.type === 'image/webp';
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, isPng ? 'image/png' : 'image/jpeg', isPng ? undefined : 0.92),
+  );
+
+  URL.revokeObjectURL(directUrl);
+  if (!blob) return { url: URL.createObjectURL(file), original: { w, h } };
+
+  return {
+    url: URL.createObjectURL(blob),
+    original: { w, h },
+    downscaledTo: { w: tw, h: th },
+  };
+}
+
+/**
  * Draw the chosen rectangle of the source onto a canvas at the target size.
  *
  * `area` arrives from react-easy-crop in natural source pixels, so this is a
