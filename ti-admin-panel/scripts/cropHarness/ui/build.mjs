@@ -19,5 +19,6 @@ await esbuild.build({
   outfile: 'scripts/cropHarness/ui/bundle.js',
   define: { 'process.env.NODE_ENV': '"development"' },
   plugins: [stubStorage],
+  loader: { '.css': 'css', '.png': 'dataurl', '.svg': 'dataurl' },
   logLevel: 'info',
 });

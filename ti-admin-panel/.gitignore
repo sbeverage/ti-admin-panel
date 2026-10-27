@@ -28,4 +28,4 @@ yarn-error.log*
 # Generated crop-harness bundles (see scripts/cropHarness/README.md)
 scripts/cropHarness/bundle.js
 scripts/cropHarness/ui/bundle.js
-scripts/cropHarness/ui/antd.css
+scripts/cropHarness/ui/bundle.css

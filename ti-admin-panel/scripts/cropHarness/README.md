@@ -22,6 +22,17 @@ two presets export JPEG.
 Mounts the real `ImageCropUpload` for all three roles with the storage service
 swapped for a stub that records what it was handed.
 
+It mounts them inside the real `.beneficiary-profile-overlay` wrappers with the
+panel's actual stylesheets loaded, because `BeneficiaryProfile` is a hand-rolled
+`position: fixed` overlay rather than an antd Modal, while the cropper is an
+antd Modal portalled to `document.body`. The two stack against each other at the
+same z-index, and a bare mount cannot see that at all. The first version of this
+harness mounted the component with no stylesheets, which proved the geometry and
+nothing about the environment.
+
+Needs esbuild on hand (`npm install --no-save esbuild`); it is not a dependency
+of the app.
+
     node scripts/cropHarness/ui/build.mjs
 
 Serve either with the `crop-harness` config in `.claude/launch.json`
