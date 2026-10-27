@@ -408,10 +408,14 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         logoUrl: formData.logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         logo: formData.logoUrl || '',
         logo_url: formData.logoUrl || '', // Send both for compatibility
-        // Square crop for the browse list. Empty string clears it, which makes
-        // the app fall back to the cover again.
-        highlightUrl: formData.highlightUrl || '',
-        highlight_url: formData.highlightUrl || '',
+        // Square crop for the browse list. null, not '', when unset: the column
+        // is the record of which charities have actually been re-cropped, and
+        // an empty string renders the same as null while still counting as a
+        // value, so "WHERE highlight_url IS NULL" would stop finding the ones
+        // that still need doing. Clearing it also sends null, which puts the
+        // charity back on the fallback to the cover.
+        highlightUrl: formData.highlightUrl || null,
+        highlight_url: formData.highlightUrl || null,
         // Additional images - send as array, filtered to remove empty slots
         // Max 5, matching the charities_image_urls_max_5 CHECK constraint.
         imageUrls: additionalImages.filter((img) => img && img.trim()).slice(0, 5),
