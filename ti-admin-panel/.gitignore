@@ -24,3 +24,8 @@ yarn-error.log*
 .vercel
 .env.vercel*.pull
 .env.vercel*.local
+
+# Generated crop-harness bundles (see scripts/cropHarness/README.md)
+scripts/cropHarness/bundle.js
+scripts/cropHarness/ui/bundle.js
+scripts/cropHarness/ui/antd.css

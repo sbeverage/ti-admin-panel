@@ -37,6 +37,7 @@ import {
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
+import ImageCropUpload from './ImageCropUpload';
 import { beneficiaryAPI } from '../services/api';
 import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 
@@ -67,8 +68,13 @@ interface BeneficiaryData {
   enabled: boolean;
   // New fields
   about?: string;
+  // mainImageUrl is the charities.image_url column: the wide 2:1 cover across
+  // the top of the profile. Named "main" from before there were three roles;
+  // the label in the form says Cover.
   mainImageUrl?: string;
   logoUrl?: string;
+  /** Square 1:1 crop shown on the browse list (charities.highlight_url). */
+  highlightUrl?: string;
   additionalImages?: string[];
   videoUrl?: string;
   whyThisMatters?: string;
@@ -189,6 +195,11 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         about: apiData.about || apiData.description || '',
         mainImageUrl: apiData.imageUrl || apiData.main_image || apiData.main_image_url || apiData.mainImageUrl || '',
         logoUrl: apiData.logo || apiData.logo_url || apiData.logoUrl || '',
+        // Not falling back to imageUrl here. The API already resolves
+        // highlightUrl -> image_url -> logo_url for the app, so accepting
+        // that fallback into the form would make an uncropped cover look
+        // like a saved highlight crop, and saving would write it in as one.
+        highlightUrl: apiData.highlight_url || apiData.highlightUrl || '',
         // Additional images - can be array or comma-separated string
         // image_urls is the column the donor app renders. This form previously
         // read and wrote `additional_images`, which the API neither returns nor
@@ -397,6 +408,10 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         logoUrl: formData.logoUrl || '', // ⚠️ CRITICAL: Backend expects this field name
         logo: formData.logoUrl || '',
         logo_url: formData.logoUrl || '', // Send both for compatibility
+        // Square crop for the browse list. Empty string clears it, which makes
+        // the app fall back to the cover again.
+        highlightUrl: formData.highlightUrl || '',
+        highlight_url: formData.highlightUrl || '',
         // Additional images - send as array, filtered to remove empty slots
         // Max 5, matching the charities_image_urls_max_5 CHECK constraint.
         imageUrls: additionalImages.filter((img) => img && img.trim()).slice(0, 5),
@@ -820,54 +835,105 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
 
       <Divider />
 
+      {/* Charity images.
+          Three roles because the app has three differently-shaped slots, and
+          one photo cannot fill all three without something being cut off. The
+          cropper writes each one at its own aspect ratio, so the app never has
+          to centre-crop and guess. See CLAUDE.md "Charity images". */}
       <div className="form-field">
-        <label>Main Image</label>
-        <div style={{ marginTop: '8px' }}>
-          {isEditing ? (
-            <ImageUpload
-              currentImageUrl={formData.mainImageUrl}
-              onImageChange={(url) => handleInputChange('mainImageUrl', url)}
-              title="Upload Beneficiary Image"
-              description="Upload a main image for the beneficiary organization. Recommended: 1080px × 1080px. Max 5MB"
-            />
-          ) : (
-            beneficiaryData.mainImageUrl ? (
-              <Image
-                src={beneficiaryData.mainImageUrl}
-                alt="Beneficiary main image"
-                style={{ maxWidth: 300, borderRadius: '8px' }}
-              />
-            ) : (
-              <Text type="secondary">No image uploaded</Text>
-            )
-          )}
-        </div>
-      </div>
+        <label>Charity Images</label>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16, fontSize: 12 }}>
+          Each of these appears in a different place in the app, at a different
+          shape. Upload once and position it; you can reframe any of them later
+          without starting over.
+        </Text>
 
-      <Divider />
-
-      <div className="form-field">
-        <label>Organization Logo</label>
-        <div style={{ marginTop: '8px' }}>
-          {isEditing ? (
-            <ImageUpload
-              currentImageUrl={formData.logoUrl}
-              onImageChange={(url) => handleInputChange('logoUrl', url)}
-              title="Upload Organization Logo"
-              description="Upload a logo for the beneficiary organization. Recommended: 1080px × 1080px. Max 5MB"
-            />
-          ) : (
-            beneficiaryData.logoUrl ? (
-              <Image
-                src={beneficiaryData.logoUrl}
-                alt="Organization logo"
-                style={{ maxWidth: 300, borderRadius: '8px' }}
+        {isEditing ? (
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                Logo
+              </Text>
+              <ImageCropUpload
+                role="logo"
+                currentImageUrl={formData.logoUrl}
+                onImageChange={(url) => handleInputChange('logoUrl', url || '')}
+                bucketName="charity-images"
               />
-            ) : (
-              <Text type="secondary">No logo uploaded</Text>
-            )
-          )}
-        </div>
+            </Col>
+
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                Highlight
+              </Text>
+              <ImageCropUpload
+                role="highlight"
+                currentImageUrl={formData.highlightUrl}
+                onImageChange={(url) => handleInputChange('highlightUrl', url || '')}
+                bucketName="charity-images"
+              />
+            </Col>
+
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                Cover
+              </Text>
+              <ImageCropUpload
+                role="cover"
+                currentImageUrl={formData.mainImageUrl}
+                onImageChange={(url) => handleInputChange('mainImageUrl', url || '')}
+                bucketName="charity-images"
+              />
+            </Col>
+          </Row>
+        ) : (
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>Logo</Text>
+              {beneficiaryData.logoUrl ? (
+                <Image
+                  src={beneficiaryData.logoUrl}
+                  alt="Charity logo"
+                  width={96}
+                  height={96}
+                  style={{ objectFit: 'cover', borderRadius: '50%' }}
+                />
+              ) : (
+                <Text type="secondary">Not set</Text>
+              )}
+            </Col>
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>Highlight</Text>
+              {beneficiaryData.highlightUrl ? (
+                <Image
+                  src={beneficiaryData.highlightUrl}
+                  alt="Charity highlight image"
+                  width={120}
+                  height={120}
+                  style={{ objectFit: 'cover', borderRadius: 8 }}
+                />
+              ) : (
+                <Text type="secondary">
+                  Not set, so the browse list is showing a centre-crop of the cover
+                </Text>
+              )}
+            </Col>
+            <Col xs={24} md={8}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>Cover</Text>
+              {beneficiaryData.mainImageUrl ? (
+                <Image
+                  src={beneficiaryData.mainImageUrl}
+                  alt="Charity cover image"
+                  width={240}
+                  height={120}
+                  style={{ objectFit: 'cover', borderRadius: 8 }}
+                />
+              ) : (
+                <Text type="secondary">Not set</Text>
+              )}
+            </Col>
+          </Row>
+        )}
       </div>
 
       <Divider />
