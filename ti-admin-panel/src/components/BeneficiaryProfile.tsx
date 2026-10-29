@@ -38,6 +38,7 @@ import {
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
 import ImageCropUpload from './ImageCropUpload';
+import CharityAppPreview from './CharityAppPreview';
 import { beneficiaryAPI } from '../services/api';
 import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 
@@ -890,6 +891,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               />
             </Col>
           </Row>
+
         ) : (
           <Row gutter={[24, 24]}>
             <Col xs={24} md={8}>
@@ -938,6 +940,29 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             </Col>
           </Row>
         )}
+        {/* Live preview, at the app's real dimensions. Reads formData rather
+            than beneficiaryData so a crop shows up here the moment it is made,
+            without waiting for a save. */}
+        <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #f0f0f0' }}>
+          <Title level={5} style={{ marginBottom: 4 }}>
+            How this looks in the app
+          </Title>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 16, fontSize: 12 }}>
+            Shown at the real size donors see. Crop above and this updates straight away.
+          </Text>
+          <CharityAppPreview
+            data={{
+              name: formData.beneficiaryName || beneficiaryData.beneficiaryName,
+              category: formData.beneficiaryCause || beneficiaryData.beneficiaryCause,
+              description: formData.about || beneficiaryData.about,
+              location: formData.cityState || beneficiaryData.cityState,
+              logoUrl: formData.logoUrl,
+              highlightUrl: formData.highlightUrl,
+              coverUrl: formData.mainImageUrl,
+              isPendingVerification: (beneficiaryData as any).isPendingVerification,
+            }}
+          />
+        </div>
       </div>
 
       <Divider />

@@ -1,0 +1,337 @@
+/**
+ * Shows a charity's images as the donor app actually renders them.
+ *
+ * Why this exists: the three image roles live in three differently-shaped
+ * slots, and whether a crop works is a question about the slot, not about the
+ * photo. Someone cropping in the admin panel could frame a logo perfectly in a
+ * square and still not know that the profile draws it as a circle over the
+ * bottom-left corner of the cover, where it hides whatever is underneath.
+ *
+ * Every measurement here is copied from the app, not approximated:
+ *
+ *   Highlight card   app/(tabs)/(main)/beneficiary/index.js
+ *                    beneficiaryCard / beneficiaryImage / beneficiaryCardContent
+ *   Profile header   components/BeneficiaryDetailCard.js
+ *                    imageCarousel / profileRow / profileImageContainer / title
+ *
+ * A preview that is merely close is worse than no preview, because it is
+ * trusted. If either of those files changes shape, this has to change with it,
+ * the same way IMAGE_PRESETS does. See CLAUDE.md "Charity images".
+ */
+import React from 'react';
+import { Typography } from 'antd';
+import { HeartOutlined, EnvironmentFilled, ClockCircleFilled } from '@ant-design/icons';
+
+const { Text } = Typography;
+
+/** iPhone logical width the app is laid out against. */
+const SCREEN = 390;
+
+/** Browse list background, from the beneficiary index screen. */
+const LIST_BG = '#f5f5fa';
+
+export interface CharityPreviewData {
+  name?: string | null;
+  category?: string | null;
+  description?: string | null;
+  location?: string | null;
+  logoUrl?: string | null;
+  highlightUrl?: string | null;
+  coverUrl?: string | null;
+  isPendingVerification?: boolean;
+}
+
+/**
+ * The app's render-time fallback chain, repeated here on purpose.
+ *
+ * formatCharityResponse resolves highlightUrl -> image_url -> logo_url, so a
+ * charity with no square crop still shows something in the list: a centre-crop
+ * of its wide cover. The preview has to show that too, otherwise it would
+ * display an empty slot for exactly the charities whose list card looks worst,
+ * which is the opposite of useful.
+ */
+function resolveHighlight(d: CharityPreviewData): { url: string | null; fellBack: boolean } {
+  if (d.highlightUrl) return { url: d.highlightUrl, fellBack: false };
+  const fallback = d.coverUrl || d.logoUrl || null;
+  return { url: fallback, fellBack: !!fallback };
+}
+
+const Placeholder: React.FC<{ label: string; round?: boolean }> = ({ label, round }) => (
+  <div
+    style={{
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'repeating-linear-gradient(45deg,#e9edf1,#e9edf1 8px,#e3e8ee 8px,#e3e8ee 16px)',
+      color: '#8a97a3',
+      fontSize: 11,
+      textAlign: 'center',
+      padding: 6,
+      borderRadius: round ? '50%' : undefined,
+      boxSizing: 'border-box',
+    }}
+  >
+    {label}
+  </div>
+);
+
+/** One row of the charity browse list, at the app's real dimensions. */
+export const HighlightCardPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => {
+  const { url, fellBack } = resolveHighlight(data);
+
+  return (
+    <div style={{ background: LIST_BG, padding: '10px 0', width: SCREEN, borderRadius: 10 }}>
+      <div
+        style={{
+          // beneficiaryCard: row, #fff, radius 12, 20pt side margins,
+          // height 120 (fixed, so the image slot stays square).
+          display: 'flex',
+          flexDirection: 'row',
+          background: '#fff',
+          borderRadius: 12,
+          overflow: 'hidden',
+          margin: '0 20px',
+          height: 120,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          position: 'relative',
+        }}
+      >
+        {/* beneficiaryImage: 120 x 120, left corners rounded, object-fit cover */}
+        <div style={{ width: 120, height: 120, flexShrink: 0, overflow: 'hidden' }}>
+          {url ? (
+            <img
+              src={url}
+              alt=""
+              style={{ width: 120, height: 120, objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <Placeholder label="No image" />
+          )}
+        </div>
+
+        {/* favoriteButton: absolute, top 8 right 8 */}
+        <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, color: '#DB8633' }}>
+          <HeartOutlined style={{ fontSize: 18 }} />
+        </div>
+
+        {/* beneficiaryCardContent: flex 1, padding 16, centred */}
+        <div
+          style={{
+            flex: 1,
+            padding: 16,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            minWidth: 0,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#324E58',
+                marginBottom: 4,
+                paddingRight: 32,
+                // numberOfLines={2}
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                lineHeight: 1.2,
+              }}
+            >
+              {data.name || 'Charity name'}
+            </div>
+            {data.isPendingVerification && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  background: '#FDF3E3',
+                  borderRadius: 8,
+                  padding: '2px 6px',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: '#8A5A12',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <ClockCircleFilled style={{ fontSize: 9 }} />
+                Pending
+              </span>
+            )}
+          </div>
+
+          <div style={{ fontSize: 13, color: '#6d6e72', marginBottom: 6 }}>
+            {data.category || 'Category'}
+          </div>
+
+          {!!data.description && (
+            <div
+              style={{
+                fontSize: 12.5,
+                lineHeight: '17px',
+                color: '#7A8B92',
+                marginTop: 3,
+                // numberOfLines={1}
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {data.description}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <EnvironmentFilled style={{ fontSize: 12, color: '#8E9BAE' }} />
+            <span style={{ fontSize: 12, color: '#8E9BAE', marginLeft: 4 }}>
+              {data.location || 'Location'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {fellBack && (
+        <Text
+          type="warning"
+          style={{ fontSize: 12, display: 'block', padding: '8px 20px 0' }}
+        >
+          No highlight crop yet, so the app is centre-cropping the cover to fill
+          this square. Whatever sits on the left and right of that photo is
+          being cut off here.
+        </Text>
+      )}
+    </div>
+  );
+};
+
+/** The top of the charity profile: 2:1 cover with the logo circle over it. */
+export const ProfileHeaderPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => {
+  // The app falls back logo -> cover -> placeholder for the circle.
+  const logo = data.logoUrl || data.coverUrl || null;
+
+  return (
+    <div style={{ width: SCREEN, background: '#fff', borderRadius: 10, overflow: 'hidden' }}>
+      {/* imageCarousel: width 100%, aspectRatio 2 */}
+      <div style={{ width: '100%', aspectRatio: '2 / 1', overflow: 'hidden', background: '#eee' }}>
+        {data.coverUrl ? (
+          <img
+            src={data.coverUrl}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <Placeholder label="No cover image" />
+        )}
+      </div>
+
+      {/* profileRow: marginTop -55, marginLeft 16.
+          This is the overlap worth seeing: the circle covers the cover photo's
+          bottom-left corner, so anything important down there is hidden. */}
+      <div style={{ display: 'flex', marginTop: -55, marginLeft: 16 }}>
+        <div
+          style={{
+            width: 110,
+            height: 110,
+            borderRadius: '50%',
+            background: '#fff',
+            border: '3px solid #fff',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+            flexShrink: 0,
+          }}
+        >
+          {logo ? (
+            <img
+              src={logo}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <Placeholder label="No logo" round />
+          )}
+        </div>
+      </div>
+
+      <div style={{ paddingBottom: 20 }}>
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: '#21555b',
+            marginTop: 8,
+            padding: '0 24px',
+          }}
+        >
+          {data.name || 'Charity name'}
+        </div>
+
+        {/* Buttons, so the preview ends where the app's fold is rather than
+            stopping at the title and implying there is nothing below it. */}
+        <div style={{ display: 'flex', gap: 12, padding: '16px 24px 0' }}>
+          <div
+            style={{
+              flex: 1,
+              background: '#DB8633',
+              borderRadius: 10,
+              padding: 18,
+              textAlign: 'center',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            Select This Charity
+          </div>
+          <div
+            style={{
+              flex: 1,
+              background: '#F2F2F5',
+              borderRadius: 10,
+              padding: 18,
+              textAlign: 'center',
+              color: '#324E58',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            Favorite
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** Both previews side by side, labelled with where each one appears. */
+const CharityAppPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => (
+  <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+    <div>
+      <Text strong style={{ display: 'block', marginBottom: 4 }}>
+        On the charity list
+      </Text>
+      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 10 }}>
+        What a donor sees while scrolling, before they tap in. Uses the
+        Highlight image.
+      </Text>
+      <HighlightCardPreview data={data} />
+    </div>
+
+    <div>
+      <Text strong style={{ display: 'block', marginBottom: 4 }}>
+        At the top of the profile
+      </Text>
+      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 10 }}>
+        Uses the Cover image, with the Logo in the circle over its bottom left.
+      </Text>
+      <ProfileHeaderPreview data={data} />
+    </div>
+  </div>
+);
+
+export default CharityAppPreview;
