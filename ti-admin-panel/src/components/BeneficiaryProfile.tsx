@@ -989,7 +989,6 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             data={{
               name: formData.beneficiaryName || beneficiaryData.beneficiaryName,
               category: formData.beneficiaryCause || beneficiaryData.beneficiaryCause,
-              description: formData.about || beneficiaryData.about,
               location: formData.cityState || beneficiaryData.cityState,
               logoUrl: formData.logoUrl,
               highlightUrl: formData.highlightUrl,

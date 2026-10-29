@@ -34,7 +34,6 @@ const LIST_BG = '#f5f5fa';
 export interface CharityPreviewData {
   name?: string | null;
   category?: string | null;
-  description?: string | null;
   location?: string | null;
   logoUrl?: string | null;
   highlightUrl?: string | null;
@@ -224,22 +223,11 @@ export const HighlightCardPreview: React.FC<{ data: CharityPreviewData }> = ({ d
             {data.category || 'Category'}
           </div>
 
-          {!!data.description && (
-            <div
-              style={{
-                fontSize: 12.5,
-                lineHeight: '17px',
-                color: '#7A8B92',
-                marginTop: 3,
-                // numberOfLines={1}
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {data.description}
-            </div>
-          )}
+          {/* No blurb line. The app styles one (beneficiaryBlurb) and guards it
+              on b.description, but the object it builds for each card carries
+              `about` and never sets `description`, so the guard is always false
+              and donors never see a snippet here. Rendering one would be the
+              preview inventing a line the app cannot show. */}
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <EnvironmentFilled style={{ fontSize: 12, color: '#8E9BAE' }} />
