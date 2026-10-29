@@ -56,6 +56,30 @@ function resolveHighlight(d: CharityPreviewData): { url: string | null; fellBack
   return { url: fallback, fellBack: !!fallback };
 }
 
+/**
+ * Lifts a preview off the tinted section it sits on.
+ *
+ * The list preview carries the app's own list background (#f5f5fa), which is
+ * close enough to the section tint to blend into it. The frame restores the
+ * edge so the preview still reads as a screen, without changing any colour
+ * inside it, which has to stay exactly what the app renders.
+ */
+const DeviceFrame: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div
+    style={{
+      width: SCREEN,
+      padding: 6,
+      background: '#fff',
+      borderRadius: 16,
+      border: '1px solid #E2ECEF',
+      boxShadow: '0 6px 18px rgba(33, 85, 91, 0.10)',
+      boxSizing: 'content-box',
+    }}
+  >
+    {children}
+  </div>
+);
+
 const Placeholder: React.FC<{ label: string; round?: boolean }> = ({ label, round }) => (
   <div
     style={{
@@ -312,24 +336,28 @@ export const ProfileHeaderPreview: React.FC<{ data: CharityPreviewData }> = ({ d
 const CharityAppPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => (
   <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
     <div>
-      <Text strong style={{ display: 'block', marginBottom: 4 }}>
+      <Text strong style={{ display: 'block', marginBottom: 4, color: '#21555b' }}>
         On the charity list
       </Text>
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 10 }}>
+      <Text style={{ fontSize: 12, display: 'block', marginBottom: 10, color: '#5B7680' }}>
         What a donor sees while scrolling, before they tap in. Uses the
         Highlight image.
       </Text>
-      <HighlightCardPreview data={data} />
+      <DeviceFrame>
+        <HighlightCardPreview data={data} />
+      </DeviceFrame>
     </div>
 
     <div>
-      <Text strong style={{ display: 'block', marginBottom: 4 }}>
+      <Text strong style={{ display: 'block', marginBottom: 4, color: '#21555b' }}>
         At the top of the profile
       </Text>
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 10 }}>
+      <Text style={{ fontSize: 12, display: 'block', marginBottom: 10, color: '#5B7680' }}>
         Uses the Cover image, with the Logo in the circle over its bottom left.
       </Text>
-      <ProfileHeaderPreview data={data} />
+      <DeviceFrame>
+        <ProfileHeaderPreview data={data} />
+      </DeviceFrame>
     </div>
   </div>
 );

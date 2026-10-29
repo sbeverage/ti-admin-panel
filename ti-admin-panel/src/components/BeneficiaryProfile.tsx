@@ -33,7 +33,8 @@ import {
   TeamOutlined,
   CheckCircleFilled,
   BankOutlined,
-  UploadOutlined
+  UploadOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import './BeneficiaryProfile.css';
 import ImageUpload from './ImageUpload';
@@ -943,11 +944,45 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         {/* Live preview, at the app's real dimensions. Reads formData rather
             than beneficiaryData so a crop shows up here the moment it is made,
             without waiting for a save. */}
-        <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #f0f0f0' }}>
-          <Title level={5} style={{ marginBottom: 4 }}>
-            How this looks in the app
-          </Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 16, fontSize: 12 }}>
+        {/* Tinted, so it reads as a window into the app rather than more form
+            to fill in. Everything above this line is editable and everything
+            inside it is not, and that difference should be visible before
+            anyone tries to click a preview. */}
+        <div
+          style={{
+            marginTop: 28,
+            padding: 20,
+            background: '#EFF5F7',
+            border: '1px solid #D9E7EC',
+            borderRadius: 12,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 4,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Title level={5} style={{ margin: 0, color: '#21555b' }}>
+              How this looks in the app
+            </Title>
+            <Tag
+              icon={<EyeOutlined />}
+              style={{
+                background: '#fff',
+                borderColor: '#BBD6DE',
+                color: '#21555b',
+                marginInlineEnd: 0,
+                fontSize: 11,
+              }}
+            >
+              Preview only
+            </Tag>
+          </div>
+          <Text style={{ display: 'block', marginBottom: 16, fontSize: 12, color: '#5B7680' }}>
             Shown at the real size donors see. Crop above and this updates straight away.
           </Text>
           <CharityAppPreview
