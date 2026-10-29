@@ -21,6 +21,7 @@
 import React from 'react';
 import { Typography } from 'antd';
 import { HeartOutlined, EnvironmentFilled, ClockCircleFilled } from '@ant-design/icons';
+import { cityStateFromLocation } from '../utils/cityStateFromLocation';
 
 const { Text } = Typography;
 
@@ -78,6 +79,35 @@ const DeviceFrame: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   >
     {children}
   </div>
+);
+
+/**
+ * Names which of the three images a part of the preview is showing.
+ *
+ * Placed beside each image rather than over it: the whole reason to look at a
+ * preview is to judge the crop, so a label that covers a corner of the picture
+ * defeats its own purpose.
+ */
+const ImageTag: React.FC<{ label: string; arrow: 'down' | 'left' }> = ({ label, arrow }) => (
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      background: '#21555b',
+      color: '#fff',
+      borderRadius: 999,
+      padding: '2px 9px',
+      fontSize: 11,
+      fontWeight: 600,
+      whiteSpace: 'nowrap',
+      lineHeight: 1.6,
+    }}
+  >
+    {arrow === 'left' && <span aria-hidden>&#8592;</span>}
+    {label}
+    {arrow === 'down' && <span aria-hidden>&#8595;</span>}
+  </span>
 );
 
 const Placeholder: React.FC<{ label: string; round?: boolean }> = ({ label, round }) => (
@@ -214,7 +244,10 @@ export const HighlightCardPreview: React.FC<{ data: CharityPreviewData }> = ({ d
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <EnvironmentFilled style={{ fontSize: 12, color: '#8E9BAE' }} />
             <span style={{ fontSize: 12, color: '#8E9BAE', marginLeft: 4 }}>
-              {data.location || 'Location'}
+              {/* The card shows city and state, not the stored address. The
+                  location column holds full addresses so the location filter
+                  can match them; the app narrows it here and so must this. */}
+              {cityStateFromLocation(data.location)}
             </span>
           </div>
         </div>
@@ -235,7 +268,11 @@ export const HighlightCardPreview: React.FC<{ data: CharityPreviewData }> = ({ d
 };
 
 /** The top of the charity profile: 2:1 cover with the logo circle over it. */
-export const ProfileHeaderPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => {
+export const ProfileHeaderPreview: React.FC<{
+  data: CharityPreviewData;
+  /** Show a tag beside the logo circle naming it. */
+  showLogoTag?: boolean;
+}> = ({ data, showLogoTag }) => {
   // The app falls back logo -> cover -> placeholder for the circle.
   const logo = data.logoUrl || data.coverUrl || null;
 
@@ -257,7 +294,17 @@ export const ProfileHeaderPreview: React.FC<{ data: CharityPreviewData }> = ({ d
       {/* profileRow: marginTop -55, marginLeft 16.
           This is the overlap worth seeing: the circle covers the cover photo's
           bottom-left corner, so anything important down there is hidden. */}
-      <div style={{ display: 'flex', marginTop: -55, marginLeft: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          marginTop: -55,
+          marginLeft: 16,
+          // Bottom-aligned so the tag lands on the white below the cover
+          // rather than on top of it. The circle's upper half overlaps the
+          // band; its lower half does not.
+          alignItems: 'flex-end',
+        }}
+      >
         <div
           style={{
             width: 110,
@@ -280,6 +327,11 @@ export const ProfileHeaderPreview: React.FC<{ data: CharityPreviewData }> = ({ d
             <Placeholder label="No logo" round />
           )}
         </div>
+        {showLogoTag && (
+          <span style={{ marginLeft: 10, marginBottom: 10 }}>
+            <ImageTag label="Logo image" arrow="left" />
+          </span>
+        )}
       </div>
 
       <div style={{ paddingBottom: 20 }}>
@@ -343,6 +395,9 @@ const CharityAppPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => 
         What a donor sees while scrolling, before they tap in. Uses the
         Highlight image.
       </Text>
+      <div style={{ marginBottom: 6, paddingLeft: 32 }}>
+        <ImageTag label="Highlight image" arrow="down" />
+      </div>
       <DeviceFrame>
         <HighlightCardPreview data={data} />
       </DeviceFrame>
@@ -355,8 +410,11 @@ const CharityAppPreview: React.FC<{ data: CharityPreviewData }> = ({ data }) => 
       <Text style={{ fontSize: 12, display: 'block', marginBottom: 10, color: '#5B7680' }}>
         Uses the Cover image, with the Logo in the circle over its bottom left.
       </Text>
+      <div style={{ marginBottom: 6, paddingLeft: 16 }}>
+        <ImageTag label="Cover image" arrow="down" />
+      </div>
       <DeviceFrame>
-        <ProfileHeaderPreview data={data} />
+        <ProfileHeaderPreview data={data} showLogoTag />
       </DeviceFrame>
     </div>
   </div>

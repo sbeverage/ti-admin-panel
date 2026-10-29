@@ -10,7 +10,7 @@ const charity = {
   logo_url: '',
   highlight_url: '',
   imageUrls: [],
-  location: 'Atlanta, GA',
+  location: '44 Milton Ave, Alpharetta, GA 30009',
   website: 'https://example.com',
   ein: '00-0000000',
   isActive: true,
