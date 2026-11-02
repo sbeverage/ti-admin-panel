@@ -5,6 +5,7 @@ import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
 import DashboardSection from './DashboardSection';
 import PendingApprovalsHighlights from './PendingApprovalsHighlights';
+import CharityAccessRequests from './CharityAccessRequests';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
@@ -558,6 +559,12 @@ const PendingApprovals: React.FC = () => {
 
         <Content className="donors-content">
           <div className="content-wrapper">
+            {/* Renders nothing unless someone is waiting, so it stays out of
+                the way until there is a decision to make. Sits above the tabs
+                because it answers a different question from them: who may
+                edit a charity, not whether a charity should be visible. */}
+            <CharityAccessRequests />
+
             <DashboardSection
               title="Approval Queue Highlights"
               subtitle="What's waiting on your review"

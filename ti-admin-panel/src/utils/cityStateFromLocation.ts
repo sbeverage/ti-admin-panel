@@ -1,4 +1,10 @@
 /**
+ * Copied into the charity portal at
+ *   thrive-charity-portal/src/utils/cityStateFromLocation.ts
+ * Keep the two in step: a crop preset that differs between them means a
+ * charity frames one shape and donors see another.
+ */
+/**
  * Port of the donor app's app/utils/cityStateFromLocation.js, kept byte-for-byte
  * in behaviour.
  *

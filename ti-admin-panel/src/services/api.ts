@@ -1275,6 +1275,64 @@ export const approvalsAPI = {
   },
 };
 
+/**
+ * Charity access requests: who may manage a charity's profile in the charity
+ * portal. Separate from the approvals above, which answer whether a charity
+ * should be visible to donors at all.
+ */
+export const charityAccessAPI = {
+  list: async (status = 'pending'): Promise<ApiResponse<any[]>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/approvals/charity-access?status=${encodeURIComponent(status)}`,
+      { headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      // An empty queue is the normal case and should not look like a failure.
+      return { success: true, data: [] };
+    }
+    return response.json();
+  },
+
+  approve: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/approvals/charity-access/${id}/approve`,
+      { method: 'POST', headers: API_CONFIG.headers },
+    );
+    if (!response.ok) {
+      // Surface the server's sentence: the cases that matter here are
+      // "someone else already has it" and "already reviewed", and a bare
+      // status code tells the admin nothing about either.
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body?.error || '';
+      } catch {
+        // Non-JSON body; fall through to the status line.
+      }
+      throw new Error(detail || `Request failed (${response.status})`);
+    }
+    return response.json();
+  },
+
+  reject: async (id: number, reason?: string): Promise<ApiResponse<any>> => {
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/approvals/charity-access/${id}/reject`,
+      { method: 'POST', headers: API_CONFIG.headers, body: JSON.stringify({ reason }) },
+    );
+    if (!response.ok) {
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body?.error || '';
+      } catch {
+        // Non-JSON body; fall through to the status line.
+      }
+      throw new Error(detail || `Request failed (${response.status})`);
+    }
+    return response.json();
+  },
+};
+
 // Analytics API functions
 export const analyticsAPI = {
   getReferralAnalytics: async (period = '30d'): Promise<ApiResponse<any>> => {

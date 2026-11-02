@@ -1,4 +1,10 @@
 /**
+ * Copied into the charity portal at
+ *   thrive-charity-portal/src/utils/imageCrop.ts
+ * Keep the two in step: a crop preset that differs between them means a
+ * charity frames one shape and donors see another.
+ */
+/**
  * Charity image roles, their target shapes, and the crop export.
  *
  * Split out of ImageCropUpload so the geometry can be exercised directly in a

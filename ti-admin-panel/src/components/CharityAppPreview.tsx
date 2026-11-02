@@ -1,4 +1,10 @@
 /**
+ * Copied into the charity portal at
+ *   thrive-charity-portal/src/components/CharityAppPreview.tsx
+ * Keep the two in step: a crop preset that differs between them means a
+ * charity frames one shape and donors see another.
+ */
+/**
  * Shows a charity's images as the donor app actually renders them.
  *
  * Why this exists: the three image roles live in three differently-shaped
