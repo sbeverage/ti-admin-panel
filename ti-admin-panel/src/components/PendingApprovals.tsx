@@ -71,6 +71,11 @@ const PendingApprovals: React.FC = () => {
   // charity. Sent with the approve call so the cause lands in the app with a
   // real profile instead of the placeholder it carried while pending.
   const [charityProfile, setCharityProfile] = useState<Record<string, string>>({});
+  // Vetting links an admin adds for a charity that never supplied its own,
+  // kept apart from charityProfile because they are a list, not a field, and
+  // the approve call sends them under their own key.
+  const [adminVettingLinks, setAdminVettingLinks] = useState<string[]>([]);
+  const [vettingDraft, setVettingDraft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [selectedDocumentFilter, setSelectedDocumentFilter] = useState('all');
@@ -459,8 +464,37 @@ const PendingApprovals: React.FC = () => {
         .map(([label]) => label)
     : [];
 
+  /** Mirrors VETTING_SITES in charityPortal.ts, which is what enforces it. */
+  const VETTING_HOSTS = [
+    'charitynavigator.org', 'guidestar.org', 'candid.org', 'give.org', 'charitywatch.org',
+  ];
+
+  const addVettingLink = () => {
+    const raw = vettingDraft.trim();
+    if (!raw) return;
+    let host = '';
+    try {
+      host = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+        .hostname.toLowerCase().replace(/^www\./, '');
+    } catch {
+      message.error('That does not look like a link. Paste the full page address.');
+      return;
+    }
+    // Anchored on a dot: charitynavigator.org.example.com is a domain anyone
+    // can register and must not pass as the real thing.
+    const known = VETTING_HOSTS.some((k) => host === k || host.endsWith(`.${k}`));
+    if (!known) {
+      message.error('We accept pages on Charity Navigator, Candid/GuideStar, give.org or CharityWatch.');
+      return;
+    }
+    setAdminVettingLinks((l) => (l.includes(raw) ? l : [...l, raw]));
+    setVettingDraft('');
+  };
+
   const handleViewDetails = (record: ApprovalItem) => {
     setSelectedItem(record);
+    setAdminVettingLinks([]);
+    setVettingDraft('');
     setApprovalModalVisible(true);
   };
 
@@ -474,7 +508,16 @@ const PendingApprovals: React.FC = () => {
       const response = await approvalsAPI.approveItem(
         parseInt(record.key),
         record.itemType,
-        record.itemType === 'beneficiary' ? profile : undefined,
+        record.itemType === 'beneficiary'
+          ? {
+              ...profile,
+              // Only sent when the admin actually added some, so approving
+              // without touching them leaves the charity's own links alone.
+              ...(adminVettingLinks.length > 0
+                ? { vettingLinks: [...(record.vettingLinks || []), ...adminVettingLinks] }
+                : {}),
+            }
+          : undefined,
       );
       
       if (response.success) {
@@ -830,6 +873,173 @@ const PendingApprovals: React.FC = () => {
           <div className="approval-details">
           <div className={`approval-columns${selectedItem.itemType === 'beneficiary' ? '' : ' single'}`}>
           <div className="approval-main">
+
+            <div className="detail-section">
+              <Title level={4}>Basic Information</Title>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <Text strong>Name:</Text>
+                  <Text>{selectedItem.name}</Text>
+                </div>
+                <div className="detail-item">
+                  <Text strong>Contact:</Text>
+                  <Text>{selectedItem.contactPerson}</Text>
+                </div>
+                <div className="detail-item">
+                  <Text strong>Email:</Text>
+                  <Text>{selectedItem.email}</Text>
+                </div>
+                <div className="detail-item">
+                  <Text strong>Phone:</Text>
+                  <Text>{selectedItem.phone}</Text>
+                </div>
+                <div className="detail-item">
+                  <Text strong>Location:</Text>
+                  <Text>{selectedItem.location}</Text>
+                </div>
+                <div className="detail-item">
+                  <Text strong>Registration Date:</Text>
+                  <Text>{selectedItem.registrationDate}</Text>
+                </div>
+                {selectedItem.itemType === 'beneficiary' && (
+                  <>
+                    <div className="detail-item">
+                      <Text strong>EIN:</Text>
+                      <Text>{selectedItem.ein || 'Not given'}</Text>
+                    </div>
+                    <div className="detail-item">
+                      <Text strong>Category:</Text>
+                      <Text>{selectedItem.category || 'Not given'}</Text>
+                    </div>
+                    <div className="detail-item">
+                      <Text strong>Website:</Text>
+                      {selectedItem.website ? (
+                        <a href={selectedItem.website} target="_blank" rel="noreferrer noopener">
+                          {selectedItem.website}
+                        </a>
+                      ) : (
+                        <Text type="secondary">Not given</Text>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {selectedItem.itemType === 'beneficiary' && (
+              <div className="detail-section">
+                <Title level={4}>Independent vetting</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 13 }}>
+                  The charity had to provide these before it could submit. Open
+                  them and check the organisation is listed and in good standing.
+                </Text>
+                {(selectedItem.vettingLinks || []).length > 0 ? (
+                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                    {(selectedItem.vettingLinks || []).map((url) => (
+                      <a key={url} href={url} target="_blank" rel="noreferrer noopener"
+                         style={{ wordBreak: 'break-all' }}>
+                        {url}
+                      </a>
+                    ))}
+                  </Space>
+                ) : (
+                  // Predates the requirement, or was suggested by a donor
+                  // rather than registered through the portal. Worth saying so
+                  // rather than showing an empty space that reads as "nothing
+                  // to check".
+                  <Tag color="orange" style={{ whiteSpace: 'normal' }}>
+                    None on file. This one predates the vetting requirement, so
+                    you can add the links yourself below.
+                  </Tag>
+                )}
+
+                {/* Adding on the charity's behalf, for the ones that never went
+                    through the portal. Held against the same accepted-host rule
+                    the portal enforces, so evidence means the same thing
+                    whoever entered it. */}
+                {adminVettingLinks.length > 0 && (
+                  <Space direction="vertical" size={6} style={{ width: '100%', marginTop: 10 }}>
+                    {adminVettingLinks.map((url) => (
+                      <div key={url} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <a href={url} target="_blank" rel="noreferrer noopener"
+                           style={{ wordBreak: 'break-all', flex: 1 }}>
+                          {url}
+                        </a>
+                        <Button
+                          size="small"
+                          type="text"
+                          danger
+                          onClick={() => setAdminVettingLinks((l) => l.filter((u) => u !== url))}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </Space>
+                )}
+
+                <Space.Compact style={{ width: '100%', marginTop: 12 }}>
+                  <Input
+                    placeholder="https://www.charitynavigator.org/ein/123456789"
+                    value={vettingDraft}
+                    onChange={(e) => setVettingDraft(e.target.value)}
+                    onPressEnter={addVettingLink}
+                  />
+                  <Button onClick={addVettingLink}>Add</Button>
+                </Space.Compact>
+                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 6 }}>
+                  Charity Navigator, Candid/GuideStar, give.org or CharityWatch.
+                  Saved when you approve.
+                </Text>
+              </div>
+            )}
+
+            <div className="detail-section">
+              <Title level={4}>Verification Status</Title>
+              <div className="status-grid">
+                <div className="status-item">
+                  <Text strong>Documents:</Text>
+                  <Tag color={selectedItem.documentsSubmitted === 'Complete' ? 'green' : 'orange'}>
+                    {selectedItem.documentsSubmitted}
+                  </Tag>
+                </div>
+                <div className="status-item">
+                  <Text strong>Verification:</Text>
+                  <Tag color="blue">{selectedItem.verificationStatus}</Tag>
+                </div>
+              </div>
+            </div>
+            </div>{/* /approval-main */}
+
+            {selectedItem.itemType === 'beneficiary' && (
+              <aside className="approval-preview detail-section">
+                <Title level={4}>How this looks in the app</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+                  Exactly what a donor would see if you approve it. Judge the
+                  crops here rather than from the image links.
+                </Text>
+                <div style={{ padding: 16, background: '#EFF5F7', border: '1px solid #D9E7EC', borderRadius: 12, overflowX: 'auto' }}>
+                  <CharityAppPreview
+                    data={{
+                      name: selectedItem.name,
+                      category: selectedItem.category,
+                      location: selectedItem.location,
+                      logoUrl: selectedItem.logoUrl,
+                      highlightUrl: selectedItem.highlightUrl,
+                      coverUrl: selectedItem.coverUrl,
+                    }}
+                  />
+                </div>
+                {selectedItem.about && (
+                  <div style={{ marginTop: 16 }}>
+                    <Text strong style={{ display: 'block', marginBottom: 4 }}>What they do</Text>
+                    <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
+                  </div>
+                )}
+              </aside>
+            )}
+            </div>{/* /approval-columns */}
+
         {selectedItem?.itemType === 'beneficiary' && (
           /* Donor-suggested charities arrive with only what the IRS registry
              gave us: name, EIN, city. Approving one of those without filling
@@ -918,130 +1128,6 @@ const PendingApprovals: React.FC = () => {
           />
         )}
 
-            <div className="detail-section">
-              <Title level={4}>Basic Information</Title>
-              <div className="detail-grid">
-                <div className="detail-item">
-                  <Text strong>Name:</Text>
-                  <Text>{selectedItem.name}</Text>
-                </div>
-                <div className="detail-item">
-                  <Text strong>Contact:</Text>
-                  <Text>{selectedItem.contactPerson}</Text>
-                </div>
-                <div className="detail-item">
-                  <Text strong>Email:</Text>
-                  <Text>{selectedItem.email}</Text>
-                </div>
-                <div className="detail-item">
-                  <Text strong>Phone:</Text>
-                  <Text>{selectedItem.phone}</Text>
-                </div>
-                <div className="detail-item">
-                  <Text strong>Location:</Text>
-                  <Text>{selectedItem.location}</Text>
-                </div>
-                <div className="detail-item">
-                  <Text strong>Registration Date:</Text>
-                  <Text>{selectedItem.registrationDate}</Text>
-                </div>
-                {selectedItem.itemType === 'beneficiary' && (
-                  <>
-                    <div className="detail-item">
-                      <Text strong>EIN:</Text>
-                      <Text>{selectedItem.ein || 'Not given'}</Text>
-                    </div>
-                    <div className="detail-item">
-                      <Text strong>Category:</Text>
-                      <Text>{selectedItem.category || 'Not given'}</Text>
-                    </div>
-                    <div className="detail-item">
-                      <Text strong>Website:</Text>
-                      {selectedItem.website ? (
-                        <a href={selectedItem.website} target="_blank" rel="noreferrer noopener">
-                          {selectedItem.website}
-                        </a>
-                      ) : (
-                        <Text type="secondary">Not given</Text>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {selectedItem.itemType === 'beneficiary' && (
-              <div className="detail-section">
-                <Title level={4}>Independent vetting</Title>
-                <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 13 }}>
-                  The charity had to provide these before it could submit. Open
-                  them and check the organisation is listed and in good standing.
-                </Text>
-                {(selectedItem.vettingLinks || []).length > 0 ? (
-                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                    {(selectedItem.vettingLinks || []).map((url) => (
-                      <a key={url} href={url} target="_blank" rel="noreferrer noopener"
-                         style={{ wordBreak: 'break-all' }}>
-                        {url}
-                      </a>
-                    ))}
-                  </Space>
-                ) : (
-                  // Pre-dates the requirement, or was added by an admin rather
-                  // than through the portal. Worth saying so rather than
-                  // showing an empty space that reads as "nothing to check".
-                  <Tag color="orange">
-                    None on file. This one predates the vetting requirement.
-                  </Tag>
-                )}
-              </div>
-            )}
-
-            <div className="detail-section">
-              <Title level={4}>Verification Status</Title>
-              <div className="status-grid">
-                <div className="status-item">
-                  <Text strong>Documents:</Text>
-                  <Tag color={selectedItem.documentsSubmitted === 'Complete' ? 'green' : 'orange'}>
-                    {selectedItem.documentsSubmitted}
-                  </Tag>
-                </div>
-                <div className="status-item">
-                  <Text strong>Verification:</Text>
-                  <Tag color="blue">{selectedItem.verificationStatus}</Tag>
-                </div>
-              </div>
-            </div>
-            </div>{/* /approval-main */}
-
-            {selectedItem.itemType === 'beneficiary' && (
-              <aside className="approval-preview detail-section">
-                <Title level={4}>How this looks in the app</Title>
-                <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
-                  Exactly what a donor would see if you approve it. Judge the
-                  crops here rather than from the image links.
-                </Text>
-                <div style={{ padding: 16, background: '#EFF5F7', border: '1px solid #D9E7EC', borderRadius: 12, overflowX: 'auto' }}>
-                  <CharityAppPreview
-                    data={{
-                      name: selectedItem.name,
-                      category: selectedItem.category,
-                      location: selectedItem.location,
-                      logoUrl: selectedItem.logoUrl,
-                      highlightUrl: selectedItem.highlightUrl,
-                      coverUrl: selectedItem.coverUrl,
-                    }}
-                  />
-                </div>
-                {selectedItem.about && (
-                  <div style={{ marginTop: 16 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 4 }}>What they do</Text>
-                    <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
-                  </div>
-                )}
-              </aside>
-            )}
-            </div>{/* /approval-columns */}
             
           </div>
         )}
