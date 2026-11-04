@@ -655,3 +655,37 @@
   display: block;
   padding-top: 8px;
 }
+
+/* Form on the left, live app preview held beside it. The preview is a fixed
+   phone width plus its frame, so it takes a fixed track and the form takes
+   the rest. Mirrors the approval review panel, which is where this layout
+   was proven. */
+.invite-with-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 438px;
+  gap: 24px;
+  align-items: start;
+}
+
+.invite-with-preview > .form-content {
+  min-width: 0;
+}
+
+.invite-preview {
+  position: sticky;
+  top: 0;
+  padding: 20px;
+  background: #EFF5F7;
+  border: 1px solid #D9E7EC;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+@media (max-width: 1150px) {
+  .invite-with-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .invite-preview {
+    position: static;
+  }
+}

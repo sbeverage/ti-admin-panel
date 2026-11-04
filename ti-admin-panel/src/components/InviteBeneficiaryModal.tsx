@@ -19,6 +19,8 @@ import {
 import { beneficiaryAPI } from '../services/api';
 import { addNotification } from '../services/notifications';
 import ImageUpload from './ImageUpload';
+import ImageCropUpload from './ImageCropUpload';
+import CharityAppPreview from './CharityAppPreview';
 import { BENEFICIARY_CATEGORIES } from '../constants/beneficiaryCategories';
 import './InviteBeneficiaryModal.css';
 
@@ -45,6 +47,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   // Image URLs from Supabase Storage uploads
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [highlightUrl, setHighlightUrl] = useState<string | null>(null);
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
   // Form 990 file
   const [form990File, setForm990File] = useState<any>(null);
@@ -70,6 +73,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   ];
 
   // Image upload handlers - using Supabase Storage
+  // Live values for the preview beside the form.
+  const watchedName = Form.useWatch('beneficiaryName', form);
+  const watchedCategory = Form.useWatch('category', form);
+  const watchedLocation = Form.useWatch('location', form);
+
   const handleMainImageChange = (url: string | null) => {
     setMainImageUrl(url);
     form.setFieldsValue({ mainImage: url });
@@ -78,6 +86,11 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
   const handleLogoChange = (url: string | null) => {
     setLogoUrl(url);
     form.setFieldsValue({ logo: url });
+  };
+
+  const handleHighlightChange = (url: string | null) => {
+    setHighlightUrl(url);
+    form.setFieldsValue({ highlight: url });
   };
 
   const handleAdditionalImageChange = (url: string | null, index: number) => {
@@ -236,6 +249,15 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         beneficiaryData.logoUrl = finalLogoUrl; // Backend expects camelCase
         beneficiaryData.logo = finalLogoUrl;
         beneficiaryData.logo_url = finalLogoUrl;
+      }
+      // The square crop the browse card wants. Sent in both shapes for the
+      // same reason as the two above: the admin create path has accepted
+      // camelCase and snake_case side by side since before this field
+      // existed, and only one of them is read.
+      const finalHighlightUrl = allData.highlightUrl || highlightUrl;
+      if (finalHighlightUrl) {
+        beneficiaryData.highlightUrl = finalHighlightUrl;
+        beneficiaryData.highlight_url = finalHighlightUrl;
       }
       
       // Impact Metrics - Now accept full sentences (text)
@@ -398,6 +420,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
     // Reset image states
     setMainImageUrl(null);
     setLogoUrl(null);
+    setHighlightUrl(null);
     setAdditionalImages([]);
     setForm990File(null);
     setProfileLinks([{ channel: '', username: '' }]);
@@ -732,42 +755,47 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         return (
           <div className="step-content">
             <Title level={4}>Upload Images</Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
-              Upload images to showcase your charity organization. All images are optional but recommended.
+            <Text type="secondary" style={{ display: 'block', marginBottom: '20px' }}>
+              Each one appears somewhere different in the app, at a different
+              shape, so each is cropped separately. Position each image in the
+              panel and the preview on the right updates as you go.
             </Text>
             
-            <Row gutter={[24, 24]}>
-              <Col span={24}>
-                <Card title="Main Image" style={{ marginBottom: '16px' }}>
-                  <Form.Item
-                    name="mainImage"
-                    label="Upload Main Image"
-                    rules={[{ required: false }]}
-                  >
-                    <ImageUpload
-                      currentImageUrl={mainImageUrl || undefined}
-                      onImageChange={handleMainImageChange}
-                      title="Upload Charity Main Image"
-                      description="Main image displayed on charity profile. Recommended: 1080px × 1080px. Max 5MB"
-                    />
-                  </Form.Item>
+            {/* Three roles, three shapes, each cropped to the slot it fills.
+                This step used to offer two uncropped uploads at "1080 x 1080",
+                which is right for neither: the cover is a 2:1 band and the
+                highlight did not exist here at all, so a charity added from
+                the panel could never get the square crop the browse card
+                needs and fell back to a centre-cropped cover. See CLAUDE.md
+                "Charity images". */}
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={8}>
+                <Card title="Logo" size="small" style={{ marginBottom: '16px' }}>
+                  <ImageCropUpload
+                    role="logo"
+                    currentImageUrl={logoUrl || undefined}
+                    onImageChange={handleLogoChange}
+                  />
                 </Card>
               </Col>
-              
-              <Col span={24}>
-                <Card title="Organization Logo" style={{ marginBottom: '16px' }}>
-                  <Form.Item
-                    name="logo"
-                    label="Upload Logo"
-                    rules={[{ required: false }]}
-                  >
-                    <ImageUpload
-                      currentImageUrl={logoUrl || undefined}
-                      onImageChange={handleLogoChange}
-                      title="Upload Organization Logo"
-                      description="Logo displayed in charity listings. Recommended: 1080px × 1080px. Max 5MB"
-                    />
-                  </Form.Item>
+
+              <Col xs={24} md={8}>
+                <Card title="Highlight" size="small" style={{ marginBottom: '16px' }}>
+                  <ImageCropUpload
+                    role="highlight"
+                    currentImageUrl={highlightUrl || undefined}
+                    onImageChange={handleHighlightChange}
+                  />
+                </Card>
+              </Col>
+
+              <Col xs={24} md={8}>
+                <Card title="Cover" size="small" style={{ marginBottom: '16px' }}>
+                  <ImageCropUpload
+                    role="cover"
+                    currentImageUrl={mainImageUrl || undefined}
+                    onImageChange={handleMainImageChange}
+                  />
                 </Card>
               </Col>
               
@@ -836,7 +864,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       visible={visible}
       onCancel={handleCancel}
       footer={null}
-      width={1000}
+      width={1240}
       className="invite-beneficiary-modal"
     >
       {/* Single-page form. The four-step wizard went away with the Impact &
@@ -844,7 +872,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           to read at once, and a wizard for three short groups was more
           ceremony than the task needs. Step 1 (Impact & Story) is simply not
           rendered. */}
-      <div className="modal-content modal-content--single-step">
+      <div className="modal-content modal-content--single-step invite-with-preview">
         <div className="form-content">
           <Form
             form={form}
@@ -869,6 +897,28 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             </div>
           </Form>
         </div>
+
+        {/* The same preview the approval panel shows, live while the form is
+            filled in. Whether a crop works is a question about the slot it
+            lands in, and nobody can answer it from a file picker. */}
+        <aside className="invite-preview">
+          <Text strong style={{ display: 'block', color: '#21555b' }}>
+            How this looks in the app
+          </Text>
+          <Text style={{ display: 'block', margin: '4px 0 14px', fontSize: 12, color: '#5B7680' }}>
+            Shown at the size donors see. Crop on the left and this updates straight away.
+          </Text>
+          <CharityAppPreview
+            data={{
+              name: watchedName,
+              category: watchedCategory,
+              location: watchedLocation,
+              logoUrl,
+              highlightUrl,
+              coverUrl: mainImageUrl,
+            }}
+          />
+        </aside>
       </div>
     </Modal>
   );
