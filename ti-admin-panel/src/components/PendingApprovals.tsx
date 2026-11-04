@@ -277,7 +277,27 @@ const PendingApprovals: React.FC = () => {
           <Avatar size={32} style={{ backgroundColor: '#DB8633' }}>
             {record.avatar}
           </Avatar>
-          <Text strong>{text}</Text>
+          {/* The name opens the same review panel as the View Details
+              button. Reviewing starts by looking at one of these, so the
+              thing the eye lands on first should be the way in. Kept as a
+              button for keyboard and screen reader users; the row itself is
+              not clickable because it carries its own toggles. */}
+          <Text
+            strong
+            role="button"
+            tabIndex={0}
+            onClick={() => handleViewDetails(record)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleViewDetails(record);
+              }
+            }}
+            style={{ cursor: 'pointer', color: '#21555b' }}
+            className="approval-name-link"
+          >
+            {text}
+          </Text>
           {/* Registered through the portal but never submitted for review.
               There is nothing to approve yet — these need chasing, not a
               decision, so the tag says so rather than looking like a normal

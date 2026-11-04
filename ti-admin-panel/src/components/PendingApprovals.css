@@ -759,3 +759,16 @@ a:hover {
 .filter-dropdown {
   min-width: 150px;
 } 
+/* The charity or vendor name opens the review panel. Underlined only on
+   hover so the column still reads as a list of names rather than a wall of
+   links, with the orange carried over from the rest of the panel. */
+.approval-name-link:hover,
+.approval-name-link:focus-visible {
+  color: #DB8633 !important;
+  text-decoration: underline;
+}
+.approval-name-link:focus-visible {
+  outline: 2px solid #DB8633;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
