@@ -994,3 +994,14 @@
     transition: none !important;
   }
 } 
+/* Pending Approvals count in the sidebar.
+   The label is a flex row so the badge sits at the right-hand edge of the
+   item instead of immediately after the text, which left it in a different
+   place on every menu item length. */
+.standard-menu .menu-label-with-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}

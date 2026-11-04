@@ -144,7 +144,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       });
 
       if (duplicateBeneficiary) {
-        message.error('A beneficiary with this email or name already exists.');
+        message.error('A charity with this email or name already exists.');
         setSaving(false);
         return;
       }
@@ -335,10 +335,10 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       }
       
       if (isSuccess) {
-        message.success('Beneficiary created successfully!');
+        message.success('Charity created successfully!');
         addNotification({
-          title: 'Beneficiary invited',
-          message: beneficiaryData.name || 'Beneficiary created',
+          title: 'Charity invited',
+          message: beneficiaryData.name || 'Charity created',
           level: 'success',
         });
         // Call onSubmit callback (which should refresh the beneficiaries list)
@@ -347,22 +347,22 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
         // Note: The parent component (Beneficiaries) should refresh the list
         // in its onSubmit handler to show the newly created beneficiary
       } else {
-        const errorMsg = response.error || responseData?.error || 'Failed to create beneficiary';
+        const errorMsg = response.error || responseData?.error || 'Failed to create charity';
         console.error('❌ Backend error:', errorMsg);
-        message.error(`Failed to create beneficiary: ${errorMsg}`);
+        message.error(`Failed to create charity: ${errorMsg}`);
         addNotification({
-          title: 'Beneficiary invite failed',
+          title: 'Charity invite failed',
           message: errorMsg,
           level: 'error',
         });
       }
       
     } catch (error: any) {
-      console.error('❌ Error creating beneficiary:', error);
-      const errorMsg = error?.message || 'Failed to create beneficiary. Please try again.';
+      console.error('❌ Error creating charity:', error);
+      const errorMsg = error?.message || 'Failed to create charity. Please try again.';
       message.error(errorMsg);
       addNotification({
-        title: 'Beneficiary invite failed',
+        title: 'Charity invite failed',
         message: errorMsg,
         level: 'error',
       });
@@ -386,7 +386,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
       });
     } catch (err) {
       // antd surfaces per-field validation messages itself; nothing to add.
-      console.warn('Beneficiary form validation failed:', err);
+      console.warn('Charity form validation failed:', err);
     }
   };
 
@@ -416,8 +416,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
               <Col span={12}>
                 <Form.Item
                   name="beneficiaryName"
-                  label="Beneficiary Name"
-                  rules={[{ required: true, message: 'Please enter beneficiary name' }]}
+                  label="Charity Name"
+                  rules={[{ required: true, message: 'Please enter charity name' }]}
                 >
                   <Input placeholder="Enter organization name" />
                 </Form.Item>
@@ -595,7 +595,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             >
               <TextArea 
                 rows={6} 
-                placeholder="Detailed description of the beneficiary organization and their mission..." 
+                placeholder="Detailed description of the charity organization and their mission..." 
                 showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
                 maxLength={1000}
               />
@@ -733,7 +733,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
           <div className="step-content">
             <Title level={4}>Upload Images</Title>
             <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
-              Upload images to showcase your beneficiary organization. All images are optional but recommended.
+              Upload images to showcase your charity organization. All images are optional but recommended.
             </Text>
             
             <Row gutter={[24, 24]}>
@@ -747,8 +747,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                     <ImageUpload
                       currentImageUrl={mainImageUrl || undefined}
                       onImageChange={handleMainImageChange}
-                      title="Upload Beneficiary Main Image"
-                      description="Main image displayed on beneficiary profile. Recommended: 1080px × 1080px. Max 5MB"
+                      title="Upload Charity Main Image"
+                      description="Main image displayed on charity profile. Recommended: 1080px × 1080px. Max 5MB"
                     />
                   </Form.Item>
                 </Card>
@@ -765,7 +765,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                       currentImageUrl={logoUrl || undefined}
                       onImageChange={handleLogoChange}
                       title="Upload Organization Logo"
-                      description="Logo displayed in beneficiary listings. Recommended: 1080px × 1080px. Max 5MB"
+                      description="Logo displayed in charity listings. Recommended: 1080px × 1080px. Max 5MB"
                     />
                   </Form.Item>
                 </Card>
@@ -828,8 +828,8 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
             className="back-btn"
           />
           <div className="header-content">
-            <Title level={3} className="modal-title">Invite Beneficiaries</Title>
-            <Text className="modal-subtitle">Complete your details and send invite to beneficiaries</Text>
+            <Title level={3} className="modal-title">Invite Charities</Title>
+            <Text className="modal-subtitle">Complete your details and send invite to charities</Text>
           </div>
         </div>
       }
@@ -863,7 +863,7 @@ const InviteBeneficiaryModal: React.FC<InviteBeneficiaryModalProps> = ({
                 loading={saving}
                 disabled={saving}
               >
-                {saving ? 'Saving…' : 'Add Beneficiary'}
+                {saving ? 'Saving…' : 'Add Charity'}
                 {!saving && <ArrowRightOutlined />}
               </Button>
             </div>

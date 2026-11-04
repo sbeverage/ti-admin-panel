@@ -137,8 +137,8 @@ const NewsfeedManagement: React.FC = () => {
     {
       key: 'beneficiaries',
       icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
+      label: 'Charities',
+      title: 'Charity Management'
     },
     {
       key: 'vendor',
@@ -180,7 +180,7 @@ const NewsfeedManagement: React.FC = () => {
       key: 'invitations',
       icon: <MailOutlined />,
       label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
+      title: 'Charity & Vendor Invitations'
     },
     {
       key: 'referral-analytics',
@@ -216,7 +216,7 @@ const NewsfeedManagement: React.FC = () => {
         likes: 24,
         comments: 8,
         shares: 12,
-        userType: 'Beneficiary',
+        userType: 'Charity',
         priority: 'medium',
         flagged: false
       },
@@ -387,7 +387,7 @@ const NewsfeedManagement: React.FC = () => {
       key: 'userType',
       render: (userType: string) => {
         const colorMap: { [key: string]: string } = {
-          'Beneficiary': 'green',
+          'Charity': 'green',
           'Vendor': 'blue',
           'Donor': 'purple'
         };
@@ -948,7 +948,7 @@ const NewsfeedManagement: React.FC = () => {
                       rules={[{ required: true, message: 'Please select a user type' }]}
                     >
                       <Select placeholder="Select user type">
-                        <Option value="Beneficiary">Beneficiary</Option>
+                        <Option value="Charity">Charity</Option>
                         <Option value="Vendor">Vendor</Option>
                         <Option value="Donor">Donor</Option>
                         <Option value="All Users">All Users</Option>

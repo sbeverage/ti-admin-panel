@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Button } from 'antd';
+import { Layout, Menu, Button, Badge } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
   DashboardOutlined,
@@ -17,6 +17,7 @@ import {
   UnorderedListOutlined,
 } from '@ant-design/icons';
 import UserProfile from './UserProfile';
+import { usePendingApprovalsCount } from '../hooks/usePendingApprovalsCount';
 
 const { Sider } = Layout;
 
@@ -45,7 +46,7 @@ const isGroup = (entry: MenuEntry): entry is MenuGroup =>
 const ADMIN_MENU_ITEMS: MenuEntry[] = [
   { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', route: '/dashboard', title: 'Dashboard Overview' },
   { key: 'donors', icon: <UserOutlined />, label: 'Donors', route: '/donors', title: 'Donor Management' },
-  { key: 'beneficiaries', icon: <HeartOutlined />, label: 'Beneficiaries', route: '/beneficiaries', title: 'Beneficiary Management' },
+  { key: 'beneficiaries', icon: <HeartOutlined />, label: 'Charities', route: '/beneficiaries', title: 'Charity Management' },
   {
     key: 'vendors-group',
     icon: <RiseOutlined />,
@@ -57,7 +58,7 @@ const ADMIN_MENU_ITEMS: MenuEntry[] = [
     ],
   },
   { key: 'pending-approvals', icon: <ExclamationCircleOutlined />, label: 'Pending Approvals', route: '/pending-approvals', title: 'Pending Approvals' },
-  { key: 'invitations', icon: <MailOutlined />, label: 'Invitations', route: '/invitations', title: 'Beneficiary & Vendor Invitations' },
+  { key: 'invitations', icon: <MailOutlined />, label: 'Invitations', route: '/invitations', title: 'Charity & Vendor Invitations' },
   { key: 'referral-analytics', icon: <TeamOutlined />, label: 'Referral Analytics', route: '/referral-analytics', title: 'Referral Analytics & Tracking' },
   { key: 'geographic-analytics', icon: <GlobalOutlined />, label: 'Geographic Analytics', route: '/geographic-analytics', title: 'Geographic Analytics & Insights' },
   { key: 'reporting', icon: <CalculatorOutlined />, label: 'Reporting', route: '/reporting', title: 'Payouts & Financial Reporting' },
@@ -105,6 +106,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onMobileToggle,
 }) => {
   const navigate = useNavigate();
+  const { total: pendingTotal } = usePendingApprovalsCount();
 
   const handleClick = ({ key }: { key: string }) => {
     const route = ROUTE_BY_KEY[key];
@@ -133,7 +135,23 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     return {
       key: entry.key,
       icon: entry.icon,
-      label: entry.label,
+      // A count, not a bare dot: "3 waiting" tells you whether to stop what
+      // you are doing. Sits after the label so it reads as part of the item
+      // rather than floating over the icon, where the collapsed rail would
+      // clip it. Hidden entirely at zero.
+      label:
+        entry.key === 'pending-approvals' && pendingTotal > 0 ? (
+          <span className="menu-label-with-badge">
+            {entry.label}
+            <Badge
+              count={pendingTotal}
+              overflowCount={99}
+              style={{ backgroundColor: '#E5484D', boxShadow: 'none' }}
+            />
+          </span>
+        ) : (
+          entry.label
+        ),
       title: entry.title,
     };
   });

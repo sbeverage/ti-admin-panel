@@ -231,7 +231,7 @@ const Donors: React.FC = () => {
         setBeneficiariesList(response.data);
       }
     } catch (error) {
-      console.error('Error loading beneficiaries:', error);
+      console.error('Error loading charities:', error);
     }
   };
 
@@ -451,8 +451,8 @@ const Donors: React.FC = () => {
     {
       key: 'beneficiaries',
       icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
+      label: 'Charities',
+      title: 'Charity Management'
     },
     {
       key: 'vendor',
@@ -476,7 +476,7 @@ const Donors: React.FC = () => {
       key: 'invitations',
       icon: <MailOutlined />,
       label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
+      title: 'Charity & Vendor Invitations'
     },
     {
       key: 'referral-analytics',
@@ -549,7 +549,7 @@ const Donors: React.FC = () => {
       width: 180,
     },
     {
-      title: 'Selected beneficiary name',
+      title: 'Selected charity name',
       dataIndex: 'beneficiary',
       key: 'beneficiary',
       render: (text: string) => <Text type="secondary">{text}</Text>,
@@ -1256,7 +1256,7 @@ const Donors: React.FC = () => {
                 <div className="filter-dropdowns">
                   <Text strong className="filter-label">Filters</Text>
                   <Select
-                    placeholder="Select Beneficiary"
+                    placeholder="Select Charity"
                     className="filter-dropdown"
                     size="large"
                     value={selectedBeneficiary}

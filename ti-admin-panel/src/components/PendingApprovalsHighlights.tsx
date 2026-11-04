@@ -118,7 +118,7 @@ const PendingApprovalsHighlights: React.FC<Props> = ({ approvals }) => {
 
       <Col xs={24} sm={12} lg={8}>
         <HighlightCard
-          label="Pending Beneficiaries"
+          label="Pending Charities"
           hero={beneficiariesPending.toLocaleString()}
           heroSuffix={
             beneficiariesPending === 1 ? 'charity' : 'charities'

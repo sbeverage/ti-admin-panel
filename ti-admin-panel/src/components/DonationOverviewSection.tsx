@@ -330,7 +330,7 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
 
   return (
     <DashboardSection
-      title="Donation &amp; Beneficiary Overview"
+      title="Donation &amp; Charity Overview"
       subtitle="What's being given and where it's going"
       icon={<DollarOutlined />}
     >
@@ -411,7 +411,7 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
                 textTransform: 'uppercase',
               }}
             >
-              Total Beneficiaries
+              Total Charities
             </Text>
             <div style={{ marginTop: 12 }}>
               <span style={{ fontSize: 36, fontWeight: 700 }}>
@@ -437,8 +437,8 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
         </Col>
         <Col xs={24} lg={12}>
           <ChartCard
-            title="Most Selected Beneficiary"
-            subtitle="Donors' primary beneficiary preference"
+            title="Most Selected Charity"
+            subtitle="Donors' primary charity preference"
           >
             <HBarChart
               data={selected.map((s) => ({ label: s.name, value: s.count }))}
@@ -463,7 +463,7 @@ const DonationOverviewSection: React.FC<Props> = ({ data }) => {
         </Col>
         <Col xs={24} lg={12}>
           <ChartCard
-            title="Most Total Donations by Beneficiary"
+            title="Most Total Donations by Charity"
             subtitle="Lifetime $ received per charity"
           >
             <HBarChart

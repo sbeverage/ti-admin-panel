@@ -409,7 +409,7 @@ const Reporting: React.FC = () => {
   // Export to CSV
   const handleExportCSV = () => {
     const headers = [
-      'Beneficiary Name',
+      'Charity Name',
       'Total Donations',
       'Monthly Donations',
       'One-Time Donations',
@@ -417,7 +417,7 @@ const Reporting: React.FC = () => {
       'CC Processing Fees',
       'Net Amount',
       'Platform Fee ($3/donation)',
-      'Payout to Beneficiary',
+      'Payout to Charity',
       'Stripe Amount',
       'Reconciliation Status',
       'Payment Method',
@@ -465,7 +465,7 @@ const Reporting: React.FC = () => {
   // Table columns
   const columns = [
     {
-      title: 'Beneficiary',
+      title: 'Charity',
       dataIndex: 'beneficiaryName',
       key: 'beneficiaryName',
       fixed: 'left' as const,
@@ -578,7 +578,7 @@ const Reporting: React.FC = () => {
               'Collected for fees minus what Stripe actually took. The app grosses ' +
               "the donor's total up using Stripe's nonprofit rate (2.2% + $0.30) and " +
               'rounds UP to the cent, so the charity is never short. Stripe usually ' +
-              'charges slightly less, and the difference goes to the beneficiary — ' +
+              'charges slightly less, and the difference goes to the charity — ' +
               'which is why their payout can exceed the donation. Example: donor pays ' +
               '$0.72 toward fees, Stripe takes $0.66, surplus $0.06.'
             }
@@ -620,7 +620,7 @@ const Reporting: React.FC = () => {
       className: 'table-header-small'
     },
     {
-      title: 'Payout to Beneficiary',
+      title: 'Payout to Charity',
       dataIndex: 'payoutAmount',
       key: 'payoutAmount',
       width: 130,
@@ -853,14 +853,14 @@ const Reporting: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Card>
                 <Statistic
-                  title="Total Payouts to Beneficiaries"
+                  title="Total Payouts to Charities"
                   value={highlightsTotals?.totalPayoutAmount ?? 0}
                   prefix="$"
                   precision={2}
                   valueStyle={{ color: '#1890ff', fontSize: '24px' }}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  To Beneficiaries
+                  To Charities
                 </Text>
               </Card>
             </Col>
@@ -868,7 +868,7 @@ const Reporting: React.FC = () => {
           </DashboardSection>
 
           <DashboardSection
-            title="Beneficiary Payouts"
+            title="Charity Payouts"
             subtitle="Breakdown of what each charity is owed for the selected period"
             icon={<CalculatorOutlined />}
           >
@@ -985,7 +985,7 @@ const Reporting: React.FC = () => {
               <Space>
                 <CalculatorOutlined />
                 <Text strong>
-                  Beneficiary Payouts -{' '}
+                  Charity Payouts -{' '}
                   {payoutsPeriod === 'quarterly'
                     ? selectedMonth.format('[Q]Q YYYY')
                     : payoutsPeriod === 'yearly'

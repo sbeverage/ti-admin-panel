@@ -18,6 +18,7 @@ import {
   SafetyCertificateOutlined, WarningOutlined, CheckOutlined, CloseOutlined,
 } from '@ant-design/icons';
 import { charityAccessAPI } from '../services/api';
+import { notifyApprovalsChanged } from '../hooks/usePendingApprovalsCount';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -63,6 +64,7 @@ const CharityAccessRequests: React.FC = () => {
       const res = await charityAccessAPI.approve(r.id);
       message.success(res?.message || `${r.charity.name} is now managed by that account.`);
       load();
+      notifyApprovalsChanged();
     } catch (err: any) {
       message.error(err?.message || 'That did not go through. Give it another try?');
       // Re-read either way: a refusal usually means the real state moved on.
@@ -81,6 +83,7 @@ const CharityAccessRequests: React.FC = () => {
       setRejecting(null);
       setReason('');
       load();
+      notifyApprovalsChanged();
     } catch (err: any) {
       message.error(err?.message || 'That did not go through. Give it another try?');
     } finally {

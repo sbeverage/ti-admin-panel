@@ -243,22 +243,22 @@ const Beneficiaries: React.FC = () => {
         setAllBeneficiariesData(transformedData);
         setTotalBeneficiaries(transformedData.length);
       } else {
-        setError('Failed to load beneficiaries');
+        setError('Failed to load charities');
         setBeneficiariesData([]);
         setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       }
     } catch (error: any) {
-      console.error('Error loading beneficiaries:', error);
+      console.error('Error loading charities:', error);
       
       // Check if it's a 404 error (endpoint not ready)
       if (error.message && error.message.includes('404')) {
-        setError('Backend endpoint is being prepared. Use "Invite Beneficiary" button to add beneficiaries.');
+        setError('Backend endpoint is being prepared. Use "Invite Charity" button to add charities.');
         setBeneficiariesData([]);
         setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
       } else {
-        setError('Failed to load beneficiaries');
+        setError('Failed to load charities');
         setBeneficiariesData([]);
         setAllBeneficiariesData([]);
         setTotalBeneficiaries(0);
@@ -459,7 +459,7 @@ const Beneficiaries: React.FC = () => {
 
   const confirmDeleteBeneficiary = async () => {
     if (!deletingBeneficiary) {
-      message.error('Cannot delete beneficiary: missing beneficiary data');
+      message.error('Cannot delete charity: missing charity data');
       return;
     }
 
@@ -470,8 +470,8 @@ const Beneficiaries: React.FC = () => {
                          (deletingBeneficiary.rawData && deletingBeneficiary.rawData.id);
     
     if (!beneficiaryId) {
-      console.error('Beneficiary record structure:', deletingBeneficiary);
-      message.error('Cannot delete beneficiary: missing beneficiary ID');
+      console.error('Charity record structure:', deletingBeneficiary);
+      message.error('Cannot delete charity: missing charity ID');
       return;
     }
 
@@ -483,7 +483,7 @@ const Beneficiaries: React.FC = () => {
       const isSuccess = response?.error !== undefined ? false : (response?.success !== false || response?.data !== undefined);
       
       if (isSuccess) {
-        message.success(`Beneficiary ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
+        message.success(`Charity ${deletingBeneficiary.beneficiaryName || deletingBeneficiary.name} deleted successfully`);
         setIsDeleteBeneficiaryModalVisible(false);
         setDeletingBeneficiary(null);
         
@@ -499,11 +499,11 @@ const Beneficiaries: React.FC = () => {
         // Refresh from API to ensure consistency
         await loadBeneficiaries();
       } else {
-        message.error(response?.error || response?.message || 'Failed to delete beneficiary');
+        message.error(response?.error || response?.message || 'Failed to delete charity');
       }
     } catch (error: any) {
-      console.error('Error deleting beneficiary:', error);
-      message.error(error.message || 'Failed to delete beneficiary. Please try again.');
+      console.error('Error deleting charity:', error);
+      message.error(error.message || 'Failed to delete charity. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -543,7 +543,7 @@ const Beneficiaries: React.FC = () => {
     {
       title: (
         <div className="sortable-header">
-          Beneficiary name
+          Charity name
           <SortAscendingOutlined className="sort-icon" />
         </div>
       ),
@@ -656,14 +656,14 @@ const Beneficiaries: React.FC = () => {
       width: 130,
     },
     {
-      title: 'Beneficiary cause',
+      title: 'Charity cause',
       dataIndex: 'beneficiaryCause',
       key: 'beneficiaryCause',
       render: (text: string) => <Text type="secondary">{text}</Text>,
       width: 200,
     },
     {
-      title: 'Beneficiary Type',
+      title: 'Charity Type',
       dataIndex: 'beneficiaryType',
       key: 'beneficiaryType',
       render: (text: string) => {
@@ -752,7 +752,7 @@ const Beneficiaries: React.FC = () => {
                 handleBeneficiaryClick(record.key, record);
               }}
               className="edit-beneficiary-button"
-              title="Edit Beneficiary"
+              title="Edit Charity"
               style={{
                 backgroundColor: '#fff7e6',
                 borderColor: '#DB8633',
@@ -781,7 +781,7 @@ const Beneficiaries: React.FC = () => {
                 handleDeleteBeneficiary(record);
               }}
               className="delete-beneficiary-button"
-              title="Delete Beneficiary"
+              title="Delete Charity"
               style={{
                 backgroundColor: '#fff1f0',
                 borderColor: '#ff4d4f',
@@ -820,7 +820,7 @@ const Beneficiaries: React.FC = () => {
       <Layout className="standard-main-content">
         <Header className="beneficiaries-header">
           <div className="header-left">
-            <Title level={2} style={{ margin: 0 }}>Beneficiaries</Title>
+            <Title level={2} style={{ margin: 0 }}>Charities</Title>
             <Text type="secondary" className="beneficiaries-count">
               {filteredBeneficiaries.length} Beneficiar{filteredBeneficiaries.length !== 1 ? 'ies' : 'y'} Found
               {filteredBeneficiaries.length !== totalBeneficiaries && ` (of ${totalBeneficiaries} total)`}
@@ -834,7 +834,7 @@ const Beneficiaries: React.FC = () => {
               className="invite-beneficiary-btn"
               onClick={handleInviteBeneficiary}
             >
-              Invite A Beneficiary
+              Invite A Charity
             </Button>
           </div>
         </Header>
@@ -842,7 +842,7 @@ const Beneficiaries: React.FC = () => {
         <Content className="beneficiaries-content">
           <div className="content-wrapper">
             <DashboardSection
-              title="Beneficiary Highlights"
+              title="Charity Highlights"
               subtitle="Network health at a glance"
               icon={<TrophyOutlined />}
             >
@@ -850,7 +850,7 @@ const Beneficiaries: React.FC = () => {
             </DashboardSection>
 
             <DashboardSection
-              title="All Beneficiaries"
+              title="All Charities"
               subtitle="Search, filter, and manage individual charity records"
               icon={<StarOutlined />}
             >
@@ -858,7 +858,7 @@ const Beneficiaries: React.FC = () => {
             <div className="search-filter-bar">
               <div className="search-section">
                 <Search
-                  placeholder="Search Beneficiaries"
+                  placeholder="Search Charities"
                   allowClear
                   enterButton={<SearchOutlined />}
                   size="large"
@@ -900,7 +900,7 @@ const Beneficiaries: React.FC = () => {
                   </Select>
                   
                   <Select
-                    placeholder="Beneficiary Type"
+                    placeholder="Charity Type"
                     className="filter-dropdown"
                     size="large"
                     value={selectedType}
@@ -982,7 +982,7 @@ const Beneficiaries: React.FC = () => {
                     setSortOrder(nextOrder || null);
                   }}
                   locale={{
-                    emptyText: error ? `Error: ${error}` : 'No beneficiaries found'
+                    emptyText: error ? `Error: ${error}` : 'No charities found'
                   }}
                 />
               </Spin>
@@ -1024,7 +1024,7 @@ const Beneficiaries: React.FC = () => {
 
       {/* Delete Beneficiary Confirmation Modal */}
       <Modal
-        title="Delete Beneficiary"
+        title="Delete Charity"
         open={isDeleteBeneficiaryModalVisible}
         onOk={confirmDeleteBeneficiary}
         onCancel={() => {
@@ -1038,7 +1038,7 @@ const Beneficiaries: React.FC = () => {
       >
         {deletingBeneficiary && (
           <div>
-            <p>Are you sure you want to permanently delete this beneficiary?</p>
+            <p>Are you sure you want to permanently delete this charity?</p>
             <div style={{ 
               padding: '16px', 
               background: '#fff7e6', 
@@ -1046,7 +1046,7 @@ const Beneficiaries: React.FC = () => {
               marginTop: '16px',
               marginBottom: '16px'
             }}>
-              <Text strong>Beneficiary Details:</Text>
+              <Text strong>Charity Details:</Text>
               <br />
               <Text>Name: {deletingBeneficiary.beneficiaryName || deletingBeneficiary.name}</Text>
               {deletingBeneficiary.cityState && (
@@ -1069,7 +1069,7 @@ const Beneficiaries: React.FC = () => {
               )}
             </div>
             <p style={{ color: '#ff4d4f', marginBottom: 0 }}>
-              <Text strong>Warning:</Text> This action cannot be undone. All beneficiary data including donations, images, and other associated information will be permanently deleted.
+              <Text strong>Warning:</Text> This action cannot be undone. All charity data including donations, images, and other associated information will be permanently deleted.
             </p>
           </div>
         )}

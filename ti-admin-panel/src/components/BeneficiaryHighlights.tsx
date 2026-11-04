@@ -110,7 +110,7 @@ const BeneficiaryHighlights: React.FC<Props> = ({ data }) => {
     <Row gutter={[16, 16]}>
       <Col xs={24} sm={12} lg={6}>
         <HighlightCard
-          label="Active Beneficiaries"
+          label="Active Charities"
           hero={active.count.toLocaleString()}
           heroSuffix={active.count === 1 ? 'charity' : 'charities'}
           icon={<TeamOutlined />}
@@ -137,7 +137,7 @@ const BeneficiaryHighlights: React.FC<Props> = ({ data }) => {
             <Text type="secondary" style={{ fontSize: 12 }}>
               {awaitingBankInfo > 0
                 ? "Can't receive payouts yet — chase for bank account info"
-                : 'All active beneficiaries can be paid out'}
+                : 'All active charities can be paid out'}
             </Text>
           }
         />

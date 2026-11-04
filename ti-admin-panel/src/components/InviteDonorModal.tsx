@@ -184,17 +184,17 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
           {/* Beneficiary & Donation Section */}
           <div className="form-section">
             <Title level={4} className="section-title">
-              Beneficiary & Donation Information
+              Charity & Donation Information
             </Title>
             <div className="form-row">
               <Form.Item
                 name="beneficiary"
-                label="Selected Beneficiary Name"
+                label="Selected Charity Name"
                 rules={[{ required: false }]}
                 className="form-item"
               >
                 <Select
-                  placeholder="Select beneficiary"
+                  placeholder="Select charity"
                   size="large"
                   prefix={<BankOutlined />}
                   allowClear
@@ -202,7 +202,7 @@ const InviteDonorModal: React.FC<InviteDonorModalProps> = ({
                   filterOption={(input, option) =>
                     (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
                   }
-                  notFoundContent="No beneficiaries found"
+                  notFoundContent="No charities found"
                 >
                   {beneficiaries.map((beneficiary: any) => (
                     <Option key={beneficiary.id} value={beneficiary.id?.toString()}>

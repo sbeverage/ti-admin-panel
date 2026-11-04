@@ -466,7 +466,7 @@ const Dashboard: React.FC = () => {
         const payload = { is_active: nextValue, isActive: nextValue };
         const response = await beneficiaryAPI.updateBeneficiary(targetId, payload);
         if (response?.success === false) {
-          throw new Error(response?.error || 'Failed to update beneficiary');
+          throw new Error(response?.error || 'Failed to update charity');
         }
       } else {
         let response;
@@ -480,7 +480,7 @@ const Dashboard: React.FC = () => {
         }
       }
 
-      const label = activeApprovalTab === 'beneficiaries' ? 'Beneficiary' : 'Vendor';
+      const label = activeApprovalTab === 'beneficiaries' ? 'Charity' : 'Vendor';
       const statusText = field === 'active'
         ? (nextValue ? 'activated' : 'deactivated')
         : (nextValue ? 'enabled' : 'disabled');
@@ -684,8 +684,8 @@ const Dashboard: React.FC = () => {
     {
       key: 'beneficiaries',
       icon: <StarOutlined />,
-      label: 'Beneficiaries',
-      title: 'Beneficiary Management'
+      label: 'Charities',
+      title: 'Charity Management'
     },
     {
       key: 'vendor',
@@ -709,7 +709,7 @@ const Dashboard: React.FC = () => {
       key: 'invitations',
       icon: <MailOutlined />,
       label: 'Invitations',
-      title: 'Beneficiary & Vendor Invitations'
+      title: 'Charity & Vendor Invitations'
     },
     {
       key: 'referral-analytics',
@@ -751,7 +751,7 @@ const Dashboard: React.FC = () => {
       growth: '+92.3' 
     },
     { 
-      title: 'Total Beneficiaries', 
+      title: 'Total Charities', 
       value: dashboardStats?.totalBeneficiaries || '--', 
       icon: <StarOutlined />, 
       growth: '+92.3' 
@@ -780,7 +780,7 @@ const Dashboard: React.FC = () => {
 
   const beneficiaryColumns = [
     {
-      title: 'Beneficiary name',
+      title: 'Charity name',
       dataIndex: 'beneficiary',
       key: 'beneficiary',
       render: (text: string, record: any) => (
@@ -809,7 +809,7 @@ const Dashboard: React.FC = () => {
       render: (text: string) => <Text type="secondary">{text}</Text>,
     },
     {
-      title: 'Beneficiary cause',
+      title: 'Charity cause',
       dataIndex: 'cause',
       key: 'cause',
       render: (text: string) => <Text type="secondary">{text}</Text>,
@@ -917,7 +917,7 @@ const Dashboard: React.FC = () => {
 
   const columns = [
     {
-      title: 'Beneficiary name',
+      title: 'Charity name',
       dataIndex: 'name',
       key: 'name',
     },
@@ -932,7 +932,7 @@ const Dashboard: React.FC = () => {
       key: 'cityState',
     },
     {
-      title: 'Beneficiary cause',
+      title: 'Charity cause',
       dataIndex: 'cause',
       key: 'cause',
     },
@@ -1077,7 +1077,7 @@ const Dashboard: React.FC = () => {
                 <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   <Card className="summary-card">
                     <Statistic
-                      title="Total Beneficiaries"
+                      title="Total Charities"
                       value={dashboardStats?.totalBeneficiaries || '--'}
                       prefix={<StarOutlined style={{ color: '#DB8633' }} />}
                     />
@@ -1159,7 +1159,7 @@ const Dashboard: React.FC = () => {
                       className="view-all-link"
                       style={{ color: '#DB8633' }}
                     >
-                      View all {activeApprovalTab === 'beneficiaries' ? 'Beneficiaries' : 'Vendors'}
+                      View all {activeApprovalTab === 'beneficiaries' ? 'Charities' : 'Vendors'}
                     </span>
                   </div>
                   <Tabs 
@@ -1177,7 +1177,7 @@ const Dashboard: React.FC = () => {
                         key: 'beneficiaries',
                         label: (
                           <span style={{ color: '#DB8633' }}>
-                            Beneficiaries
+                            Charities
                           </span>
                         ),
                         children: (

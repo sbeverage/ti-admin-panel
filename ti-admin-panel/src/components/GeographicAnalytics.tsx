@@ -204,7 +204,7 @@ const GeographicAnalytics: React.FC = () => {
       render: (vendors: number) => <Text>{vendors.toLocaleString()}</Text>,
     },
     {
-      title: 'Beneficiaries',
+      title: 'Charities',
       dataIndex: 'beneficiaries',
       key: 'beneficiaries',
       render: (beneficiaries: number) => <Text>{beneficiaries.toLocaleString()}</Text>,

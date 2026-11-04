@@ -147,15 +147,15 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
           // Fallback to passed data if API call fails
           transformAndSetData(rawBeneficiaryData);
         } else {
-          message.error('Failed to load beneficiary details');
+          message.error('Failed to load charity details');
         }
       } catch (error) {
-        console.error('Error fetching beneficiary:', error);
+        console.error('Error fetching charity:', error);
         // Fallback to passed data if available
         if (rawBeneficiaryData) {
           transformAndSetData(rawBeneficiaryData);
         } else {
-          message.error('Failed to load beneficiary details');
+          message.error('Failed to load charity details');
         }
       } finally {
         setLoading(false);
@@ -494,7 +494,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         if ((responseData as any)?.wentLive) {
           // The save closed the last gap, so the charity just became visible.
           message.success({
-            content: `${formData.name || 'Beneficiary'} is now live and visible to donors.`,
+            content: `${formData.name || 'Charity'} is now live and visible to donors.`,
             duration: 8,
           });
         } else {
@@ -507,23 +507,23 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               duration: 8,
             });
           } else {
-            message.success('Beneficiary updated successfully!');
+            message.success('Charity updated successfully!');
           }
         }
       } else {
-        const errorMsg = response.error || responseData?.error || 'Failed to update beneficiary';
+        const errorMsg = response.error || responseData?.error || 'Failed to update charity';
         console.error('❌ Update error:', errorMsg);
-        message.error(`Failed to update beneficiary: ${errorMsg}`);
+        message.error(`Failed to update charity: ${errorMsg}`);
       }
     } catch (error: any) {
-      console.error('❌ Error updating beneficiary:', error);
+      console.error('❌ Error updating charity:', error);
       console.error('❌ Error details:', {
         message: error?.message,
         status: error?.status,
         response: error?.response,
         stack: error?.stack
       });
-      const errorMsg = error?.message || 'Failed to update beneficiary. Please try again.';
+      const errorMsg = error?.message || 'Failed to update charity. Please try again.';
       message.error(errorMsg);
       // Don't close editing mode if there's an error - let user try again
       // setIsEditing(false);
@@ -551,7 +551,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
     return (
       <div className="beneficiary-profile-loading">
         <Spin size="large" />
-        <Text>Loading beneficiary profile...</Text>
+        <Text>Loading charity profile...</Text>
       </div>
     );
   }
@@ -559,7 +559,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
   if (!beneficiaryData) {
     return (
       <div className="beneficiary-profile-error">
-        <Text>Beneficiary not found</Text>
+        <Text>Charity not found</Text>
         <Button onClick={onClose}>Go Back</Button>
       </div>
     );
@@ -570,12 +570,12 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
       <Row gutter={[24, 16]}>
         <Col span={12}>
           <div className="form-field">
-            <label>Beneficiary Name</label>
+            <label>Charity Name</label>
             {isEditing ? (
               <Input
                 value={formData.beneficiaryName}
                 onChange={(e) => handleInputChange('beneficiaryName', e.target.value)}
-                placeholder="Enter beneficiary name"
+                placeholder="Enter charity name"
               />
             ) : (
               <Text strong>{beneficiaryData.beneficiaryName}</Text>
@@ -624,7 +624,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
         </Col>
         <Col span={12}>
           <div className="form-field">
-            <label>Beneficiary Type</label>
+            <label>Charity Type</label>
             {isEditing ? (
               <Select
                 value={formData.beneficiaryType}
@@ -830,7 +830,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
             value={formData.about}
             onChange={(e) => handleInputChange('about', e.target.value)}
             rows={4}
-            placeholder="Describe the beneficiary organization and their mission..."
+            placeholder="Describe the charity organization and their mission..."
             showCount={{ formatter: ({ count, maxLength }) => `${count}/${maxLength}` }}
             maxLength={1000}
           />
@@ -1315,7 +1315,7 @@ const BeneficiaryProfile: React.FC<BeneficiaryProfileProps> = ({
               onClick={onClose}
               className="back-button"
             >
-              Back to Beneficiaries
+              Back to Charities
             </Button>
             <div className="beneficiary-title">
               <Avatar size={64} style={{ backgroundColor: '#DB8633' }}>

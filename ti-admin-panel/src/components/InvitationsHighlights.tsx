@@ -99,7 +99,7 @@ const InvitationsHighlights: React.FC<Props> = ({ invitations }) => {
           tone={BRAND_TEAL}
           detail={
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Beneficiary + vendor invitations, lifetime
+              Charity + vendor invitations, lifetime
             </Text>
           }
         />

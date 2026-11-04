@@ -6,6 +6,7 @@ import UserProfile from './UserProfile';
 import DashboardSection from './DashboardSection';
 import PendingApprovalsHighlights from './PendingApprovalsHighlights';
 import CharityAccessRequests from './CharityAccessRequests';
+import { usePendingApprovalsCount, notifyApprovalsChanged } from '../hooks/usePendingApprovalsCount';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined,
@@ -66,6 +67,7 @@ const PendingApprovals: React.FC = () => {
   const [totalApprovals, setTotalApprovals] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+  const pendingCounts = usePendingApprovalsCount();
 
   // Load pending approvals from API
   // Gracefully handles missing endpoint / empty data - shows empty state instead of errors
@@ -150,6 +152,7 @@ const PendingApprovals: React.FC = () => {
           );
           message.success('Status updated');
           loadApprovals(); // Refresh from server
+          notifyApprovalsChanged();
         } else {
           message.error('Failed to update');
         }
@@ -167,6 +170,7 @@ const PendingApprovals: React.FC = () => {
             );
             message.success('Status updated');
             loadApprovals(); // Refresh from server
+          notifyApprovalsChanged();
           } else {
             message.error('Failed to update');
           }
@@ -178,6 +182,7 @@ const PendingApprovals: React.FC = () => {
             );
             message.success('Status updated');
             loadApprovals(); // Refresh from server
+          notifyApprovalsChanged();
           } else {
             message.error('Failed to update');
           }
@@ -231,8 +236,10 @@ const PendingApprovals: React.FC = () => {
     }
   ];
 
-  const vendorCount = approvalsData.filter((item) => item.itemType === 'vendor').length;
-  const beneficiaryCount = approvalsData.filter((item) => item.itemType === 'beneficiary').length;
+  // Counted by the API, not derived from approvalsData. That array only ever
+  // holds the active tab's queue, so deriving from it made the inactive tab
+  // read (0) until it was clicked.
+  const { vendors: vendorCount, charities: beneficiaryCount } = pendingCounts;
 
   // Unified columns that work for both vendor and beneficiary data
   const approvalColumns = [
@@ -435,9 +442,10 @@ const PendingApprovals: React.FC = () => {
           return;
         }
 
-        message.success(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} approved successfully!`);
+        message.success(`${record.itemType === 'vendor' ? 'Vendor' : 'Charity'} approved successfully!`);
         // Refresh the approvals list
         loadApprovals();
+        notifyApprovalsChanged();
       } else {
         message.error('Failed to approve item');
       }
@@ -452,9 +460,10 @@ const PendingApprovals: React.FC = () => {
       const response = await approvalsAPI.rejectItem(parseInt(record.key), record.itemType, 'Rejected by admin');
       
       if (response.success) {
-        message.error(`${record.itemType === 'vendor' ? 'Vendor' : 'Beneficiary'} rejected.`);
+        message.error(`${record.itemType === 'vendor' ? 'Vendor' : 'Charity'} rejected.`);
         // Refresh the approvals list
         loadApprovals();
+        notifyApprovalsChanged();
       } else {
         message.error('Failed to reject item');
       }
@@ -542,7 +551,7 @@ const PendingApprovals: React.FC = () => {
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Pending Approvals</Title>
             <Text type="secondary" className="approvals-count">
-              {getTotalCount()} {activeTab === 'vendors' ? 'Vendors' : 'Beneficiaries'} Pending Approval
+              {getTotalCount()} {activeTab === 'vendors' ? 'Vendors' : 'Charities'} Pending Approval
             </Text>
           </div>
           <div className="header-right">
@@ -575,7 +584,7 @@ const PendingApprovals: React.FC = () => {
 
             <DashboardSection
               title="Pending Approvals"
-              subtitle="Verify and approve new beneficiaries and vendors"
+              subtitle="Verify and approve new charities and vendors"
               icon={<ExclamationCircleOutlined />}
             >
             {/* Tabs for Vendors vs Beneficiaries */}
@@ -611,7 +620,7 @@ const PendingApprovals: React.FC = () => {
             <div className="search-filter-bar">
               <div className="search-section">
                 <Search
-                  placeholder={`Search ${activeTab === 'vendors' ? 'Vendors' : 'Beneficiaries'}`}
+                  placeholder={`Search ${activeTab === 'vendors' ? 'Vendors' : 'Charities'}`}
                   allowClear
                   enterButton={<SearchOutlined />}
                   size="large"
@@ -688,7 +697,7 @@ const PendingApprovals: React.FC = () => {
                           No pending {activeTab === 'vendors' ? 'vendors' : 'beneficiaries'} yet.
                           <br />
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            When vendors and beneficiaries have their own admin panels and create accounts, they will appear here for approval.
+                            When vendors and charities have their own admin panels and create accounts, they will appear here for approval.
                           </Text>
                         </span>
                       }

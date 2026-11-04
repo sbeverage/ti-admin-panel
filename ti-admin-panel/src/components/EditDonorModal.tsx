@@ -374,24 +374,24 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 {/* Beneficiary & Donation Section */}
                 <div className="form-section">
                   <Title level={4} className="section-title">
-                    Beneficiary & Donation Information
+                    Charity & Donation Information
                   </Title>
                   <div className="form-row">
                     <Form.Item
                       name="beneficiary"
-                      label="Selected Beneficiary Name"
+                      label="Selected Charity Name"
                       rules={[{ required: false }]}
                       className="form-item"
                     >
                       <Select
-                        placeholder="Select beneficiary"
+                        placeholder="Select charity"
                         size="large"
                         allowClear
                         showSearch
                         filterOption={(input, option) =>
                           (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
                         }
-                        notFoundContent="No beneficiaries found"
+                        notFoundContent="No charities found"
                       >
                         {beneficiaries.map((beneficiary: any) => (
                           <Option key={beneficiary.id} value={beneficiary.id?.toString()}>
@@ -688,7 +688,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
           </TabPane>
 
           {/* Current Beneficiary Tab */}
-          <TabPane tab={<span><HeartOutlined /> Current Beneficiary</span>} key="beneficiary">
+          <TabPane tab={<span><HeartOutlined /> Current Charity</span>} key="beneficiary">
             <div style={{ padding: '20px 0' }}>
               {donorDetails?.current_beneficiary ? (
                 <Card>
@@ -719,7 +719,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                 </Card>
               ) : (
                 <Empty 
-                  description="No current beneficiary"
+                  description="No current charity"
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}
@@ -735,7 +735,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                     <Card key={index} size="small">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <Text strong>{donation.beneficiary_name || 'Beneficiary'}</Text>
+                          <Text strong>{donation.beneficiary_name || 'Charity'}</Text>
                           <br />
                           <Text type="secondary">{formatDate(donation.date)}</Text>
                         </div>

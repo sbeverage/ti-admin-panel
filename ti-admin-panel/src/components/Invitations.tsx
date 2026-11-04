@@ -131,7 +131,7 @@ const Invitations: React.FC = () => {
 
   const getTypeTag = (type: string) => {
     return type === 'beneficiary' ? (
-      <Tag icon={<HeartOutlined />} color="pink">Beneficiary</Tag>
+      <Tag icon={<HeartOutlined />} color="pink">Charity</Tag>
     ) : (
       <Tag icon={<ShopOutlined />} color="blue">Vendor</Tag>
     );
@@ -203,12 +203,12 @@ const Invitations: React.FC = () => {
               );
               
               await Promise.all(emailPromises);
-              message.success(`Notified ${relevantDonors.length} donor(s) about the new beneficiary!`);
+              message.success(`Notified ${relevantDonors.length} donor(s) about the new charity!`);
             }
           } catch (error: any) {
             console.error('Error notifying donors:', error);
             // Don't fail the whole operation if donor notification fails
-            message.warning('Beneficiary added, but some donor notifications may have failed');
+            message.warning('Charity added, but some donor notifications may have failed');
           }
         }
         
@@ -232,7 +232,7 @@ const Invitations: React.FC = () => {
 
     Modal.confirm({
       title: 'Bulk Approve & Notify Donors?',
-      content: 'This will approve all selected invitations, create user accounts, and notify all donors who requested these beneficiaries. Continue?',
+      content: 'This will approve all selected invitations, create user accounts, and notify all donors who requested these charities. Continue?',
       okText: 'Yes, approve all',
       cancelText: 'Cancel',
       onOk: async () => {
@@ -299,9 +299,9 @@ const Invitations: React.FC = () => {
                   });
                   
                   if (notifiedDonors.size > 0) {
-                    message.success(`Notified ${notifiedDonors.size} donor(s) about approved beneficiaries!`);
+                    message.success(`Notified ${notifiedDonors.size} donor(s) about approved charities!`);
                   } else {
-                    message.info('No donors found to notify for these beneficiaries');
+                    message.info('No donors found to notify for these charities');
                   }
                 }
               } catch (error: any) {
@@ -342,7 +342,7 @@ const Invitations: React.FC = () => {
       width: 120,
       render: (type: string) => getTypeTag(type),
       filters: [
-        { text: 'Beneficiary', value: 'beneficiary' },
+        { text: 'Charity', value: 'beneficiary' },
         { text: 'Vendor', value: 'vendor' },
       ],
       onFilter: (value: any, record: Invitation) => record.type === value,
@@ -429,7 +429,7 @@ const Invitations: React.FC = () => {
                 onClick={() => {
                   Modal.confirm({
                     title: 'Notify Donors?',
-                    content: 'Do you want to notify all donors who requested this beneficiary?',
+                    content: 'Do you want to notify all donors who requested this charity?',
                     okText: 'Yes, notify donors',
                     cancelText: 'No, just send invitation',
                     onOk: () => handleInviteUser(record, true),
@@ -469,7 +469,7 @@ const Invitations: React.FC = () => {
           <div className="header-left">
             <Title level={2} style={{ margin: 0 }}>Invitations</Title>
             <Text type="secondary">
-              Manage beneficiary and vendor invitation requests
+              Manage charity and vendor invitation requests
             </Text>
           </div>
           <div className="header-right">
@@ -498,7 +498,7 @@ const Invitations: React.FC = () => {
 
             <DashboardSection
               title="All Invitations"
-              subtitle="Beneficiary and vendor invitation requests"
+              subtitle="Charity and vendor invitation requests"
               icon={<MailOutlined />}
             >
           {/* Filters */}
@@ -533,7 +533,7 @@ const Invitations: React.FC = () => {
                   }}
                 >
                   <Option value="all">All Types</Option>
-                  <Option value="beneficiary">Beneficiary</Option>
+                  <Option value="beneficiary">Charity</Option>
                   <Option value="vendor">Vendor</Option>
                 </Select>
                 <Select
