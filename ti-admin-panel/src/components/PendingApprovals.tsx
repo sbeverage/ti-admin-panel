@@ -6,6 +6,7 @@ import UserProfile from './UserProfile';
 import DashboardSection from './DashboardSection';
 import PendingApprovalsHighlights from './PendingApprovalsHighlights';
 import CharityAccessRequests from './CharityAccessRequests';
+import CharityAppPreview from './CharityAppPreview';
 import { usePendingApprovalsCount, notifyApprovalsChanged } from '../hooks/usePendingApprovalsCount';
 import { approvalsAPI, beneficiaryAPI, vendorAPI } from '../services/api';
 import {
@@ -42,6 +43,17 @@ interface ApprovalItem {
   itemType: 'vendor' | 'beneficiary';
   /** Registered but never submitted for review — nothing to judge yet. */
   isIncomplete?: boolean;
+  // Everything the reviewer actually judges. The modal renders the images
+  // through CharityAppPreview, which answers "does this look right in the
+  // app" far faster than reading URLs.
+  ein?: string | null;
+  website?: string | null;
+  category?: string | null;
+  about?: string | null;
+  logoUrl?: string | null;
+  highlightUrl?: string | null;
+  coverUrl?: string | null;
+  vettingLinks?: string[];
 }
 
 const PendingApprovals: React.FC = () => {
@@ -111,6 +123,14 @@ const PendingApprovals: React.FC = () => {
           itemType: (approval.type === 'beneficiary' ? 'beneficiary' : 'vendor') as 'vendor' | 'beneficiary',
           isIncomplete:
             approval.is_incomplete === true || approval.submission_state === 'incomplete',
+          ein: approval.ein ?? null,
+          website: approval.website ?? null,
+          category: approval.category ?? null,
+          about: approval.about ?? approval.description ?? null,
+          logoUrl: approval.logo_url ?? null,
+          highlightUrl: approval.highlight_url ?? null,
+          coverUrl: approval.image_url ?? null,
+          vettingLinks: Array.isArray(approval.vetting_links) ? approval.vetting_links : [],
         }));
         
         setApprovalsData(transformedData);
@@ -853,8 +873,85 @@ const PendingApprovals: React.FC = () => {
                   <Text strong>Registration Date:</Text>
                   <Text>{selectedItem.registrationDate}</Text>
                 </div>
+                {selectedItem.itemType === 'beneficiary' && (
+                  <>
+                    <div className="detail-item">
+                      <Text strong>EIN:</Text>
+                      <Text>{selectedItem.ein || 'Not given'}</Text>
+                    </div>
+                    <div className="detail-item">
+                      <Text strong>Category:</Text>
+                      <Text>{selectedItem.category || 'Not given'}</Text>
+                    </div>
+                    <div className="detail-item">
+                      <Text strong>Website:</Text>
+                      {selectedItem.website ? (
+                        <a href={selectedItem.website} target="_blank" rel="noreferrer noopener">
+                          {selectedItem.website}
+                        </a>
+                      ) : (
+                        <Text type="secondary">Not given</Text>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
+
+            {selectedItem.itemType === 'beneficiary' && (
+              <div className="detail-section">
+                <Title level={4}>Independent vetting</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 13 }}>
+                  The charity had to provide these before it could submit. Open
+                  them and check the organisation is listed and in good standing.
+                </Text>
+                {(selectedItem.vettingLinks || []).length > 0 ? (
+                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                    {(selectedItem.vettingLinks || []).map((url) => (
+                      <a key={url} href={url} target="_blank" rel="noreferrer noopener"
+                         style={{ wordBreak: 'break-all' }}>
+                        {url}
+                      </a>
+                    ))}
+                  </Space>
+                ) : (
+                  // Pre-dates the requirement, or was added by an admin rather
+                  // than through the portal. Worth saying so rather than
+                  // showing an empty space that reads as "nothing to check".
+                  <Tag color="orange">
+                    None on file. This one predates the vetting requirement.
+                  </Tag>
+                )}
+              </div>
+            )}
+
+            {selectedItem.itemType === 'beneficiary' && (
+              <div className="detail-section">
+                <Title level={4}>How this looks in the app</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+                  Exactly what a donor would see if you approve it. Judge the
+                  crops here rather than from the image links.
+                </Text>
+                <div style={{ padding: 16, background: '#EFF5F7', border: '1px solid #D9E7EC', borderRadius: 12, overflowX: 'auto' }}>
+                  <CharityAppPreview
+                    data={{
+                      name: selectedItem.name,
+                      category: selectedItem.category,
+                      location: selectedItem.location,
+                      logoUrl: selectedItem.logoUrl,
+                      highlightUrl: selectedItem.highlightUrl,
+                      coverUrl: selectedItem.coverUrl,
+                    }}
+                  />
+                </div>
+                {selectedItem.about && (
+                  <div style={{ marginTop: 16 }}>
+                    <Text strong style={{ display: 'block', marginBottom: 4 }}>What they do</Text>
+                    <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="detail-section">
               <Title level={4}>Verification Status</Title>
