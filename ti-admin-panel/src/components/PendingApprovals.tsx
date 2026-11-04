@@ -1009,37 +1009,6 @@ const PendingApprovals: React.FC = () => {
                 </div>
               </div>
             </div>
-            </div>{/* /approval-main */}
-
-            {selectedItem.itemType === 'beneficiary' && (
-              <aside className="approval-preview detail-section">
-                <Title level={4}>How this looks in the app</Title>
-                <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
-                  Exactly what a donor would see if you approve it. Judge the
-                  crops here rather than from the image links.
-                </Text>
-                <div style={{ padding: 16, background: '#EFF5F7', border: '1px solid #D9E7EC', borderRadius: 12, overflowX: 'auto' }}>
-                  <CharityAppPreview
-                    data={{
-                      name: selectedItem.name,
-                      category: selectedItem.category,
-                      location: selectedItem.location,
-                      logoUrl: selectedItem.logoUrl,
-                      highlightUrl: selectedItem.highlightUrl,
-                      coverUrl: selectedItem.coverUrl,
-                    }}
-                  />
-                </div>
-                {selectedItem.about && (
-                  <div style={{ marginTop: 16 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 4 }}>What they do</Text>
-                    <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
-                  </div>
-                )}
-              </aside>
-            )}
-            </div>{/* /approval-columns */}
-
         {selectedItem?.itemType === 'beneficiary' && (
           /* Donor-suggested charities arrive with only what the IRS registry
              gave us: name, EIN, city. Approving one of those without filling
@@ -1049,8 +1018,10 @@ const PendingApprovals: React.FC = () => {
              pure noise. Hence collapsed unless something is actually
              missing, with the count on the header so it is obvious either
              way. Blank fields are dropped on save, never written as empty. */
+          <div className="detail-section approval-fill-section">
           <Collapse
-            style={{ marginBottom: 24 }}
+            ghost
+            style={{ marginBottom: 0 }}
             defaultActiveKey={missingProfileFields.length > 0 ? ['fill'] : []}
             items={[{
               key: 'fill',
@@ -1126,7 +1097,39 @@ const PendingApprovals: React.FC = () => {
               ),
             }]}
           />
+          </div>
         )}
+            </div>{/* /approval-main */}
+
+            {selectedItem.itemType === 'beneficiary' && (
+              <aside className="approval-preview detail-section">
+                <Title level={4}>How this looks in the app</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+                  Exactly what a donor would see if you approve it. Judge the
+                  crops here rather than from the image links.
+                </Text>
+                <div style={{ padding: 16, background: '#EFF5F7', border: '1px solid #D9E7EC', borderRadius: 12, overflowX: 'auto' }}>
+                  <CharityAppPreview
+                    data={{
+                      name: selectedItem.name,
+                      category: selectedItem.category,
+                      location: selectedItem.location,
+                      logoUrl: selectedItem.logoUrl,
+                      highlightUrl: selectedItem.highlightUrl,
+                      coverUrl: selectedItem.coverUrl,
+                    }}
+                  />
+                </div>
+                {selectedItem.about && (
+                  <div style={{ marginTop: 16 }}>
+                    <Text strong style={{ display: 'block', marginBottom: 4 }}>What they do</Text>
+                    <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
+                  </div>
+                )}
+              </aside>
+            )}
+            </div>{/* /approval-columns */}
+
 
             
           </div>

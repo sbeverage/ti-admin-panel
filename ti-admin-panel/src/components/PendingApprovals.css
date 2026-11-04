@@ -846,3 +846,27 @@ a:hover {
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* The fill-in form wears the same card as the sections above it, with the
+   Collapse itself made invisible so the card is the only frame. Its header
+   sits where a section heading would, so the column reads as one stack
+   rather than ending and then starting again. */
+.approval-fill-section {
+  margin-bottom: 0 !important;
+}
+
+.approval-fill-section .ant-collapse-header {
+  padding: 0 0 8px 0 !important;
+  align-items: center !important;
+  border-bottom: 1px solid #EDEDED;
+}
+
+.approval-fill-section .ant-collapse-content-box {
+  padding: 14px 0 0 0 !important;
+}
+
+/* No attempt to level the two columns. Stretching the details column and
+   pushing the form to its foot only moves the whitespace above the form,
+   which looks more deliberate and reads worse. Two card stacks of different
+   heights ending at different points is ordinary; a gap inside one of them
+   is not. */
