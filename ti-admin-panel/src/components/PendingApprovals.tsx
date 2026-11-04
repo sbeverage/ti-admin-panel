@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty, Tooltip } from 'antd';
+import { Layout, Menu, Typography, Space, Avatar, Button, Input, Select, Table, Pagination, Tabs, Tag, Modal, message, Spin, Empty, Tooltip, Collapse } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import UserProfile from './UserProfile';
@@ -438,6 +438,27 @@ const PendingApprovals: React.FC = () => {
     if (size) setPageSize(size);
   };
 
+  /**
+   * Which of the fields the approve form can set are still empty on the
+   * charity itself. Drives whether that form opens or stays folded away: a
+   * portal charity fills its own profile in, so for most of them this is
+   * empty and nine blank inputs would be the first thing a reviewer sees.
+   */
+  const missingProfileFields = selectedItem
+    ? ([
+        ['Category', selectedItem.category],
+        ['About', selectedItem.about],
+        ['Cover image', selectedItem.coverUrl],
+        ['Logo', selectedItem.logoUrl],
+        ['Website', selectedItem.website],
+        ['Contact', selectedItem.contactPerson === 'N/A' ? '' : selectedItem.contactPerson],
+        ['Phone', selectedItem.phone === 'N/A' ? '' : selectedItem.phone],
+        ['Location', selectedItem.location === 'N/A' ? '' : selectedItem.location],
+      ] as [string, unknown][])
+        .filter(([, v]) => !String(v ?? '').trim())
+        .map(([label]) => label)
+    : [];
+
   const handleViewDetails = (record: ApprovalItem) => {
     setSelectedItem(record);
     setApprovalModalVisible(true);
@@ -770,8 +791,11 @@ const PendingApprovals: React.FC = () => {
         title={
           <div className="modal-header">
             <ExclamationCircleOutlined className="modal-icon" />
-            <Title level={3} style={{ margin: 0, color: '#DB8633' }}>
-              {selectedItem?.name} - Approval Details
+            {/* White, never the brand teal or orange: this sits on the
+                orange header gradient, and anything but white either
+                disappears into it or fails contrast. */}
+            <Title level={3} style={{ margin: 0, color: '#ffffff' }}>
+              {selectedItem?.name}
             </Title>
           </div>
         }
@@ -799,36 +823,60 @@ const PendingApprovals: React.FC = () => {
             Approve
           </Button>,
         ]}
-        width={800}
+        width={selectedItem?.itemType === 'beneficiary' ? 1140 : 760}
         className="approval-details-modal"
       >
         {selectedItem && (
           <div className="approval-details">
+          <div className={`approval-columns${selectedItem.itemType === 'beneficiary' ? '' : ' single'}`}>
+          <div className="approval-main">
         {selectedItem?.itemType === 'beneficiary' && (
           /* Donor-suggested charities arrive with only what the IRS registry
-             gave us — name, EIN, city. Approving without filling this in
-             leaves the cause live with placeholder art and no story, so the
-             form sits above the read-only details. Blank fields are dropped,
-             never written as empty. */
-          <div className="detail-section">
-            <Title level={4}>Complete the charity profile</Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-              Filled in when you approve. Anything left blank keeps its current value.
-            </Text>
-            <Space direction="vertical" style={{ width: '100%' }} size={10}>
+             gave us: name, EIN, city. Approving one of those without filling
+             this in leaves it live with placeholder art and no story.
+             A charity that registered through the portal fills its own
+             profile in, so for those this is usually nine empty boxes and
+             pure noise. Hence collapsed unless something is actually
+             missing, with the count on the header so it is obvious either
+             way. Blank fields are dropped on save, never written as empty. */
+          <Collapse
+            style={{ marginBottom: 24 }}
+            defaultActiveKey={missingProfileFields.length > 0 ? ['fill'] : []}
+            items={[{
+              key: 'fill',
+              label: (
+                <Space size={8}>
+                  <Text strong>Fill in anything missing</Text>
+                  {missingProfileFields.length > 0 ? (
+                    <Tag color="orange">{missingProfileFields.length} blank</Tag>
+                  ) : (
+                    <Tag color="green">Nothing missing</Tag>
+                  )}
+                </Space>
+              ),
+              children: (
+                <>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+                    Saved when you approve. Anything you leave blank keeps the
+                    value the charity already has, so you only need to touch
+                    what is wrong or empty.
+                  </Text>
+                  <div className="approval-fill-grid">
               <Input
                 placeholder="Category (e.g. Hunger Relief)"
                 value={charityProfile.category || ''}
                 onChange={(e) => setCharityProfile((p) => ({ ...p, category: e.target.value }))}
               />
               <Input
-                placeholder="Short description — one line shown on the card"
+                className="full-width"
+                placeholder="Short description, the one line shown on the card"
                 value={charityProfile.description || ''}
                 onChange={(e) => setCharityProfile((p) => ({ ...p, description: e.target.value }))}
               />
               <Input.TextArea
+                className="full-width"
                 rows={3}
-                placeholder="About — who they are and what they do"
+                placeholder="About: who they are and what they do"
                 value={charityProfile.about || ''}
                 onChange={(e) => setCharityProfile((p) => ({ ...p, about: e.target.value }))}
               />
@@ -858,12 +906,16 @@ const PendingApprovals: React.FC = () => {
                 onChange={(e) => setCharityProfile((p) => ({ ...p, phone: e.target.value }))}
               />
               <Input
-                placeholder="Full address — used to place them on the donor map"
+                className="full-width"
+                placeholder="Full address, used to place them on the donor map"
                 value={charityProfile.location || ''}
                 onChange={(e) => setCharityProfile((p) => ({ ...p, location: e.target.value }))}
               />
-            </Space>
-          </div>
+                  </div>
+                </>
+              ),
+            }]}
+          />
         )}
 
             <div className="detail-section">
@@ -945,8 +997,25 @@ const PendingApprovals: React.FC = () => {
               </div>
             )}
 
+            <div className="detail-section">
+              <Title level={4}>Verification Status</Title>
+              <div className="status-grid">
+                <div className="status-item">
+                  <Text strong>Documents:</Text>
+                  <Tag color={selectedItem.documentsSubmitted === 'Complete' ? 'green' : 'orange'}>
+                    {selectedItem.documentsSubmitted}
+                  </Tag>
+                </div>
+                <div className="status-item">
+                  <Text strong>Verification:</Text>
+                  <Tag color="blue">{selectedItem.verificationStatus}</Tag>
+                </div>
+              </div>
+            </div>
+            </div>{/* /approval-main */}
+
             {selectedItem.itemType === 'beneficiary' && (
-              <div className="detail-section">
+              <aside className="approval-preview detail-section">
                 <Title level={4}>How this looks in the app</Title>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
                   Exactly what a donor would see if you approve it. Judge the
@@ -970,32 +1039,10 @@ const PendingApprovals: React.FC = () => {
                     <Text style={{ fontSize: 13 }}>{selectedItem.about}</Text>
                   </div>
                 )}
-              </div>
+              </aside>
             )}
+            </div>{/* /approval-columns */}
             
-            <div className="detail-section">
-              <Title level={4}>Verification Status</Title>
-              <div className="status-grid">
-                <div className="status-item">
-                  <Text strong>Documents:</Text>
-                  <Tag color={selectedItem.documentsSubmitted === 'Complete' ? 'green' : 'orange'}>
-                    {selectedItem.documentsSubmitted}
-                  </Tag>
-                </div>
-                <div className="status-item">
-                  <Text strong>Verification:</Text>
-                  <Tag color="blue">{selectedItem.verificationStatus}</Tag>
-                </div>
-              </div>
-            </div>
-
-            <div className="detail-section">
-              <Title level={4}>Additional Notes</Title>
-              <Text type="secondary">
-                Review all submitted documents and verify {selectedItem.itemType === 'vendor' ? 'business legitimacy' : 'organization legitimacy'} before approval.
-                Ensure compliance with platform guidelines and requirements.
-              </Text>
-            </div>
           </div>
         )}
       </Modal>

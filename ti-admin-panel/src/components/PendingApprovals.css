@@ -492,6 +492,12 @@ a:hover {
 }
 
 /* Approval Details Modal */
+/* Roomier: the review panel carries a phone-width app preview beside the
+   details, and at 800px that forced the two into one long column. */
+.approval-details-modal {
+  max-width: calc(100vw - 32px);
+}
+
 .approval-details-modal .ant-modal-content {
   border-radius: 12px !important;
   overflow: hidden;
@@ -543,13 +549,70 @@ a:hover {
   margin-bottom: 0;
 }
 
-.detail-section .ant-typography {
-  margin-bottom: 16px !important;
+/* Section headings only. This was `.detail-section .ant-typography`, which
+   matched every descendant, so each paragraph, hint and body line picked up
+   the heading's size, weight and a 2px orange rule underneath it. The child
+   combinator plus h4 keeps it on the title where it was meant to be, and the
+   rule is a hairline rather than a brand-coloured bar: one section heading
+   per card does not need shouting. */
+.detail-section > h4.ant-typography {
+  margin-bottom: 12px !important;
   color: #324E58 !important;
   font-size: 16px !important;
   font-weight: 600 !important;
-  border-bottom: 2px solid #DB8633;
+  border-bottom: 1px solid #EDEDED;
   padding-bottom: 8px;
+}
+
+/* Everything else in a section is ordinary text. */
+.detail-section p.ant-typography,
+.detail-section span.ant-typography {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Two columns: details on the left, the app preview held beside them. The
+   preview is a fixed 390pt phone width plus its frame, so it gets a fixed
+   track and the details take the rest. */
+.approval-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 438px;
+  gap: 20px;
+  align-items: start;
+}
+
+.approval-columns.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .approval-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The preview column stays put while the details scroll past it. */
+.approval-preview {
+  position: sticky;
+  top: 0;
+}
+
+/* The fill-in-the-gaps form, two across so it is not a tall stack of
+   nine single-file inputs. */
+.approval-fill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.approval-fill-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+  .approval-fill-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .detail-grid {
