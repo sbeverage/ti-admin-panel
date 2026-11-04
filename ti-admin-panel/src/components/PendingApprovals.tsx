@@ -791,10 +791,10 @@ const PendingApprovals: React.FC = () => {
         title={
           <div className="modal-header">
             <ExclamationCircleOutlined className="modal-icon" />
-            {/* White, never the brand teal or orange: this sits on the
-                orange header gradient, and anything but white either
-                disappears into it or fails contrast. */}
-            <Title level={3} style={{ margin: 0, color: '#ffffff' }}>
+            {/* Colour lives in PendingApprovals.css, not here: index.css
+                sets `.ant-typography { color: ... !important }` globally, and
+                an inline style cannot beat an important rule. */}
+            <Title level={3} style={{ margin: 0 }}>
               {selectedItem?.name}
             </Title>
           </div>

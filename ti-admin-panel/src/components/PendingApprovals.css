@@ -509,7 +509,18 @@ a:hover {
   padding: 24px 24px 20px 24px !important;
 }
 
-.approval-details-modal .ant-modal-title {
+/* Everything in the orange header is white.
+   index.css carries a global `.ant-typography { color: #324E58 !important }`,
+   and an !important stylesheet rule beats a plain inline style, which React
+   has no way to mark important. So setting the colour on the element does
+   nothing here and it has to be won in CSS: more specific, and important in
+   turn. Brand rule, see CLAUDE.md: never teal or blue on orange. */
+.approval-details-modal .ant-modal-title,
+.approval-details-modal .ant-modal-header .ant-typography,
+.approval-details-modal .ant-modal-header h1.ant-typography,
+.approval-details-modal .ant-modal-header h2.ant-typography,
+.approval-details-modal .ant-modal-header h3.ant-typography,
+.approval-details-modal .ant-modal-header h4.ant-typography {
   color: #ffffff !important;
 }
 
