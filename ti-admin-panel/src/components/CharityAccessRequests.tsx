@@ -156,9 +156,15 @@ const CharityAccessRequests: React.FC = () => {
     {
       title: '',
       key: 'actions',
-      width: 180,
+      // Both buttons sit side by side and must not be squeezed. They measure
+      // roughly 105 and 100 at small size, plus the 8 gap and the cell's own
+      // padding, so the pair needs about 230. At 180 the second one overflowed
+      // the cell and was clipped by the card's right edge. nowrap keeps the
+      // browser from reclaiming the space if the other columns get greedy.
+      width: 250,
+      align: 'right' as const,
       render: (_: unknown, r: AccessRequest) => (
-        <Space>
+        <Space style={{ whiteSpace: 'nowrap' }}>
           <Button
             type="primary"
             size="small"
