@@ -65,6 +65,11 @@ const Beneficiaries: React.FC = () => {
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  // Every row is already in memory: the fetch above loops until it has the
+  // whole list, and paging is a slice over it. So showing all of them costs
+  // nothing but scroll, and clicking through pages to find one record was
+  // paying a price for a limit that is not really there.
+  const [showAll, setShowAll] = useState(false);
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('30-days');
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null);
@@ -387,10 +392,9 @@ const Beneficiaries: React.FC = () => {
     return sortOrder === 'ascend' ? comparison : -comparison;
   });
 
-  const paginatedBeneficiaries = sortedBeneficiaries.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const paginatedBeneficiaries = showAll
+    ? sortedBeneficiaries
+    : sortedBeneficiaries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleInviteBeneficiary = () => {
     setInviteModalVisible(true);
@@ -989,15 +993,28 @@ const Beneficiaries: React.FC = () => {
               
               {/* Pagination */}
               <div className="pagination-section">
-                <Pagination
-                  current={currentPage}
-                  total={filteredBeneficiaries.length}
-                  pageSize={pageSize}
-                  showSizeChanger={false}
-                  showQuickJumper={false}
-                  onChange={handlePageChange}
-                  className="beneficiaries-pagination"
-                />
+                {!showAll && (
+                  <Pagination
+                    current={currentPage}
+                    total={filteredBeneficiaries.length}
+                    pageSize={pageSize}
+                    showSizeChanger={false}
+                    showQuickJumper={false}
+                    onChange={handlePageChange}
+                    className="beneficiaries-pagination"
+                  />
+                )}
+                {(showAll || filteredBeneficiaries.length > pageSize) && (
+                  <Button
+                    type="link"
+                    className="view-all-toggle"
+                    onClick={() => { setShowAll(!showAll); setCurrentPage(1); }}
+                  >
+                    {showAll
+                      ? 'Back to pages'
+                      : `View all ${filteredBeneficiaries.length}`}
+                  </Button>
+                )}
               </div>
             </div>
             </DashboardSection>

@@ -530,8 +530,20 @@
 .pagination-section {
   padding: 24px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 12px;
   border-top: 1px solid #f0f0f0;
+}
+
+/* Sits beside the pager, and on its own once every row is shown. */
+.view-all-toggle {
+  padding: 0;
+  height: auto;
+  color: #DB8633;
+}
+.view-all-toggle:hover {
+  color: #b86d26;
 }
 
 .vendors-pagination .ant-pagination-item-active {
