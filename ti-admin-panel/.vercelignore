@@ -1,1 +1,12 @@
-# Don't ignore anything - we need all files
+# Don't ignore anything - we need all files.
+#
+# One exception. .env.local is gitignored but was still being uploaded on a
+# CLI deploy, because this file excluded nothing. The build reads its own
+# environment from the Vercel project settings, so the local copy has no
+# business being there: if the two ever drift, the build silently picks up
+# whatever REACT_APP_ADMIN_SECRET happens to be on the machine that deployed.
+#
+# Vercel's own env vars still win over a .env file at build time, so this was
+# not breaking anything today. It removes the way it could.
+.env.local
+.env.*.local
