@@ -5,7 +5,7 @@ import {
   EditOutlined, MailOutlined, PhoneOutlined, BankOutlined, DollarOutlined, 
   CalendarOutlined, EnvironmentOutlined, ArrowLeftOutlined, CreditCardOutlined,
   HeartOutlined, TrophyOutlined, HistoryOutlined, GiftOutlined,
-  AppleOutlined, InfoCircleOutlined
+  AppleOutlined, InfoCircleOutlined, MessageOutlined
 } from '@ant-design/icons';
 import { donorAPI } from '../services/api';
 import './InviteDonorModal.css';
@@ -124,6 +124,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
       console.error('Error fetching donor details:', error);
       // If endpoint doesn't exist, use mock/fallback data structure
       setDonorDetails({
+        cancellation_feedback: [],
         payment_methods: [],
         monthly_donation: null,
         current_beneficiary: null,
@@ -684,6 +685,92 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                   />
                 )}
               </Card>
+
+              {/*
+                Outside the monthly_donation conditional above on purpose: a
+                donor who cancelled usually has no monthly donation left to
+                show, and that is exactly when the reason matters most.
+              */}
+              {donorDetails?.cancellation_feedback?.length > 0 && (
+                <Card
+                  size="small"
+                  title={
+                    <span>
+                      <MessageOutlined /> Cancellation feedback
+                    </span>
+                  }
+                  style={{ marginTop: 16 }}
+                >
+                  <Space
+                    direction="vertical"
+                    size="middle"
+                    style={{ width: '100%' }}
+                  >
+                    {donorDetails.cancellation_feedback.map(
+                      (entry: any, index: number) => {
+                        const stayed =
+                          entry.outcome === 'kept_changing_charity';
+                        return (
+                          <div
+                            key={entry.id}
+                            style={{
+                              paddingTop: index === 0 ? 0 : 12,
+                              borderTop:
+                                index === 0 ? 'none' : '1px solid #F0F0F0',
+                            }}
+                          >
+                            <Space size={[8, 4]} wrap>
+                              <Tag color={stayed ? 'green' : 'red'}>
+                                {stayed
+                                  ? 'Stayed, switched charity'
+                                  : 'Cancelled'}
+                              </Tag>
+                              <Text type="secondary">
+                                {formatDate(entry.created_at)}
+                              </Text>
+                              {entry.monthly_amount != null && (
+                                <Text type="secondary">
+                                  {formatCurrency(Number(entry.monthly_amount))}
+                                  /mo
+                                </Text>
+                              )}
+                              {entry.charity_name && (
+                                <Text type="secondary">
+                                  to {entry.charity_name}
+                                </Text>
+                              )}
+                            </Space>
+
+                            <div style={{ marginTop: 6 }}>
+                              <Text strong>{entry.reason_label}</Text>
+                            </div>
+
+                            {entry.details ? (
+                              <div
+                                style={{
+                                  marginTop: 8,
+                                  padding: '10px 12px',
+                                  background: '#FAFAFA',
+                                  borderLeft: '3px solid #DB8633',
+                                  borderRadius: 4,
+                                }}
+                              >
+                                <Text style={{ whiteSpace: 'pre-wrap' }}>
+                                  {entry.details}
+                                </Text>
+                              </div>
+                            ) : (
+                              <Text type="secondary" style={{ fontSize: 12 }}>
+                                They did not add a comment.
+                              </Text>
+                            )}
+                          </div>
+                        );
+                      },
+                    )}
+                  </Space>
+                </Card>
+              )}
             </div>
           </TabPane>
 
