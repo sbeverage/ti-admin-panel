@@ -61,10 +61,11 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
       const city = cityStateParts[0] || '';
       const state = cityStateParts[1] || '';
       
-              // Extract numeric values from donation strings (e.g., "$500" -> "500")
-              // Handle both formatted strings like "$15" and plain numbers
-              const donationAmount = donor.donation ? 
-                (typeof donor.donation === 'string' ? donor.donation.replace(/[^0-9.]/g, '') : String(donor.donation)) : 
+              // Extract numeric values from pledge strings (e.g., "$500" -> "500")
+              // Handle both formatted strings like "$15" and plain numbers.
+              // This is the monthly pledge, not a lifetime total.
+              const pledgeAmount = donor.monthlyPledge ? 
+                (typeof donor.monthlyPledge === 'string' ? donor.monthlyPledge.replace(/[^0-9.]/g, '') : String(donor.monthlyPledge)) : 
                 '0';
               const oneTimeAmount = donor.oneTime ? 
                 (typeof donor.oneTime === 'string' ? donor.oneTime.replace(/[^0-9.]/g, '') : String(donor.oneTime)) : 
@@ -102,7 +103,7 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
           (donor.coworking === 'Yes' || donor.coworking === true
             ? 'coworking'
             : 'standard'),
-        donation: donationAmount !== '0' ? donationAmount : '',
+        monthlyPledge: pledgeAmount !== '0' ? pledgeAmount : '',
         oneTime: oneTimeAmount !== '0' ? oneTimeAmount : '',
         lastDonated: lastDonatedDate,
         notes: donor.notes || ''
@@ -418,8 +419,8 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                   
                   <div className="form-row">
                     <Form.Item
-                      name="donation"
-                      label="Donation Amount"
+                      name="monthlyPledge"
+                      label="Monthly pledge"
                       rules={[
                         {
                           validator: (_, value) => {
@@ -429,14 +430,14 @@ const EditDonorModal: React.FC<EditDonorModalProps> = ({
                             const numeric = parseFloat(String(value));
                             return numeric > 0
                               ? Promise.resolve()
-                              : Promise.reject(new Error('Donation amount must be greater than 0'));
+                              : Promise.reject(new Error('The monthly pledge has to be more than $0.'));
                           }
                         }
                       ]}
                       className="form-item"
                     >
                       <Input 
-                        placeholder="Enter donation amount"
+                        placeholder="Amount given each month"
                         prefix={<DollarOutlined />}
                         size="large"
                         type="number"

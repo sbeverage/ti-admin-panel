@@ -155,7 +155,16 @@ const Donors: React.FC = () => {
           // the coworking boolean is kept as a fallback for rows written before
           // it did.
           membership: donor.invite_type || (donor.coworking ? 'coworking' : 'standard'),
-          donation: donor.total_donations ? `$${donor.total_donations}` : '$0',
+          // The donor's monthly pledge, NOT a lifetime total of money given.
+          // The server used to return this as `total_donations`, which read on
+          // screen as money received: an abandoned signup showed an amount it
+          // had never paid. monthly_pledge is the correct key; the old one is
+          // still read as a fallback so the panel keeps working against a
+          // server that has not been deployed yet.
+          monthlyPledge: (() => {
+            const pledge = donor.monthly_pledge ?? donor.total_donations;
+            return pledge ? `$${pledge}` : '$0';
+          })(),
           oneTime: donor.one_time_donation ? `$${donor.one_time_donation}` : '$0',
           lastDonated: donor.last_donation_date ? new Date(donor.last_donation_date).toLocaleDateString() : 'Never',
           subscriptionStatus: donor.subscription_status || 'no_subscription',
@@ -579,12 +588,12 @@ const Donors: React.FC = () => {
     {
       title: (
         <div className="sortable-header">
-          Donation
+          Monthly pledge
           <SortAscendingOutlined className="sort-icon" />
         </div>
       ),
-      dataIndex: 'donation',
-      key: 'donation',
+      dataIndex: 'monthlyPledge',
+      key: 'monthlyPledge',
       render: (text: string) => <Text strong style={{ color: '#DB8633' }}>{text}</Text>,
       width: 140,
     },
@@ -1005,7 +1014,7 @@ const Donors: React.FC = () => {
       const state = cityStateParts[1] || values.state || '';
       
       // Prepare donor data for API
-      // Note: Fields like beneficiary_name, coworking, total_donations are typically calculated
+      // Note: Fields like beneficiary_name, coworking, monthly_pledge are typically calculated
       // from related tables and may be ignored by the backend during updates
       const donorData: any = {
         name: values.name,
@@ -1018,8 +1027,8 @@ const Donors: React.FC = () => {
           street: '' // Street address not currently in form, but backend expects it
         },
         beneficiary_id: values.beneficiary ? Number(values.beneficiary) : undefined,
-        donation_amount: values.donation !== undefined && values.donation !== null && values.donation !== ''
-          ? parseFloat(String(values.donation).replace('$', ''))
+        donation_amount: values.monthlyPledge !== undefined && values.monthlyPledge !== null && values.monthlyPledge !== ''
+          ? parseFloat(String(values.monthlyPledge).replace('$', ''))
           : undefined,
         one_time_donation: values.oneTime !== undefined && values.oneTime !== null && values.oneTime !== ''
           ? parseFloat(String(values.oneTime).replace('$', ''))
@@ -1034,7 +1043,7 @@ const Donors: React.FC = () => {
         is_active: editingDonor.active !== undefined ? editingDonor.active : true,
         is_enabled: editingDonor.enabled !== undefined ? editingDonor.enabled : true
         // Note: 'notes' field removed - column doesn't exist in users table
-        // Note: beneficiary_name, coworking, total_donations, one_time_donation, 
+        // Note: beneficiary_name, coworking, monthly_pledge, one_time_donation, 
         // last_donation_date are typically calculated fields and may be ignored by backend
       };
       
@@ -1718,13 +1727,13 @@ const Donors: React.FC = () => {
               {deletingUser.beneficiary && (
                 <>
                   <br />
-                  <Text>Beneficiary: {deletingUser.beneficiary}</Text>
+                  <Text>Charity: {deletingUser.beneficiary}</Text>
                 </>
               )}
-              {deletingUser.donation && (
+              {deletingUser.monthlyPledge && (
                 <>
                   <br />
-                  <Text>Total Donations: {deletingUser.donation}</Text>
+                  <Text>Monthly pledge: {deletingUser.monthlyPledge}</Text>
                 </>
               )}
             </div>
