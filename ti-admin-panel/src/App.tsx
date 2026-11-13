@@ -8,6 +8,7 @@ import Donors from './components/Donors';
 import Vendor from './components/Vendor';
 import Beneficiaries from './components/Beneficiaries';
 import Discounts from './components/Discounts';
+import Redemptions from './components/Redemptions';
 import Settings from './components/Settings';
 // Newsfeed Management is hidden until a real backend exists — the component
 // currently renders only hardcoded sample posts, which would mislead admins.
@@ -68,6 +69,7 @@ function App() {
           <Route path="/vendor" element={<Vendor />} />
           <Route path="/beneficiaries" element={<Beneficiaries />} />
           <Route path="/discounts" element={<Discounts />} />
+          <Route path="/redemptions" element={<Redemptions />} />
           {/* /newsfeed-management route removed — component is hardcoded mock data; restore when a real backend exists. */}
           <Route path="/pending-approvals" element={<PendingApprovals />} />
           <Route path="/invitations" element={<Invitations />} />

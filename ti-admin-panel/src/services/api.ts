@@ -2097,3 +2097,83 @@ export const invitationsAPI = {
     return response.json();
   },
 };
+
+// ---------------------------------------------------------------------------
+// Redemptions
+//
+// One call returns the rows and the summary together. The Edge Function
+// aggregates in JS because the table is small, so splitting this into a list
+// endpoint and a stats endpoint would mean reading the same rows twice.
+
+export interface RedemptionRow {
+  id: number;
+  redeemed_at: string;
+  hour_of_day: number;
+  day_of_week: number;
+  donor: { id: number | null; name: string | null; email: string | null; days_since_signup: number | null };
+  vendor: { id: number | null; name: string | null; category: string | null };
+  discount: { id: number | null; title: string | null };
+  total_bill: number | null;
+  total_savings: number | null;
+  savings_rate: number | null;
+  /** exact = joined on a key. inferred = matched on donor+discount within an hour. */
+  pairing: 'exact' | 'inferred' | 'none';
+  source: string | null;
+  source_label: string | null;
+  source_context: Record<string, any> | null;
+  minutes_from_reminder: number | null;
+}
+
+export interface RedemptionSummary {
+  redemptions: number;
+  distinct_donors: number;
+  distinct_vendors: number;
+  repeat_donors: number;
+  repeat_rate: number | null;
+  with_savings: number;
+  savings_capture_rate: number | null;
+  total_savings: number | null;
+  total_spend: number | null;
+  average_savings: number | null;
+  by_source: { key: string; count: number }[];
+  by_vendor: { key: string; count: number }[];
+  by_hour: { key: string; count: number }[];
+  by_day_of_week: { key: string; count: number }[];
+  attributed: number;
+}
+
+export interface RedemptionsResponse {
+  redemptions: RedemptionRow[];
+  summary: RedemptionSummary;
+  truncated: boolean;
+  max_rows: number;
+}
+
+export const redemptionsAPI = {
+  getAll: async (params: {
+    from?: string;
+    to?: string;
+    vendorId?: number;
+    donorId?: number;
+    source?: string;
+  } = {}): Promise<RedemptionsResponse> => {
+    const q = new URLSearchParams();
+    if (params.from) q.set('from', params.from);
+    if (params.to) q.set('to', params.to);
+    if (params.vendorId != null) q.set('vendorId', String(params.vendorId));
+    if (params.donorId != null) q.set('donorId', String(params.donorId));
+    if (params.source) q.set('source', params.source);
+
+    const suffix = q.toString() ? `?${q.toString()}` : '';
+    const response = await fetchWithTimeout(
+      `${API_CONFIG.baseURL}/redemptions${suffix}`,
+      { headers: API_CONFIG.headers }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+};

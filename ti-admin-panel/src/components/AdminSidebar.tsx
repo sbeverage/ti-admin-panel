@@ -15,6 +15,7 @@ import {
   SettingOutlined,
   MenuOutlined,
   UnorderedListOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import UserProfile from './UserProfile';
 import { usePendingApprovalsCount } from '../hooks/usePendingApprovalsCount';
@@ -55,6 +56,7 @@ const ADMIN_MENU_ITEMS: MenuEntry[] = [
     children: [
       { key: 'vendor', icon: <UnorderedListOutlined />, label: 'Vendor List', route: '/vendor', title: 'All Vendors' },
       { key: 'discounts', icon: <GiftOutlined />, label: 'Discounts', route: '/discounts', title: 'Discount Management' },
+      { key: 'redemptions', icon: <TagsOutlined />, label: 'Redemptions', route: '/redemptions', title: 'Discount Redemptions' },
     ],
   },
   { key: 'pending-approvals', icon: <ExclamationCircleOutlined />, label: 'Pending Approvals', route: '/pending-approvals', title: 'Pending Approvals' },
