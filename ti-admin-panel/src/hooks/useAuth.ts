@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
+import {
+  clearAdminSession,
+  getAdminDisplayName,
+  isAdminSignedIn,
+} from '../services/adminSession';
 
-// Session expires after 8 hours of inactivity
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+// Signed in means holding an unexpired admin token, not a localStorage flag.
+// The flag used to be the whole gate, and it gated only this screen: the API
+// authenticated on a shared secret shipped in the bundle, so setting
+// admin_authenticated by hand in a console was enough to get in, and not
+// setting it stopped nobody who called the API directly.
+//
+// Expiry now comes from the token the server issued, so it cannot be extended
+// from the browser. getAdminToken() clears the session once it passes.
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -18,27 +29,12 @@ export const useAuth = () => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const isAuth = localStorage.getItem('admin_authenticated') === 'true';
-      const username = localStorage.getItem('admin_username');
-      const expiryStr = localStorage.getItem('admin_session_expiry');
-
-      if (isAuth && expiryStr) {
-        const expiry = parseInt(expiryStr, 10);
-        if (Date.now() > expiry) {
-          // Session expired — clear everything
-          localStorage.removeItem('admin_authenticated');
-          localStorage.removeItem('admin_username');
-          localStorage.removeItem('admin_email');
-          localStorage.removeItem('admin_session_expiry');
-          localStorage.removeItem('admin_is_super_admin');
-          setAuthState({ isAuthenticated: false, username: null, loading: false });
-          return;
-        }
-      }
-
+      // isAdminSignedIn() clears an expired session as a side effect, so a
+      // stale token never survives a reload.
+      const isAuth = isAdminSignedIn();
       setAuthState({
         isAuthenticated: isAuth,
-        username: isAuth ? username : null,
+        username: isAuth ? getAdminDisplayName() : null,
         loading: false
       });
     };
@@ -46,11 +42,9 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
+  // AdminLogin has already stored the token and profile by the time this runs;
+  // this only moves the UI. The expiry is the server's, not one made up here.
   const login = (username: string) => {
-    const expiry = Date.now() + SESSION_DURATION_MS;
-    localStorage.setItem('admin_authenticated', 'true');
-    localStorage.setItem('admin_username', username);
-    localStorage.setItem('admin_session_expiry', String(expiry));
     setAuthState({
       isAuthenticated: true,
       username,
@@ -59,11 +53,7 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('admin_authenticated');
-    localStorage.removeItem('admin_username');
-    localStorage.removeItem('admin_email');
-    localStorage.removeItem('admin_session_expiry');
-    localStorage.removeItem('admin_is_super_admin');
+    clearAdminSession();
 
     setAuthState({
       isAuthenticated: false,

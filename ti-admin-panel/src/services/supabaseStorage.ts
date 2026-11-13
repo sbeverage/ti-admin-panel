@@ -1,5 +1,6 @@
 // Supabase Storage Service for Image Uploads
 // Uses Supabase Storage REST API directly
+import { getAdminToken } from './adminSession';
 
 export interface UploadResult {
   success: boolean;
@@ -19,6 +20,8 @@ const STORAGE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
 
 // Env only, no hardcoded fallback \u2014 this repo is public. Matches api.ts.
+// Legacy: only used when there is no signed-in admin token. See
+// services/adminSession.ts.
 function getAdminSecret(): string {
   const raw = process.env.REACT_APP_ADMIN_SECRET;
   if (!raw) return '';
@@ -29,13 +32,21 @@ function getAdminSecret(): string {
   return s;
 }
 
+// Mirrors getAdminHeaders() in api.ts: the signed-in admin's token when there
+// is one, the shared secret only as a bridge. Uploads go through /admin
+// routes, so they authenticate the same way everything else does.
 function getStorageHeaders(): Record<string, string> {
-  return {
-    'X-Admin-Secret': getAdminSecret(),
+  const token = getAdminToken();
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'apikey': STORAGE_ANON_KEY,
-    'Authorization': `Bearer ${STORAGE_ANON_KEY}`,
+    apikey: STORAGE_ANON_KEY,
+    Authorization: `Bearer ${token || STORAGE_ANON_KEY}`,
   };
+  if (!token) {
+    const legacySecret = getAdminSecret();
+    if (legacySecret) headers['X-Admin-Secret'] = legacySecret;
+  }
+  return headers;
 }
 
 // ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Modal } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { settingsAPI } from '../services/api';
+import { setAdminSession } from '../services/adminSession';
 import './AdminLogin.css';
 
 const { Title, Text } = Typography;
@@ -28,18 +29,29 @@ const AdminLogin: React.FC<{ onLogin: (username: string) => void }> = ({ onLogin
       });
 
       if (response.data && response.success !== false) {
-        const displayName = response.data.name || response.data.email || values.email;
-        message.success('Login successful!');
-        localStorage.setItem('admin_authenticated', 'true');
-        localStorage.setItem('admin_username', displayName);
-        localStorage.setItem('admin_email', response.data.email || values.email);
-        // Fall back to deriving it from role. The backend now sends
-        // is_super_admin, but a stale cached bundle or an older deploy would
-        // otherwise silently lock a super admin out of Team Management.
-        const superAdmin =
-          response.data.is_super_admin ??
-          String(response.data.role || '').trim().toLowerCase() === 'super admin';
-        localStorage.setItem('admin_is_super_admin', superAdmin ? 'true' : 'false');
+        // setAdminSession stores the token, the server's expiry and the
+        // profile, including deriving is_super_admin from role when an older
+        // deploy does not send it, which would otherwise lock a super admin
+        // out of Team Management.
+        const displayName = setAdminSession(response.data, values.email);
+
+        if (!response.data.token) {
+          // An Edge Function old enough to predate token auth. The panel still
+          // works on the shared secret, so say so rather than blocking, but do
+          // not let it look like the move off the secret has happened.
+          message.warning(
+            'Signed in, but this server has not been updated yet, so the panel is still using the shared key.'
+          );
+        } else {
+          message.success('Signed in.');
+        }
+
+        if (response.data.must_reset_password) {
+          message.warning(
+            'You are still using the password that was emailed to you. Change it in Settings.'
+          );
+        }
+
         onLogin(displayName);
       } else if (response.success === false) {
         message.error(response.error || 'Invalid email or password');

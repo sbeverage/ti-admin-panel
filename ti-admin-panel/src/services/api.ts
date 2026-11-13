@@ -1,3 +1,7 @@
+// The signed-in admin's token. See services/adminSession.ts and
+// SECURITY-ADMIN-AUTH.md: this is option 1 from that document, built.
+import { getAdminToken, clearAdminSession } from './adminSession';
+
 // API Configuration - Supabase Edge Function
 // Gateway validates `apikey` + `Authorization` (anon JWT). Admin routes also require `X-Admin-Secret`
 // matching Edge Function secret `ADMIN_SECRET_KEY` (set in Supabase Dashboard).
@@ -20,6 +24,7 @@ const DEFAULT_ADMIN_BASE_URL =
 
 const SUPABASE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+
 
 /**
  * Team/settings endpoints live under /admin/... on the Edge function.
@@ -58,15 +63,33 @@ function normalizeEnvSecret(raw: string | undefined): string | undefined {
   return s.length > 0 ? s : undefined;
 }
 
-const getAdminHeaders = (): Record<string, string> => ({
-  // Empty string rather than a fallback when unset: the Edge Function answers
-  // 401 and the handler below explains what to set. A silent wrong-secret
-  // failure is harder to diagnose than an obvious one.
-  'X-Admin-Secret': normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET) || '',
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-});
+/**
+ * Headers for an admin request.
+ *
+ * The signed-in admin's token goes in Authorization, matching how the donor
+ * app sends a user JWT: `apikey` identifies the project to the Supabase
+ * gateway, Authorization carries the real credential.
+ *
+ * X-Admin-Secret is sent only when there is no token, as a bridge so the Edge
+ * Function and this panel do not have to deploy in lockstep.
+ *
+ * REMOVING REACT_APP_ADMIN_SECRET FROM VERCEL IS WHAT CLOSES THE HOLE. While
+ * it is set, react-scripts inlines it into every bundle it builds, whether or
+ * not this code prefers the token.
+ */
+const getAdminHeaders = (): Record<string, string> => {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${token || SUPABASE_ANON_KEY}`,
+  };
+  if (!token) {
+    const legacySecret = normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET);
+    if (legacySecret) headers['X-Admin-Secret'] = legacySecret;
+  }
+  return headers;
+};
 
 const API_CONFIG = {
   get baseURL() {
@@ -91,7 +114,7 @@ const buildPublicUrl = (path: string) => {
 
 /** Map Edge / gateway errors to something operators can fix in Vercel env. */
 function adminRequestErrorMessage(status: number, errorText: string): string {
-  let parsed: { message?: string; error?: string; code?: number } = {};
+  let parsed: { message?: string; error?: string; code?: number | string } = {};
   try {
     parsed = JSON.parse(errorText) as typeof parsed;
   } catch {
@@ -117,8 +140,11 @@ function adminRequestErrorMessage(status: number, errorText: string): string {
     if (/invalid jwt/i.test(msg) || (parsed.code === 401 && /jwt/i.test(msg))) {
       return 'Supabase blocked the request (invalid anon JWT). In Vercel, set REACT_APP_SUPABASE_ANON_KEY to the anon key from Supabase → Project Settings → API.';
     }
-    if (/unauthorized admin/i.test(msg)) {
-      return 'Admin auth failed. Set REACT_APP_ADMIN_SECRET equal to Supabase Edge secret ADMIN_SECRET_KEY and redeploy. Remove quotes/extra characters if you pasted the value.';
+    if (/unauthorized admin/i.test(msg) || parsed.code === 'admin_auth_required') {
+      // The session is gone or has expired. Clearing it means the next render
+      // shows the sign-in screen instead of a page of failed requests.
+      clearAdminSession();
+      return 'Your sign-in has expired. Sign in again to carry on.';
     }
   }
   return msg;
