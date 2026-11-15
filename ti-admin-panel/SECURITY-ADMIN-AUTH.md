@@ -107,8 +107,10 @@ Order matters:
    `Authorization: Bearer ey...` and **no** `X-Admin-Secret` on admin requests.
 4. Delete `REACT_APP_ADMIN_SECRET` in Vercel → Settings → Environment
    Variables, and redeploy so a fresh bundle is built without it. Confirm with:
-   `curl -s https://admin.forpurposetechnologies.com/ | grep -o '/static/js/main[^"]*'`
+   `curl -s https://admin.jointhriveinitiative.org/ | grep -o '/static/js/main[^"]*'`
    then grep that file for the secret. It should not be there.
+   (Both admin.jointhriveinitiative.org and admin.forpurposetechnologies.com
+   alias the same deployment, so one check covers both.)
 5. Rotate `ADMIN_SECRET_KEY` in Supabase → Edge Functions → Secrets
    (`openssl rand -hex 32`). This is what finally revokes the value sitting in
    public git history. Nothing in the browser needs it any more, so unlike
@@ -117,8 +119,25 @@ Order matters:
    `X-Admin-Secret` fallbacks from `api.ts` and `supabaseStorage.ts`, so there
    is one way in.
 
-Steps 1 to 3 are safe to do at any pace. **Step 4 is the one that closes the
-hole**; step 5 is what makes the old, already-public value stop working.
+Steps 1 to 3 are safe to do at any pace. **Step 5 is the one that closes the
+hole.** Step 4 alone does not, and it is worth being precise about why.
+
+Vercel keeps every past deployment permanently reachable at its own URL, and
+each was built with `REACT_APP_ADMIN_SECRET` set, so each bundle still carries
+the key. Verified 2026-11-15: three historical deployments answered 200 and
+served their original bundles. Deleting the variable and redeploying only
+cleans the *next* bundle. It does not unpublish the previous ones, and those
+URLs are not secret — they appear in build logs, dashboards and deploy
+notifications.
+
+Together with the value already sitting in this repo's public git history,
+treat the current `ADMIN_SECRET_KEY` as published. Step 4 stops *new* bundles
+leaking it; only rotation revokes what has already leaked. Do them close
+together.
+
+Worth enabling at the same time: Vercel Deployment Protection, which puts
+those historical and preview URLs behind authentication instead of leaving
+them open.
 
 Keep a local `.env.local` with the secret until step 5, as a way back in if
 something goes wrong with token auth. After step 5 it is dead weight; delete it.
