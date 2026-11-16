@@ -3,8 +3,10 @@
 import { getAdminToken, clearAdminSession } from './adminSession';
 
 // API Configuration - Supabase Edge Function
-// Gateway validates `apikey` + `Authorization` (anon JWT). Admin routes also require `X-Admin-Secret`
-// matching Edge Function secret `ADMIN_SECRET_KEY` (set in Supabase Dashboard).
+// The Supabase gateway validates `apikey`. `Authorization` carries the real
+// credential: the signed-in admin's token on admin routes, the public anon key
+// otherwise. Admin routes used to require `X-Admin-Secret` as well; they no
+// longer accept it. See SECURITY-ADMIN-AUTH.md.
 
 // The Supabase anon key is a public key — safe to include as a default fallback.
 const DEFAULT_SUPABASE_ANON_KEY =
@@ -12,15 +14,6 @@ const DEFAULT_SUPABASE_ANON_KEY =
 
 const DEFAULT_ADMIN_BASE_URL =
   'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1/api/admin';
-
-// The admin secret comes from REACT_APP_ADMIN_SECRET only. There is deliberately
-// no hardcoded fallback: this repo is public, so a default here is a published
-// credential. Set it in Vercel (Production) and in .env.local for local dev.
-//
-// Note this is build-time inlining, not a server-side secret. react-scripts
-// substitutes REACT_APP_* into the static bundle, so whatever value is set ends
-// up readable in the browser by anyone who can load the panel. Keeping it out of
-// git closes the GitHub exposure, not the bundle one — see SECURITY-ADMIN-AUTH.md.
 
 const SUPABASE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
@@ -46,49 +39,41 @@ const getBaseURL = () =>
   normalizeAdminBaseUrl(process.env.REACT_APP_API_BASE_URL?.trim() || DEFAULT_ADMIN_BASE_URL);
 
 /**
- * Dashboard copy/paste often wraps secrets in quotes or adds CR.
- * Edge Function compares exact bytes to ADMIN_SECRET_KEY.
- */
-function normalizeEnvSecret(raw: string | undefined): string | undefined {
-  if (raw == null) return undefined;
-  let s = raw.trim().replace(/^\uFEFF/, '').replace(/\r/g, '');
-  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-    s = s.slice(1, -1).trim();
-  }
-  // Strip accidental "REACT_APP_ADMIN_SECRET=" prefix if someone pasted the key=value pair
-  const prefix = 'REACT_APP_ADMIN_SECRET=';
-  if (s.startsWith(prefix)) {
-    s = s.slice(prefix.length).trim();
-  }
-  return s.length > 0 ? s : undefined;
-}
-
-/**
  * Headers for an admin request.
  *
  * The signed-in admin's token goes in Authorization, matching how the donor
  * app sends a user JWT: `apikey` identifies the project to the Supabase
  * gateway, Authorization carries the real credential.
  *
- * X-Admin-Secret is sent only when there is no token, as a bridge so the Edge
- * Function and this panel do not have to deploy in lockstep.
+ * There is no longer an X-Admin-Secret fallback. REACT_APP_ADMIN_SECRET was
+ * inlined into this bundle by react-scripts, so the working key was readable
+ * by anyone who opened the panel. The variable is gone from Vercel and the
+ * secret has been rotated; the Edge Function does not accept it either.
  *
- * REMOVING REACT_APP_ADMIN_SECRET FROM VERCEL IS WHAT CLOSES THE HOLE. While
- * it is set, react-scripts inlines it into every bundle it builds, whether or
- * not this code prefers the token.
+ * With no token, this sends the public anon key, which every admin route
+ * answers with 401 and `code: "admin_auth_required"`. That is the signal the
+ * response handler turns into a trip back to the login screen.
  */
 const getAdminHeaders = (): Record<string, string> => {
   const token = getAdminToken();
-  const headers: Record<string, string> = {
+  return {
     'Content-Type': 'application/json',
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${token || SUPABASE_ANON_KEY}`,
   };
-  if (!token) {
-    const legacySecret = normalizeEnvSecret(process.env.REACT_APP_ADMIN_SECRET);
-    if (legacySecret) headers['X-Admin-Secret'] = legacySecret;
-  }
-  return headers;
+};
+
+/**
+ * Headers for a multipart upload.
+ *
+ * Same credentials, minus Content-Type: the browser has to set that itself so
+ * it can add the multipart boundary. These two upload calls used to send
+ * X-Admin-Secret and nothing else, which stopped working the moment the panel
+ * started holding a token, because the secret header was no longer being set.
+ */
+const getAdminUploadHeaders = (): Record<string, string> => {
+  const { 'Content-Type': _omit, ...rest } = getAdminHeaders();
+  return rest;
 };
 
 const API_CONFIG = {
@@ -566,10 +551,9 @@ export const vendorAPI = {
 
     const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/vendors/${vendorId}/logo`, {
       method: 'POST',
-      headers: {
-        'X-Admin-Secret': API_CONFIG.headers['X-Admin-Secret'],
-        // Content-Type intentionally omitted — browser sets multipart boundary
-      },
+      // Content-Type intentionally omitted — the browser sets the
+      // multipart boundary itself.
+      headers: getAdminUploadHeaders(),
       body: formData,
     });
 
@@ -748,10 +732,9 @@ export const discountAPI = {
 
     const response = await fetchWithTimeout(`${API_CONFIG.baseURL}/discounts/${discountId}/image`, {
       method: 'POST',
-      headers: {
-        'X-Admin-Secret': API_CONFIG.headers['X-Admin-Secret'],
-        // Content-Type intentionally omitted — browser sets multipart boundary
-      },
+      // Content-Type intentionally omitted — the browser sets the
+      // multipart boundary itself.
+      headers: getAdminUploadHeaders(),
       body: formData,
     });
 

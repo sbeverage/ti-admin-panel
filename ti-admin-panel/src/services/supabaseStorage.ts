@@ -19,34 +19,20 @@ const STORAGE_ANON_KEY =
   process.env.REACT_APP_SUPABASE_ANON_KEY?.trim() ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
 
-// Env only, no hardcoded fallback \u2014 this repo is public. Matches api.ts.
-// Legacy: only used when there is no signed-in admin token. See
-// services/adminSession.ts.
-function getAdminSecret(): string {
-  const raw = process.env.REACT_APP_ADMIN_SECRET;
-  if (!raw) return '';
-  let s = raw.trim().replace(/^\uFEFF/, '').replace(/\r/g, '');
-  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-    s = s.slice(1, -1).trim();
-  }
-  return s;
-}
-
-// Mirrors getAdminHeaders() in api.ts: the signed-in admin's token when there
-// is one, the shared secret only as a bridge. Uploads go through /admin
-// routes, so they authenticate the same way everything else does.
+// Mirrors getAdminHeaders() in api.ts: the signed-in admin's token, full stop.
+// Uploads go through /admin routes, so they authenticate the same way
+// everything else does.
+//
+// The X-Admin-Secret fallback that used to live here went with the rest of the
+// shared-secret path. REACT_APP_ADMIN_SECRET is gone from Vercel, the Edge
+// Function no longer accepts the header, and the secret has been rotated.
 function getStorageHeaders(): Record<string, string> {
   const token = getAdminToken();
-  const headers: Record<string, string> = {
+  return {
     'Content-Type': 'application/json',
     apikey: STORAGE_ANON_KEY,
     Authorization: `Bearer ${token || STORAGE_ANON_KEY}`,
   };
-  if (!token) {
-    const legacySecret = getAdminSecret();
-    if (legacySecret) headers['X-Admin-Secret'] = legacySecret;
-  }
-  return headers;
 }
 
 // ---------------------------------------------------------------------------

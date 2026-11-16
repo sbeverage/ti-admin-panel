@@ -1,8 +1,9 @@
 # Admin panel authentication
 
 Written 2026-09-15 after finding the admin secret committed to this repo.
-Updated 2026-11-13: option 1 below is now built. The cutover is not finished —
-see "What is left" before assuming this is closed.
+Updated 2026-11-16: the cutover is complete. `ADMIN_SECRET_KEY` has been
+rotated, no code reads it, and a per-person token is the only credential that
+opens an admin route. See "What is still open" for what this did not fix.
 
 ## What was wrong
 
@@ -53,12 +54,19 @@ Option 1 from the original plan: per-user, short-lived tokens.
 - `POST /admin/settings/team/login` is now **outside** the shared-secret check,
   breaking the circle. It did its own bcrypt check all along. It returns
   `token`, `expires_at` and `must_reset_password`.
-- `routes/adminRouter.ts` accepts **either** a valid admin token in
-  `Authorization: Bearer` **or** the legacy `X-Admin-Secret`. Dual-accept is a
-  bridge so the Edge Function and the panel do not have to deploy together.
+- `routes/adminRouter.ts` requires a valid admin token in
+  `Authorization: Bearer`. It accepted `X-Admin-Secret` as well between
+  2026-11-13 and 2026-11-16, as a bridge so the Edge Function and the panel
+  did not have to deploy together. That branch is gone.
+- `lib/adminAuth.ts` also exports `isAdminRequest()`, used by the four routes
+  that sit **outside** the `/admin` router and gate on admin credentials:
+  `DELETE /auth/delete-user`, the data-deletion handler, `POST` and `DELETE
+  /charities`, and `/uploads`. Each used to carry its own copy of the secret
+  comparison, so they did not learn about tokens when the router did, and
+  `DELETE /auth/delete-user` broke the moment the panel stopped sending a
+  secret. One helper now, so the next change cannot miss a copy.
 - `src/services/adminSession.ts` — one place that stores the token and the
-  profile. `api.ts` and `supabaseStorage.ts` send the token when there is one
-  and fall back to the secret only when there is not.
+  profile. `api.ts` and `supabaseStorage.ts` send the token and nothing else.
 - `hooks/useAuth.ts` treats "signed in" as holding an unexpired token rather
   than a localStorage flag that anyone could set from a console.
 
@@ -80,70 +88,67 @@ Two things fixed alongside, because they were part of the same weakness:
 
 ### Verified
 
-16-case decision table (`scratchpad/adminauthtest.mjs`): login reachable with no
-credential; every other route refused with none; legacy secret accepted; wrong
-secret refused; admin token accepted; expired, forged, garbage and empty tokens
-refused; a donor app token refused; a donor token whose `role` is `admin`
-refused; the Supabase anon key refused; DELETE on a donor refused without a
-credential and allowed with a token.
+24-case decision table (`scratchpad/adminauthtest.mjs`): login reachable with
+no credential; every other route refused with none; the shared secret refused,
+alone and alongside a donor token; admin token accepted; expired, forged,
+garbage and empty tokens refused; a donor app token refused; a donor token
+whose `role` is `admin` refused; the Supabase anon key refused; DELETE on a
+donor refused without a credential and allowed with a token; and the same
+matrix again for the four routes outside the `/admin` router.
 
-The decision table proves the predicate, not the deployment. The gate has not
-been exercised against the live Edge Function.
+Against the live Edge Function after rotation (2026-11-16), the old secret is
+now indistinguishable from sending nothing:
 
-## What is left
+```
+admin donors,        old secret -> 401
+delete-user,         old secret -> 401 "Authentication required."
+delete-user,         no cred    -> 401 "Authentication required."
+hard DELETE charity, old secret -> 401
+uploads,             old secret -> 401
+public charities                -> 200   (function healthy)
+login, no credential            -> 400   (still public, as intended)
+```
 
-**The exposure is unchanged until `REACT_APP_ADMIN_SECRET` is removed from
-Vercel.** While it is set, react-scripts inlines it into every bundle Vercel
-builds, whether or not the code prefers the token.
+## The cutover, as it was done
 
-Order matters:
+1. **Deploy the Edge Function.** Dual-accept meant nothing broke: the panel
+   kept working on the secret.
+2. **Run `RUN_ME_admin_login_lockout_2026-11-13.sql`** in the Supabase SQL
+   editor. Not `supabase db push` — this project's migration history is out of
+   sync.
+3. **Deploy the panel.** Confirmed `admin_token` in localStorage and
+   `Authorization: Bearer ey...` on admin requests.
+4. **Delete `REACT_APP_ADMIN_SECRET` in Vercel** and redeploy. Verified the new
+   bundle no longer contains the value, and that no environment (production,
+   preview or development) still defines the variable.
+5. **Rotate `ADMIN_SECRET_KEY`** in Supabase. This is the step that actually
+   revoked the exposure; see below.
+6. **Remove dual-accept** from `adminRouter.ts` and `isAdminRequest()`, and the
+   `X-Admin-Secret` fallbacks from `api.ts` and `supabaseStorage.ts`.
 
-1. Deploy the Edge Function. Dual-accept means nothing breaks: the panel keeps
-   working on the secret.
-   `supabase functions deploy api --project-ref mdqgndyhzlnwojtubouh`
-2. Run `RUN_ME_admin_login_lockout_2026-11-13.sql` in the Supabase SQL editor.
-   Not `supabase db push` — this project's migration history is out of sync.
-3. Deploy the panel. Sign in. Confirm the Network tab shows
-   `Authorization: Bearer ey...` and **no** `X-Admin-Secret` on admin requests.
-4. Delete `REACT_APP_ADMIN_SECRET` in Vercel → Settings → Environment
-   Variables, and redeploy so a fresh bundle is built without it. Confirm with:
-   `curl -s https://admin.jointhriveinitiative.org/ | grep -o '/static/js/main[^"]*'`
-   then grep that file for the secret. It should not be there.
-   (Both admin.jointhriveinitiative.org and admin.forpurposetechnologies.com
-   alias the same deployment, so one check covers both.)
-5. Rotate `ADMIN_SECRET_KEY` in Supabase → Edge Functions → Secrets
-   (`openssl rand -hex 32`). This is what finally revokes the value sitting in
-   public git history. Nothing in the browser needs it any more, so unlike
-   every previous rotation it does not go straight back into a bundle.
-6. Remove the dual-accept branch from `adminRouter.ts` and the
-   `X-Admin-Secret` fallbacks from `api.ts` and `supabaseStorage.ts`, so there
-   is one way in.
-
-Steps 1 to 3 are safe to do at any pace. **Step 5 is the one that closes the
-hole.** Step 4 alone does not, and it is worth being precise about why.
+### Why step 4 alone would not have been enough
 
 Vercel keeps every past deployment permanently reachable at its own URL, and
 each was built with `REACT_APP_ADMIN_SECRET` set, so each bundle still carries
-the key. Verified 2026-11-15: three historical deployments answered 200 and
+the old key. Verified 2026-11-15: three historical deployments answered 200 and
 served their original bundles. Deleting the variable and redeploying only
 cleans the *next* bundle. It does not unpublish the previous ones, and those
 URLs are not secret — they appear in build logs, dashboards and deploy
-notifications.
+notifications. Together with the value sitting in this repo's public git
+history, the old `ADMIN_SECRET_KEY` has to be treated as published forever.
+Only rotation revoked it.
 
-Together with the value already sitting in this repo's public git history,
-treat the current `ADMIN_SECRET_KEY` as published. Step 4 stops *new* bundles
-leaking it; only rotation revokes what has already leaked. Do them close
-together.
+Those historical URLs are still public. **Vercel Deployment Protection** puts
+them behind authentication and is worth enabling; it is not done.
 
-Worth enabling at the same time: Vercel Deployment Protection, which puts
-those historical and preview URLs behind authentication instead of leaving
-them open.
-
-Keep a local `.env.local` with the secret until step 5, as a way back in if
-something goes wrong with token auth. After step 5 it is dead weight; delete it.
+A `.env.local` holding the old secret was kept on the maintainer's machine as a
+way back in during the cutover. It is dead weight now.
 
 ## Still not solved
 
+- **Vercel Deployment Protection is not enabled**, so every historical and
+  preview deployment URL is still publicly loadable. They no longer leak a
+  working credential, but they are old copies of the admin UI.
 - The token lives in `localStorage`, so script running on this origin could read
   it. Bounded by the eight-hour expiry. A HttpOnly cookie would close it and
   needs the API and the panel on one domain, which they are not.
