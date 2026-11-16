@@ -17,10 +17,15 @@ interface MonthlySavings {
   total: number;
   avgPerDonor: number;
   uniqueDonors: number;
+  // How many of those redemptions came with an amount. Donors tell us on the
+  // savings screen and most skip it, so the dollar totals describe a subset.
+  // Optional: an older Edge Function deploy does not send it.
+  reported?: number;
 }
 interface TotalSavings {
   count: number;
   total: number;
+  reported?: number;
 }
 interface SavingsTrend {
   month: string;
@@ -307,6 +312,14 @@ const SavingsOverviewSection: React.FC<Props> = ({ data }) => {
               {monthly?.count ?? 0} redemptions · avg{' '}
               {money(monthly?.avgPerDonor ?? 0)} / donor
             </Text>
+            {typeof monthly?.reported === 'number' && (
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, display: 'block', marginTop: 2 }}
+              >
+                {monthly.reported} told us what they saved
+              </Text>
+            )}
           </Card>
         </Col>
 
@@ -337,6 +350,14 @@ const SavingsOverviewSection: React.FC<Props> = ({ data }) => {
             >
               {(total?.count ?? 0).toLocaleString()} total redemptions
             </Text>
+            {typeof total?.reported === 'number' && (
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, display: 'block', marginTop: 2 }}
+              >
+                {total.reported.toLocaleString()} told us what they saved
+              </Text>
+            )}
           </Card>
         </Col>
 
